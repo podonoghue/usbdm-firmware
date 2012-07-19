@@ -1,0 +1,89 @@
+/* This is a linker parameter file for the mc9s08js16 */
+
+NAMES END /* CodeWarrior will pass all the needed files to the linker by command line. But here you may add your own files too. */
+
+SEGMENTS /* Here all RAM/ROM areas of the device are listed. Used in PLACEMENT below. */
+    
+// Usual RAM/ROM for program 
+    Z_RAM                    =  READ_WRITE   0x0080 TO 0x00CF; // Overlayed + Initialised
+    RAM                      =  READ_WRITE   0x00D0 TO 0x027F;             // JS16
+// ROM area is reduced for ICP boot code and relocated vector table
+// Warning - the following must not overlap any absolute sections otherwise it silently overwrites them!!!
+    ROM                      =  READ_ONLY    0xC000 TO 0xFB93 FILL 0xFF;   // JM16, JS16
+
+    USB_RAM_REGION           =  READ_WRITE   0x1860 TO 0x195F;
+   
+// ICP Boot area
+    ICP_RAM                  =  PAGED        0x0080 TO 0x00FF; // Overlayed, not initialised
+    ICP_RAM2                 =  PAGED        0x0100 TO 0x027F; // Overlayed, not initialised
+    ICP_ROM1                 =  READ_ONLY    0xFC00 TO 0xFFAD; // Protected Boot Flash area
+                                          // 0xFFAE            // FTRIM
+                                          // 0xFFAF            // TRIM
+    ICP_ROM1a                =  READ_ONLY    0xFFB0 TO 0xFFB9; // Protected Boot Flash area
+                                          // 0xFFBA            // Checksum bypass (JS16)
+                                          // 0xFFBB TO 0xFFBC  // User data
+                                          // 0xFFBD            // NVPROT
+                                          // 0xFFBE            // Partial erase semaphore
+                                          // 0xFFBF            // NVOPT
+    ICP_ROM2                 =  READ_ONLY    0xFFC0 TO 0xFFF9; // Protected Boot Flash area - Most of vector area is used
+                                          // 0xFFFA TO 0xFFFB  // ICP_FORCE_LOCATION
+                                          // 0xFFFC TO 0xFFFD  // ICP_VERSION_SW_LOCATION/ICP_VERSION_HW_LOCATION
+                                          // 0xFFFE TO 0xFFFF  // Real reset vector 
+END
+
+PLACEMENT /* Here all predefined and user segments are placed into the SEGMENTS defined above. */
+    Z_PAGE                              /* zero page variables */
+                                        INTO  Z_RAM;
+
+    DEFAULT_RAM,                         /* non-zero page variables */
+    SSTACK
+                                        INTO  RAM;
+
+    FLASH,
+    _PRESTART,                          /* startup code */
+    STARTUP,                            /* startup data structures */
+    ROM_VAR,                            /* constant variables */
+    STRINGS,                            /* string literals */
+    VIRTUAL_TABLE_SEGMENT,              /* C++ virtual table segment */
+    DEFAULT_ROM,
+    COPY                                /* copy down information: how to initialize variables */
+                                        INTO  ROM;
+
+    USB_RAM                             INTO  USB_RAM_REGION;
+    
+    BOOT_ROM,BOOT_CONST                 INTO  ICP_ROM1,ICP_ROM2;
+    BOOT_RAM                            INTO  ICP_RAM;
+    BOOT_RAM2                           INTO  ICP_RAM2;
+END
+
+// The following creates the checksum for the User Flash area (including vector table)
+CHECKSUM
+  CHECKSUM_ENTRY METHOD_ADD
+    OF      READ_ONLY   0xC000 TO 0xFBFE  // Range to checksum - MUST agree with actual user Flash area
+    INTO    READ_ONLY   0xFBFF SIZE 1     // Where to place checksum
+    UNDEFINED 0xff                        // Undefined area is filled with 0xFF
+  END
+END
+
+STACKSIZE 90 // Measured as 73 bytes 
+
+ENTRIES 
+   _Startup
+   ICP_data
+END
+
+//CHECKSUM
+//  CHECKSUM_ENTRY
+//        METHOD_CRC_CCITT
+//        INIT    0x8D9D
+//        OF      READ_ONLY   0xC400 TO 0xFFAD
+//        OF      READ_ONLY   0xFFC0 TO 0xFFFF
+//        INTO    READ_ONLY   0xFFB8 SIZE 2
+//        UNDEFINED 0xff 
+//  END     
+//END
+/*
+ * Don't use VECTORS in this file.
+ * Instead, modify the userVectorTable in UserVectorTable.c file
+ */
+
