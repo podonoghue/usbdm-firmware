@@ -71,7 +71,6 @@ extern char far __SEG_START_BOOT_ROM[];  // located above user flash
 //! If set to MAGIC_REBOOT_KEY then ICP boot will occur
 U16 icpKeyBytes;
 
-
 /*! Flash memory protection boundary
  * 
  *  NVPROT is copied from Flash to Register on reset
@@ -96,6 +95,7 @@ static const U8 NVOPT_INIT  @0x0000FFBF = NVOPT_KEYEN_MASK|NVOPT_SEC01_MASK;
  */
 static const U8 CHECKSUM_BYPASS  @0x0000FFBA = 0x00; 
 
+#pragma CODE_SEG  BOOT_ROM
 //! Causes reboot to ICP mode
 //!
 //! Called from user code.
@@ -222,11 +222,12 @@ static U8 _userDetectICP(void){
 //!
 //!  @return Never exits
 //!
-static void myStartup(void) {
-#ifndef SOPT1_BKGDPE_MASK
-#define SOPT1_BKGDPE_MASK (0) // Only exists on some CPUs
+void myStartup(void) {
+#if !defined(SOPT1_BKGDPE_MASK) || defined(DISABLE_BKGD)
+#undef SOPT1_BKGDPE_MASK
+#define SOPT1_BKGDPE_MASK (0) // Only exists on some CPUs or BKGD pin in use as BKGD
 #endif
-   SOPT1  = SOPT1_STOPE_MASK|SOPT1_BKGDPE_MASK; // Disable COP & enable STOP instruction
+   SOPT1 = SOPT1_STOPE_MASK|SOPT1_BKGDPE_MASK; // Disable COP, enable STOP instr. & BKGD pin
    if (detectICP() || flashInvalid() || _userDetectICP()) {
 	   asm {
           ldhx  #$1FF  // Need to set realistic stack for minimal ICP USB
@@ -235,8 +236,7 @@ static void myStartup(void) {
 	  LED_INIT();
 //	  debugSCIInit();
 //	  debugPuts("ICP\r");
-      initICP_USB();             // Initialise minimum USB stack
-      USBEventPollingLoop();     // Poll USB events forever
+      startICP_USB();     // Poll USB events forever
    }
    // Jmp to user code via user reset vector
    userVectorTable[0]();

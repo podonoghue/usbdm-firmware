@@ -14,13 +14,13 @@ FILE SECTION
 ---------------------------------------------------------------------------------------------
 BDM_c.obj                               Model: SMALL,         Lang: ANSI-C
 BDMCommon_c.obj                         Model: SMALL,         Lang: ANSI-C
-BDM_CF_c.obj                            Model: SMALL,         Lang: ANSI-C
 CmdProcessing_c.obj                     Model: SMALL,         Lang: ANSI-C
 CmdProcessingCFV1_c.obj                 Model: SMALL,         Lang: ANSI-C
 CmdProcessingHCS_c.obj                  Model: SMALL,         Lang: ANSI-C
 ICP_c.obj                               Model: SMALL,         Lang: ANSI-C
 ICP_USB_c.obj                           Model: SMALL,         Lang: ANSI-C
 SCI_c.obj                               Model: SMALL,         Lang: ANSI-C
+SPI_c.obj                               Model: SMALL,         Lang: ANSI-C
 USB_c.obj                               Model: SMALL,         Lang: ANSI-C
 UserVectorTable_c.obj                   Model: SMALL,         Lang: ANSI-C
 main_c.obj                              Model: SMALL,         Lang: ANSI-C
@@ -38,9 +38,9 @@ extern struct _tagStartup {
   unsigned nofZeroOut     4
   _Range   pZeroOut       0xB0     76
                           0x100     8
-                          0x1D0     292
+                          0x1D0     294
                           0x1860     256
-  _Copy    *toCopyDownBeg 0xB0E7
+  _Copy    *toCopyDownBeg 0xB15A
 } _startupData;
 
 *********************************************************************************************
@@ -52,12 +52,12 @@ Z_PAGE                            76   R/W       0xB0       0xFB   Z_RAM
 .stack                           200   R/W      0x108      0x1CF   RAM
 .init                            132     R     0x8000     0x8083   ROM
 .startData                        22     R     0x8084     0x8099   ROM
-.rodata                          834     R     0x809A     0x83DB   ROM
-.text                          11531     R     0x83DC     0xB0E6   ROM
-.copy                             48     R     0xB0E7     0xB116   ROM
+.rodata                         1034     R     0x809A     0x84A3   ROM
+.text                          11446     R     0x84A4     0xB159   ROM
+.copy                             43     R     0xB15A     0xB184   ROM
 USB_RAM                          256   R/W     0x1860     0x195F   USB_RAM_REGION
-BOOT_ROM                         936     R     0xFC00     0xFFA7   ICP_ROM1
-BOOT_RAM                          29     P       0xB0       0xCC   ICP_RAM
+BOOT_ROM                         938     R     0xFC00     0xFFA9   ICP_ROM1
+BOOT_RAM                          26     P       0xB0       0xC9   ICP_RAM
 BOOT_RAM2                         64     P      0x100      0x13F   ICP_RAM2
 .abs_section_ffbd                  1     R     0xFFBD     0xFFBD   .absSeg0
 .abs_section_ffbf                  1     R     0xFFBF     0xFFBF   .absSeg1
@@ -217,16 +217,16 @@ BOOT_RAM2                         64     P      0x100      0x13F   ICP_RAM2
 .abs_section_1810                  2   N/I     0x1810     0x1811   .absSeg157
 .abs_section_1812                  2   N/I     0x1812     0x1813   .absSeg158
 .abs_section_1814                  2   N/I     0x1814     0x1815   .absSeg159
-.bss                              38   R/W      0x1D0      0x1F5   RAM
-.common                          254   R/W      0x1F6      0x2F3   RAM
+.bss                              40   R/W      0x1D0      0x1F7   RAM
+.common                          254   R/W      0x1F8      0x2F5   RAM
 ICP_ROM2_160                      52     R     0xFFC0     0xFFF3   ICP_ROM2
-ROM_163                        19069     R     0xB117     0xFB93   ROM
+ROM_163                        18959     R     0xB185     0xFB93   ROM
 
 Summary of section sizes per section type:
-READ_ONLY (R):        7FE5 (dec:    32741)
-READ_WRITE (R/W):      340 (dec:      832)
+READ_ONLY (R):        7FE7 (dec:    32743)
+READ_WRITE (R/W):      342 (dec:      834)
 NO_INIT (N/I):         226 (dec:      550)
-PAGED (P):              5D (dec:       93)
+PAGED (P):              5A (dec:       90)
 
 *********************************************************************************************
 VECTOR-ALLOCATION SECTION
@@ -239,73 +239,72 @@ OBJECT-ALLOCATION SECTION
 ---------------------------------------------------------------------------------------------
 MODULE:                 -- BDM_c.obj --
 - PROCEDURES:
-     bdm_readBDMStatus                         83DC      3A      58       7   .text       
-     writeBDMControl                           8416      31      49       3   .text       
-     bdm_writeBDMControl                       8447      4A      74       2   .text       
-     bdm_enableBDM                             8491      4E      78       2   .text       
-     bdm_physicalConnect                       84DF      8F     143       3   .text       
-     bdm_connect                               856E      28      40       5   .text       
-     bdm_hardwareReset                         8596      D3     211       2   .text       
-     bdm_softwareReset                         8669      CC     204       3   .text       
-     bdm_targetReset                           8735      26      38       1   .text       
-     bdmHCS_powerOnReset                       875B      91     145       1   .text       
-     bdm_setInterfaceLevel                     87EC      3F      63       1   .text       
-     bdm_syncMeasure                           882B      A3     163       3   .text       
-     bdm_acknInit                              88CE      1F      31       3   .text       
-     doACKN_WAIT64                             88ED      32      50       7   .text       
-     doACKN_WAIT150                            891F      32      50      10   .text       
-     bdm_halt                                  8951      10      16       2   .text       
-     bdm_go                                    8961      2F      47       1   .text       
-     bdm_step                                  8990      36      54       1   .text       
-     bdmHCS_off                                89C6       F      15       1   .text       
-     bdmHCS_suspend                            89D5       B      11       1   .text       
-     bdmHCS_interfaceIdle                      89E0       B      11      15   .text       
-     bdmHCS_init                               89EB      1B      27       1   .text       
-     bdm_txPrepare                             8A06       8       8      24   .text       
-     bdm_txEmpty                               8A0E       1       1       7   .text       
-     bdm_tx1                                   8A0F      1A      26       1   .text       
-     bdm_tx2                                   8A29      1E      30       1   .text       
-     bdm_tx3                                   8A47      20      32       1   .text       
-     bdm_txGeneric                             8A67      28      40      20   .text       
-     rxStackDecode                             8A8F       C      12       2   .text       
-     bdm_rxEmpty                               8A9B       2       2       7   .text       
-     bdm_rx1                                   8A9D      56      86       1   .text       
-     bdm_rx2                                   8AF3      5F      95       1   .text       
-     bdm_rx3                                   8B52      12      18       1   .text       
-     bdm_rx4                                   8B64      13      19       1   .text       
-     bdm_rx5                                   8B77      15      21       1   .text       
-     bdm_rx6                                   8B8C      16      22       1   .text       
-     bdm_rxGeneric                             8BA2      1C      28      25   .text       
-     bdm_RxTxSelect                            8BBE      E7     231       3   .text       
-     bdmHC12_confirmSpeed                      8CA5     106     262       6   .text       
-     bdmHC12_alt_speed_detect                  8DAB      AA     170       2   .text       
-     bdm_testTx                                8E55      58      88       1   .text       
-     bdm_checkTiming                           8EAD       1       1       1   .text       
-     bdmTx16                                   8EAE       A      10      18   .text       
-     bdmRx16                                   8EB8       D      13       5   .text       
-     bdmRx32                                   8EC5       5       5       2   .text       
-     BDM_CMD_0_0_T                             8ECA       B      11       1   .text       
-     BDM_CMD_1W1B_0_T                          8ED5      19      25       1   .text       
-     BDM_CMD_1B_0_T                            8EEE      13      19       2   .text       
-     BDM_CMD_0_1B_NOACK                        8F01      17      23       2   .text       
-     BDM_CMD_1B_0_NOACK                        8F18      1A      26       2   .text       
-     BDM_CMD_0_0                               8F32      14      20       8   .text       
-     BDM_CMD_1W_0                              8F46      1C      28       1   .text       
-     BDM_CMD_0_1W                              8F62      1E      30       1   .text       
-     BDM_CMD_1L_0                              8F80      1E      30       6   .text       
-     BDM_CMD_0_1L                              8F9E      1A      26       6   .text       
-     BDM_CMD_1W_1WB                            8FB8      39      57       4   .text       
-     BDM_CMD_2W_0                              8FF1      21      33       2   .text       
-     BDM_CMD_1W_1W                             9012      23      35       4   .text       
-     BDM_CMD_2WB_0                             9035      28      40       4   .text       
-     BDM_CMD_0_1B                              905D      1F      31       1   .text       
-     BDM_CMD_1B_0                              907C      1B      27       1   .text       
-     BDM_CMD_1A1B_0                            9097      26      38       1   .text       
-     BDM_CMD_1A1W_0                            90BD      27      39       1   .text       
-     BDM_CMD_1A1L_0                            90E4      32      50       1   .text       
-     BDM_CMD_1A_1B                             9116      2E      46       1   .text       
-     BDM_CMD_1A_1W                             9144      29      41       1   .text       
-     BDM_CMD_1A_1L                             916D      29      41       1   .text       
+     bdm_readBDMStatus                         84A4      3A      58       7   .text       
+     writeBDMControl                           84DE      31      49       3   .text       
+     bdm_writeBDMControl                       850F      4A      74       2   .text       
+     bdm_enableBDM                             8559      4E      78       2   .text       
+     bdm_physicalConnect                       85A7      8F     143       3   .text       
+     bdm_connect                               8636      28      40       5   .text       
+     bdm_hardwareReset                         865E      D3     211       2   .text       
+     bdm_softwareReset                         8731      CC     204       3   .text       
+     bdm_targetReset                           87FD      26      38       1   .text       
+     bdmHCS_powerOnReset                       8823      91     145       1   .text       
+     bdm_syncMeasure                           88B4      A3     163       3   .text       
+     bdm_acknInit                              8957      1F      31       3   .text       
+     doACKN_WAIT64                             8976      32      50       7   .text       
+     doACKN_WAIT150                            89A8      32      50      10   .text       
+     bdm_halt                                  89DA      10      16       2   .text       
+     bdm_go                                    89EA      2F      47       1   .text       
+     bdm_step                                  8A19      36      54       1   .text       
+     bdmHCS_off                                8A4F       F      15       1   .text       
+     bdmHCS_suspend                            8A5E       B      11       1   .text       
+     bdmHCS_interfaceIdle                      8A69       B      11      15   .text       
+     bdmHCS_init                               8A74      1B      27       1   .text       
+     bdm_txPrepare                             8A8F       8       8      24   .text       
+     bdm_txEmpty                               8A97       1       1       7   .text       
+     bdm_tx1                                   8A98      1A      26       1   .text       
+     bdm_tx2                                   8AB2      1E      30       1   .text       
+     bdm_tx3                                   8AD0      20      32       1   .text       
+     bdm_txGeneric                             8AF0      28      40      20   .text       
+     rxStackDecode                             8B18       C      12       2   .text       
+     bdm_rxEmpty                               8B24       2       2       7   .text       
+     bdm_rx1                                   8B26      56      86       1   .text       
+     bdm_rx2                                   8B7C      5F      95       1   .text       
+     bdm_rx3                                   8BDB      12      18       1   .text       
+     bdm_rx4                                   8BED      13      19       1   .text       
+     bdm_rx5                                   8C00      15      21       1   .text       
+     bdm_rx6                                   8C15      16      22       1   .text       
+     bdm_rxGeneric                             8C2B      1C      28      25   .text       
+     bdm_RxTxSelect                            8C47      E7     231       3   .text       
+     bdmHC12_confirmSpeed                      8D2E     106     262       6   .text       
+     bdmHC12_alt_speed_detect                  8E34      AA     170       2   .text       
+     bdm_testTx                                8EDE      58      88       1   .text       
+     bdm_checkTiming                           8F36       1       1       1   .text       
+     bdmTx16                                   8F37       A      10      18   .text       
+     bdmRx16                                   8F41       D      13       5   .text       
+     bdmRx32                                   8F4E       5       5       2   .text       
+     BDM_CMD_0_0_T                             8F53       B      11       1   .text       
+     BDM_CMD_1W1B_0_T                          8F5E      19      25       1   .text       
+     BDM_CMD_1B_0_T                            8F77      13      19       2   .text       
+     BDM_CMD_0_1B_NOACK                        8F8A      17      23       2   .text       
+     BDM_CMD_1B_0_NOACK                        8FA1      1A      26       2   .text       
+     BDM_CMD_0_0                               8FBB      14      20       8   .text       
+     BDM_CMD_1W_0                              8FCF      1C      28       1   .text       
+     BDM_CMD_0_1W                              8FEB      1E      30       1   .text       
+     BDM_CMD_1L_0                              9009      1E      30       6   .text       
+     BDM_CMD_0_1L                              9027      1A      26       6   .text       
+     BDM_CMD_1W_1WB                            9041      39      57       4   .text       
+     BDM_CMD_2W_0                              907A      21      33       2   .text       
+     BDM_CMD_1W_1W                             909B      23      35       4   .text       
+     BDM_CMD_2WB_0                             90BE      28      40       4   .text       
+     BDM_CMD_0_1B                              90E6      1F      31       1   .text       
+     BDM_CMD_1B_0                              9105      1B      27       1   .text       
+     BDM_CMD_1A1B_0                            9120      26      38       1   .text       
+     BDM_CMD_1A1W_0                            9146      27      39       1   .text       
+     BDM_CMD_1A1L_0                            916D      32      50       1   .text       
+     BDM_CMD_1A_1B                             919F      2E      46       1   .text       
+     BDM_CMD_1A_1W                             91CD      29      41       1   .text       
+     BDM_CMD_1A_1L                             91F6      29      41       1   .text       
 - VARIABLES:
      txConfiguration                           809A      AF     175       6   .rodata     
      rxConfiguration                           8149      E7     231       2   .rodata     
@@ -315,93 +314,86 @@ MODULE:                 -- BDM_c.obj --
      bdm_tx_ptr                                  B2       2       2      46   Z_PAGE      
      lastGuess1.2                                B4       2       2       3   Z_PAGE      
      lastGuess2.3                                B6       2       2       2   Z_PAGE      
-     rxTiming1                                   B8       1       1       2   Z_PAGE      
-     rxTiming2                                   B9       1       1       2   Z_PAGE      
-     rxTiming3                                   BA       1       1       2   Z_PAGE      
-     txTiming1                                   BB       1       1       3   Z_PAGE      
-     txTiming2                                   BC       1       1       3   Z_PAGE      
-     txTiming3                                   BD       1       1       3   Z_PAGE      
+     rxTiming2                                   B8       1       1       2   Z_PAGE      
+     rxTiming3                                   B9       1       1       2   Z_PAGE      
+     txTiming2                                   BA       1       1       3   Z_PAGE      
+     txTiming3                                   BB       1       1       3   Z_PAGE      
 MODULE:                 -- BDMCommon_c.obj --
 - PROCEDURES:
-     fastTimerWait                             9196      1B      27       7   .text       
-     millisecondTimerWait                      91B1      31      49      15   .text       
-     initTimers                                91E2      2E      46       2   .text       
-     bdm_targetVddSense                        9210      28      40       1   .text       
-     bdm_resetSense                            9238       A      10       2   .text       
-     kbiHandler                                9242       5       5       1   .text       
-     timerHandler                              9247       5       5       6   .text       
-     acmpHandler                               924C       5       5       1   .text       
-     bdm_checkTargetVdd                        9251      3C      60       9   .text       
-     bdm_setTargetVdd                          928D      D1     209       6   .text       
-     bdm_cycleTargetVddOn                      935E      95     149       1   .text       
-     bdm_cycleTargetVddOff                     93F3      75     117       1   .text       
-     bdm_cycleTargetVdd                        9468      16      22       4   .text       
-     bdm_targetVddMeasure                      947E      2B      43       9   .text       
-     bdm_init                                  94A9      12      18       1   .text       
-     bdm_suspend                               94BB       3       3       1   .text       
-     bdm_interfaceOff                          94BE       B      11       3   .text       
-     bdm_off                                   94C9       F      15       3   .text       
-     bdm_setTarget                             94D8      4F      79       2   .text       
+     fastTimerWait                             921F      1B      27       7   .text       
+     millisecondTimerWait                      923A      31      49      15   .text       
+     initTimers                                926B      2E      46       2   .text       
+     bdm_targetVddSense                        9299      28      40       1   .text       
+     bdm_resetSense                            92C1       A      10       2   .text       
+     kbiHandler                                92CB       5       5       1   .text       
+     timerHandler                              92D0       5       5       6   .text       
+     acmpHandler                               92D5       5       5       1   .text       
+     bdm_checkTargetVdd                        92DA      3C      60       9   .text       
+     bdm_setTargetVdd                          9316      D1     209       6   .text       
+     bdm_cycleTargetVddOn                      93E7      95     149       1   .text       
+     bdm_cycleTargetVddOff                     947C      75     117       1   .text       
+     bdm_cycleTargetVdd                        94F1      16      22       4   .text       
+     bdm_targetVddMeasure                      9507      2B      43       9   .text       
+     bdm_init                                  9532      12      18       1   .text       
+     bdm_suspend                               9544       3       3       1   .text       
+     bdm_interfaceOff                          9547       E      14       3   .text       
+     bdm_off                                   9555       F      15       3   .text       
+     bdm_setTarget                             9564      4F      79       2   .text       
 - VARIABLES:
      cable_statusDefault                       8248       D      13       1   .rodata     
-MODULE:                 -- BDM_CF_c.obj --
-- PROCEDURES:
-- VARIABLES:
-     bitCount                                    BE       1       1       2   Z_PAGE      
 MODULE:                 -- CmdProcessing_c.obj --
 - PROCEDURES:
-     makeStatusWord                            9527      8C     140       3   .text       
-     optionalReconnect                         95B3      2B      43       2   .text       
-     f_CMD_ILLEGAL                             95DE       3       3       9   .text       
-     f_CMD_GET_COMMAND_STATUS                  95E1       3       3       1   .text       
-     f_CMD_DEBUG                               95E4      BE     190       5   .text       
-     f_CMD_SET_OPTIONS                         96A2      14      20       1   .text       
-     f_CMD_GET_CAPABILITIES                    96B6      1F      31       1   .text       
-     f_CMD_GET_BDM_STATUS                      96D5      1C      28       1   .text       
-     getPinStatus                              96F1      1F      31       3   .text       
-     f_CMD_CONTROL_PINS                        9710      E2     226       3   .text       
-     f_CMD_SET_VDD                             97F2      1A      26       1   .text       
-     f_CMD_SET_TARGET                          980C      28      40       1   .text       
-     commandExec                               9834      8C     140       1   .text       
-     commandLoop                               98C0      2A      42       1   .text       
+     makeStatusWord                            95B3      8C     140       3   .text       
+     optionalReconnect                         963F      2B      43       2   .text       
+     f_CMD_ILLEGAL                             966A       3       3      10   .text       
+     f_CMD_GET_COMMAND_STATUS                  966D       3       3       1   .text       
+     f_CMD_DEBUG                               9670      BE     190       5   .text       
+     f_CMD_SET_OPTIONS                         972E      14      20       1   .text       
+     f_CMD_GET_CAPABILITIES                    9742      1D      29       1   .text       
+     f_CMD_GET_BDM_STATUS                      975F      1C      28       1   .text       
+     getPinStatus                              977B      1F      31       3   .text       
+     f_CMD_CONTROL_PINS                        979A      E2     226       3   .text       
+     f_CMD_SET_VDD                             987C      1A      26       1   .text       
+     f_CMD_SET_TARGET                          9896      28      40       1   .text       
+     commandExec                               98BE      8C     140       1   .text       
+     commandLoop                               994A      2A      42       1   .text       
 - VARIABLES:
      commonFunctionPtrs                        8255      1E      30       1   .rodata     
      CFV1functionPtrs                          8273      26      38       1   .rodata     
      CFV1FunctionPointers                      8299       4       4       1   .rodata     
      currentFunctions                           1D2       2       2       5   .bss        
      commandToggle.1                            1D4       1       1       2   .bss        
-     cable_status                                BF       D      13      82   Z_PAGE      
-     bdm_option                                  CC       B      11      24   Z_PAGE      
-     commandStatus                               D7       1       1       5   Z_PAGE      
-     returnSize                                  D8       1       1      17   Z_PAGE      
-     commandBuffer                              1F6      FE     254      68   .common     
+     cable_status                                BC       D      13      82   Z_PAGE      
+     bdm_option                                  C9       B      11      24   Z_PAGE      
+     commandStatus                               D4       1       1       5   Z_PAGE      
+     returnSize                                  D5       1       1      16   Z_PAGE      
+     commandBuffer                              1F8      FE     254      66   .common     
 - LABELS:
      __SEG_START_SSTACK                         108       0       0       2               
      __SEG_END_SSTACK                           1D0       0       0       3               
 MODULE:                 -- CmdProcessingCFV1_c.obj --
 - PROCEDURES:
-     f_CMD_CF_WRITE_MEM                        98EA     139     313       3   .text       
-     f_CMD_CF_READ_MEM                         9A23     136     310       4   .text       
-     f_CMD_CF_WRITE_REG                        9B59      18      24       1   .text       
-     f_CMD_CF_READ_REG                         9B71      10      16       1   .text       
-     f_CMD_CF_WRITE_DREG                       9B81      52      82       1   .text       
-     f_CMD_CF_READ_DREG                        9BD3      59      89       1   .text       
-     f_CMD_CF_WRITE_CREG                       9C2C      18      24       1   .text       
-     f_CMD_CF_READ_CREG                        9C44      10      16       1   .text       
+     f_CMD_CF_WRITE_MEM                        9974     139     313       3   .text       
+     f_CMD_CF_READ_MEM                         9AAD     136     310       4   .text       
+     f_CMD_CF_WRITE_REG                        9BE3      18      24       1   .text       
+     f_CMD_CF_READ_REG                         9BFB      10      16       1   .text       
+     f_CMD_CF_WRITE_DREG                       9C0B      52      82       1   .text       
+     f_CMD_CF_READ_DREG                        9C5D      59      89       1   .text       
+     f_CMD_CF_WRITE_CREG                       9CB6      18      24       1   .text       
+     f_CMD_CF_READ_CREG                        9CCE      10      16       1   .text       
 - VARIABLES:
 MODULE:                 -- CmdProcessingHCS_c.obj --
 - PROCEDURES:
-     f_CMD_CONNECT                             9C54      33      51       2   .text       
-     f_CMD_SET_SPEED                           9C87      32      50       1   .text       
-     f_CMD_GET_SPEED                           9CB9       A      10       1   .text       
-     f_CMD_CONTROL_INTERFACE                   9CC3      1B      27       1   .text       
-     resetCFV1Interface                        9CDE      47      71       1   .text       
-     f_CMD_READ_STATUS_REG                     9D25      3D      61       1   .text       
-     f_CMD_WRITE_CONTROL_REG                   9D62       6       6       1   .text       
-     f_CMD_RESET                               9D68      5B      91       1   .text       
-     f_CMD_STEP                                9DC3       5       5       1   .text       
-     f_CMD_GO                                  9DC8       5       5       1   .text       
-     f_CMD_HALT                                9DCD       3       3       1   .text       
+     f_CMD_CONNECT                             9CDE      33      51       2   .text       
+     f_CMD_SET_SPEED                           9D11      32      50       1   .text       
+     f_CMD_GET_SPEED                           9D43       A      10       1   .text       
+     resetCFV1Interface                        9D4D      47      71       1   .text       
+     f_CMD_READ_STATUS_REG                     9D94      3D      61       1   .text       
+     f_CMD_WRITE_CONTROL_REG                   9DD1       6       6       1   .text       
+     f_CMD_RESET                               9DD7      5B      91       1   .text       
+     f_CMD_STEP                                9E32       5       5       1   .text       
+     f_CMD_GO                                  9E37       5       5       1   .text       
+     f_CMD_HALT                                9E3C       3       3       1   .text       
 - VARIABLES:
 MODULE:                 -- ICP_c.obj --
 - PROCEDURES:
@@ -409,7 +401,7 @@ MODULE:                 -- ICP_c.obj --
      detectICP                                 FC08      27      39       1   BOOT_ROM    
      flashInvalid                              FC2F      1D      29       1   BOOT_ROM    
      _userDetectICP                            FC4C       4       4       1   BOOT_ROM    
-     myStartup                                 FC50      2E      46       1   BOOT_ROM    
+     myStartup                                 FC50      2B      43       1   BOOT_ROM    
 - VARIABLES:
      icpKeyBytes                                 B0       2       2       3   BOOT_RAM    
      NVPROT_INIT                               FFBD       1       1       0   .abs_section_ffbd
@@ -423,28 +415,26 @@ MODULE:                 -- ICP_c.obj --
      __SEG_START_BOOT_ROM                      FC00       0       0       2               
 MODULE:                 -- ICP_USB_c.obj --
 - PROCEDURES:
-     myMemcpy                                  FC7E      28      40       3   BOOT_ROM    
-     initCrystalClock                          FCA6      2D      45       1   BOOT_ROM    
-     autoInitClock                             FCD3      43      67       1   BOOT_ROM    
-     ep0StartOutTransaction                    FD16      1C      28       3   BOOT_ROM    
-     ep0StartSetupTransaction                  FD32       7       7       5   BOOT_ROM    
-     ep0StartInTransaction                     FD39      25      37       3   BOOT_ROM    
-     ep0StartStatusInTransaction               FD5E       9       9       2   BOOT_ROM    
-     handleUSBReset                            FD67      1A      26       2   BOOT_ROM    
-     initICP_USB                               FD81      1D      29       1   BOOT_ROM    
-     handleGetDescriptor                       FD9E      39      57       1   BOOT_ROM    
-     setAddressCallback                        FDD7       8       8       1   BOOT_ROM    
-     onStack                                   FDDF      2C      44       1   BOOT_ROM    
-     doOnStack                                 FE0B      28      40       3   BOOT_ROM    
-     erasePageCommand                          FE33       8       8       1   BOOT_ROM    
-     programRowCommand                         FE3B       5       5       1   BOOT_ROM    
-     verifyRowCommand                          FE40      1B      27       1   BOOT_ROM    
-     handleEp0InToken                          FE5B      1D      29       1   BOOT_ROM    
-     handleEp0OutToken                         FE78      1E      30       1   BOOT_ROM    
-     icpReset                                  FE96       B      11       2   BOOT_ROM    
-     handleSetupToken                          FEA1      D2     210       1   BOOT_ROM    
-     handleTokenComplete                       FF73      1C      28       1   BOOT_ROM    
-     USBEventPollingLoop                       FF8F      19      25       1   BOOT_ROM    
+     myMemcpy                                  FC7B      27      39       3   BOOT_ROM    
+     initCrystalClock                          FCA2      2D      45       1   BOOT_ROM    
+     autoInitClock                             FCCF      43      67       1   BOOT_ROM    
+     ep0StartOutTransaction                    FD12      1C      28       3   BOOT_ROM    
+     ep0StartSetupTransaction                  FD2E       7       7       5   BOOT_ROM    
+     ep0StartInTransaction                     FD35      31      49       3   BOOT_ROM    
+     ep0StartStatusInTransaction               FD66       9       9       2   BOOT_ROM    
+     handleUSBReset                            FD6F      1A      26       1   BOOT_ROM    
+     handleGetDescriptor                       FD89      27      39       1   BOOT_ROM    
+     setAddressCallback                        FDB0       8       8       1   BOOT_ROM    
+     onStack                                   FDB8      2C      44       1   BOOT_ROM    
+     doOnStack                                 FDE4      28      40       3   BOOT_ROM    
+     erasePageCommand                          FE0C       8       8       1   BOOT_ROM    
+     programRowCommand                         FE14       5       5       1   BOOT_ROM    
+     verifyRowCommand                          FE19      1B      27       1   BOOT_ROM    
+     handleEp0InToken                          FE34      1D      29       1   BOOT_ROM    
+     handleEp0OutToken                         FE51      1E      30       1   BOOT_ROM    
+     icpReset                                  FE6F       B      11       2   BOOT_ROM    
+     handleSetupToken                          FE7A      D2     210       1   BOOT_ROM    
+     startICP_USB                              FF4C      5E      94       1   BOOT_ROM    
 - VARIABLES:
      dataBuffer                                 100      40      64       3   BOOT_RAM2   
      deviceDescriptor                          FFC0      12      18       2   ICP_ROM2_160
@@ -453,7 +443,7 @@ MODULE:                 -- ICP_USB_c.obj --
      initialEPState                            FFE6       3       3       2   ICP_ROM2_160
      clockFactors                              FFE9       6       6       3   ICP_ROM2_160
      versionConstant                           FFEF       5       5       1   ICP_ROM2_160
-     ep0SetupBuffer                              B2       8       8      13   BOOT_RAM    
+     ep0SetupBuffer                              B2       8       8      12   BOOT_RAM    
      deviceState                                 BA       2       2       6   BOOT_RAM    
      ep0State                                    BC       3       3      16   BOOT_RAM    
      dataLength                                  BF       1       1       5   BOOT_RAM    
@@ -462,10 +452,8 @@ MODULE:                 -- ICP_USB_c.obj --
      flashCommand                                C4       1       1       3   BOOT_RAM    
      flashData                                   C5       1       1       2   BOOT_RAM    
      commandStatus                               C6       1       1       3   BOOT_RAM    
-     wlength.1                                   C7       2       2       4   BOOT_RAM    
-     dataSize.2                                  C9       1       1       5   BOOT_RAM    
-     dataPtr.3                                   CA       2       2       2   BOOT_RAM    
-     intStatus.4                                 CC       1       1       5   BOOT_RAM    
+     dataSize.1                                  C7       1       1       1   BOOT_RAM    
+     dataPtr.2                                   C8       2       2       3   BOOT_RAM    
      NV_MCGTRM_INIT                            FFAF       1       1       4   .abs_section_ffaf
      bdts                                      1860      1E      30       7   .abs_section_1860
      ep0InDataBuffer                           1880      40      64       1   .abs_section_1880
@@ -473,20 +461,20 @@ MODULE:                 -- ICP_USB_c.obj --
      usbRam                                    1860     100     256       1   .abs_section_1860
 MODULE:                 -- SCI_c.obj --
 - PROCEDURES:
-     putRxBuffer                               9DD0      28      40       1   .text       
-     setRxBuffer                               9DF8       B      11       3   .text       
-     rxBufferItems                             9E03       4       4       1   .text       
-     putTxBuffer                               9E07      2D      45       1   .text       
-     getTxBuffer                               9E34      33      51       1   .text       
-     sciTxBufferFree                           9E67       A      10       2   .text       
-     getSerialState                            9E71      3B      59       1   .text       
-     sciErrorHandler                           9EAC       C      12       2   .text       
-     sciTxHandler                              9EB8      2C      44       2   .text       
-     sciRxHandler                              9EE4       A      10       2   .text       
-     sciSetLineCoding                          9EEE      C0     192       1   .text       
-     sciGetLineCoding                          9FAE       4       4       1   .text       
-     sciSetControlLineState                    9FB2       5       5       1   .text       
-     sciSendBreak                              9FB7      16      22       1   .text       
+     putRxBuffer                               9E3F      28      40       1   .text       
+     setRxBuffer                               9E67       B      11       3   .text       
+     rxBufferItems                             9E72       4       4       1   .text       
+     putTxBuffer                               9E76      2D      45       1   .text       
+     getTxBuffer                               9EA3      33      51       1   .text       
+     sciTxBufferFree                           9ED6       A      10       2   .text       
+     getSerialState                            9EE0      3B      59       1   .text       
+     sciErrorHandler                           9F1B       C      12       2   .text       
+     sciTxHandler                              9F27      2C      44       2   .text       
+     sciRxHandler                              9F53       A      10       2   .text       
+     sciSetLineCoding                          9F5D      C0     192       1   .text       
+     sciGetLineCoding                          A01D       4       4       1   .text       
+     sciSetControlLineState                    A021       5       5       1   .text       
+     sciSendBreak                              A026      16      22       1   .text       
 - VARIABLES:
      sciStatus                                  100       1       1       8   .data       
      lineCoding                                 101       7       7       7   .data       
@@ -497,100 +485,110 @@ MODULE:                 -- SCI_c.obj --
      lastSciStatus.1                            1D9       1       1       2   .bss        
      txBuffer                                   1DA      10      16       2   .bss        
      rxBuffer                                   1EA       2       2       3   .bss        
+MODULE:                 -- SPI_c.obj --
+- PROCEDURES:
+- VARIABLES:
+     bitDelay                                    D6       1       1       2   Z_PAGE      
+     rxTiming1                                   D7       1       1       2   Z_PAGE      
+     txTiming1                                   D8       1       1       3   Z_PAGE      
 MODULE:                 -- USB_c.obj --
 - PROCEDURES:
-     initEndpointBuffers                       9FCD      27      39       1   .text       
-     ep0InitialiseBDTOut                       9FF4      14      20       3   .text       
-     ep0SaveOutData                            A008      44      68       1   .text       
-     ep0StartOutTransaction                    A04C      3C      60       1   .text       
-     ep0ConfigureSetupTransaction              A088       D      13       4   .text       
-     ep0EnsureReadyForSetupTransaction         A095      2A      42       2   .text       
-     ep0InitialiseBDTIn                        A0BF      59      89       2   .text       
-     ep0StartInTransaction                     A118      6C     108      15   .text       
-     ep1InitialiseBDTOut                       A184      15      21       3   .text       
-     ep1SaveOutData                            A199      44      68       1   .text       
-     ep1StartOutTransaction                    A1DD      11      17       2   .text       
-     ep2InitialiseBDTIn                        A1EE      59      89       2   .text       
-     ep2StartInTransaction                     A247      1F      31       3   .text       
-     setBDMBusy                                A266      16      22       3   .text       
-     ep3StartInTransaction                     A27C      67     103       2   .text       
-     ep4InitialiseBDTOut                       A2E3      15      21       3   .text       
-     ep4SaveOutData                            A2F8      11      17       2   .text       
-     ep5InitialiseBDTIn                        A309      2D      45       1   .text       
-     ep5StartInTransactionIfIdle               A336      1D      29       2   .text       
-     receiveUSBCommand                         A353      BA     186       2   .text       
-     sendUSBResponse                           A40D      1E      30       1   .text       
-     epStall                                   A42B      35      53       9   .text       
-     epClearStall                              A460      2E      46       8   .text       
-     setUSBdefaultState                        A48E       C      12       3   .text       
-     setUSBaddressedState                      A49A      16      22       2   .text       
-     setUSBconfiguredState                     A4B0      19      25       1   .text       
-     initialiseEndpoints                       A4C9      63      99       1   .text       
-     handleUSBReset                            A52C      15      21       2   .text       
-     initUSB                                   A541      37      55       1   .text       
-     handleGetStatus                           A578      5D      93       1   .text       
-     handleClearFeature                        A5D5      4D      77       1   .text       
-     handleSetFeature                          A622      4D      77       1   .text       
-     utf8ToStringDescriptor                    A66F      F9     249       3   .text       
-     handleGetDescriptor                       A768      9F     159       1   .text       
-     resetDeviceCallback                       A807       4       4       1   .text       
-     setAddressCallback                        A80B      20      32       1   .text       
-     handleSetAddress                          A82B      1A      26       1   .text       
-     handleGetConfiguration                    A845       B      11       1   .text       
-     handleSetConfiguration                    A850      24      36       1   .text       
-     handleGetInterface                        A874      2F      47       1   .text       
-     handleGetEncapsulatedCommand              A8A3       D      13       1   .text       
-     handleSendEncapsulatedCommand             A8B0       A      10       1   .text       
-     handleGetLineCoding                       A8BA       D      13       1   .text       
-     setLineCodingCallback                     A8C7       6       6       1   .text       
-     handleSetLineCoding                       A8CD      11      17       1   .text       
-     handleSetControlLineState                 A8DE       F      15       1   .text       
-     handleSendBreak                           A8ED       F      15       1   .text       
-     handleUnexpected                          A8FC       4       4       1   .text       
-     handleSetupToken                          A900     114     276       1   .text       
-     ep0HandleInToken                          AA14      6E     110       1   .text       
-     ep0HandleOutToken                         AA82      56      86       1   .text       
-     ep0HandleStallComplete                    AAD8       7       7       1   .text       
-     ep1HandleOutToken                         AADF      36      54       1   .text       
-     ep2HandleInToken                          AB15      56      86       1   .text       
-     handleTokenComplete                       AB6B      7F     127       1   .text       
-     handleSOFToken                            ABEA      38      56       1   .text       
-     checkUsbCdcTxData                         AC22      1F      31       1   .text       
-     handleUSBSuspend                          AC41      1E      30       1   .text       
-     handleUSBResume                           AC5F       A      10       1   .text       
-     USBInterruptHandler                       AC69      60      96       1   .text       
+     initEndpointBuffers                       A03C      27      39       1   .text       
+     ep0InitialiseBDTOut                       A063      19      25       4   .text       
+     ep0SaveOutData                            A07C      44      68       1   .text       
+     ep0StartOutTransaction                    A0C0      3C      60       1   .text       
+     ep0ConfigureSetupTransaction              A0FC       D      13       3   .text       
+     ep0InitialiseBDTIn                        A109      59      89       2   .text       
+     ep0StartInTransaction                     A162      6C     108      18   .text       
+     ep1InitialiseBDTOut                       A1CE      15      21       3   .text       
+     ep1SaveOutData                            A1E3      44      68       1   .text       
+     ep1StartOutTransaction                    A227      11      17       2   .text       
+     ep2InitialiseBDTIn                        A238      59      89       2   .text       
+     ep2StartInTransaction                     A291      1F      31       3   .text       
+     setBDMBusy                                A2B0      16      22       3   .text       
+     ep3StartInTransaction                     A2C6      67     103       2   .text       
+     ep4InitialiseBDTOut                       A32D      15      21       3   .text       
+     ep4SaveOutData                            A342      11      17       2   .text       
+     ep5InitialiseBDTIn                        A353      2D      45       1   .text       
+     ep5StartInTransactionIfIdle               A380      1D      29       2   .text       
+     receiveUSBCommand                         A39D      BA     186       2   .text       
+     sendUSBResponse                           A457      1E      30       1   .text       
+     epStall                                   A475      35      53       9   .text       
+     epClearStall                              A4AA      2E      46       8   .text       
+     setUSBdefaultState                        A4D8       C      12       3   .text       
+     setUSBaddressedState                      A4E4      16      22       2   .text       
+     setUSBconfiguredState                     A4FA      19      25       1   .text       
+     initialiseEndpoints                       A513      63      99       1   .text       
+     handleUSBReset                            A576      15      21       2   .text       
+     initUSB                                   A58B      37      55       1   .text       
+     handleGetStatus                           A5C2      5D      93       1   .text       
+     handleClearFeature                        A61F      4D      77       1   .text       
+     handleSetFeature                          A66C      4D      77       1   .text       
+     utf8ToStringDescriptor                    A6B9      F9     249       3   .text       
+     handleGetDescriptor                       A7B2      94     148       1   .text       
+     resetDeviceCallback                       A846       4       4       1   .text       
+     setAddressCallback                        A84A      20      32       1   .text       
+     handleSetAddress                          A86A      1A      26       1   .text       
+     handleGetConfiguration                    A884       B      11       1   .text       
+     handleSetConfiguration                    A88F      24      36       1   .text       
+     handleGetInterface                        A8B3      2F      47       1   .text       
+     handleGetEncapsulatedCommand              A8E2       D      13       1   .text       
+     handleSendEncapsulatedCommand             A8EF       A      10       1   .text       
+     handleGetLineCoding                       A8F9       D      13       1   .text       
+     setLineCodingCallback                     A906       6       6       1   .text       
+     handleSetLineCoding                       A90C      11      17       1   .text       
+     handleSetControlLineState                 A91D       F      15       1   .text       
+     handleSendBreak                           A92C       F      15       1   .text       
+     handleUnexpected                          A93B       4       4       1   .text       
+     handleSetupToken                          A93F     152     338       6   .text       
+     ep0HandleInToken                          AA91      6E     110       1   .text       
+     ep0HandleOutToken                         AAFF      48      72       1   .text       
+     ep0HandleStallComplete                    AB47       7       7       1   .text       
+     ep1HandleOutToken                         AB4E      36      54       1   .text       
+     ep2HandleInToken                          AB84      56      86       1   .text       
+     handleTokenComplete                       ABDA      8D     141       1   .text       
+     handleSOFToken                            AC67      38      56       1   .text       
+     checkUsbCdcTxData                         AC9F      1F      31       1   .text       
+     handleUSBSuspend                          ACBE      1E      30       1   .text       
+     handleUSBResume                           ACDC       B      11       1   .text       
+     USBInterruptHandler                       ACE7      59      89       1   .text       
 - VARIABLES:
      deviceDescriptor                          829D      12      18       1   .rodata     
      otherDescriptors                          82AF      6A     106       4   .rodata     
-     sd0                                       8319       4       4       1   .rodata     
-     sd1                                       831D       4       4       1   .rodata     
-     sd2                                       8321      20      32       1   .rodata     
-     sd4                                       8341      14      20       1   .rodata     
-     sd5                                       8355      14      20       1   .rodata     
-     sd6                                       8369      14      20       1   .rodata     
-     sd7                                       837D      1A      26       1   .rodata     
-     sd8                                       8397      17      23       1   .rodata     
-     stringDescriptors                         83AE      12      18       2   .rodata     
-     busyResponse                              83C0       4       4       2   .rodata     
-     zeroReturn.9                              83C4       2       2       1   .rodata     
-     epStatusStalled.10                        83C6       2       2       1   .rodata     
-     epStatusOK.11                             83C8       2       2       1   .rodata     
-     dummy.12                                  83CA       C      12       1   .rodata     
-     epHardwareState                            1EC       6       6      65   .bss        
-     commandBusyFlag                            1F2       1       1       3   .bss        
-     serialDelayCount                           1F3       1       1       1   .bss        
-     reInit                                     1F4       1       1       9   .bss        
-     usbActivityFlag                            1F5       1       1       3   .bss        
+     msCompatibleIdFeatureDescriptor           8319      28      40       1   .rodata     
+     msPropertiesFeatureDescriptor             8341      8E     142       1   .rodata     
+     OS_StringDescriptor                       83CF      12      18       1   .rodata     
+     sd0                                       83E1       4       4       1   .rodata     
+     sd1                                       83E5       4       4       1   .rodata     
+     sd2                                       83E9      20      32       1   .rodata     
+     sd4                                       8409      14      20       1   .rodata     
+     sd5                                       841D      14      20       1   .rodata     
+     sd6                                       8431      14      20       1   .rodata     
+     sd7                                       8445      1A      26       1   .rodata     
+     sd8                                       845F      17      23       1   .rodata     
+     stringDescriptors                         8476      12      18       2   .rodata     
+     busyResponse                              8488       4       4       2   .rodata     
+     zeroReturn.12                             848C       2       2       1   .rodata     
+     epStatusStalled.13                        848E       2       2       1   .rodata     
+     epStatusOK.14                             8490       2       2       1   .rodata     
+     dummy.15                                  8492       C      12       1   .rodata     
+     epHardwareState                            1EC       6       6      63   .bss        
+     doneEp0OutInit                             1F2       1       1       3   .bss        
+     commandBusyFlag                            1F3       1       1       3   .bss        
+     serialDelayCount                           1F4       1       1       1   .bss        
+     reInit                                     1F5       1       1       9   .bss        
+     usbActivityFlag                            1F6       1       1       3   .bss        
+     stat                                       1F7       1       1       1   .bss        
      deviceState                                 D9       6       6      26   Z_PAGE      
      ep0State                                    DF       7       7      38   Z_PAGE      
      ep1State                                    E6       7       7      16   Z_PAGE      
      ep2State                                    ED       7       7      12   Z_PAGE      
-     ep0SetupBuffer                              F4       8       8      47   Z_PAGE      
+     ep0SetupBuffer                              F4       8       8      50   Z_PAGE      
      usbRamArea                                1860     100     256      37   USB_RAM     
      EPCTL                                       9D       7       7       6   .abs_section_9d
 MODULE:                 -- UserVectorTable_c.obj --
 - PROCEDURES:
-     dummyISR                                  ACC9       4       4      14   .text       
+     dummyISR                                  AD40       4       4      14   .text       
 - VARIABLES:
      ICP_data                                  FB94      2E      46       4   .abs_section_fb94
      userVectorTable                           FBC2      3C      60       2   .abs_section_fbc2
@@ -599,14 +597,14 @@ MODULE:                 -- UserVectorTable_c.obj --
      __SEG_START__PRESTART                     8000       0       0       1               
 MODULE:                 -- main_c.obj --
 - PROCEDURES:
-     userDetectICP                             ACCD       A      10       1   .text       
-     initCrystalClock                          ACD7      2D      45       1   .text       
-     autoInitClock                             AD04      43      67       1   .text       
-     clearStack                                AD47      14      20       1   .text       
-     init                                      AD5B      5A      90       1   .text       
-     main                                      ADB5       9       9       1   .text       
+     userDetectICP                             AD44       A      10       1   .text       
+     initCrystalClock                          AD4E      2D      45       1   .text       
+     autoInitClock                             AD7B      43      67       1   .text       
+     clearStack                                ADBE      14      20       1   .text       
+     init                                      ADD2      5A      90       1   .text       
+     main                                      AE2C       9       9       1   .text       
 - VARIABLES:
-     clockFactors                              83D6       6       6       3   .rodata     
+     clockFactors                              849E       6       6       3   .rodata     
 MODULE:                 -- start08_c.obj --
 - PROCEDURES:
      loadByte                                  8000       E      14       5   .init       
@@ -621,14 +619,14 @@ MODULE:                 -- mc9s08jm16_c.obj --
      _PTADD                                       1       1       1       1   .abs_section_1
      _PTBD                                        2       1       1      27   .abs_section_2
      _PTBDD                                       3       1       1      25   .abs_section_3
-     _PTCD                                        4       1       1      10   .abs_section_4
-     _PTCDD                                       5       1       1      10   .abs_section_5
-     _PTDD                                        6       1       1      33   .abs_section_6
+     _PTCD                                        4       1       1       8   .abs_section_4
+     _PTCDD                                       5       1       1       9   .abs_section_5
+     _PTDD                                        6       1       1      32   .abs_section_6
      _PTDDD                                       7       1       1       5   .abs_section_7
      _PTED                                        8       1       1       0   .abs_section_8
      _PTEDD                                       9       1       1       1   .abs_section_9
-     _PTFD                                        A       1       1      75   .abs_section_a
-     _PTFDD                                       B       1       1      15   .abs_section_b
+     _PTFD                                        A       1       1      71   .abs_section_a
+     _PTFDD                                       B       1       1      13   .abs_section_b
      _PTGD                                        C       1       1       1   .abs_section_c
      _PTGDD                                       D       1       1       2   .abs_section_d
      _ACMPSC                                      E       1       1       0   .abs_section_e
@@ -663,7 +661,7 @@ MODULE:                 -- mc9s08jm16_c.obj --
      _MCGTRM                                     4A       1       1       2   .abs_section_4a
      _MCGSC                                      4B       1       1      10   .abs_section_4b
      _MCGC3                                      4C       1       1       2   .abs_section_4c
-     _SPI1C1                                     50       1       1       0   .abs_section_50
+     _SPI1C1                                     50       1       1       1   .abs_section_50
      _SPI1C2                                     51       1       1       0   .abs_section_51
      _SPI1BR                                     52       1       1       0   .abs_section_52
      _SPI1S                                      53       1       1       0   .abs_section_53
@@ -687,11 +685,11 @@ MODULE:                 -- mc9s08jm16_c.obj --
      _PERID                                      88       1       1       0   .abs_section_88
      _IDCOMP                                     89       1       1       0   .abs_section_89
      _REV                                        8A       1       1       0   .abs_section_8a
-     _INTSTAT                                    90       1       1      17   .abs_section_90
+     _INTSTAT                                    90       1       1      26   .abs_section_90
      _INTENB                                     91       1       1       5   .abs_section_91
      _ERRSTAT                                    92       1       1       2   .abs_section_92
      _ERRENB                                     93       1       1       2   .abs_section_93
-     _STAT                                       94       1       1       3   .abs_section_94
+     _STAT                                       94       1       1       2   .abs_section_94
      _CTL                                        95       1       1       9   .abs_section_95
      _ADDR                                       96       1       1       6   .abs_section_96
      _FRMNUML                                    97       1       1       1   .abs_section_97
@@ -763,53 +761,53 @@ MODULE:                 -- mc9s08jm16_c.obj --
      _DBGF                                     1814       2       2       0   .abs_section_1814
 MODULE:                 -- rtshc08.o (ansiis.lib) --
 - PROCEDURES:
-     _PUSH_ARGS_L                              ADBE      20      32       2   .text       
-     _ENTER_UNARY_L                            ADDE      29      41       1   .text       
-     _ENTER_BINARY_L_RC                        AE07      19      25       1   .text       
-     _ENTER_BINARY_L_LC                        AE20      1A      26       1   .text       
-     _IDIVMOD                                  AE3A      69     105       1   .text       
-     _LADD_k_is_k_plus_j                       AEA3      1F      31       1   .text       
-     _LDIVMOD                                  AEC2      A4     164       1   .text       
-     _LDIVU_k_is_k_div_j                       AF66      17      23       1   .text       
-     _IDIVU_STAR08                             AF7D       D      13       2   .text       
-     _ILSL                                     AF8A       C      12       1   .text       
-     _ICMP                                     AF96      16      22       3   .text       
-     _LINC                                     AFAC      16      22       2   .text       
-     _LADD_RC                                  AFC2       6       6       4   .text       
-     _LDIVU_LC                                 AFC8       6       6       1   .text       
-     _COPY                                     AFCE      30      48       2   .text       
-     _POP32                                    AFFE      1A      26       6   .text       
-     _Jump_Table_Offset                        B018      19      25       4   .text       
-     _Jump_Table_Header_Offset                 B031      24      36      18   .text       
-     _Search_Table_8_Offset                    B055      25      37       1   .text       
+     _PUSH_ARGS_L                              AE35      20      32       2   .text       
+     _ENTER_UNARY_L                            AE55      29      41       1   .text       
+     _ENTER_BINARY_L_RC                        AE7E      19      25       1   .text       
+     _ENTER_BINARY_L_LC                        AE97      1A      26       1   .text       
+     _IDIVMOD                                  AEB1      69     105       1   .text       
+     _LADD_k_is_k_plus_j                       AF1A      1F      31       1   .text       
+     _LDIVMOD                                  AF39      A4     164       1   .text       
+     _LDIVU_k_is_k_div_j                       AFDD      17      23       1   .text       
+     _IDIVU_STAR08                             AFF4       D      13       2   .text       
+     _ILSL                                     B001       C      12       1   .text       
+     _ICMP                                     B00D      16      22       3   .text       
+     _LINC                                     B023      16      22       2   .text       
+     _LADD_RC                                  B039       6       6       4   .text       
+     _LDIVU_LC                                 B03F       6       6       1   .text       
+     _COPY                                     B045      30      48       2   .text       
+     _POP32                                    B075      1A      26       6   .text       
+     _Jump_Table_Offset                        B08F      19      25       4   .text       
+     _Jump_Table_Header_Offset                 B0A8      24      36      18   .text       
+     _Search_Table_8_Addr                      B0CC      21      33       1   .text       
 - VARIABLES:
 MODULE:                 -- string.o (ansiis.lib) --
 - PROCEDURES:
-     memcpy                                    B07A      3D      61       8   .text       
-     memset                                    B0B7      30      48       3   .text       
+     memcpy                                    B0ED      3D      61       8   .text       
+     memset                                    B12A      30      48       3   .text       
 - VARIABLES:
 
 *********************************************************************************************
 MODULE STATISTIC
   Name                                      Data   Code  Const
 ---------------------------------------------------------------------------------------------
-  BDM_c.obj                                   16   3514    430
-  BDMCommon_c.obj                              0    913     13
-  BDM_CF_c.obj                                 1      0      0
-  CmdProcessing_c.obj                        283    963     72
+  BDM_c.obj                                   14   3451    430
+  BDMCommon_c.obj                              0    916     13
+  CmdProcessing_c.obj                        283    961     72
   CmdProcessingCFV1_c.obj                      0    874      0
-  CmdProcessingHCS_c.obj                       0    380      0
-  ICP_c.obj                                    2    126      9
-  ICP_USB_c.obj                              505    810     53
+  CmdProcessingHCS_c.obj                       0    353      0
+  ICP_c.obj                                    2    123      9
+  ICP_USB_c.obj                              502    815     53
   SCI_c.obj                                   31    509      0
-  USB_c.obj                                  308   3324    313
+  SPI_c.obj                                    3      0      0
+  USB_c.obj                                  310   3332    513
   UserVectorTable_c.obj                        0      4    107
   main_c.obj                                   0    241      6
   start08_c.obj                                0    132      0
   mc9s08jm16_c.obj                           166      0      0
-  rtshc08.o (ansiis.lib)                       0    700      0
+  rtshc08.o (ansiis.lib)                       0    696      0
   string.o (ansiis.lib)                        0    109      0
-  other                                      200  19092     48
+  other                                      200  18982     43
 
 *********************************************************************************************
 SECTION USE IN OBJECT-ALLOCATION SECTION
@@ -817,8 +815,8 @@ SECTION USE IN OBJECT-ALLOCATION SECTION
 SECTION: ".text"
   bdm_readBDMStatus writeBDMControl bdm_writeBDMControl bdm_enableBDM 
   bdm_physicalConnect bdm_connect bdm_hardwareReset bdm_softwareReset 
-  bdm_targetReset bdmHCS_powerOnReset bdm_setInterfaceLevel bdm_syncMeasure 
-  bdm_acknInit doACKN_WAIT64 doACKN_WAIT150 bdm_halt bdm_go bdm_step bdmHCS_off 
+  bdm_targetReset bdmHCS_powerOnReset bdm_syncMeasure bdm_acknInit 
+  doACKN_WAIT64 doACKN_WAIT150 bdm_halt bdm_go bdm_step bdmHCS_off 
   bdmHCS_suspend bdmHCS_interfaceIdle bdmHCS_init bdm_txPrepare bdm_txEmpty 
   bdm_tx1 bdm_tx2 bdm_tx3 bdm_txGeneric rxStackDecode bdm_rxEmpty bdm_rx1 
   bdm_rx2 bdm_rx3 bdm_rx4 bdm_rx5 bdm_rx6 bdm_rxGeneric bdm_RxTxSelect 
@@ -838,66 +836,64 @@ SECTION: ".text"
   f_CMD_SET_TARGET commandExec commandLoop f_CMD_CF_WRITE_MEM f_CMD_CF_READ_MEM 
   f_CMD_CF_WRITE_REG f_CMD_CF_READ_REG f_CMD_CF_WRITE_DREG f_CMD_CF_READ_DREG 
   f_CMD_CF_WRITE_CREG f_CMD_CF_READ_CREG f_CMD_CONNECT f_CMD_SET_SPEED 
-  f_CMD_GET_SPEED f_CMD_CONTROL_INTERFACE resetCFV1Interface 
-  f_CMD_READ_STATUS_REG f_CMD_WRITE_CONTROL_REG f_CMD_RESET f_CMD_STEP f_CMD_GO 
-  f_CMD_HALT putRxBuffer setRxBuffer rxBufferItems putTxBuffer getTxBuffer 
-  sciTxBufferFree getSerialState sciErrorHandler sciTxHandler sciRxHandler 
-  sciSetLineCoding sciGetLineCoding sciSetControlLineState sciSendBreak 
-  initEndpointBuffers ep0InitialiseBDTOut ep0SaveOutData ep0StartOutTransaction 
-  ep0ConfigureSetupTransaction ep0EnsureReadyForSetupTransaction 
-  ep0InitialiseBDTIn ep0StartInTransaction ep1InitialiseBDTOut ep1SaveOutData 
-  ep1StartOutTransaction ep2InitialiseBDTIn ep2StartInTransaction setBDMBusy 
-  ep3StartInTransaction ep4InitialiseBDTOut ep4SaveOutData ep5InitialiseBDTIn 
-  ep5StartInTransactionIfIdle receiveUSBCommand sendUSBResponse epStall 
-  epClearStall setUSBdefaultState setUSBaddressedState setUSBconfiguredState 
-  initialiseEndpoints handleUSBReset initUSB handleGetStatus handleClearFeature 
-  handleSetFeature utf8ToStringDescriptor handleGetDescriptor 
-  resetDeviceCallback setAddressCallback handleSetAddress 
-  handleGetConfiguration handleSetConfiguration handleGetInterface 
-  handleGetEncapsulatedCommand handleSendEncapsulatedCommand 
-  handleGetLineCoding setLineCodingCallback handleSetLineCoding 
-  handleSetControlLineState handleSendBreak handleUnexpected handleSetupToken 
-  ep0HandleInToken ep0HandleOutToken ep0HandleStallComplete ep1HandleOutToken 
-  ep2HandleInToken handleTokenComplete handleSOFToken checkUsbCdcTxData 
-  handleUSBSuspend handleUSBResume USBInterruptHandler dummyISR userDetectICP 
-  initCrystalClock autoInitClock clearStack init main _PUSH_ARGS_L 
-  _ENTER_UNARY_L _ENTER_BINARY_L_RC _ENTER_BINARY_L_LC _IDIVMOD 
-  _LADD_k_is_k_plus_j _LDIVMOD _LDIVU_k_is_k_div_j _IDIVU_STAR08 _ILSL _ICMP 
-  _LINC _LADD_RC _LDIVU_LC _COPY _POP32 _Jump_Table_Offset 
-  _Jump_Table_Header_Offset _Search_Table_8_Offset memcpy memset 
+  f_CMD_GET_SPEED resetCFV1Interface f_CMD_READ_STATUS_REG 
+  f_CMD_WRITE_CONTROL_REG f_CMD_RESET f_CMD_STEP f_CMD_GO f_CMD_HALT 
+  putRxBuffer setRxBuffer rxBufferItems putTxBuffer getTxBuffer sciTxBufferFree 
+  getSerialState sciErrorHandler sciTxHandler sciRxHandler sciSetLineCoding 
+  sciGetLineCoding sciSetControlLineState sciSendBreak initEndpointBuffers 
+  ep0InitialiseBDTOut ep0SaveOutData ep0StartOutTransaction 
+  ep0ConfigureSetupTransaction ep0InitialiseBDTIn ep0StartInTransaction 
+  ep1InitialiseBDTOut ep1SaveOutData ep1StartOutTransaction ep2InitialiseBDTIn 
+  ep2StartInTransaction setBDMBusy ep3StartInTransaction ep4InitialiseBDTOut 
+  ep4SaveOutData ep5InitialiseBDTIn ep5StartInTransactionIfIdle 
+  receiveUSBCommand sendUSBResponse epStall epClearStall setUSBdefaultState 
+  setUSBaddressedState setUSBconfiguredState initialiseEndpoints handleUSBReset 
+  initUSB handleGetStatus handleClearFeature handleSetFeature 
+  utf8ToStringDescriptor handleGetDescriptor resetDeviceCallback 
+  setAddressCallback handleSetAddress handleGetConfiguration 
+  handleSetConfiguration handleGetInterface handleGetEncapsulatedCommand 
+  handleSendEncapsulatedCommand handleGetLineCoding setLineCodingCallback 
+  handleSetLineCoding handleSetControlLineState handleSendBreak 
+  handleUnexpected handleSetupToken ep0HandleInToken ep0HandleOutToken 
+  ep0HandleStallComplete ep1HandleOutToken ep2HandleInToken handleTokenComplete 
+  handleSOFToken checkUsbCdcTxData handleUSBSuspend handleUSBResume 
+  USBInterruptHandler dummyISR userDetectICP initCrystalClock autoInitClock 
+  clearStack init main _PUSH_ARGS_L _ENTER_UNARY_L _ENTER_BINARY_L_RC 
+  _ENTER_BINARY_L_LC _IDIVMOD _LADD_k_is_k_plus_j _LDIVMOD _LDIVU_k_is_k_div_j 
+  _IDIVU_STAR08 _ILSL _ICMP _LINC _LADD_RC _LDIVU_LC _COPY _POP32 
+  _Jump_Table_Offset _Jump_Table_Header_Offset _Search_Table_8_Addr memcpy 
+  memset 
 SECTION: ".data"
   sciStatus lineCoding 
 SECTION: ".bss"
   partid currentFunctions commandToggle.1 txHead txBufferCount breakCount 
   rxBufferCount lastSciStatus.1 txBuffer rxBuffer epHardwareState 
-  commandBusyFlag serialDelayCount reInit usbActivityFlag 
+  doneEp0OutInit commandBusyFlag serialDelayCount reInit usbActivityFlag stat 
 SECTION: ".init"
   loadByte Init _Startup 
 SECTION: ".rodata"
   txConfiguration rxConfiguration typicalSpeeds.1 cable_statusDefault 
   commonFunctionPtrs CFV1functionPtrs CFV1FunctionPointers deviceDescriptor 
-  otherDescriptors sd0 sd1 sd2 sd4 sd5 sd6 sd7 sd8 stringDescriptors 
-  busyResponse zeroReturn.9 epStatusStalled.10 epStatusOK.11 dummy.12 
-  clockFactors 
+  otherDescriptors msCompatibleIdFeatureDescriptor 
+  msPropertiesFeatureDescriptor OS_StringDescriptor sd0 sd1 sd2 sd4 sd5 sd6 sd7 
+  sd8 stringDescriptors busyResponse zeroReturn.12 epStatusStalled.13 
+  epStatusOK.14 dummy.15 clockFactors 
 SECTION: "Z_PAGE"
-  bdm_rx_ptr bdm_tx_ptr lastGuess1.2 lastGuess2.3 rxTiming1 rxTiming2 
-  rxTiming3 txTiming1 txTiming2 txTiming3 bitCount cable_status bdm_option 
-  commandStatus returnSize deviceState ep0State ep1State ep2State 
-  ep0SetupBuffer 
+  bdm_rx_ptr bdm_tx_ptr lastGuess1.2 lastGuess2.3 rxTiming2 rxTiming3 
+  txTiming2 txTiming3 cable_status bdm_option commandStatus returnSize bitDelay 
+  rxTiming1 txTiming1 deviceState ep0State ep1State ep2State ep0SetupBuffer 
 SECTION: "USB_RAM"
   usbRamArea 
 SECTION: "BOOT_ROM"
   rebootToICP detectICP flashInvalid _userDetectICP myStartup myMemcpy 
   initCrystalClock autoInitClock ep0StartOutTransaction 
   ep0StartSetupTransaction ep0StartInTransaction ep0StartStatusInTransaction 
-  handleUSBReset initICP_USB handleGetDescriptor setAddressCallback onStack 
-  doOnStack erasePageCommand programRowCommand verifyRowCommand 
-  handleEp0InToken handleEp0OutToken icpReset handleSetupToken 
-  handleTokenComplete USBEventPollingLoop 
+  handleUSBReset handleGetDescriptor setAddressCallback onStack doOnStack 
+  erasePageCommand programRowCommand verifyRowCommand handleEp0InToken 
+  handleEp0OutToken icpReset handleSetupToken startICP_USB 
 SECTION: "BOOT_RAM"
   icpKeyBytes ep0SetupBuffer deviceState ep0State dataLength startAddress 
-  sourceAddress flashCommand flashData commandStatus wlength.1 dataSize.2 
-  dataPtr.3 intStatus.4 
+  sourceAddress flashCommand flashData commandStatus dataSize.1 dataPtr.2 
 SECTION: "BOOT_RAM2"
   dataBuffer 
 SECTION: ".common"
@@ -1230,14 +1226,14 @@ OBJECT LIST SORTED BY ADDRESS
      _PTADD                                       1       1       1       1   .abs_section_1
      _PTBD                                        2       1       1      27   .abs_section_2
      _PTBDD                                       3       1       1      25   .abs_section_3
-     _PTCD                                        4       1       1      10   .abs_section_4
-     _PTCDD                                       5       1       1      10   .abs_section_5
-     _PTDD                                        6       1       1      33   .abs_section_6
+     _PTCD                                        4       1       1       8   .abs_section_4
+     _PTCDD                                       5       1       1       9   .abs_section_5
+     _PTDD                                        6       1       1      32   .abs_section_6
      _PTDDD                                       7       1       1       5   .abs_section_7
      _PTED                                        8       1       1       0   .abs_section_8
      _PTEDD                                       9       1       1       1   .abs_section_9
-     _PTFD                                        A       1       1      75   .abs_section_a
-     _PTFDD                                       B       1       1      15   .abs_section_b
+     _PTFD                                        A       1       1      71   .abs_section_a
+     _PTFDD                                       B       1       1      13   .abs_section_b
      _PTGD                                        C       1       1       1   .abs_section_c
      _PTGDD                                       D       1       1       2   .abs_section_d
      _ACMPSC                                      E       1       1       0   .abs_section_e
@@ -1282,7 +1278,7 @@ OBJECT LIST SORTED BY ADDRESS
      _MCGTRM                                     4A       1       1       2   .abs_section_4a
      _MCGSC                                      4B       1       1      10   .abs_section_4b
      _MCGC3                                      4C       1       1       2   .abs_section_4c
-     _SPI1C1                                     50       1       1       0   .abs_section_50
+     _SPI1C1                                     50       1       1       1   .abs_section_50
      _SPI1C2                                     51       1       1       0   .abs_section_51
      _SPI1BR                                     52       1       1       0   .abs_section_52
      _SPI1S                                      53       1       1       0   .abs_section_53
@@ -1314,11 +1310,11 @@ OBJECT LIST SORTED BY ADDRESS
      _PERID                                      88       1       1       0   .abs_section_88
      _IDCOMP                                     89       1       1       0   .abs_section_89
      _REV                                        8A       1       1       0   .abs_section_8a
-     _INTSTAT                                    90       1       1      17   .abs_section_90
+     _INTSTAT                                    90       1       1      26   .abs_section_90
      _INTENB                                     91       1       1       5   .abs_section_91
      _ERRSTAT                                    92       1       1       2   .abs_section_92
      _ERRENB                                     93       1       1       2   .abs_section_93
-     _STAT                                       94       1       1       3   .abs_section_94
+     _STAT                                       94       1       1       2   .abs_section_94
      _CTL                                        95       1       1       9   .abs_section_95
      _ADDR                                       96       1       1       6   .abs_section_96
      _FRMNUML                                    97       1       1       1   .abs_section_97
@@ -1333,38 +1329,36 @@ OBJECT LIST SORTED BY ADDRESS
      _EPCTL6                                     A3       1       1       0   .abs_section_a3
      icpKeyBytes                                 B0       2       2       3   BOOT_RAM    
      bdm_rx_ptr                                  B0       2       2      13   Z_PAGE      
-     ep0SetupBuffer                              B2       8       8      13   BOOT_RAM    
+     ep0SetupBuffer                              B2       8       8      12   BOOT_RAM    
      bdm_tx_ptr                                  B2       2       2      46   Z_PAGE      
      lastGuess1.2                                B4       2       2       3   Z_PAGE      
      lastGuess2.3                                B6       2       2       2   Z_PAGE      
-     rxTiming1                                   B8       1       1       2   Z_PAGE      
-     rxTiming2                                   B9       1       1       2   Z_PAGE      
+     rxTiming2                                   B8       1       1       2   Z_PAGE      
+     rxTiming3                                   B9       1       1       2   Z_PAGE      
      deviceState                                 BA       2       2       6   BOOT_RAM    
-     rxTiming3                                   BA       1       1       2   Z_PAGE      
-     txTiming1                                   BB       1       1       3   Z_PAGE      
+     txTiming2                                   BA       1       1       3   Z_PAGE      
+     txTiming3                                   BB       1       1       3   Z_PAGE      
      ep0State                                    BC       3       3      16   BOOT_RAM    
-     txTiming2                                   BC       1       1       3   Z_PAGE      
-     txTiming3                                   BD       1       1       3   Z_PAGE      
-     bitCount                                    BE       1       1       2   Z_PAGE      
+     cable_status                                BC       D      13      82   Z_PAGE      
      dataLength                                  BF       1       1       5   BOOT_RAM    
-     cable_status                                BF       D      13      82   Z_PAGE      
      startAddress                                C0       2       2       6   BOOT_RAM    
      sourceAddress                               C2       2       2       6   BOOT_RAM    
      flashCommand                                C4       1       1       3   BOOT_RAM    
      flashData                                   C5       1       1       2   BOOT_RAM    
      commandStatus                               C6       1       1       3   BOOT_RAM    
-     wlength.1                                   C7       2       2       4   BOOT_RAM    
-     dataSize.2                                  C9       1       1       5   BOOT_RAM    
-     dataPtr.3                                   CA       2       2       2   BOOT_RAM    
-     intStatus.4                                 CC       1       1       5   BOOT_RAM    
-     bdm_option                                  CC       B      11      24   Z_PAGE      
-     commandStatus                               D7       1       1       5   Z_PAGE      
-     returnSize                                  D8       1       1      17   Z_PAGE      
+     dataSize.1                                  C7       1       1       1   BOOT_RAM    
+     dataPtr.2                                   C8       2       2       3   BOOT_RAM    
+     bdm_option                                  C9       B      11      24   Z_PAGE      
+     commandStatus                               D4       1       1       5   Z_PAGE      
+     returnSize                                  D5       1       1      16   Z_PAGE      
+     bitDelay                                    D6       1       1       2   Z_PAGE      
+     rxTiming1                                   D7       1       1       2   Z_PAGE      
+     txTiming1                                   D8       1       1       3   Z_PAGE      
      deviceState                                 D9       6       6      26   Z_PAGE      
      ep0State                                    DF       7       7      38   Z_PAGE      
      ep1State                                    E6       7       7      16   Z_PAGE      
      ep2State                                    ED       7       7      12   Z_PAGE      
-     ep0SetupBuffer                              F4       8       8      47   Z_PAGE      
+     ep0SetupBuffer                              F4       8       8      50   Z_PAGE      
      dataBuffer                                 100      40      64       3   BOOT_RAM2   
      sciStatus                                  100       1       1       8   .data       
      lineCoding                                 101       7       7       7   .data       
@@ -1378,12 +1372,14 @@ OBJECT LIST SORTED BY ADDRESS
      lastSciStatus.1                            1D9       1       1       2   .bss        
      txBuffer                                   1DA      10      16       2   .bss        
      rxBuffer                                   1EA       2       2       3   .bss        
-     epHardwareState                            1EC       6       6      65   .bss        
-     commandBusyFlag                            1F2       1       1       3   .bss        
-     serialDelayCount                           1F3       1       1       1   .bss        
-     reInit                                     1F4       1       1       9   .bss        
-     usbActivityFlag                            1F5       1       1       3   .bss        
-     commandBuffer                              1F6      FE     254      68   .common     
+     epHardwareState                            1EC       6       6      63   .bss        
+     doneEp0OutInit                             1F2       1       1       3   .bss        
+     commandBusyFlag                            1F3       1       1       3   .bss        
+     serialDelayCount                           1F4       1       1       1   .bss        
+     reInit                                     1F5       1       1       9   .bss        
+     usbActivityFlag                            1F6       1       1       3   .bss        
+     stat                                       1F7       1       1       1   .bss        
+     commandBuffer                              1F8      FE     254      66   .common     
      _SRS                                      1800       1       1       1   .abs_section_1800
      _SBDFR                                    1801       1       1       0   .abs_section_1801
      _SOPT1                                    1802       1       1       2   .abs_section_1802
@@ -1441,242 +1437,242 @@ OBJECT LIST SORTED BY ADDRESS
      CFV1FunctionPointers                      8299       4       4       1   .rodata     
      deviceDescriptor                          829D      12      18       1   .rodata     
      otherDescriptors                          82AF      6A     106       4   .rodata     
-     sd0                                       8319       4       4       1   .rodata     
-     sd1                                       831D       4       4       1   .rodata     
-     sd2                                       8321      20      32       1   .rodata     
-     sd4                                       8341      14      20       1   .rodata     
-     sd5                                       8355      14      20       1   .rodata     
-     sd6                                       8369      14      20       1   .rodata     
-     sd7                                       837D      1A      26       1   .rodata     
-     sd8                                       8397      17      23       1   .rodata     
-     stringDescriptors                         83AE      12      18       2   .rodata     
-     busyResponse                              83C0       4       4       2   .rodata     
-     zeroReturn.9                              83C4       2       2       1   .rodata     
-     epStatusStalled.10                        83C6       2       2       1   .rodata     
-     epStatusOK.11                             83C8       2       2       1   .rodata     
-     dummy.12                                  83CA       C      12       1   .rodata     
-     clockFactors                              83D6       6       6       3   .rodata     
-     bdm_readBDMStatus                         83DC      3A      58       7   .text       
-     writeBDMControl                           8416      31      49       3   .text       
-     bdm_writeBDMControl                       8447      4A      74       2   .text       
-     bdm_enableBDM                             8491      4E      78       2   .text       
-     bdm_physicalConnect                       84DF      8F     143       3   .text       
-     bdm_connect                               856E      28      40       5   .text       
-     bdm_hardwareReset                         8596      D3     211       2   .text       
-     bdm_softwareReset                         8669      CC     204       3   .text       
-     bdm_targetReset                           8735      26      38       1   .text       
-     bdmHCS_powerOnReset                       875B      91     145       1   .text       
-     bdm_setInterfaceLevel                     87EC      3F      63       1   .text       
-     bdm_syncMeasure                           882B      A3     163       3   .text       
-     bdm_acknInit                              88CE      1F      31       3   .text       
-     doACKN_WAIT64                             88ED      32      50       7   .text       
-     doACKN_WAIT150                            891F      32      50      10   .text       
-     bdm_halt                                  8951      10      16       2   .text       
-     bdm_go                                    8961      2F      47       1   .text       
-     bdm_step                                  8990      36      54       1   .text       
-     bdmHCS_off                                89C6       F      15       1   .text       
-     bdmHCS_suspend                            89D5       B      11       1   .text       
-     bdmHCS_interfaceIdle                      89E0       B      11      15   .text       
-     bdmHCS_init                               89EB      1B      27       1   .text       
-     bdm_txPrepare                             8A06       8       8      24   .text       
-     bdm_txEmpty                               8A0E       1       1       7   .text       
-     bdm_tx1                                   8A0F      1A      26       1   .text       
-     bdm_tx2                                   8A29      1E      30       1   .text       
-     bdm_tx3                                   8A47      20      32       1   .text       
-     bdm_txGeneric                             8A67      28      40      20   .text       
-     rxStackDecode                             8A8F       C      12       2   .text       
-     bdm_rxEmpty                               8A9B       2       2       7   .text       
-     bdm_rx1                                   8A9D      56      86       1   .text       
-     bdm_rx2                                   8AF3      5F      95       1   .text       
-     bdm_rx3                                   8B52      12      18       1   .text       
-     bdm_rx4                                   8B64      13      19       1   .text       
-     bdm_rx5                                   8B77      15      21       1   .text       
-     bdm_rx6                                   8B8C      16      22       1   .text       
-     bdm_rxGeneric                             8BA2      1C      28      25   .text       
-     bdm_RxTxSelect                            8BBE      E7     231       3   .text       
-     bdmHC12_confirmSpeed                      8CA5     106     262       6   .text       
-     bdmHC12_alt_speed_detect                  8DAB      AA     170       2   .text       
-     bdm_testTx                                8E55      58      88       1   .text       
-     bdm_checkTiming                           8EAD       1       1       1   .text       
-     bdmTx16                                   8EAE       A      10      18   .text       
-     bdmRx16                                   8EB8       D      13       5   .text       
-     bdmRx32                                   8EC5       5       5       2   .text       
-     BDM_CMD_0_0_T                             8ECA       B      11       1   .text       
-     BDM_CMD_1W1B_0_T                          8ED5      19      25       1   .text       
-     BDM_CMD_1B_0_T                            8EEE      13      19       2   .text       
-     BDM_CMD_0_1B_NOACK                        8F01      17      23       2   .text       
-     BDM_CMD_1B_0_NOACK                        8F18      1A      26       2   .text       
-     BDM_CMD_0_0                               8F32      14      20       8   .text       
-     BDM_CMD_1W_0                              8F46      1C      28       1   .text       
-     BDM_CMD_0_1W                              8F62      1E      30       1   .text       
-     BDM_CMD_1L_0                              8F80      1E      30       6   .text       
-     BDM_CMD_0_1L                              8F9E      1A      26       6   .text       
-     BDM_CMD_1W_1WB                            8FB8      39      57       4   .text       
-     BDM_CMD_2W_0                              8FF1      21      33       2   .text       
-     BDM_CMD_1W_1W                             9012      23      35       4   .text       
-     BDM_CMD_2WB_0                             9035      28      40       4   .text       
-     BDM_CMD_0_1B                              905D      1F      31       1   .text       
-     BDM_CMD_1B_0                              907C      1B      27       1   .text       
-     BDM_CMD_1A1B_0                            9097      26      38       1   .text       
-     BDM_CMD_1A1W_0                            90BD      27      39       1   .text       
-     BDM_CMD_1A1L_0                            90E4      32      50       1   .text       
-     BDM_CMD_1A_1B                             9116      2E      46       1   .text       
-     BDM_CMD_1A_1W                             9144      29      41       1   .text       
-     BDM_CMD_1A_1L                             916D      29      41       1   .text       
-     fastTimerWait                             9196      1B      27       7   .text       
-     millisecondTimerWait                      91B1      31      49      15   .text       
-     initTimers                                91E2      2E      46       2   .text       
-     bdm_targetVddSense                        9210      28      40       1   .text       
-     bdm_resetSense                            9238       A      10       2   .text       
-     kbiHandler                                9242       5       5       1   .text       
-     timerHandler                              9247       5       5       6   .text       
-     acmpHandler                               924C       5       5       1   .text       
-     bdm_checkTargetVdd                        9251      3C      60       9   .text       
-     bdm_setTargetVdd                          928D      D1     209       6   .text       
-     bdm_cycleTargetVddOn                      935E      95     149       1   .text       
-     bdm_cycleTargetVddOff                     93F3      75     117       1   .text       
-     bdm_cycleTargetVdd                        9468      16      22       4   .text       
-     bdm_targetVddMeasure                      947E      2B      43       9   .text       
-     bdm_init                                  94A9      12      18       1   .text       
-     bdm_suspend                               94BB       3       3       1   .text       
-     bdm_interfaceOff                          94BE       B      11       3   .text       
-     bdm_off                                   94C9       F      15       3   .text       
-     bdm_setTarget                             94D8      4F      79       2   .text       
-     makeStatusWord                            9527      8C     140       3   .text       
-     optionalReconnect                         95B3      2B      43       2   .text       
-     f_CMD_ILLEGAL                             95DE       3       3       9   .text       
-     f_CMD_GET_COMMAND_STATUS                  95E1       3       3       1   .text       
-     f_CMD_DEBUG                               95E4      BE     190       5   .text       
-     f_CMD_SET_OPTIONS                         96A2      14      20       1   .text       
-     f_CMD_GET_CAPABILITIES                    96B6      1F      31       1   .text       
-     f_CMD_GET_BDM_STATUS                      96D5      1C      28       1   .text       
-     getPinStatus                              96F1      1F      31       3   .text       
-     f_CMD_CONTROL_PINS                        9710      E2     226       3   .text       
-     f_CMD_SET_VDD                             97F2      1A      26       1   .text       
-     f_CMD_SET_TARGET                          980C      28      40       1   .text       
-     commandExec                               9834      8C     140       1   .text       
-     commandLoop                               98C0      2A      42       1   .text       
-     f_CMD_CF_WRITE_MEM                        98EA     139     313       3   .text       
-     f_CMD_CF_READ_MEM                         9A23     136     310       4   .text       
-     f_CMD_CF_WRITE_REG                        9B59      18      24       1   .text       
-     f_CMD_CF_READ_REG                         9B71      10      16       1   .text       
-     f_CMD_CF_WRITE_DREG                       9B81      52      82       1   .text       
-     f_CMD_CF_READ_DREG                        9BD3      59      89       1   .text       
-     f_CMD_CF_WRITE_CREG                       9C2C      18      24       1   .text       
-     f_CMD_CF_READ_CREG                        9C44      10      16       1   .text       
-     f_CMD_CONNECT                             9C54      33      51       2   .text       
-     f_CMD_SET_SPEED                           9C87      32      50       1   .text       
-     f_CMD_GET_SPEED                           9CB9       A      10       1   .text       
-     f_CMD_CONTROL_INTERFACE                   9CC3      1B      27       1   .text       
-     resetCFV1Interface                        9CDE      47      71       1   .text       
-     f_CMD_READ_STATUS_REG                     9D25      3D      61       1   .text       
-     f_CMD_WRITE_CONTROL_REG                   9D62       6       6       1   .text       
-     f_CMD_RESET                               9D68      5B      91       1   .text       
-     f_CMD_STEP                                9DC3       5       5       1   .text       
-     f_CMD_GO                                  9DC8       5       5       1   .text       
-     f_CMD_HALT                                9DCD       3       3       1   .text       
-     putRxBuffer                               9DD0      28      40       1   .text       
-     setRxBuffer                               9DF8       B      11       3   .text       
-     rxBufferItems                             9E03       4       4       1   .text       
-     putTxBuffer                               9E07      2D      45       1   .text       
-     getTxBuffer                               9E34      33      51       1   .text       
-     sciTxBufferFree                           9E67       A      10       2   .text       
-     getSerialState                            9E71      3B      59       1   .text       
-     sciErrorHandler                           9EAC       C      12       2   .text       
-     sciTxHandler                              9EB8      2C      44       2   .text       
-     sciRxHandler                              9EE4       A      10       2   .text       
-     sciSetLineCoding                          9EEE      C0     192       1   .text       
-     sciGetLineCoding                          9FAE       4       4       1   .text       
-     sciSetControlLineState                    9FB2       5       5       1   .text       
-     sciSendBreak                              9FB7      16      22       1   .text       
-     initEndpointBuffers                       9FCD      27      39       1   .text       
-     ep0InitialiseBDTOut                       9FF4      14      20       3   .text       
-     ep0SaveOutData                            A008      44      68       1   .text       
-     ep0StartOutTransaction                    A04C      3C      60       1   .text       
-     ep0ConfigureSetupTransaction              A088       D      13       4   .text       
-     ep0EnsureReadyForSetupTransaction         A095      2A      42       2   .text       
-     ep0InitialiseBDTIn                        A0BF      59      89       2   .text       
-     ep0StartInTransaction                     A118      6C     108      15   .text       
-     ep1InitialiseBDTOut                       A184      15      21       3   .text       
-     ep1SaveOutData                            A199      44      68       1   .text       
-     ep1StartOutTransaction                    A1DD      11      17       2   .text       
-     ep2InitialiseBDTIn                        A1EE      59      89       2   .text       
-     ep2StartInTransaction                     A247      1F      31       3   .text       
-     setBDMBusy                                A266      16      22       3   .text       
-     ep3StartInTransaction                     A27C      67     103       2   .text       
-     ep4InitialiseBDTOut                       A2E3      15      21       3   .text       
-     ep4SaveOutData                            A2F8      11      17       2   .text       
-     ep5InitialiseBDTIn                        A309      2D      45       1   .text       
-     ep5StartInTransactionIfIdle               A336      1D      29       2   .text       
-     receiveUSBCommand                         A353      BA     186       2   .text       
-     sendUSBResponse                           A40D      1E      30       1   .text       
-     epStall                                   A42B      35      53       9   .text       
-     epClearStall                              A460      2E      46       8   .text       
-     setUSBdefaultState                        A48E       C      12       3   .text       
-     setUSBaddressedState                      A49A      16      22       2   .text       
-     setUSBconfiguredState                     A4B0      19      25       1   .text       
-     initialiseEndpoints                       A4C9      63      99       1   .text       
-     handleUSBReset                            A52C      15      21       2   .text       
-     initUSB                                   A541      37      55       1   .text       
-     handleGetStatus                           A578      5D      93       1   .text       
-     handleClearFeature                        A5D5      4D      77       1   .text       
-     handleSetFeature                          A622      4D      77       1   .text       
-     utf8ToStringDescriptor                    A66F      F9     249       3   .text       
-     handleGetDescriptor                       A768      9F     159       1   .text       
-     resetDeviceCallback                       A807       4       4       1   .text       
-     setAddressCallback                        A80B      20      32       1   .text       
-     handleSetAddress                          A82B      1A      26       1   .text       
-     handleGetConfiguration                    A845       B      11       1   .text       
-     handleSetConfiguration                    A850      24      36       1   .text       
-     handleGetInterface                        A874      2F      47       1   .text       
-     handleGetEncapsulatedCommand              A8A3       D      13       1   .text       
-     handleSendEncapsulatedCommand             A8B0       A      10       1   .text       
-     handleGetLineCoding                       A8BA       D      13       1   .text       
-     setLineCodingCallback                     A8C7       6       6       1   .text       
-     handleSetLineCoding                       A8CD      11      17       1   .text       
-     handleSetControlLineState                 A8DE       F      15       1   .text       
-     handleSendBreak                           A8ED       F      15       1   .text       
-     handleUnexpected                          A8FC       4       4       1   .text       
-     handleSetupToken                          A900     114     276       1   .text       
-     ep0HandleInToken                          AA14      6E     110       1   .text       
-     ep0HandleOutToken                         AA82      56      86       1   .text       
-     ep0HandleStallComplete                    AAD8       7       7       1   .text       
-     ep1HandleOutToken                         AADF      36      54       1   .text       
-     ep2HandleInToken                          AB15      56      86       1   .text       
-     handleTokenComplete                       AB6B      7F     127       1   .text       
-     handleSOFToken                            ABEA      38      56       1   .text       
-     checkUsbCdcTxData                         AC22      1F      31       1   .text       
-     handleUSBSuspend                          AC41      1E      30       1   .text       
-     handleUSBResume                           AC5F       A      10       1   .text       
-     USBInterruptHandler                       AC69      60      96       1   .text       
-     dummyISR                                  ACC9       4       4      14   .text       
-     userDetectICP                             ACCD       A      10       1   .text       
-     initCrystalClock                          ACD7      2D      45       1   .text       
-     autoInitClock                             AD04      43      67       1   .text       
-     clearStack                                AD47      14      20       1   .text       
-     init                                      AD5B      5A      90       1   .text       
-     main                                      ADB5       9       9       1   .text       
-     _PUSH_ARGS_L                              ADBE      20      32       2   .text       
-     _ENTER_UNARY_L                            ADDE      29      41       1   .text       
-     _ENTER_BINARY_L_RC                        AE07      19      25       1   .text       
-     _ENTER_BINARY_L_LC                        AE20      1A      26       1   .text       
-     _IDIVMOD                                  AE3A      69     105       1   .text       
-     _LADD_k_is_k_plus_j                       AEA3      1F      31       1   .text       
-     _LDIVMOD                                  AEC2      A4     164       1   .text       
-     _LDIVU_k_is_k_div_j                       AF66      17      23       1   .text       
-     _IDIVU_STAR08                             AF7D       D      13       2   .text       
-     _ILSL                                     AF8A       C      12       1   .text       
-     _ICMP                                     AF96      16      22       3   .text       
-     _LINC                                     AFAC      16      22       2   .text       
-     _LADD_RC                                  AFC2       6       6       4   .text       
-     _LDIVU_LC                                 AFC8       6       6       1   .text       
-     _COPY                                     AFCE      30      48       2   .text       
-     _POP32                                    AFFE      1A      26       6   .text       
-     _Jump_Table_Offset                        B018      19      25       4   .text       
-     _Jump_Table_Header_Offset                 B031      24      36      18   .text       
-     _Search_Table_8_Offset                    B055      25      37       1   .text       
-     memcpy                                    B07A      3D      61       8   .text       
-     memset                                    B0B7      30      48       3   .text       
+     msCompatibleIdFeatureDescriptor           8319      28      40       1   .rodata     
+     msPropertiesFeatureDescriptor             8341      8E     142       1   .rodata     
+     OS_StringDescriptor                       83CF      12      18       1   .rodata     
+     sd0                                       83E1       4       4       1   .rodata     
+     sd1                                       83E5       4       4       1   .rodata     
+     sd2                                       83E9      20      32       1   .rodata     
+     sd4                                       8409      14      20       1   .rodata     
+     sd5                                       841D      14      20       1   .rodata     
+     sd6                                       8431      14      20       1   .rodata     
+     sd7                                       8445      1A      26       1   .rodata     
+     sd8                                       845F      17      23       1   .rodata     
+     stringDescriptors                         8476      12      18       2   .rodata     
+     busyResponse                              8488       4       4       2   .rodata     
+     zeroReturn.12                             848C       2       2       1   .rodata     
+     epStatusStalled.13                        848E       2       2       1   .rodata     
+     epStatusOK.14                             8490       2       2       1   .rodata     
+     dummy.15                                  8492       C      12       1   .rodata     
+     clockFactors                              849E       6       6       3   .rodata     
+     bdm_readBDMStatus                         84A4      3A      58       7   .text       
+     writeBDMControl                           84DE      31      49       3   .text       
+     bdm_writeBDMControl                       850F      4A      74       2   .text       
+     bdm_enableBDM                             8559      4E      78       2   .text       
+     bdm_physicalConnect                       85A7      8F     143       3   .text       
+     bdm_connect                               8636      28      40       5   .text       
+     bdm_hardwareReset                         865E      D3     211       2   .text       
+     bdm_softwareReset                         8731      CC     204       3   .text       
+     bdm_targetReset                           87FD      26      38       1   .text       
+     bdmHCS_powerOnReset                       8823      91     145       1   .text       
+     bdm_syncMeasure                           88B4      A3     163       3   .text       
+     bdm_acknInit                              8957      1F      31       3   .text       
+     doACKN_WAIT64                             8976      32      50       7   .text       
+     doACKN_WAIT150                            89A8      32      50      10   .text       
+     bdm_halt                                  89DA      10      16       2   .text       
+     bdm_go                                    89EA      2F      47       1   .text       
+     bdm_step                                  8A19      36      54       1   .text       
+     bdmHCS_off                                8A4F       F      15       1   .text       
+     bdmHCS_suspend                            8A5E       B      11       1   .text       
+     bdmHCS_interfaceIdle                      8A69       B      11      15   .text       
+     bdmHCS_init                               8A74      1B      27       1   .text       
+     bdm_txPrepare                             8A8F       8       8      24   .text       
+     bdm_txEmpty                               8A97       1       1       7   .text       
+     bdm_tx1                                   8A98      1A      26       1   .text       
+     bdm_tx2                                   8AB2      1E      30       1   .text       
+     bdm_tx3                                   8AD0      20      32       1   .text       
+     bdm_txGeneric                             8AF0      28      40      20   .text       
+     rxStackDecode                             8B18       C      12       2   .text       
+     bdm_rxEmpty                               8B24       2       2       7   .text       
+     bdm_rx1                                   8B26      56      86       1   .text       
+     bdm_rx2                                   8B7C      5F      95       1   .text       
+     bdm_rx3                                   8BDB      12      18       1   .text       
+     bdm_rx4                                   8BED      13      19       1   .text       
+     bdm_rx5                                   8C00      15      21       1   .text       
+     bdm_rx6                                   8C15      16      22       1   .text       
+     bdm_rxGeneric                             8C2B      1C      28      25   .text       
+     bdm_RxTxSelect                            8C47      E7     231       3   .text       
+     bdmHC12_confirmSpeed                      8D2E     106     262       6   .text       
+     bdmHC12_alt_speed_detect                  8E34      AA     170       2   .text       
+     bdm_testTx                                8EDE      58      88       1   .text       
+     bdm_checkTiming                           8F36       1       1       1   .text       
+     bdmTx16                                   8F37       A      10      18   .text       
+     bdmRx16                                   8F41       D      13       5   .text       
+     bdmRx32                                   8F4E       5       5       2   .text       
+     BDM_CMD_0_0_T                             8F53       B      11       1   .text       
+     BDM_CMD_1W1B_0_T                          8F5E      19      25       1   .text       
+     BDM_CMD_1B_0_T                            8F77      13      19       2   .text       
+     BDM_CMD_0_1B_NOACK                        8F8A      17      23       2   .text       
+     BDM_CMD_1B_0_NOACK                        8FA1      1A      26       2   .text       
+     BDM_CMD_0_0                               8FBB      14      20       8   .text       
+     BDM_CMD_1W_0                              8FCF      1C      28       1   .text       
+     BDM_CMD_0_1W                              8FEB      1E      30       1   .text       
+     BDM_CMD_1L_0                              9009      1E      30       6   .text       
+     BDM_CMD_0_1L                              9027      1A      26       6   .text       
+     BDM_CMD_1W_1WB                            9041      39      57       4   .text       
+     BDM_CMD_2W_0                              907A      21      33       2   .text       
+     BDM_CMD_1W_1W                             909B      23      35       4   .text       
+     BDM_CMD_2WB_0                             90BE      28      40       4   .text       
+     BDM_CMD_0_1B                              90E6      1F      31       1   .text       
+     BDM_CMD_1B_0                              9105      1B      27       1   .text       
+     BDM_CMD_1A1B_0                            9120      26      38       1   .text       
+     BDM_CMD_1A1W_0                            9146      27      39       1   .text       
+     BDM_CMD_1A1L_0                            916D      32      50       1   .text       
+     BDM_CMD_1A_1B                             919F      2E      46       1   .text       
+     BDM_CMD_1A_1W                             91CD      29      41       1   .text       
+     BDM_CMD_1A_1L                             91F6      29      41       1   .text       
+     fastTimerWait                             921F      1B      27       7   .text       
+     millisecondTimerWait                      923A      31      49      15   .text       
+     initTimers                                926B      2E      46       2   .text       
+     bdm_targetVddSense                        9299      28      40       1   .text       
+     bdm_resetSense                            92C1       A      10       2   .text       
+     kbiHandler                                92CB       5       5       1   .text       
+     timerHandler                              92D0       5       5       6   .text       
+     acmpHandler                               92D5       5       5       1   .text       
+     bdm_checkTargetVdd                        92DA      3C      60       9   .text       
+     bdm_setTargetVdd                          9316      D1     209       6   .text       
+     bdm_cycleTargetVddOn                      93E7      95     149       1   .text       
+     bdm_cycleTargetVddOff                     947C      75     117       1   .text       
+     bdm_cycleTargetVdd                        94F1      16      22       4   .text       
+     bdm_targetVddMeasure                      9507      2B      43       9   .text       
+     bdm_init                                  9532      12      18       1   .text       
+     bdm_suspend                               9544       3       3       1   .text       
+     bdm_interfaceOff                          9547       E      14       3   .text       
+     bdm_off                                   9555       F      15       3   .text       
+     bdm_setTarget                             9564      4F      79       2   .text       
+     makeStatusWord                            95B3      8C     140       3   .text       
+     optionalReconnect                         963F      2B      43       2   .text       
+     f_CMD_ILLEGAL                             966A       3       3      10   .text       
+     f_CMD_GET_COMMAND_STATUS                  966D       3       3       1   .text       
+     f_CMD_DEBUG                               9670      BE     190       5   .text       
+     f_CMD_SET_OPTIONS                         972E      14      20       1   .text       
+     f_CMD_GET_CAPABILITIES                    9742      1D      29       1   .text       
+     f_CMD_GET_BDM_STATUS                      975F      1C      28       1   .text       
+     getPinStatus                              977B      1F      31       3   .text       
+     f_CMD_CONTROL_PINS                        979A      E2     226       3   .text       
+     f_CMD_SET_VDD                             987C      1A      26       1   .text       
+     f_CMD_SET_TARGET                          9896      28      40       1   .text       
+     commandExec                               98BE      8C     140       1   .text       
+     commandLoop                               994A      2A      42       1   .text       
+     f_CMD_CF_WRITE_MEM                        9974     139     313       3   .text       
+     f_CMD_CF_READ_MEM                         9AAD     136     310       4   .text       
+     f_CMD_CF_WRITE_REG                        9BE3      18      24       1   .text       
+     f_CMD_CF_READ_REG                         9BFB      10      16       1   .text       
+     f_CMD_CF_WRITE_DREG                       9C0B      52      82       1   .text       
+     f_CMD_CF_READ_DREG                        9C5D      59      89       1   .text       
+     f_CMD_CF_WRITE_CREG                       9CB6      18      24       1   .text       
+     f_CMD_CF_READ_CREG                        9CCE      10      16       1   .text       
+     f_CMD_CONNECT                             9CDE      33      51       2   .text       
+     f_CMD_SET_SPEED                           9D11      32      50       1   .text       
+     f_CMD_GET_SPEED                           9D43       A      10       1   .text       
+     resetCFV1Interface                        9D4D      47      71       1   .text       
+     f_CMD_READ_STATUS_REG                     9D94      3D      61       1   .text       
+     f_CMD_WRITE_CONTROL_REG                   9DD1       6       6       1   .text       
+     f_CMD_RESET                               9DD7      5B      91       1   .text       
+     f_CMD_STEP                                9E32       5       5       1   .text       
+     f_CMD_GO                                  9E37       5       5       1   .text       
+     f_CMD_HALT                                9E3C       3       3       1   .text       
+     putRxBuffer                               9E3F      28      40       1   .text       
+     setRxBuffer                               9E67       B      11       3   .text       
+     rxBufferItems                             9E72       4       4       1   .text       
+     putTxBuffer                               9E76      2D      45       1   .text       
+     getTxBuffer                               9EA3      33      51       1   .text       
+     sciTxBufferFree                           9ED6       A      10       2   .text       
+     getSerialState                            9EE0      3B      59       1   .text       
+     sciErrorHandler                           9F1B       C      12       2   .text       
+     sciTxHandler                              9F27      2C      44       2   .text       
+     sciRxHandler                              9F53       A      10       2   .text       
+     sciSetLineCoding                          9F5D      C0     192       1   .text       
+     sciGetLineCoding                          A01D       4       4       1   .text       
+     sciSetControlLineState                    A021       5       5       1   .text       
+     sciSendBreak                              A026      16      22       1   .text       
+     initEndpointBuffers                       A03C      27      39       1   .text       
+     ep0InitialiseBDTOut                       A063      19      25       4   .text       
+     ep0SaveOutData                            A07C      44      68       1   .text       
+     ep0StartOutTransaction                    A0C0      3C      60       1   .text       
+     ep0ConfigureSetupTransaction              A0FC       D      13       3   .text       
+     ep0InitialiseBDTIn                        A109      59      89       2   .text       
+     ep0StartInTransaction                     A162      6C     108      18   .text       
+     ep1InitialiseBDTOut                       A1CE      15      21       3   .text       
+     ep1SaveOutData                            A1E3      44      68       1   .text       
+     ep1StartOutTransaction                    A227      11      17       2   .text       
+     ep2InitialiseBDTIn                        A238      59      89       2   .text       
+     ep2StartInTransaction                     A291      1F      31       3   .text       
+     setBDMBusy                                A2B0      16      22       3   .text       
+     ep3StartInTransaction                     A2C6      67     103       2   .text       
+     ep4InitialiseBDTOut                       A32D      15      21       3   .text       
+     ep4SaveOutData                            A342      11      17       2   .text       
+     ep5InitialiseBDTIn                        A353      2D      45       1   .text       
+     ep5StartInTransactionIfIdle               A380      1D      29       2   .text       
+     receiveUSBCommand                         A39D      BA     186       2   .text       
+     sendUSBResponse                           A457      1E      30       1   .text       
+     epStall                                   A475      35      53       9   .text       
+     epClearStall                              A4AA      2E      46       8   .text       
+     setUSBdefaultState                        A4D8       C      12       3   .text       
+     setUSBaddressedState                      A4E4      16      22       2   .text       
+     setUSBconfiguredState                     A4FA      19      25       1   .text       
+     initialiseEndpoints                       A513      63      99       1   .text       
+     handleUSBReset                            A576      15      21       2   .text       
+     initUSB                                   A58B      37      55       1   .text       
+     handleGetStatus                           A5C2      5D      93       1   .text       
+     handleClearFeature                        A61F      4D      77       1   .text       
+     handleSetFeature                          A66C      4D      77       1   .text       
+     utf8ToStringDescriptor                    A6B9      F9     249       3   .text       
+     handleGetDescriptor                       A7B2      94     148       1   .text       
+     resetDeviceCallback                       A846       4       4       1   .text       
+     setAddressCallback                        A84A      20      32       1   .text       
+     handleSetAddress                          A86A      1A      26       1   .text       
+     handleGetConfiguration                    A884       B      11       1   .text       
+     handleSetConfiguration                    A88F      24      36       1   .text       
+     handleGetInterface                        A8B3      2F      47       1   .text       
+     handleGetEncapsulatedCommand              A8E2       D      13       1   .text       
+     handleSendEncapsulatedCommand             A8EF       A      10       1   .text       
+     handleGetLineCoding                       A8F9       D      13       1   .text       
+     setLineCodingCallback                     A906       6       6       1   .text       
+     handleSetLineCoding                       A90C      11      17       1   .text       
+     handleSetControlLineState                 A91D       F      15       1   .text       
+     handleSendBreak                           A92C       F      15       1   .text       
+     handleUnexpected                          A93B       4       4       1   .text       
+     handleSetupToken                          A93F     152     338       6   .text       
+     ep0HandleInToken                          AA91      6E     110       1   .text       
+     ep0HandleOutToken                         AAFF      48      72       1   .text       
+     ep0HandleStallComplete                    AB47       7       7       1   .text       
+     ep1HandleOutToken                         AB4E      36      54       1   .text       
+     ep2HandleInToken                          AB84      56      86       1   .text       
+     handleTokenComplete                       ABDA      8D     141       1   .text       
+     handleSOFToken                            AC67      38      56       1   .text       
+     checkUsbCdcTxData                         AC9F      1F      31       1   .text       
+     handleUSBSuspend                          ACBE      1E      30       1   .text       
+     handleUSBResume                           ACDC       B      11       1   .text       
+     USBInterruptHandler                       ACE7      59      89       1   .text       
+     dummyISR                                  AD40       4       4      14   .text       
+     userDetectICP                             AD44       A      10       1   .text       
+     initCrystalClock                          AD4E      2D      45       1   .text       
+     autoInitClock                             AD7B      43      67       1   .text       
+     clearStack                                ADBE      14      20       1   .text       
+     init                                      ADD2      5A      90       1   .text       
+     main                                      AE2C       9       9       1   .text       
+     _PUSH_ARGS_L                              AE35      20      32       2   .text       
+     _ENTER_UNARY_L                            AE55      29      41       1   .text       
+     _ENTER_BINARY_L_RC                        AE7E      19      25       1   .text       
+     _ENTER_BINARY_L_LC                        AE97      1A      26       1   .text       
+     _IDIVMOD                                  AEB1      69     105       1   .text       
+     _LADD_k_is_k_plus_j                       AF1A      1F      31       1   .text       
+     _LDIVMOD                                  AF39      A4     164       1   .text       
+     _LDIVU_k_is_k_div_j                       AFDD      17      23       1   .text       
+     _IDIVU_STAR08                             AFF4       D      13       2   .text       
+     _ILSL                                     B001       C      12       1   .text       
+     _ICMP                                     B00D      16      22       3   .text       
+     _LINC                                     B023      16      22       2   .text       
+     _LADD_RC                                  B039       6       6       4   .text       
+     _LDIVU_LC                                 B03F       6       6       1   .text       
+     _COPY                                     B045      30      48       2   .text       
+     _POP32                                    B075      1A      26       6   .text       
+     _Jump_Table_Offset                        B08F      19      25       4   .text       
+     _Jump_Table_Header_Offset                 B0A8      24      36      18   .text       
+     _Search_Table_8_Addr                      B0CC      21      33       1   .text       
+     memcpy                                    B0ED      3D      61       8   .text       
+     memset                                    B12A      30      48       3   .text       
      ICP_data                                  FB94      2E      46       4   .abs_section_fb94
      userVectorTable                           FBC2      3C      60       2   .abs_section_fbc2
      versionOffset                             FBFE       1       1       0   .abs_section_fbfe
@@ -1684,29 +1680,27 @@ OBJECT LIST SORTED BY ADDRESS
      detectICP                                 FC08      27      39       1   BOOT_ROM    
      flashInvalid                              FC2F      1D      29       1   BOOT_ROM    
      _userDetectICP                            FC4C       4       4       1   BOOT_ROM    
-     myStartup                                 FC50      2E      46       1   BOOT_ROM    
-     myMemcpy                                  FC7E      28      40       3   BOOT_ROM    
-     initCrystalClock                          FCA6      2D      45       1   BOOT_ROM    
-     autoInitClock                             FCD3      43      67       1   BOOT_ROM    
-     ep0StartOutTransaction                    FD16      1C      28       3   BOOT_ROM    
-     ep0StartSetupTransaction                  FD32       7       7       5   BOOT_ROM    
-     ep0StartInTransaction                     FD39      25      37       3   BOOT_ROM    
-     ep0StartStatusInTransaction               FD5E       9       9       2   BOOT_ROM    
-     handleUSBReset                            FD67      1A      26       2   BOOT_ROM    
-     initICP_USB                               FD81      1D      29       1   BOOT_ROM    
-     handleGetDescriptor                       FD9E      39      57       1   BOOT_ROM    
-     setAddressCallback                        FDD7       8       8       1   BOOT_ROM    
-     onStack                                   FDDF      2C      44       1   BOOT_ROM    
-     doOnStack                                 FE0B      28      40       3   BOOT_ROM    
-     erasePageCommand                          FE33       8       8       1   BOOT_ROM    
-     programRowCommand                         FE3B       5       5       1   BOOT_ROM    
-     verifyRowCommand                          FE40      1B      27       1   BOOT_ROM    
-     handleEp0InToken                          FE5B      1D      29       1   BOOT_ROM    
-     handleEp0OutToken                         FE78      1E      30       1   BOOT_ROM    
-     icpReset                                  FE96       B      11       2   BOOT_ROM    
-     handleSetupToken                          FEA1      D2     210       1   BOOT_ROM    
-     handleTokenComplete                       FF73      1C      28       1   BOOT_ROM    
-     USBEventPollingLoop                       FF8F      19      25       1   BOOT_ROM    
+     myStartup                                 FC50      2B      43       1   BOOT_ROM    
+     myMemcpy                                  FC7B      27      39       3   BOOT_ROM    
+     initCrystalClock                          FCA2      2D      45       1   BOOT_ROM    
+     autoInitClock                             FCCF      43      67       1   BOOT_ROM    
+     ep0StartOutTransaction                    FD12      1C      28       3   BOOT_ROM    
+     ep0StartSetupTransaction                  FD2E       7       7       5   BOOT_ROM    
+     ep0StartInTransaction                     FD35      31      49       3   BOOT_ROM    
+     ep0StartStatusInTransaction               FD66       9       9       2   BOOT_ROM    
+     handleUSBReset                            FD6F      1A      26       1   BOOT_ROM    
+     handleGetDescriptor                       FD89      27      39       1   BOOT_ROM    
+     setAddressCallback                        FDB0       8       8       1   BOOT_ROM    
+     onStack                                   FDB8      2C      44       1   BOOT_ROM    
+     doOnStack                                 FDE4      28      40       3   BOOT_ROM    
+     erasePageCommand                          FE0C       8       8       1   BOOT_ROM    
+     programRowCommand                         FE14       5       5       1   BOOT_ROM    
+     verifyRowCommand                          FE19      1B      27       1   BOOT_ROM    
+     handleEp0InToken                          FE34      1D      29       1   BOOT_ROM    
+     handleEp0OutToken                         FE51      1E      30       1   BOOT_ROM    
+     icpReset                                  FE6F       B      11       2   BOOT_ROM    
+     handleSetupToken                          FE7A      D2     210       1   BOOT_ROM    
+     startICP_USB                              FF4C      5E      94       1   BOOT_ROM    
      NV_MCGTRM_INIT                            FFAF       1       1       4   .abs_section_ffaf
      CHECKSUM_BYPASS                           FFBA       1       1       0   .abs_section_ffba
      NVPROT_INIT                               FFBD       1       1       0   .abs_section_ffbd
@@ -1755,7 +1749,7 @@ rtshc08.o (ansiis.lib):
   _PUSH_ARGS_24 _ENTER_BINARY_24_RC _ENTER_BINARY_24 _CMP24 _CMP24_RC _COPY_L 
   _POP64 _STORE32 _STORE64 _SEXT8_32 _SEXT16_32 _CALL_STAR08 _CALL_STAR08_FAR 
   _Jump_Table_Addr _Jump_Table_Header_Addr _Search_Table_16_Addr 
-  _Search_Table_16_Offset _Search_Table_8_Addr _PUSH_CC _POP_CC 
+  _Search_Table_16_Offset _Search_Table_8_Offset _PUSH_CC _POP_CC 
   _CONV_FAR_TO_NEAR _CONV_FAR_TO_LINEAR _CONV_LINEAR_TO_FAR 
 string.o (ansiis.lib):
   strerror memchr memcmp memcpy2 _memcpy_8bitCount memmove 
@@ -1772,56 +1766,56 @@ string.o (ansiis.lib):
 *********************************************************************************************
 COPYDOWN SECTION
 ---------------------------------------------------------------------------------------------
-------- ROM-ADDRESS: 0xB0E7 ---- SIZE       4 ---
+------- ROM-ADDRESS: 0xB15A ---- SIZE       4 ---
 Filling bytes inserted
- 001000B0
-------- ROM-ADDRESS: 0xB0EB ---- RAM-ADDRESS: 0xB0 ---- SIZE       2 ---
+ 000D00B0
+------- ROM-ADDRESS: 0xB15E ---- RAM-ADDRESS: 0xB0 ---- SIZE       2 ---
 Name of initialized Object : bdm_rx_ptr
- 8A9B
-------- ROM-ADDRESS: 0xB0ED ---- RAM-ADDRESS: 0xB2 ---- SIZE       2 ---
+ 8B24
+------- ROM-ADDRESS: 0xB160 ---- RAM-ADDRESS: 0xB2 ---- SIZE       2 ---
 Name of initialized Object : bdm_tx_ptr
- 8A0E
-------- ROM-ADDRESS: 0xB0EF ---- RAM-ADDRESS: 0xB4 ---- SIZE       2 ---
+ 8A97
+------- ROM-ADDRESS: 0xB162 ---- RAM-ADDRESS: 0xB4 ---- SIZE       2 ---
 Name of initialized Object : lastGuess1.2
  0780
-------- ROM-ADDRESS: 0xB0F1 ---- RAM-ADDRESS: 0xB6 ---- SIZE       2 ---
+------- ROM-ADDRESS: 0xB164 ---- RAM-ADDRESS: 0xB6 ---- SIZE       2 ---
 Name of initialized Object : lastGuess2.3
  03C0
-------- ROM-ADDRESS: 0xB0F3 ---- SIZE       7 ---
+------- ROM-ADDRESS: 0xB166 ---- SIZE       4 ---
 Filling bytes inserted
- 0000000000 0000
-------- ROM-ADDRESS: 0xB0FA ---- RAM-ADDRESS: 0xBF ---- SIZE       1 ---
+ 00000000
+------- ROM-ADDRESS: 0xB16A ---- RAM-ADDRESS: 0xBC ---- SIZE       1 ---
 Name of initialized Object : cable_status
  FF
-------- ROM-ADDRESS: 0xB0FB ---- SIZE       4 ---
+------- ROM-ADDRESS: 0xB16B ---- SIZE       4 ---
 Filling bytes inserted
- 000A00D0
-------- ROM-ADDRESS: 0xB0FF ---- RAM-ADDRESS: 0xD0 ---- SIZE       3 ---
+ 000300CD
+------- ROM-ADDRESS: 0xB16F ---- RAM-ADDRESS: 0xCD ---- SIZE       3 ---
 Name of initialized Object : bdm_option:4
  0101FF
-------- ROM-ADDRESS: 0xB102 ---- SIZE       6 ---
+------- ROM-ADDRESS: 0xB172 ---- SIZE       4 ---
 Filling bytes inserted
- 0000000000 00
-------- ROM-ADDRESS: 0xB108 ---- RAM-ADDRESS: 0xD9 ---- SIZE       1 ---
+ 000100D9
+------- ROM-ADDRESS: 0xB176 ---- RAM-ADDRESS: 0xD9 ---- SIZE       1 ---
 Name of initialized Object : deviceState
  01
-------- ROM-ADDRESS: 0xB109 ---- SIZE       4 ---
+------- ROM-ADDRESS: 0xB177 ---- SIZE       4 ---
 Filling bytes inserted
  00080100
-------- ROM-ADDRESS: 0xB10D ---- RAM-ADDRESS: 0x100 ---- SIZE       1 ---
+------- ROM-ADDRESS: 0xB17B ---- RAM-ADDRESS: 0x100 ---- SIZE       1 ---
 Name of initialized Object : sciStatus
  80
-------- ROM-ADDRESS: 0xB10E ---- RAM-ADDRESS: 0x101 ---- SIZE       7 ---
+------- ROM-ADDRESS: 0xB17C ---- RAM-ADDRESS: 0x101 ---- SIZE       7 ---
 Name of initialized Object : lineCoding
  8025000000 0108
-------- ROM-ADDRESS: 0xB115 ---- SIZE       2 ---
+------- ROM-ADDRESS: 0xB183 ---- SIZE       2 ---
 Filling bytes inserted
  0000
 
 *********************************************************************************************
 CHECKSUM SECTION
 ---------------------------------------------------------------------------------------------
-Checksum 0 from code 8000 to FBFE with METHOD_ADD written to FBFF size 1 is "0E"
+Checksum 0 from code 8000 to FBFE with METHOD_ADD written to FBFF size 1 is "7C"
 
 *********************************************************************************************
 OBJECT-DEPENDENCIES SECTION
@@ -1839,8 +1833,8 @@ commonFunctionPtrs        USES f_CMD_GET_COMMAND_STATUS f_CMD_SET_TARGET
                                 f_CMD_GET_CAPABILITIES f_CMD_SET_OPTIONS f_CMD_ILLEGAL 
                                 f_CMD_CONTROL_PINS 
 CFV1functionPtrs          USES f_CMD_CONNECT f_CMD_SET_SPEED f_CMD_GET_SPEED 
-                                f_CMD_CONTROL_INTERFACE f_CMD_ILLEGAL f_CMD_READ_STATUS_REG 
-                                f_CMD_WRITE_CONTROL_REG f_CMD_RESET f_CMD_STEP f_CMD_GO f_CMD_HALT 
+                                f_CMD_ILLEGAL f_CMD_READ_STATUS_REG f_CMD_WRITE_CONTROL_REG 
+                                f_CMD_RESET f_CMD_STEP f_CMD_GO f_CMD_HALT 
                                 f_CMD_CF_WRITE_REG f_CMD_CF_READ_REG f_CMD_CF_WRITE_CREG 
                                 f_CMD_CF_READ_CREG f_CMD_CF_WRITE_DREG f_CMD_CF_READ_DREG 
                                 f_CMD_CF_WRITE_MEM f_CMD_CF_READ_MEM 
@@ -1872,7 +1866,6 @@ bdm_targetReset           USES bdm_option bdm_cycleTargetVdd bdm_softwareReset
 bdmHCS_powerOnReset       USES bdmHCS_interfaceIdle _PTFD _PTFDD _PTCD _PTCDD 
                                 millisecondTimerWait _TPM1CNT _TPM1C1SC _TPM1C1V 
                                 bdm_targetVddMeasure bdm_option _PTDD fastTimerWait cable_status 
-bdm_setInterfaceLevel     USES _PTFD _PTFDD _PTCD _PTCDD _PTDD 
 bdm_syncMeasure           USES cable_status bdmHCS_interfaceIdle _TPM1CNT 
                                 _TPM1C1V _TPM1C1SC _PTFD _PTFDD fastTimerWait _TPM1C3SC 
                                 _TPM1C3V 
@@ -1895,7 +1888,7 @@ bdm_tx1                   USES _PTFD _TPM1C3SC
 bdm_tx2                   USES _PTFD _TPM1C3SC 
 bdm_tx3                   USES _PTFD _TPM1C3SC 
 bdm_txGeneric             USES txTiming3 _PTFD txTiming1 txTiming2 _TPM1C3SC 
-rxStackDecode             USES bitCount 
+rxStackDecode             USES bitDelay 
 bdm_rx1                   USES _PTFD rxStackDecode 
 bdm_rx2                   USES _PTFD rxStackDecode 
 bdm_rx3                   USES _PTFD 
@@ -1975,9 +1968,9 @@ bdm_targetVddMeasure      USES _ADCCFG _APCTL1 _ADCSC2 _ADCSC1 _ADCR
 bdm_init                  USES _PTBD _PTBDD cable_status initTimers 
                                 bdm_checkTargetVdd 
 bdm_suspend               USES bdmHCS_suspend 
-bdm_interfaceOff          USES _PTCD _PTCDD _PTFD _PTFDD 
+bdm_interfaceOff          USES _PTCD _PTCDD _PTFD _PTFDD _SPI1C1 
 bdm_off                   USES bdm_interfaceOff bdm_option _PTBD _PTBDD 
-bdm_setTarget             USES _PTCPE _PTDPE bdm_off bdm_interfaceOff 
+bdm_setTarget             USES _PTDPE _PTCPE bdm_off bdm_interfaceOff 
                                 cable_status cable_statusDefault _COPY initTimers 
                                 bdmHCS_init 
 makeStatusWord            USES cable_status _Jump_Table_Header_Offset _PTDD 
@@ -2025,7 +2018,6 @@ f_CMD_CONNECT             USES bdm_connect bdm_option bdm_readBDMStatus
 f_CMD_SET_SPEED           USES commandBuffer cable_status f_CMD_CONNECT 
                                 bdm_RxTxSelect bdm_acknInit bdm_enableBDM 
 f_CMD_GET_SPEED           USES cable_status commandBuffer returnSize 
-f_CMD_CONTROL_INTERFACE   USES commandBuffer bdm_setInterfaceLevel returnSize 
 resetCFV1Interface        USES bdm_connect BDM_CMD_0_0 bdm_softwareReset 
                                 bdm_readBDMStatus 
 f_CMD_READ_STATUS_REG     USES returnSize commandBuffer optionalReconnect 
@@ -2054,12 +2046,10 @@ sciGetLineCoding          USES lineCoding
 sciSetControlLineState    USES _PTGDD _PTGD 
 sciSendBreak              USES breakCount 
 initEndpointBuffers       USES usbRamArea setRxBuffer 
-ep0InitialiseBDTOut       USES usbRamArea 
+ep0InitialiseBDTOut       USES usbRamArea doneEp0OutInit 
 ep0SaveOutData            USES usbRamArea ep0State memcpy 
 ep0StartOutTransaction    USES ep0State epHardwareState ep0InitialiseBDTOut 
 ep0ConfigureSetupTransaction USES ep0InitialiseBDTOut epHardwareState 
-ep0EnsureReadyForSetupTransaction USES epHardwareState 
-                                ep0ConfigureSetupTransaction 
 ep0InitialiseBDTIn        USES ep0State usbRamArea memcpy epHardwareState 
 ep0StartInTransaction     USES ep0SetupBuffer ep0State epHardwareState 
                                 ep0InitialiseBDTIn 
@@ -2097,16 +2087,17 @@ initUSB                   USES usbRamArea memset _USBCTL0 _CTL _INTSTAT
                                 _EPCTL0 _EPCTL1 _EPCTL2 _EPCTL3 _EPCTL4 _EPCTL5 
                                 _INTENB handleUSBReset initialiseEndpoints 
 handleGetStatus           USES ep0SetupBuffer _Jump_Table_Header_Offset 
-                                deviceState zeroReturn.9 EPCTL epStatusStalled.10 
-                                epStatusOK.11 ep0StartInTransaction epStall 
+                                deviceState zeroReturn.12 EPCTL epStatusStalled.13 
+                                epStatusOK.14 ep0StartInTransaction epStall 
 handleClearFeature        USES ep0SetupBuffer deviceState epClearStall 
                                 ep0StartInTransaction epStall 
 handleSetFeature          USES ep0SetupBuffer deviceState epStall 
                                 ep0StartInTransaction 
 utf8ToStringDescriptor    USES utf8ToStringDescriptor _ILSL 
 handleGetDescriptor       USES ep0SetupBuffer _Jump_Table_Offset 
-                                deviceDescriptor otherDescriptors epStall stringDescriptors 
-                                commandBuffer utf8ToStringDescriptor ep0StartInTransaction 
+                                deviceDescriptor otherDescriptors OS_StringDescriptor epStall 
+                                stringDescriptors commandBuffer utf8ToStringDescriptor 
+                                ep0StartInTransaction 
 setAddressCallback        USES deviceState _ADDR setUSBaddressedState 
                                 setUSBdefaultState 
 handleSetAddress          USES ep0SetupBuffer epStall deviceState 
@@ -2116,7 +2107,7 @@ handleSetConfiguration    USES ep0SetupBuffer otherDescriptors epStall
                                 setUSBconfiguredState ep1InitialiseBDTOut ep0StartInTransaction 
 handleGetInterface        USES ep0SetupBuffer deviceState otherDescriptors 
                                 epStall ep0StartInTransaction 
-handleGetEncapsulatedCommand USES dummy.12 ep0StartInTransaction 
+handleGetEncapsulatedCommand USES dummy.15 ep0StartInTransaction 
 handleSendEncapsulatedCommand USES ep0StartInTransaction 
 handleGetLineCoding       USES sciGetLineCoding ep0StartInTransaction 
 setLineCodingCallback     USES usbRamArea sciSetLineCoding 
@@ -2128,30 +2119,30 @@ handleSendBreak           USES ep0SetupBuffer sciSendBreak
                                 ep0StartInTransaction 
 handleUnexpected          USES epStall 
 handleSetupToken          USES ep0SetupBuffer usbRamArea _COPY epHardwareState 
-                                ep0State _Search_Table_8_Offset 
+                                ep0State _Search_Table_8_Addr handleSetupToken 
                                 _Jump_Table_Header_Offset handleGetStatus handleClearFeature 
                                 handleSetFeature handleSetAddress handleGetDescriptor 
                                 handleGetConfiguration handleSetConfiguration handleGetInterface 
                                 _Jump_Table_Offset handleSendEncapsulatedCommand 
                                 handleGetEncapsulatedCommand handleSetLineCoding handleGetLineCoding 
                                 handleSetControlLineState handleSendBreak reInit ICP_Version_SW 
-                                ICP_Version_HW resetDeviceCallback ep0StartInTransaction 
-                                handleUnexpected ep0EnsureReadyForSetupTransaction _CTL 
+                                ICP_Version_HW ep0StartInTransaction 
+                                msCompatibleIdFeatureDescriptor msPropertiesFeatureDescriptor 
+                                resetDeviceCallback handleUnexpected _CTL 
 ep0HandleInToken          USES epHardwareState _Jump_Table_Header_Offset 
                                 ep0State ep0InitialiseBDTIn 
 ep0HandleOutToken         USES epHardwareState ep0SaveOutData ep0State 
                                 ep0StartInTransaction ep0InitialiseBDTOut 
-                                ep0EnsureReadyForSetupTransaction 
 ep0HandleStallComplete    USES epClearStall ep0ConfigureSetupTransaction 
 ep1HandleOutToken         USES epHardwareState ep1SaveOutData ep1State 
                                 ep1InitialiseBDTOut 
 ep2HandleInToken          USES epHardwareState ep2State ep2InitialiseBDTIn 
                                 commandBusyFlag busyResponse ep2StartInTransaction 
 handleTokenComplete       USES _Jump_Table_Header_Offset ep0HandleInToken 
-                                usbRamArea handleSetupToken ep0HandleOutToken 
-                                ep1HandleOutToken ep2HandleInToken epHardwareState 
-                                ep3StartInTransaction sciTxBufferFree ep4SaveOutData 
-                                ep4InitialiseBDTOut usbActivityFlag 
+                                doneEp0OutInit usbRamArea handleSetupToken ep0HandleOutToken 
+                                ep0InitialiseBDTOut ep1HandleOutToken ep2HandleInToken 
+                                epHardwareState ep3StartInTransaction sciTxBufferFree 
+                                ep4SaveOutData ep4InitialiseBDTOut usbActivityFlag 
 handleSOFToken            USES _FRMNUML _FRMNUMH _Jump_Table_Header_Offset 
                                 deviceState _PTDD usbActivityFlag 
                                 ep5StartInTransactionIfIdle 
@@ -2161,8 +2152,8 @@ handleUSBSuspend          USES _INTSTAT bdm_suspend deviceState _INTENB
                                 _USBCTL0 
 handleUSBResume           USES _INTENB _CTL deviceState 
                                 ep0ConfigureSetupTransaction 
-USBInterruptHandler       USES _INTSTAT _STAT handleTokenComplete _USBCTL0 
-                                deviceState handleUSBResume handleUSBReset 
+USBInterruptHandler       USES _INTSTAT _STAT stat handleTokenComplete 
+                                _USBCTL0 deviceState handleUSBResume handleUSBReset 
                                 ep0HandleStallComplete handleSOFToken handleUSBSuspend 
 userDetectICP             USES _PTBD _PTBDD 
 initCrystalClock          USES _MCGC2 _MCGC1 _MCGSC _MCGC3 
@@ -2191,22 +2182,19 @@ detectICP                 USES icpKeyBytes _SRS _IRQSC
 flashInvalid              USES userVectorTable ICP_data __SEG_START_BOOT_ROM 
 _userDetectICP            USES ICP_data 
 myStartup                 USES _SOPT1 detectICP flashInvalid _userDetectICP 
-                                _PTDD _PTDDD initICP_USB USBEventPollingLoop 
-                                userVectorTable 
+                                _PTDD _PTDDD startICP_USB userVectorTable 
 initCrystalClock          USES _MCGC2 _MCGC1 _MCGSC _MCGC3 
 autoInitClock             USES NV_MCGTRM_INIT _MCGTRM _MCGC2 _MCGC1 _MCGSC 
                                 _RTCSC _RTCMOD clockFactors initCrystalClock 
 ep0StartOutTransaction    USES ep0State bdts 
 ep0StartSetupTransaction  USES ep0StartOutTransaction ep0State 
-ep0StartInTransaction     USES ep0InDataBuffer myMemcpy bdts ep0State 
+ep0StartInTransaction     USES ep0SetupBuffer ep0InDataBuffer myMemcpy bdts 
+                                ep0State 
 ep0StartStatusInTransaction USES ep0StartInTransaction ep0State 
 handleUSBReset            USES _ADDR deviceState initialEPState ep0State 
                                 _ERRSTAT _INTSTAT ep0StartSetupTransaction _EPCTL0 
-initICP_USB               USES autoInitClock usbRam _USBCTL0 _CTL _ERRENB 
-                                _INTENB handleUSBReset 
-handleGetDescriptor       USES ep0SetupBuffer wlength.1 bdts deviceDescriptor 
-                                dataSize.2 otherDescriptors dataPtr.3 
-                                ep0StartInTransaction 
+handleGetDescriptor       USES ep0SetupBuffer bdts deviceDescriptor dataPtr.2 
+                                otherDescriptors dataSize.1 ep0StartInTransaction 
 setAddressCallback        USES deviceState _ADDR 
 onStack                   USES sourceAddress flashData _FSTAT startAddress 
                                 flashCommand _FCMD dataLength 
@@ -2228,10 +2216,10 @@ handleSetupToken          USES ep0SetupBuffer ep0OutDataBuffer myMemcpy
                                 icpReset handleGetDescriptor deviceStatus deviceState 
                                 setAddressCallback otherDescriptors ep0StartInTransaction _PTDD 
                                 ep0StartStatusInTransaction bdts _CTL 
-handleTokenComplete       USES _STAT handleEp0InToken bdts handleSetupToken 
-                                handleEp0OutToken 
-USBEventPollingLoop       USES _INTSTAT intStatus.4 handleTokenComplete 
-                                handleUSBReset ep0StartSetupTransaction 
+startICP_USB              USES autoInitClock usbRam _USBCTL0 _CTL _ERRENB 
+                                _INTENB _INTSTAT _STAT handleEp0InToken bdts 
+                                handleSetupToken handleEp0OutToken handleUSBReset 
+                                ep0StartSetupTransaction 
 forceICPVector            USES rebootToICP 
 resetVector               USES myStartup 
 
@@ -2582,10 +2570,6 @@ DEPENDENCY TREE
  |     |  |  |        |     
  |     |  |  |        +- f_CMD_GET_SPEED     
  |     |  |  |        |    
- |     |  |  |        +- f_CMD_CONTROL_INTERFACE
- |     |  |  |        |  | 
- |     |  |  |        |  +- bdm_setInterfaceLevel
- |     |  |  |        |       
  |     |  |  |        +- f_CMD_ILLEGAL        (see above)
  |     |  |  |        |  
  |     |  |  |        +- f_CMD_READ_STATUS_REG
@@ -3046,7 +3030,7 @@ DEPENDENCY TREE
     |  |     |  |  | 
     |  |     |  |  +- _COPY                (see above)
     |  |     |  |  |  
-    |  |     |  |  +- _Search_Table_8_Offset
+    |  |     |  |  +- _Search_Table_8_Addr
     |  |     |  |  |    
     |  |     |  |  +- _Jump_Table_Header_Offset (see above)
     |  |     |  |  |  
@@ -3178,17 +3162,13 @@ DEPENDENCY TREE
     |  |     |  |  |  |    
     |  |     |  |  |  +- ep0StartInTransaction (see above)
     |  |     |  |  |     
-    |  |     |  |  +- resetDeviceCallback 
-    |  |     |  |  |    
     |  |     |  |  +- ep0StartInTransaction (see above)
     |  |     |  |  |  
+    |  |     |  |  +- resetDeviceCallback 
+    |  |     |  |  |    
     |  |     |  |  +- handleUnexpected    
-    |  |     |  |  |  | 
-    |  |     |  |  |  +- epStall              (see above)
-    |  |     |  |  |     
-    |  |     |  |  +- ep0EnsureReadyForSetupTransaction
     |  |     |  |     | 
-    |  |     |  |     +- ep0ConfigureSetupTransaction (see above)
+    |  |     |  |     +- epStall              (see above)
     |  |     |  |        
     |  |     |  +- ep0HandleOutToken   
     |  |     |  |  | 
@@ -3199,9 +3179,9 @@ DEPENDENCY TREE
     |  |     |  |  +- ep0StartInTransaction (see above)
     |  |     |  |  |  
     |  |     |  |  +- ep0InitialiseBDTOut  (see above)
-    |  |     |  |  |  
-    |  |     |  |  +- ep0EnsureReadyForSetupTransaction (see above)
     |  |     |  |     
+    |  |     |  +- ep0InitialiseBDTOut  (see above)
+    |  |     |  |  
     |  |     |  +- ep1HandleOutToken   
     |  |     |  |  | 
     |  |     |  |  +- ep1SaveOutData      
@@ -3258,70 +3238,64 @@ DEPENDENCY TREE
     |  | 
     |  +* ICP_data             (see above)
     |     
-    +- initICP_USB         
+    +- startICP_USB        
     |  | 
     |  +- autoInitClock       
     |  |  | 
     |  |  +- initCrystalClock    
     |  |       
-    |  +- handleUSBReset      
-    |     | 
-    |     +- ep0StartSetupTransaction
-    |        | 
-    |        +- ep0StartOutTransaction
-    |             
-    +- USBEventPollingLoop 
-    |  | 
-    |  +- handleTokenComplete 
+    |  +- handleEp0InToken    
+    |  |    
+    |  +- handleSetupToken    
     |  |  | 
-    |  |  +- handleEp0InToken    
+    |  |  +- myMemcpy            
     |  |  |    
-    |  |  +- handleSetupToken    
+    |  |  +- ep0StartSetupTransaction
     |  |  |  | 
-    |  |  |  +- myMemcpy            
-    |  |  |  |    
-    |  |  |  +- ep0StartSetupTransaction (see above)
-    |  |  |  |  
-    |  |  |  +- ep0StartOutTransaction (see above)
-    |  |  |  |  
-    |  |  |  +- programRowCommand   
-    |  |  |  |  | 
-    |  |  |  |  +- doOnStack           
-    |  |  |  |     | 
-    |  |  |  |     +- onStack             
-    |  |  |  |          
-    |  |  |  +- verifyRowCommand    
-    |  |  |  |    
-    |  |  |  +- erasePageCommand    
-    |  |  |  |  | 
-    |  |  |  |  +- doOnStack            (see above)
-    |  |  |  |     
-    |  |  |  +- icpReset             (see above)
-    |  |  |  |  
-    |  |  |  +- handleGetDescriptor 
-    |  |  |  |  | 
-    |  |  |  |  +- ep0StartInTransaction
-    |  |  |  |     | 
-    |  |  |  |     +- myMemcpy             (see above)
-    |  |  |  |        
-    |  |  |  +- setAddressCallback  
-    |  |  |  |    
-    |  |  |  +- ep0StartInTransaction (see above)
-    |  |  |  |  
-    |  |  |  +- ep0StartStatusInTransaction
+    |  |  |  +- ep0StartOutTransaction
+    |  |  |       
+    |  |  +- ep0StartOutTransaction (see above)
+    |  |  |  
+    |  |  +- programRowCommand   
+    |  |  |  | 
+    |  |  |  +- doOnStack           
     |  |  |     | 
-    |  |  |     +- ep0StartInTransaction (see above)
+    |  |  |     +- onStack             
+    |  |  |          
+    |  |  +- verifyRowCommand    
+    |  |  |    
+    |  |  +- erasePageCommand    
+    |  |  |  | 
+    |  |  |  +- doOnStack            (see above)
+    |  |  |     
+    |  |  +- icpReset             (see above)
+    |  |  |  
+    |  |  +- handleGetDescriptor 
+    |  |  |  | 
+    |  |  |  +- ep0StartInTransaction
+    |  |  |     | 
+    |  |  |     +- myMemcpy             (see above)
     |  |  |        
-    |  |  +- handleEp0OutToken   
+    |  |  +- setAddressCallback  
+    |  |  |    
+    |  |  +- ep0StartInTransaction (see above)
+    |  |  |  
+    |  |  +- ep0StartStatusInTransaction
     |  |     | 
-    |  |     +- myMemcpy             (see above)
-    |  |     |  
-    |  |     +- ep0StartSetupTransaction (see above)
-    |  |     |  
-    |  |     +- ep0StartStatusInTransaction (see above)
+    |  |     +- ep0StartInTransaction (see above)
     |  |        
-    |  +- handleUSBReset       (see above)
-    |  |  
+    |  +- handleEp0OutToken   
+    |  |  | 
+    |  |  +- myMemcpy             (see above)
+    |  |  |  
+    |  |  +- ep0StartSetupTransaction (see above)
+    |  |  |  
+    |  |  +- ep0StartStatusInTransaction (see above)
+    |  |     
+    |  +- handleUSBReset      
+    |  |  | 
+    |  |  +- ep0StartSetupTransaction (see above)
+    |  |     
     |  +- ep0StartSetupTransaction (see above)
     |     
     +- userVectorTable      (see above)
@@ -3332,6 +3306,6 @@ STATISTIC SECTION
 
 ExeFile:
 --------
-Number of blocks to be downloaded: 17
-Total size of all blocks to be downloaded: 32742
+Number of blocks to be downloaded: 18
+Total size of all blocks to be downloaded: 32744
 

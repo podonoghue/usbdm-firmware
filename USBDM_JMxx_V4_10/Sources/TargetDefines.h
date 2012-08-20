@@ -200,4 +200,54 @@
 #define CFVx_CSR_HALT            (1UL<<25) //!< HALT excuted
 #define CFVx_CSR_BKPT            (1UL<<24) //!< BKPT pin asserted
 
+//=======================================================================
+// ARM
+//=======================================================================
+// Command bytes for SWD transfers - Park,Stop,Parity,A[3:2],R/W,AP/DP,Start
+//
+// Read registers
+#define SWD_RD_DP_IDCODE  0xA5 // 10100101   
+#define SWD_RD_DP_STATUS  0x8D // 10001101
+#define SWD_RD_DP_RESEND  0x95 // 10010101
+#define SWD_RD_DP_RDBUFF  0xBD // 10111101
+//
+// Write registers
+#define SWD_WR_DP_ABORT   0x81 // 10000001
+#define SWD_WR_DP_CONTROL 0xA9 // 10101001
+#define SWD_WR_DP_SELECT  0xB1 // 10110001
+//
+// Read AP register
+#define SWD_RD_AP_REG0    0x87 // 10000111
+#define SWD_RD_AP_REG1    0xAF // 10101111
+#define SWD_RD_AP_REG2    0xB7 // 10110111
+#define SWD_RD_AP_REG3    0x9F // 10011111
+//                        
+// Write AP register      
+#define SWD_WR_AP_REG0    0xA3 // 10100011
+#define SWD_WR_AP_REG1    0x8B // 10001011
+#define SWD_WR_AP_REG2    0x93 // 10010011
+#define SWD_WR_AP_REG3    0xBB // 10111011
+
+#define AHB_AP_NUM     (0x0)  // AP number for AHB-AP (MEM-AP implementation)
+#define AHB_CSW_REGNUM (0x0)  // CSW register bank+register number
+#define AHB_TAR_REGNUM (0x4)  // TAR register bank+register number
+#define AHB_DRW_REGNUM (0xC)  // DRW register bank+register number
+
+#define SWD_RD_AHB_CSW SWD_RD_AP_REG0 // SWD command for reading AHB-CSW
+#define SWD_RD_AHB_TAR SWD_RD_AP_REG1 // SWD command for reading AHB-TAR
+#define SWD_RD_AHB_DRW SWD_RD_AP_REG3 // SWD command for reading AHB-DRW
+
+#define SWD_WR_AHB_CSW SWD_WR_AP_REG0 // SWD command for writing AHB-CSW
+#define SWD_WR_AHB_TAR SWD_WR_AP_REG1 // SWD command for writing AHB-TAR
+#define SWD_WR_AHB_DRW SWD_WR_AP_REG3 // SWD command for writing AHB-DRW
+
+// AHB-AP (MEM-AP) CSW Register masks
+#define AHB_AP_CSW_INC_SINGLE    (1<<4)
+#define AHB_AP_CSW_INC_PACKED    (2<<4)
+#define AHB_AP_CSW_INC_MASK      (3<<4)
+#define AHB_AP_CSW_SIZE_BYTE     (0<<0)
+#define AHB_AP_CSW_SIZE_HALFWORD (1<<0)
+#define AHB_AP_CSW_SIZE_WORD     (2<<0)
+#define AHB_AP_CSW_SIZE_MASK     (7<<0)
+
 #endif //  _TARGET_DEFINES_H_

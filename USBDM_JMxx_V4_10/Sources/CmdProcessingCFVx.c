@@ -60,7 +60,7 @@
 #include "BDMCommon.h"
 #include "JTAGSequence.h"
 
-#if (HW_CAPABILITY&(CAP_CFVx_HW|CAP_JTAG_HW))
+#if (HW_CAPABILITY&(CAP_CFVx_HW|CAP_JTAG_HW|CAP_SWD_HW))
 //! Set comm speed to user supplied value
 //!
 //! @note
@@ -83,46 +83,48 @@ U8 f_CMD_SPI_GET_SPEED(void) {
    returnSize = 3;
    return BDM_RC_OK;
 }
-
-//! Assert the TA signal
-//!
-//! @note
-//!  commandBuffer                                                         \n
-//!    - [2]    => 8-bit time interval in 10us ticks                       \n
-//!    - [3..4] => interface level [ignored] see \ref InterfaceLevelMasks_t
-//!
-//! @return
-//!  == \ref BDM_RC_OK => success         \n
-//!                                       \n
-//!  commandBuffer                        \n
-//!    - [1..2] => 0
-//!
-U8 f_CMD_CFVx_CONTROL_INTERFACE(void) {
-U8  level  = commandBuffer[4];
-
-   // This may take a while
-   setBDMBusy();
-
-#if (HW_CAPABILITY&CAP_CFVx_HW)
-   TA_LOW();                       // Assert TA
-   WAIT_US(10*commandBuffer[2]);   // Wait the specified time
-   TA_3STATE();                    // Release TA
 #endif
-   
-#if (HW_CAPABILITY & CAP_RST_IO)
-   switch (level&SI_RESET) {
-      case SI_RESET_LOW : // RESET pin=L
-         RESET_LOW();
-         break;
-      default :
-         RESET_3STATE();
-         break;
-   }
-#endif
-   *(U16*)(commandBuffer+1) = 0;   // Dummy return value
-   returnSize = 3;
-   return BDM_RC_OK;
-}
+
+#if (HW_CAPABILITY&(CAP_CFVx_HW|CAP_JTAG_HW))
+////! Assert the TA signal
+////!
+////! @note
+////!  commandBuffer                                                         \n
+////!    - [2]    => 8-bit time interval in 10us ticks                       \n
+////!    - [3..4] => interface level [ignored] see \ref InterfaceLevelMasks_t
+////!
+////! @return
+////!  == \ref BDM_RC_OK => success         \n
+////!                                       \n
+////!  commandBuffer                        \n
+////!    - [1..2] => 0
+////!
+//U8 f_CMD_CFVx_CONTROL_INTERFACE(void) {
+//U8  level  = commandBuffer[4];
+//
+//   // This may take a while
+//   setBDMBusy();
+//
+//#if (HW_CAPABILITY&CAP_CFVx_HW)
+//   TA_LOW();                       // Assert TA
+//   WAIT_US(10*commandBuffer[2]);   // Wait the specified time
+//   TA_3STATE();                    // Release TA
+//#endif
+//   
+//#if (HW_CAPABILITY & CAP_RST_IO)
+//   switch (level&SI_RESET) {
+//      case SI_RESET_LOW : // RESET pin=L
+//         RESET_LOW();
+//         break;
+//      default :
+//         RESET_3STATE();
+//         break;
+//   }
+//#endif
+//   *(U16*)(commandBuffer+1) = 0;   // Dummy return value
+//   returnSize = 3;
+//   return BDM_RC_OK;
+//}
 #endif
 
 #if (HW_CAPABILITY&CAP_CFVx_HW)

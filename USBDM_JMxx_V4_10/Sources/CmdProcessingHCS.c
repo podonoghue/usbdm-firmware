@@ -97,15 +97,18 @@ U8 rc;
 
       // Re-write Status/control reg. since Force BDM clock is active
       rc = bdm_readBDMStatus(&bdm_sts);
-      if (rc != BDM_RC_OK)
+      if (rc != BDM_RC_OK) {
          return rc;
-      if (cable_status.target_type == T_CFV1)
-         bdm_sts &= ~(CFV1_XCSR_SEC); // Make sure we don't accidently erase the chip!      
-      rc = bdm_writeBDMControl(bdm_sts);
-      if (rc != BDM_RC_OK)
-         return rc;
-      rc = bdm_connect(); // Re-connect in case speed changed from above
       }
+      if (cable_status.target_type == T_CFV1) {
+         bdm_sts &= ~(CFV1_XCSR_SEC); // Make sure we don't accidently erase the chip!
+      }
+      rc = bdm_writeBDMControl(bdm_sts);
+      if (rc != BDM_RC_OK) {
+         return rc;
+      }
+      rc = bdm_connect(); // Re-connect in case speed changed from above
+   }
    return rc;
 }
 
@@ -166,23 +169,23 @@ U8 f_CMD_GET_SPEED(void) {
    return BDM_RC_OK;
 }
 
-//! Directly manipulate BDM interface
-//!
-//! @note
-//!  commandBuffer                                                \n
-//!  - [2]    => 8-bit time interval in 10us ticks [ignored]      \n
-//!  - [3..4] => interface level [see \ref InterfaceLevelMasks_t]
-//!
-//! @return
-//!   BDM_RC_OK => success
-//!
-U8 f_CMD_CONTROL_INTERFACE(void) {
-U16  value  = *(U16*)(commandBuffer+3);
-
-   *(U16*)(commandBuffer+1) = bdm_setInterfaceLevel((U8)value);
-   returnSize = 3;
-   return BDM_RC_OK;
-}
+////! Directly manipulate BDM interface
+////!
+////! @note
+////!  commandBuffer                                                \n
+////!  - [2]    => 8-bit time interval in 10us ticks [ignored]      \n
+////!  - [3..4] => interface level [see \ref InterfaceLevelMasks_t]
+////!
+////! @return
+////!   BDM_RC_OK => success
+////!
+//U8 f_CMD_CONTROL_INTERFACE(void) {
+//U16  value  = *(U16*)(commandBuffer+3);
+//
+//   *(U16*)(commandBuffer+1) = bdm_setInterfaceLevel((U8)value);
+//   returnSize = 3;
+//   return BDM_RC_OK;
+//}
 
 //! CFV1 -  Used to reset the CFV1 target interface from overrun condition
 //!

@@ -5,6 +5,9 @@
 #ifndef _BDM_H_
 #define _BDM_H_
 
+#include "Common.h"
+#include "Commands.h"
+
 //===================================================================================
 // Shared interface
 void  bdmHCS_init(void);

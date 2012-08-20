@@ -122,13 +122,15 @@ static U8   bdmHC12_alt_speed_detect(void);
 //
 #pragma DATA_SEG __SHORT_SEG Z_PAGE
 // MUST be placed into the direct segment (assumed in ASM code).
-extern U8 bitCount;  //!< Used as a general purpose variable in the bdm_Tx{} & bdm_Rx{}etc.
-static U8 rxTiming1; //!< bdm_Rx timing constant #1
-static U8 rxTiming2; //!< bdm_Rx timing constant #2
-static U8 rxTiming3; //!< bdm_Rx timing constant #3
-static U8 txTiming1; //!< bdm_Tx timing constant #1
-static U8 txTiming2; //!< bdm_Tx timing constant #2
-static U8 txTiming3; //!< bdm_Tx timing constant #3
+extern volatile U8 bitDelay;  //!< Used as a general purpose variable in the bdm_Tx{} & bdm_Rx{}etc.
+extern volatile U8 rxTiming1; //!< bdm_Rx timing constant #1
+static volatile U8 rxTiming2; //!< bdm_Rx timing constant #2
+static volatile U8 rxTiming3; //!< bdm_Rx timing constant #3
+extern volatile U8 txTiming1; //!< bdm_Tx timing constant #1
+static volatile U8 txTiming2; //!< bdm_Tx timing constant #2
+static volatile U8 txTiming3; //!< bdm_Tx timing constant #3
+
+#define bitCount bitDelay
 
 // pointers to current bdm_Rx & bdm_Tx routines
 U8   (*bdm_rx_ptr)(void) = bdm_rxEmpty; //!< pointers to current bdm_Rx routine
@@ -260,9 +262,9 @@ U8 bdm_sts;
 U8 rc;
 
    rc = bdm_readBDMStatus(&bdm_sts); // Get current status
-   if (rc != BDM_RC_OK)
+   if (rc != BDM_RC_OK) {
       return rc;
-
+   }
    if (cable_status.target_type==T_CFV1) {
       // CFV1
       if ((bdm_sts & CFV1_XCSR_ENBDM) == 0) {
@@ -370,9 +372,9 @@ U8 rc;
    WAIT_WITH_TIMEOUT_MS(RESET_RELEASE_WAITms,(BDM_IN!=0));
 #endif
 
-   if (BDM_IN==0)
+   if (BDM_IN==0) {
       return(BDM_RC_BKGD_TIMEOUT);  // BKGD timeout
-
+   }
    rc = bdm_syncMeasure();
    if (rc != BDM_RC_OK) // try again
       rc = bdm_syncMeasure();
@@ -415,8 +417,9 @@ U8 rc;
    	     (void)bdm_cycleTargetVdd(RESET_SPECIAL); // Ignore errors
    	     rc = bdm_physicalConnect(); // Try connect again
       }
-      if (rc != BDM_RC_OK)
+      if (rc != BDM_RC_OK) {
    	     return rc;
+      }
    }
    bdm_acknInit();  // Try the ACKN feature
 
@@ -708,45 +711,45 @@ U8 rc = BDM_RC_OK;
    return(rc);
 }
 
-//!  Directly set the interface levels
-//!
-//! @param level see \ref InterfaceLevelMasks_t
-//!
-//! @return
-//!    == \ref BDM_RC_OK     => Success \n
-//!    != \ref BDM_RC_OK     => various errors
+////!  Directly set the interface levels
+////!
+////! @param level see \ref InterfaceLevelMasks_t
+////!
+////! @return
+////!    == \ref BDM_RC_OK     => Success \n
+////!    != \ref BDM_RC_OK     => various errors
+////
+//U8  bdm_setInterfaceLevel(U8 level) {
 //
-U8  bdm_setInterfaceLevel(U8 level) {
-
-   switch (level&SI_BKGD) {
-      case SI_BKGD_LOW :  // BKGD pin=L
-         BDM_LOW();
-         break;
-      case SI_BKGD_HIGH : // BKGD pin=H
-         BDM_HIGH();
-         break;
-      default :           // BKGD pin=3-state
-         BDM_3STATE();
-         break;
-   }
-
-#if (HW_CAPABILITY & CAP_RST_IO)
-   switch (level&SI_RESET) {
-      case SI_RESET_LOW : // RESET pin=L
-         RESET_LOW();
-         break;
-      default :
-         RESET_3STATE();
-         break;
-   }
-#endif
-
-#if (HW_CAPABILITY & CAP_RST_IO)
-   return (RESET_IN?SI_RESET_3STATE:SI_RESET_LOW)|(BDM_IN?SI_BKGD_3STATE:SI_BKGD_LOW);
-#else
-   return (BDM_IN?SI_BKGD:0);
-#endif
-}
+//   switch (level&SI_BKGD) {
+//      case SI_BKGD_LOW :  // BKGD pin=L
+//         BDM_LOW();
+//         break;
+//      case SI_BKGD_HIGH : // BKGD pin=H
+//         BDM_HIGH();
+//         break;
+//      default :           // BKGD pin=3-state
+//         BDM_3STATE();
+//         break;
+//   }
+//
+//#if (HW_CAPABILITY & CAP_RST_IO)
+//   switch (level&SI_RESET) {
+//      case SI_RESET_LOW : // RESET pin=L
+//         RESET_LOW();
+//         break;
+//      default :
+//         RESET_3STATE();
+//         break;
+//   }
+//#endif
+//
+//#if (HW_CAPABILITY & CAP_RST_IO)
+//   return (RESET_IN?SI_RESET_3STATE:SI_RESET_LOW)|(BDM_IN?SI_BKGD_3STATE:SI_BKGD_LOW);
+//#else
+//   return (BDM_IN?SI_BKGD:0);
+//#endif
+//}
 
 //! \brief Measures the SYNC length and writes the result into cable_status structure
 //!
@@ -984,8 +987,9 @@ void bdmHCS_off( void ) {
 #if ((HW_CAPABILITY & CAP_FLASH) != 0)
    (void)bdmSetVpp(BDM_TARGET_VPP_OFF);
 #endif
-   if (!bdm_option.leaveTargetPowered)
+   if (!bdm_option.leaveTargetPowered) {
       VDD_OFF();
+   }
    bdmHCS_interfaceIdle();
 }
 
@@ -1036,8 +1040,10 @@ void bdmHCS_init(void) {
    // Individually controlled PUPs
    BDM_OUT_PER     = 1;     // Prevent drive
    BDM_EN_PER      = 1;     // Keep driver idle
-#if (HW_CAPABILITY&CAP_RST_IO)
+#ifdef RESET_IN_PER
    RESET_IN_PER    = 1;     // Needed for input level translation to 5V
+#endif
+#ifdef RESET_OUT_PER
    RESET_OUT_PER   = 1;     // Holds RESET_OUT inactive when unused
 #endif
 #endif

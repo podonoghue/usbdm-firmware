@@ -55,6 +55,7 @@ extern void dputs(char *msg);
 #define CAP_CFVx_HW     (1<<4)   // Supports CFVx extensions beyond basic JTAG (TA etc)
 #define CAP_BDM         (1<<5)   // Supports 1-wire BDM interface (BKGD I/O)
 #define CAP_JTAG_HW     (1<<7)   // Supports JTAG interface (TCK/TDI/TDO/TMS/TRST?)
+#define CAP_SWD_HW      (1<<8)   // Supports SWD interface (SWD/SWCLK)
 #define CAP_CDC         (1<<12)  // Supports CDC USB interface
 
 //==========================================================================================
@@ -94,32 +95,33 @@ extern void dputs(char *msg);
 //=====================================================================================
 // The following lines choose a Hardware configuration
 //=====================================================================================
-#define H_USBDM                 1  //!< USBDM    - Universal TBDML/OSBDM JB16
-#define H_TBDML                 2  //!< TBDML    - Minimal JB16 version (JB16DWE,JB16JDWE)
-#define H_TBDMLSwin             3  //!< No longer used
-#define H_OSBDM                 4  //!< OSBDM    - Basic OSBDM hardware
-#define H_WTBDM                 5  //!< WTBDM08  - Wiztronics BDMS08/12
-#define H_OSBDME                6  //!< OSBDM+E  - OSBDM+Flash supply
-#define H_USBDM_JMxxCLD         7  //!< USBDM hardware using 9S08JM16/32/60CLD (44p package)
-#define H_USBDM_JMxxCLC         8  //!< USBDM hardware using 9S08JM16CLC (32p package)
-#define H_USBSPYDER             9  //!< USBSPYDER - SofTec USBSPYDER08 - not functional
-#define H_USBDM_UF32PBE        10  //!< USBDM hardware using MC9S12UF32PBE (64p package)
-#define H_USBDM_CF_JS16CWJ     11  //!< USBDM hardware CF/DSC only using MC9S08JS16CWJ (20p SOIC package)
-#define H_USBDM_CF_JMxxCLD     12  //!< Combined USBDM/TBLCF using 9S08JM16/32/60CLD (44p package)
-#define H_USBDM_JS16CWJ        13  //!< USBDM hardware using MC9S08JS16CWJ (20p SOIC package)
-#define H_USBDM_MC56F8006DEMO  14  //!< MC56F8006DEMO Board (Axiom)
-#define H_CUSTOM               15  //!< Reserved for USER created custom hardware
-#define H_USBDM_CF_SER_JS16CWJ 16  //!< USBDM hardware CF/DSC only using MC9S08JS16CWJ (20p SOIC package) with serial interface
-#define H_USBDM_SER_JS16CWJ    17  //!< USBDM hardware using MC9S08JS16CWJ (20p SOIC package) with Serial interface
-#define H_USBDM_CF_SER_JMxxCLD 18  //!< Combined USBDM/TBLCF/Serial using 9S08JM16/32/60CLD (44p package)
-#define H_USBDM_TWR_KINETIS    19  //!< TWR Kinetis boards
-#define H_USBDM_TWR_CFV1       20  //!< TWR Coldfire V1 boards
-#define H_USBDM_TWR_HCS08      21  //!< TWR HCS08 boards
-#define H_USBDM_TWR_CFVx       22  //!< TWR Coldfire Vx boards
-#define H_USBDM_ARM            23  //!< ...
+#define H_USBDM                  1  //!< USBDM    - Universal TBDML/OSBDM JB16
+#define H_TBDML                  2  //!< TBDML    - Minimal JB16 version (JB16DWE,JB16JDWE)
+#define H_TBDMLSwin              3  //!< No longer used
+#define H_OSBDM                  4  //!< OSBDM    - Basic OSBDM hardware
+#define H_WTBDM                  5  //!< WTBDM08  - Wiztronics BDMS08/12
+#define H_OSBDME                 6  //!< OSBDM+E  - OSBDM+Flash supply
+#define H_USBDM_JMxxCLD          7  //!< USBDM hardware using 9S08JM16/32/60CLD (44p package)
+#define H_USBDM_JMxxCLC          8  //!< USBDM hardware using 9S08JM16CLC (32p package)
+#define H_USBSPYDER              9  //!< USBSPYDER - SofTec USBSPYDER08 - not functional
+#define H_USBDM_UF32PBE         10  //!< USBDM hardware using MC9S12UF32PBE (64p package)
+#define H_USBDM_CF_JS16CWJ      11  //!< USBDM hardware CF/DSC only using MC9S08JS16CWJ (20p SOIC package)
+#define H_USBDM_CF_JMxxCLD      12  //!< Combined USBDM/TBLCF using 9S08JM16/32/60CLD (44p package)
+#define H_USBDM_JS16CWJ         13  //!< USBDM hardware using MC9S08JS16CWJ (20p SOIC package)
+#define H_USBDM_MC56F8006DEMO   14  //!< MC56F8006DEMO Board (Axiom)
+#define H_CUSTOM                15  //!< Reserved for USER created custom hardware
+#define H_USBDM_CF_SER_JS16CWJ  16  //!< USBDM hardware CF/DSC only using MC9S08JS16CWJ (20p SOIC package) with serial interface
+#define H_USBDM_SER_JS16CWJ     17  //!< USBDM hardware using MC9S08JS16CWJ (20p SOIC package) with Serial interface
+#define H_USBDM_CF_SER_JMxxCLD  18  //!< Combined USBDM/TBLCF/Serial using 9S08JM16/32/60CLD (44p package)
+#define H_USBDM_TWR_KINETIS     19  //!< TWR Kinetis boards
+#define H_USBDM_TWR_CFV1        20  //!< TWR Coldfire V1 boards
+#define H_USBDM_TWR_HCS08       21  //!< TWR HCS08 boards
+#define H_USBDM_TWR_CFVx        22  //!< TWR Coldfire Vx boards
+#define H_USBDM_SWD_SER_JS16CWJ 23  //!< USBDM MC9S08JS16CWJ with BDM, SWD & Serial interface
 
 #if (TARGET_HARDWARE==H_USBDM_JS16CWJ)    ||(TARGET_HARDWARE==H_USBDM_CF_JS16CWJ) || \
-	(TARGET_HARDWARE==H_USBDM_SER_JS16CWJ)||(TARGET_HARDWARE==H_USBDM_CF_SER_JS16CWJ)
+	(TARGET_HARDWARE==H_USBDM_SER_JS16CWJ)||(TARGET_HARDWARE==H_USBDM_CF_SER_JS16CWJ) || \
+	(TARGET_HARDWARE==H_USBDM_SWD_SER_JS16CWJ)
 #include <mc9s08js16.h>
 #else
 #include <mc9s08jm60.h>
@@ -128,10 +130,10 @@ extern void dputs(char *msg);
 //==========================================================================================
 //! Software Version Information
 //
-#define VERSION_MAJOR 4     // 4.9.1 - Last published -- 4.9
-#define VERSION_MINOR 9
-#define VERSION_MICRO 5
-#define VERSION_STR "4.9.5"
+#define VERSION_MAJOR 4     // 4.10.0 - Last published -- 4.9.5
+#define VERSION_MINOR 10
+#define VERSION_MICRO 0
+#define VERSION_STR "4.10.0"
 #define VERSION_SW  ((VERSION_MAJOR<<4)+VERSION_MINOR)
 //! Selected hardware platform
 #if TARGET_HARDWARE==H_USBDM_JMxxCLD
@@ -160,7 +162,8 @@ extern void dputs(char *msg);
 #include "USBDM_TWR_CFV1.h"
 #elif TARGET_HARDWARE==H_USBDM_TWR_CFVx
 #include "USBDM_TWR_CFVx.h"
-
+#elif TARGET_HARDWARE==H_USBDM_SWD_SER_JS16CWJ
+#include "USBDM_SWD_SER_JS16CWJ.h"
 #else
 #error "Target Hardware not specified (see TARGET_HARDWARE)"
 // To stop lots of further errors!
@@ -209,6 +212,8 @@ extern void dputs(char *msg);
 
 #define VendorID  (0x16D0)
 #define ProductID (0x0567)
+//#define VendorID  (0x16D0)
+//#define ProductID (0x9999)
 
 //==========================================================================================
 // CPUs supported (just clock frequency changes)

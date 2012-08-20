@@ -148,6 +148,9 @@ typedef enum  {
  BDM_JTAG_TOO_MANY_DEVICES      = 49,    //!< - JTAG chain is too long (or greater than 1!)
 
  BDM_RC_SECURED                 = 50,    //!< - ARM Device is secured (& operation failed?)
+
+ BDM_RC_ARM_PARITY_ERROR        = 51,    //!< - ARM PARITY error
+ BDM_RC_ARM_FAULT_ERROR         = 52,    //!< - ARM FAULT response error
 } USBDM_ErrorCode;
 
 //! Capabilities of the hardware
@@ -174,6 +177,7 @@ typedef enum {
    T_EZFLASH   = 6,     //!< - EzPort Flash interface (SPI?)
    T_MC56F80xx = 7,     //!< - JTAG target with MC56F80xx optimised subroutines
    T_ARM_JTAG  = 8,     //!< - ARM target using JTAG
+   T_ARM_SWD   = 9,     //!< - ARM target using JTAG
    T_OFF       = 0xFF,  //!< - Turn off interface (no target)
 } TargetType_t;
 
@@ -636,12 +640,12 @@ typedef enum {
 //! Control signal masks for CMD_USBDM_CONTROL_PIN
 typedef enum {
    PIN_BKGD_OFFS      = (0),
-   PIN_BKGD           = (3<<PIN_BKGD_OFFS), //!< - Mask for BKGD values (PIN_BKGD_LOW, PIN_BKGD_HIGH & PIN_BKGD_3STATE)
-   PIN_BKGD_NC        = (0<<PIN_BKGD_OFFS), //!<    - No change
-   PIN_BKGD_3STATE    = (1<<PIN_BKGD_OFFS), //!<    - Set BKGD 3-state
-   PIN_BKGD_LOW       = (2<<PIN_BKGD_OFFS), //!<    - Set BKGD low
-   PIN_BKGD_HIGH      = (3<<PIN_BKGD_OFFS), //!<    - Set BKGD high
-
+   PIN_BKGD           = (3<<PIN_BKGD_OFFS),  //!< - Mask for BKGD values (PIN_BKGD_LOW, PIN_BKGD_HIGH & PIN_BKGD_3STATE)
+   PIN_BKGD_NC        = (0<<PIN_BKGD_OFFS),  //!<    - No change
+   PIN_BKGD_3STATE    = (1<<PIN_BKGD_OFFS),  //!<    - Set BKGD 3-state
+   PIN_BKGD_LOW       = (2<<PIN_BKGD_OFFS),  //!<    - Set BKGD low
+   PIN_BKGD_HIGH      = (3<<PIN_BKGD_OFFS),  //!<    - Set BKGD high
+                                             
    PIN_RESET_OFFS     = (2),
    PIN_RESET          = (3<<PIN_RESET_OFFS), //!< - Mask for RESET values (PIN_RESET_LOW & PIN_RESET_3STATE)
    PIN_RESET_NC       = (0<<PIN_RESET_OFFS), //!<    - No change
@@ -650,31 +654,38 @@ typedef enum {
    PIN_RESET_HIGH     = (3<<PIN_RESET_OFFS), //!<    - Status only - Reset high
 
    PIN_TA_OFFS        = (4),
-   PIN_TA             = (3<<PIN_TA_OFFS), //!< - Mask for TA signal (not implemented)
-   PIN_TA_NC          = (0<<PIN_TA_OFFS), //!<    - No change
-   PIN_TA_3STATE      = (1<<PIN_TA_OFFS), //!<    - Set TA 3-state
-   PIN_TA_LOW         = (2<<PIN_TA_OFFS), //!<    - Set TA low
+   PIN_TA             = (3<<PIN_TA_OFFS),    //!< - Mask for TA signal (not implemented)
+   PIN_TA_NC          = (0<<PIN_TA_OFFS),    //!<    - No change
+   PIN_TA_3STATE      = (1<<PIN_TA_OFFS),    //!<    - Set TA 3-state
+   PIN_TA_LOW         = (2<<PIN_TA_OFFS),    //!<    - Set TA low
+                                             
+   PIN_DE_OFFS        = (4),                 
+   PIN_DE             = (3<<PIN_DE_OFFS),    //!< - Mask for DE signal (not implemented)
+   PIN_DE_NC          = (0<<PIN_DE_OFFS),    //!<    - No change
+   PIN_DE_3STATE      = (1<<PIN_DE_OFFS),    //!<    - Set DE 3-state
+   PIN_DE_LOW         = (2<<PIN_DE_OFFS),    //!<    - Set DE low
+                                             
+   PIN_TRST_OFFS      = (6),                 
+   PIN_TRST           = (3<<PIN_TRST_OFFS),  //!< - Mask for TRST signal (not implemented)
+   PIN_TRST_NC        = (0<<PIN_TRST_OFFS),  //!<    - No change
+   PIN_TRST_3STATE    = (1<<PIN_TRST_OFFS),  //!<    - Set TRST 3-state
+   PIN_TRST_LOW       = (2<<PIN_TRST_OFFS),  //!<    - Set TRST low
+                                             
+   PIN_BKPT_OFFS      = (8),                 
+   PIN_BKPT           = (3<<PIN_BKPT_OFFS),  //!< - Mask for BKPT signal
+   PIN_BKPT_NC        = (0<<PIN_BKPT_OFFS),  //!<    - No change
+   PIN_BKPT_3STATE    = (1<<PIN_BKPT_OFFS),  //!<    - Set BKPT 3-state
+   PIN_BKPT_LOW       = (2<<PIN_BKPT_OFFS),  //!<    - Set BKPT low
+                                             
+   PIN_SWD_OFFS       = (10),                 
+   PIN_SWD            = (3<<PIN_SWD_OFFS),   //!< - Mask for SWD values (PIN_SWD_LOW, PIN_SWD_HIGH & PIN_SWD_3STATE)
+   PIN_SWD_NC         = (0<<PIN_SWD_OFFS),   //!<    - No change
+   PIN_SWD_3STATE     = (1<<PIN_SWD_OFFS),   //!<    - Set SWD 3-state
+   PIN_SWD_LOW        = (2<<PIN_SWD_OFFS),   //!<    - Set SWD low
+   PIN_SWD_HIGH       = (3<<PIN_SWD_OFFS),   //!<    - Set SWD high
 
-   PIN_DE_OFFS        = (4),
-   PIN_DE             = (3<<PIN_DE_OFFS), //!< - Mask for DE signal (not implemented)
-   PIN_DE_NC          = (0<<PIN_DE_OFFS), //!<    - No change
-   PIN_DE_3STATE      = (1<<PIN_DE_OFFS), //!<    - Set DE 3-state
-   PIN_DE_LOW         = (2<<PIN_DE_OFFS), //!<    - Set DE low
-
-   PIN_TRST_OFFS      = (6),
-   PIN_TRST           = (3<<PIN_TRST_OFFS), //!< - Mask for TRST signal (not implemented)
-   PIN_TRST_NC        = (0<<PIN_TRST_OFFS), //!<    - No change
-   PIN_TRST_3STATE    = (1<<PIN_TRST_OFFS), //!<    - Set TRST 3-state
-   PIN_TRST_LOW       = (2<<PIN_TRST_OFFS), //!<    - Set TRST low
-   
-   PIN_BKPT_OFFS      = (8),
-   PIN_BKPT           = (3<<PIN_BKPT_OFFS), //!< - Mask for BKPT signal
-   PIN_BKPT_NC        = (0<<PIN_BKPT_OFFS), //!<    - No change
-   PIN_BKPT_3STATE    = (1<<PIN_BKPT_OFFS), //!<    - Set BKPT 3-state
-   PIN_BKPT_LOW       = (2<<PIN_BKPT_OFFS), //!<    - Set BKPT low
-
-   PIN_NOCHANGE       = 0,                  //!< No change to pins (used to get pin status)
-   PIN_RELEASE        = -1,                 //!< Release all pins (go to default for current target)
+   PIN_NOCHANGE       = 0,                   //!< No change to pins (used to get pin status)
+   PIN_RELEASE        = -1,                  //!< Release all pins (go to default for current target)
 } PinLevelMasks_t ;
 
 //! Debugging sub commands (used with \ref CMD_USBDM_DEBUG )
@@ -698,6 +709,7 @@ typedef enum  {
   BDM_DBG_TESTWAITS        = 15, //!< - Tests the software counting delays used for BDM communication. (locks up BDM!)
   BDM_DBG_TESTALTSPEED     = 16, //!< - Test bdmHC12_alt_speed_detect{}
   BDM_DBG_TESTBDMTX        = 17, //!< - Test various BDM tx routines with dummy data
+  BDM_DBG_SWD              = 18, //!< - Test SWD
 } DebugSubCommands;
 
 //! Commands for BDM when in ICP mode

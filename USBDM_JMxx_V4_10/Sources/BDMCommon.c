@@ -53,6 +53,8 @@
 #include "BDM.h"
 #include "BDM_CF.h"
 #include "BDM_RS08.h"
+#include "SWD.h"
+#include "SPI.h"
 #include "CmdProcessing.h"
 
 //=============================================================================================================================================
@@ -679,8 +681,11 @@ void bdm_interfaceOff( void ) {
 #ifdef BKPT_DISABLE
    BKPT_DISABLE();
 #endif
-#ifdef RESET_3STATE
+#ifdef RESET_3STATE  // Todo - remove
    RESET_3STATE();
+#endif
+#ifdef RESET_DISABLE
+   RESET_DISABLE();
 #endif
 #ifdef CF_DRV_DISABLE
    CF_DRV_DISABLE();
@@ -703,6 +708,13 @@ void bdm_interfaceOff( void ) {
 #ifdef TCLK_CTL_DISABLE
    TCLK_CTL_DISABLE();
 #endif
+#ifdef SWD_DISABLE
+   SWD_DISABLE();
+#endif
+#ifdef SWCLK_DISABLE
+   SWCLK_DISABLE();
+#endif
+   SPIxC1 = SPIxC1_OFF; // Disable SPI (MOSI/MISO pins now GPIO)
 }
 
 //!  Turns off the BDM interface
@@ -722,9 +734,11 @@ void bdm_off( void ) {
 U8 bdm_setTarget(U8 target) {
 U8 rc = BDM_RC_OK;
 
+#ifdef RESET_IN_PER
+   RESET_IN_PER    = 1;     // Needed for input level translation to 5V
+#endif
 #ifdef RESET_OUT_PER
-   RESET_OUT_PER    = 1;    // Holds RESET_OUT inactive when unused
-   RESET_IN_PER     = 1;    // Needed for input level translation to 5V
+   RESET_OUT_PER   = 1;     // Holds RESET_OUT inactive when unused
 #endif
 
    if (target == T_OFF) {
@@ -740,9 +754,9 @@ U8 rc = BDM_RC_OK;
 #endif
 
    rc = initTimers();         // re-init timers in case settings changed
-   if (rc != BDM_RC_OK)
+   if (rc != BDM_RC_OK) {
       return rc;
-
+   }
    switch (target) {
 #if (TARGET_CAPABILITY & CAP_HCS12)   
       case T_HC12:
@@ -784,6 +798,11 @@ U8 rc = BDM_RC_OK;
 #if (TARGET_CAPABILITY&CAP_ARM_JTAG)
       case T_ARM_JTAG:
           jtag_init();                   // Initialise JTAG
+          break;
+#endif
+#if (TARGET_CAPABILITY&CAP_ARM_SWD)
+      case T_ARM_SWD:
+          swd_init();                   // Initialise JTAG
           break;
 #endif
       case T_OFF:

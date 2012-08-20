@@ -30,7 +30,7 @@ OBJS_OS_FORMAT += \
 # Each subdirectory must supply rules for building sources it contributes
 Lib/mc9s08jm16_c.obj: ../Lib/mc9s08jm16.c
 	@echo 'Building file: $<'
-	@echo 'Executing target #19 $<'
+	@echo 'Executing target #22 $<'
 	@echo 'Invoking: HCS08 Compiler'
 	"$(HC08ToolsEnv)/chc08" -ArgFile"Lib/mc9s08jm16.args" -ObjN="Lib/mc9s08jm16_c.obj" "$<" -Lm="Lib/mc9s08jm16_c.d" -LmCfg=xilmou
 	@echo 'Finished building: $<'

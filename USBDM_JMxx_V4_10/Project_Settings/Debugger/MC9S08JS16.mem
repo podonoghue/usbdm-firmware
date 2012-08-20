@@ -220,8 +220,8 @@ range		0x0000FFBA 0x0000FFBA 1 ReadWrite	// Checksum Bypass
 range		0x0000FFBB 0x0000FFBB 1 ReadWrite	// User Data
 range		0x0000FFBC 0x0000FFBC 1 ReadWrite	// User Data
 range		0x0000FFBD 0x0000FFBD 1 ReadWrite	// NVPROT
-range		0x0000FFBE 0x0000FFBE 1  ReadWrite	// Flash Partial Erase semaphore
-range           0x0000FFBF 0x0000FFBF 1 ReadWrite    // NVOPT
+range		0x0000FFBE 0x0000FFBE 1 ReadWrite	// Flash Partial Erase semaphore
+range    0x0000FFBF 0x0000FFBF 1 ReadWrite   // NVOPT
 
 // All reserved ranges read back 0xBABA... 
 reservedchar 0xBA

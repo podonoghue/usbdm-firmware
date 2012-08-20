@@ -59,89 +59,17 @@
 #include "bdmcfMacros.h"
 #include "CmdProcessing.h"
 #include "BDMCommon.h"
+#include "SPI.h"
 #if (HW_CAPABILITY&CAP_JTAG_HW)
 #include "JTAGSequence.h"
 #endif
 
-#define DEFAULT_SPI_FREQUENCY  (1000)    // 1000 kHz
-
-#pragma DATA_SEG __SHORT_SEG Z_PAGE
-
-// MUST be placed into the direct segment (assumed in ASM code).
-volatile U8 bitCount;  //!< Used as a general purpose variable in the bdm_Tx{} & bdm_Rx{}etc.
-#pragma DATA_SEG DEFAULT
-
-#if (HW_CAPABILITY&CAP_CFVx_HW) || (HW_CAPABILITY&CAP_JTAG_HW)
-//! Structure to relate BDM Communication speed to SPI configuration value
-typedef struct {
-   U16 freq;         //!< Freq in kHz
-   U8  spiValue;     //!< SPI baud value 
-   U8  delayCount;   //!< count for start bit time
-} SPISpeed;
-
-#ifndef SPI1C1
-#define SPI1BR_SPPR_BITNUM SPIBR_SPPR_BITNUM
-#define SPI1BR_SPR_BITNUM SPIBR_SPR_BITNUM
-#define SPI1BR SPIBR
-#define SPI1C1 SPIC1
-#define SPI1C1_MSTR_MASK SPIC1_MSTR_MASK
-#define SPI1C2 SPIC2
-#define SPI1C2_SPIMODE_MASK SPIC2_SPIMODE_MASK
-#define SPI1C1_SPE_MASK SPIC1_SPE_MASK
-#define SPI1D16 SPID16
-#define SPI1S SPIS
-#endif
-
-//!  Table relating BDM Communication speed to SPI configuration value
-//!  @note Assumes SPI Clock input is 24 MHz
-static const SPISpeed SPISpeedValues[ ] = {
-   // Freq in kHz           SPI Value                            // Divide by (SPPR+1) * 2**(SPR+1)
-    { 12000, ((0<<SPI1BR_SPPR_BITNUM)|(0<<SPI1BR_SPR_BITNUM)),  1},  // = (0+1) * (2**(0+1)) =  /2 => 12   MHz
-    {  6000, ((0<<SPI1BR_SPPR_BITNUM)|(1<<SPI1BR_SPR_BITNUM)),  1},  // = (0+1) * (2**(1+1)) =  /4 =>  6   MHz
-    {  4000, ((2<<SPI1BR_SPPR_BITNUM)|(0<<SPI1BR_SPR_BITNUM)),  1},  // = (2+1) * (2**(0+1)) =  /6 =>  4   MHz
-    {  3000, ((0<<SPI1BR_SPPR_BITNUM)|(2<<SPI1BR_SPR_BITNUM)),  1},  // = (0+1) * (2**(2+1)) =  /8 =>  3   MHz
-    {  2000, ((2<<SPI1BR_SPPR_BITNUM)|(1<<SPI1BR_SPR_BITNUM)),  1},  // = (2+1) * (2**(1+1)) = /12 =>  2   MHz
-    {  1500, ((0<<SPI1BR_SPPR_BITNUM)|(3<<SPI1BR_SPR_BITNUM)),  1},  // = (0+1) * (2**(3+1)) = /16 =>  1.5 MHz
-    {  1000, ((2<<SPI1BR_SPPR_BITNUM)|(2<<SPI1BR_SPR_BITNUM)),  1},  // = (2+1) * (2**(2+1)) = /24 =>  1   MHz
-    {   750, ((0<<SPI1BR_SPPR_BITNUM)|(4<<SPI1BR_SPR_BITNUM)),  2},  // = (0+1) * (2**(4+1)) = /32 =>  750 kHz
-    {   500, ((2<<SPI1BR_SPPR_BITNUM)|(3<<SPI1BR_SPR_BITNUM)),  6},  // = (2+1) * (2**(3+1)) = /48 =>  500 kHz
-    {   250, ((2<<SPI1BR_SPPR_BITNUM)|(4<<SPI1BR_SPR_BITNUM)),  10}, // = (2+1) * (2**(4+1)) = /96 =>  250 KHz
-};
-
-#define SPIxC1_OFF   (                SPI1C1_MSTR_MASK)     //!< SPI Masks - Mask to disable SPI
-#define SPIxC1_M_ON  (SPI1C1_SPE_MASK|SPI1C1_MSTR_MASK)     //!< SPI Masks - Mask to enable SPI as master
-#define SPIxC2_M     (SPI1C2_SPIMODE_MASK)                  //!< SPI Masks - 16-bit mode
-
-U8 SPIBaud = ((2<<SPI1BR_SPPR_BITNUM)|(2<<SPI1BR_SPR_BITNUM)); //!< SPI config value (1MHz)
-
-//! Sets Communication speed for CF V2, 3 & 4 targets
-//!
-//! @param freq => Frequency on kHz (0 => use default value)
-//!
-//! @return  \ref BDM_RC_OK              => Success                 \n
-//!          \ref BDM_RC_ILLEGAL_PARAMS  => Speed is not supported
-//!
-U8 spi_setSpeed(U16 freq) {
-int sub;
-
-   if (freq == 0) {
-      freq = DEFAULT_SPI_FREQUENCY;
-   }
-   
-   for (sub = 0; sub<sizeof(SPISpeedValues)/sizeof(SPISpeedValues[0]); sub++) {
-      if (SPISpeedValues[sub].freq <= freq) {
-         SPIBaud = SPISpeedValues[sub].spiValue;
-         cable_status.sync_length = SPISpeedValues[sub].freq;
-         SPI1BR = SPIBaud;
-         bitCount = SPISpeedValues[sub].delayCount;
-         return BDM_RC_OK;
-      }
-   }
-   return BDM_RC_ILLEGAL_PARAMS;
-}
-#endif
-
 #if (HW_CAPABILITY&CAP_CFVx_HW)
+//!< SPI Masks - Mask to enable SPI as master Tx
+#define SPIxC1_M_ON     (SPIxC1_SPE_MASK|SPIxC1_MSTR_MASK|SPIxC1_CPOL_MASK)                   //!< SPI Masks - Mask to enable SPI as master Tx
+#define SPIxC2_M_8      (0)                                                                   //!< SPI Masks - 8-bit mode
+#define SPIxC2_M_16     (SPIxC2_SPIMODE_MASK)                                                 //!< SPI Masks - 8-bit mode
+
 U16 bdmcf_txRx16(U16 data);
 void bdmcf_tx16(U16 data);
 
@@ -180,10 +108,12 @@ U16 returnData;
    do {
       status     = bdmcf_txrx_start();
       returnData = bdmcf_txRx16(next_cmd);
-      if (status == BDMCF_STATUS_OK) 
+      if (status == BDMCF_STATUS_OK) {
          return(BDM_RC_OK);
-      if (returnData != BDMCF_RES_NOT_READY) 
+      }
+      if (returnData != BDMCF_RES_NOT_READY) { 
          break;
+      }
    } while ((retryCount--)>0);
    
    switch (returnData) {
@@ -229,9 +159,9 @@ U16  dataOut = BDMCF_CMD_NOP; // Dummy command to send
       retryCount = BDMCF_RETRY;
       
       count--;
-      if (count == 0)            // Last word to Tx?
+      if (count == 0) {          // Last word to Tx?
          dataOut = nextCommand;  // Yes - send next command
-      
+      }
       do {
          status = bdmcf_txrx_start();
          data   = bdmcf_txRx16( dataOut );
@@ -338,14 +268,15 @@ U16 data;
    }
    for (bitCount=20; bitCount>0; bitCount--) {  
 	  // Now start sending in another NOP and watch the result
-      if (bdmcf_txrx_start()==0)
+      if (bdmcf_txrx_start()==0) {
          break;   // The first 0 is the status bit
+      }
    }
-   if (bitCount==0) // No status bit found in 20 bits
+   if (bitCount==0) { // No status bit found in 20 bits
       return(BDM_RC_NO_CONNECTION);
-      
+   }
    // Transmitted & received the status bit, finish the NOP
-	bdmcf_tx16(BDMCF_CMD_NOP);
+   bdmcf_tx16(BDMCF_CMD_NOP);
    
    return(BDM_RC_OK);
 }
@@ -374,7 +305,7 @@ U16 data;
 //! \endverbatim
 //!
 void bdmcf_interfaceIdle(void) {
-   SPI1C1        = SPIxC1_OFF; // Disable SPI1
+   SPIxC1        = SPIxC1_OFF; // Disable SPI1
    DATA_PORT     = BDMCF_IDLE;
    DATA_PORT_DDR = BDMCF_IDLE_DDR; 
    RESET_3STATE();  
@@ -416,7 +347,7 @@ void bdmcf_init(void) {
    SPI2C1 = SPIxC1_OFF;     // SPI2 is unused (Port pin is used for BKPT*)
 #endif
    (void)spi_setSpeed(0);
-   SPI1C2 = SPIxC2_M;       // Initialise SPI1 but leave disabled
+   SPIxC2 = SPIxC2_M_8;       // Initialise SPI1 but leave disabled
    bdmcf_interfaceIdle();
    
 #ifdef TCLK_CTL_DISABLE
@@ -443,18 +374,18 @@ U16 bdmcf_txRx16(U16 data) {
    asm {               
       //  Entry: U16 parameter in H:X for HCS08
       
-      mov    #SPIxC1_M_ON,SPI1C1            // Enable SPI
-  L1: brclr  SPIS_SPTEF_BIT,SPI1S,L1        // Wait for Tx buffer free
-      sthx   SPI1D16                        // Send the word
-  L2: brclr  SPIS_SPRF_BIT,SPI1S,L2         // Wait until Tx/Rx complete
+      mov    #SPIxC1_M_ON,SPIxC1            // Enable SPI
+  L1: brclr  SPIS_SPTEF_BIT,SPIxS,L1        // Wait for Tx buffer free
+      sthx   SPIxD16                        // Send the word
+  L2: brclr  SPIS_SPRF_BIT,SPIxS,L2         // Wait until Tx/Rx complete
 
    // The Coldfire BDM interface is not SPI compatible.
    // SPI input sample time is too early (captures previous bit).
    // The following code adjusts for last bit.
       brclr  DSO_IN_BITNUM,DSO_IN_PORT,next  // Capture last bit in Cy
    next:    
-      lda    SPI1D16:0                       // Get Rx data (w/o last bit!)
-      ldx    SPI1D16:1
+      lda    SPIxD16:0                       // Get Rx data (w/o last bit!)
+      ldx    SPIxD16:1
       rolx                                   // Rotate last bit into data
       rola
       
@@ -486,15 +417,15 @@ void bdmcf_tx16(U16 data) {
 //!
 U8 bdmcf_txrx_start(void) {
    asm {
-      mov   #SPIxC1_OFF,SPI1C1                  // Disable SPI
+      mov   #SPIxC1_OFF,SPIxC1                  // Disable SPI
       mov   #BDMCF_IDLE,DATA_PORT               // [4  pwpp]  DSCLK low, DSI low
       ASM_DSCLK_HIGH                            // [5 rfwpp]  Create rising edge on DSCLK (BSET)
                                                 // ---------- 10 + call overhead 
-      lda   bitCount                            // [3   rpp]
+      lda   bitDelay                            // [3   rpp]
       dbnza *-0                                 // [4n fppp]
       ASM_DSCLK_LOW                             // [5 rfwpp]  Create falling edge on DSCLK (BCLR)
                                                 // ----------  
-      lda   bitCount                            // [3   rpp]
+      lda   bitDelay                            // [3   rpp]
       dbnza *-0                                 // [4n fppp]
       clra                                      // [1     p]
       brclr  DSO_IN_BITNUM,DSO_IN_PORT,next     // [5 rpppp]  Capture input data (in Cy)

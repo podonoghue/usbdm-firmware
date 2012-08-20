@@ -1011,9 +1011,9 @@ U8 ARM_writeAP(const U8 **sequence, U8 **dataInPtr, U8 **dataOutPtr) {
    USBDM_JTAG_ReadWrite(3, JTAG_STAY_SHIFT, &writeSelect, &ack);
    // Write data, exit & enter SHIFT-IR afterwards
    USBDM_JTAG_Write(32, JTAG_EXIT_SHIFT_IR, selectValue);
-   if (ack != ACK_OK_FAULT)
+   if (ack != ACK_OK_FAULT) {
 	   return BDM_RC_ACK_TIMEOUT;
-
+   }
    // Write APACC_SEL command to IR, move to JTAG_SHIFT_DR
    USBDM_JTAG_Write(ARM_JTAG_MASTER_IR_LENGTH, JTAG_EXIT_SHIFT_DR, &apAccSelectCommand);
 
@@ -1048,17 +1048,17 @@ U8 ARM_writeAP(const U8 **sequence, U8 **dataInPtr, U8 **dataOutPtr) {
    USBDM_JTAG_ReadWrite(3,  JTAG_STAY_SHIFT, &readStatus, &ack);
    // Complete transaction
    USBDM_JTAG_Write(32, JTAG_EXIT_SHIFT_DR, dummyValue);
-   if (ack != ACK_OK_FAULT)
+   if (ack != ACK_OK_FAULT) {
 	   return BDM_RC_ACK_TIMEOUT;
-
+   }
    // Write operation/read status, stay in SHIFT-DR
    USBDM_JTAG_ReadWrite(3,  JTAG_STAY_SHIFT, &readRdBuff, &ack);
    // Read Control/Status data, exit & re-enter SHIFT-DR
    USBDM_JTAG_Read(32, JTAG_EXIT_IDLE, *dataInPtr);
    (*dataInPtr) += 4;
-   if (ack != ACK_OK_FAULT)
+   if (ack != ACK_OK_FAULT) {
 	   return BDM_RC_ACK_TIMEOUT;
-
+   }
    return BDM_RC_OK;
 }
 

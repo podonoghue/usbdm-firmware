@@ -5,6 +5,6 @@
 ################################################################################
 
 export HC08ToolsEnv=$(CWInstallLocationEnv)/MCU/prog
-export ProjDirPath=C:/Peter/Development/USBDM/CodewarriorWorkspace/USBDM_JMxx_V4_9
+export ProjDirPath=C:/Peter/git/usbdm-firmware/USBDM_JMxx_V4_10
 export CWInstallLocationEnv=C:/Program Files/Freescale/CW MCU v10.2
 export MCUToolsBaseDirEnv=$(CWInstallLocationEnv)/MCU

@@ -67,12 +67,14 @@
 #include "BDM_CF.h"
 #include "BDM_RS08.h"
 #include "BDM.h"
+#include "SWD.h"
 #include "USB.h"
 #include "ICP.h"
 #include "CmdProcessing.h"
 #include "CmdProcessingHCS.h"
 #include "CmdProcessingCFVx.h"
 #include "CmdProcessingCFV1.h"
+#include "CmdProcessingSWD.h"
 
 #ifdef __HC08__
 #pragma DATA_SEG __SHORT_SEG Z_PAGE
@@ -326,6 +328,10 @@ DebugSubCommands subCommand = commandBuffer[2];
       case BDM_DBG_TESTBDMTX: // Test BDM Tx routine
          return bdm_testTx(commandBuffer[3]);
 #endif
+#if HW_CAPABILITY & CAP_SWD_HW
+      case   BDM_DBG_SWD: //!< - Test SWD functions
+    	 return swd_test();
+#endif
    } // switch
    return BDM_RC_ILLEGAL_PARAMS;
 }
@@ -437,6 +443,11 @@ U8 f_CMD_CONTROL_PINS(void) {
 		   jtag_interfaceIdle();
 		   break;
 #endif
+#if (HW_CAPABILITY&CAP_SWD_HW)
+	   case T_ARM_SWD :
+		   swd_interfaceIdle();
+		   break;
+#endif
 	   case T_OFF :
 	   default:
 		   return BDM_RC_ILLEGAL_COMMAND;
@@ -470,6 +481,12 @@ U8 f_CMD_CONTROL_PINS(void) {
 		   return BDM_RC_ILLEGAL_PARAMS;
 	   break;
 #endif	   
+#if (HW_CAPABILITY&CAP_SWD_HW)
+	   case T_ARM_SWD :
+		   if (control & ~(PIN_SWD|PIN_RESET))
+			   return BDM_RC_ILLEGAL_PARAMS;
+		   break;
+#endif
    case T_OFF :
    default:
 	   return BDM_RC_ILLEGAL_PARAMS;
@@ -533,6 +550,19 @@ U8 f_CMD_CONTROL_PINS(void) {
    }
 #endif
    
+#if (HW_CAPABILITY & CAP_SWD_HW)
+   switch (control & PIN_SWD) {
+   case PIN_SWD_3STATE : 
+	   SWD_3STATE();    // Disable SWD buffer, SWDIO = Z
+       break;
+   case PIN_SWD_LOW :
+	   SWD_LOW();       // Enable SWD buffer,  SWDIO = 0
+       break;
+   case PIN_SWD_HIGH :
+	   SWD_HIGH();      // Enable SWD buffer,  SWDIO = 1
+       break;
+   }
+#endif
    getPinStatus();
    return BDM_RC_OK;
 }
@@ -605,7 +635,7 @@ static const FunctionPtr HCS12functionPtrs[] = {
    f_CMD_SET_SPEED                  ,//= 16, CMD_USBDM_SET_SPEED
    f_CMD_GET_SPEED                  ,//= 17, CMD_USBDM_GET_SPEED
 
-   f_CMD_CONTROL_INTERFACE          ,//= 18, CMD_USBDM_CONTROL_INTERFACE
+   f_CMD_ILLEGAL                    ,//= 18, CMD_USBDM_CONTROL_INTERFACE
    f_CMD_ILLEGAL                    ,//= 19, RESERVED
 
    f_CMD_READ_STATUS_REG            ,//= 20, CMD_USBDM_READ_STATUS_REG
@@ -640,7 +670,7 @@ static const FunctionPtr HCS08functionPtrs[] = {
    f_CMD_SET_SPEED                  ,//= 16, CMD_USBDM_SET_SPEED
    f_CMD_GET_SPEED                  ,//= 17, CMD_USBDM_GET_SPEED
 
-   f_CMD_CONTROL_INTERFACE          ,//= 18, CMD_USBDM_CONTROL_INTERFACE
+   f_CMD_ILLEGAL                    ,//= 18, CMD_USBDM_CONTROL_INTERFACE
    f_CMD_ILLEGAL                    ,//= 19, RESERVED
 
    f_CMD_READ_STATUS_REG            ,//= 20, CMD_USBDM_READ_STATUS_REG
@@ -687,7 +717,7 @@ static const FunctionPtr CFV1functionPtrs[] = {
    f_CMD_SET_SPEED                  ,//= 16, CMD_USBDM_SET_SPEED
    f_CMD_GET_SPEED                  ,//= 17, CMD_USBDM_GET_SPEED
 
-   f_CMD_CONTROL_INTERFACE          ,//= 18, CMD_USBDM_CONTROL_INTERFACE
+   f_CMD_ILLEGAL                    ,//= 18, CMD_USBDM_CONTROL_INTERFACE
    f_CMD_ILLEGAL                    ,//= 19, RESERVED
 
    f_CMD_READ_STATUS_REG            ,//= 20, CMD_USBDM_READ_STATUS_REG
@@ -722,7 +752,7 @@ static const FunctionPtr CFVxfunctionPtrs[] = {
    f_CMD_SPI_SET_SPEED              ,//= 16, CMD_USBDM_SET_SPEED
    f_CMD_SPI_GET_SPEED              ,//= 17, CMD_USBDM_GET_SPEED
 
-   f_CMD_CFVx_CONTROL_INTERFACE     ,//= 18, CMD_USBDM_CONTROL_INTERFACE
+   f_CMD_ILLEGAL                    ,//= 18, CMD_USBDM_CONTROL_INTERFACE
    f_CMD_ILLEGAL                    ,//= 19, RESERVED
 
    f_CMD_CFVx_READ_STATUS_REG       ,//= 20, CMD_USBDM_READ_STATUS_REG
@@ -761,7 +791,7 @@ static const FunctionPtr JTAGfunctionPtrs[] = {
    f_CMD_ILLEGAL                    ,//= 15, CMD_USBDM_CONNECT
    f_CMD_SPI_SET_SPEED              ,//= 16, CMD_USBDM_SET_SPEED
    f_CMD_SPI_GET_SPEED              ,//= 17, CMD_USBDM_GET_SPEED
-   f_CMD_CFVx_CONTROL_INTERFACE     ,//= 18, CMD_USBDM_CONTROL_INTERFACE
+   f_CMD_ILLEGAL                    ,//= 18, CMD_USBDM_CONTROL_INTERFACE
    f_CMD_ILLEGAL                    ,//= 19, RESERVED
    f_CMD_ILLEGAL                    ,//= 20, CMD_USBDM_READ_STATUS_REG
    f_CMD_ILLEGAL                    ,//= 21, CMD_USBDM_WRITE_CONTROL_REG
@@ -792,6 +822,35 @@ static const FunctionPtr JTAGfunctionPtrs[] = {
 static const FunctionPtrs JTAGFunctionPointers   = {CMD_USBDM_CONNECT,
                                                     sizeof(JTAGfunctionPtrs)/sizeof(FunctionPtr),     
                                                     JTAGfunctionPtrs};
+#endif 
+
+#if (TARGET_CAPABILITY&CAP_ARM_SWD)
+static const FunctionPtr SWDfunctionPtrs[] = {
+   // Target specific versions
+   // Target specific versions
+   f_CMD_SWD_CONNECT                ,//= 15, CMD_USBDM_CONNECT
+   f_CMD_SPI_SET_SPEED              ,//= 16, CMD_USBDM_SET_SPEED
+   f_CMD_SPI_GET_SPEED              ,//= 17, CMD_USBDM_GET_SPEED
+   f_CMD_ILLEGAL                    ,//= 18, CMD_USBDM_CONTROL_INTERFACE
+   f_CMD_ILLEGAL                    ,//= 19, RESERVED
+   f_CMD_ILLEGAL                    ,//= 20, CMD_USBDM_READ_STATUS_REG
+   f_CMD_ILLEGAL                    ,//= 21, CMD_USBDM_WRITE_CONTROL_REG
+   f_CMD_ILLEGAL                    ,//= 22, CMD_USBDM_TARGET_RESET
+   f_CMD_SWD_TARGET_STEP            ,//= 23, CMD_USBDM_TARGET_STEP
+   f_CMD_SWD_TARGET_GO              ,//= 24, CMD_USBDM_TARGET_GO
+   f_CMD_SWD_TARGET_HALT            ,//= 25, CMD_USBDM_TARGET_HALT
+   f_CMD_SWD_WRITE_REG              ,//= 26, CMD_USBDM_WRITE_REG
+   f_CMD_SWD_READ_REG               ,//= 27  CMD_USBDM_READ_REG
+   f_CMD_SWD_WRITE_CREG             ,//= 28  CMD_USBDM_WRITE_CREG
+   f_CMD_SWD_READ_CREG              ,//= 29  CMD_USBDM_READ_CREG
+   f_CMD_SWD_WRITE_DREG             ,//= 30  CMD_USBDM_WRITE_DREG
+   f_CMD_SWD_READ_DREG              ,//= 31  CMD_USBDM_READ_DREG
+   f_CMD_SWD_WRITE_MEM              ,//= 32  CMD_USBDM_WRITE_MEM
+   f_CMD_SWD_READ_MEM               ,//= 33  CMD_USBDM_READ_MEM
+   };
+static const FunctionPtrs SWDFunctionPointers   = {CMD_USBDM_CONNECT,
+                                                    sizeof(SWDfunctionPtrs)/sizeof(FunctionPtr),     
+                                                    SWDfunctionPtrs};
 #endif 
 
 //! Ptr to function table for current target type
@@ -847,6 +906,11 @@ U8 target = commandBuffer[2];
          currentFunctions = &JTAGFunctionPointers;
          break;
 #endif
+#if (TARGET_CAPABILITY&CAP_ARM_SWD)
+      case T_ARM_SWD:
+         currentFunctions = &SWDFunctionPointers;
+         break;
+#endif
       case T_OFF:
          currentFunctions = NULL;
          break;
@@ -897,16 +961,22 @@ FunctionPtr commandPtr = f_CMD_ILLEGAL;     // Default to illegal command
    returnSize       = 1;
    commandStatus = BDM_RC_OK;
    if (command >= CMD_USBDM_READ_STATUS_REG) {
-	   // Check if re-connect needed before most commands (always)
-	   commandStatus = optionalReconnect(AUTOCONNECT_ALWAYS);
+      // Check if re-connect needed before most commands (always)
+      commandStatus = optionalReconnect(AUTOCONNECT_ALWAYS);
    }
-   if (commandStatus == BDM_RC_OK)
-	   commandStatus = commandPtr();   // Execute command & update command status
-   commandBuffer[0] = commandStatus;  // return command status
-
+   if (commandStatus == BDM_RC_OK) {
+      commandStatus = commandPtr();      // Execute command & update command status
+      commandBuffer[0] = commandStatus;  // return command status
+   }
    if (commandStatus != BDM_RC_OK) {
       returnSize = 1;  // Return a single byte error code
       // Do any common cleanup here
+#if (TARGET_CAPABILITY&CAP_ARM_SWD)
+   if (cable_status.target_type == T_ARM_SWD) {
+      // Clear stick bits since already reporting error
+	   (void)swd_clearStickyError();
+   }
+#endif
 #if (TARGET_CAPABILITY&CAP_CFVx)
       if (cable_status.target_type == T_CFVx) {
          (void)bdmcf_complete_chk_rx(); //  Send at least 2 NOPs to purge the BDM

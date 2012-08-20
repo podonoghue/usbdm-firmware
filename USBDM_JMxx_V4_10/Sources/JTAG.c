@@ -47,14 +47,15 @@
 #include "BDM_CF.h"
 #include "CmdProcessing.h"
 #include "BDMCommon.h"
+#include "SPI.h"
 #include "JTAGSequence.h"
 
 #pragma MESSAGE DISABLE C4301 // Disable warnings about inline expansion
 
-#pragma DATA_SEG __SHORT_SEG Z_PAGE
+//#pragma DATA_SEG __SHORT_SEG Z_PAGE
 // MUST be placed into the direct segment (assumed in ASM code).
-extern volatile U8 bitCount;  //!< Used as a general purpose local variable
-#pragma DATA_SEG DEFAULT
+//extern volatile U8 bitCount;  //!< Used as a general purpose local variable
+//#pragma DATA_SEG DEFAULT
 
 #if !(HW_CAPABILITY&CAP_JTAG_HW)
 void jtag_init(void) { }
@@ -575,7 +576,7 @@ void jtag_off(void) {
 #pragma INLINE
 void halfBitDelay(void) {
 	asm {					
-		  ldx   bitCount	
+		  ldx   bitDelay	
 		  dbnzx *-0		
 	}
 }

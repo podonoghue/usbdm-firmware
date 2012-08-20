@@ -118,6 +118,15 @@ enum {EP_OUT=0x00, //!< Endpoint is OUT (host -> node)
 #define IS_VENDOR_REQ(x)       (REQ_TYPE(x) == REQ_TYPE_VENDOR)
 
 /*----------------------------------------------------------------------------
+** USB Request Type (bmRequestType)
+*/
+#define REQ_RECIPIENT(x)  	      ((0x1F<<0) & (x))
+#define REQ_RECIPIENT_DEVICE      (0<<0)
+#define REQ_RECIPIENT_INTERFACE   (1<<0)
+#define REQ_RECIPIENT_ENDPOINT    (2<<0)
+#define REQ_RECIPIENT_OTHER       (3<<0)
+
+/*----------------------------------------------------------------------------
 ** USB Standard Device Request Codes (bRequest)
 */
 #define GET_STATUS              0x00
@@ -279,5 +288,43 @@ typedef struct {
 // Bit masks for SetControlLineState value
 #define DTR_MASK (1<<0)
 #define RTS_MASK (1<<1)
+
+typedef struct {
+    U32 lLength;                //!< Size of this Descriptor in Bytes
+    U16 wVersion;               //!< Version
+	U16 wIndex;                 //!< Index (must be 4)
+    U8  bnumSections;           //!< Number of sections
+    U8  bReserved1[7];	        //!< 
+    //------------- Section ----------//
+	U8  bInterfaceNum;           //!< 
+	U8  bReserved2;              //!<
+	U8  bCompatibleId[8];        //!<
+	U8  bSubCompatibleId[8];	 //!<
+	U8  bReserved3[6];
+	
+} MS_CompatibleIdFeatureDescriptor;
+
+typedef struct {
+    U32 lLength;                //!< Size of this Descriptor in Bytes
+    U16 wVersion;               //!< Version
+	U16 wIndex;                 //!< Index (must be 5)
+    U16 bnumSections;           //!< Number of property sections
+    //-------------------- Section --------------//
+    U32 lPropertySize;          //!< Size of property section
+    U32 ldataType;              //!< Data type (1 = Unicode REG_SZ etc
+    U16 wNameLength;            //!< Length of property name
+    U8  bName[40];
+    U32 wPropertyLength;        //!< Length of property data
+    U8  bData[78];
+} MS_PropertiesFeatureDescriptor;
+
+// ldataType
+//1 	NUL-terminated Unicode String (REG_SZ)
+//2 	NUL-terminated Unicode String, that may include environment variables (REG_EXPAND_SZ)
+//3 	binary data (REG_BINARY)
+//4 	DWORD value, little endian (REG_DWORD_LITTLE_ENDIAN)
+//5 	DWORD value, big-endian (REG_DWORD_BIG_ENDIAN)
+//6 	NUL-terminated Unicode string, that may include a symbolic link (REG_LINK)
+//7 	Multiple NUL-terminated Unicode strings (REG_MULTI_SZ)
 
 #endif /* _USBDefs_H_  */

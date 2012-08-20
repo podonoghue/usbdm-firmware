@@ -37,7 +37,6 @@ U8   bdmcf_tx_msg_half_rx(U16 data);
 U8   bdmcf_rx(U8 count, U8 *data);
 U8   bdmcf_rxtx(U8 count, U8 *data, U16 next_cmd);
 U16  bdmcf_txRx16(U16 data);
-U8   spi_setSpeed(U16 freq);
 
 // Prototypes for the Rx and Tx functions
 void bdmcf_tx8_1(U8 data);
@@ -63,6 +62,10 @@ void jtag_set_hir(U16 value);
 void jtag_set_tdr(U16 value);
 void jtag_set_tir(U16 value);
 #endif 
+
+#if (HW_CAPABILITY&(CAP_CFVx_HW|CAP_SWD_HW))
+U8   spi_setSpeed(U16 freq);
+#endif
 
 #endif // _BDMCF_H_
 
