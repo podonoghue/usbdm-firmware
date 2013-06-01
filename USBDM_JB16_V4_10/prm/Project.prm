@@ -1,0 +1,59 @@
+/* This is a linker parameter file for the JB16 - Small model */
+
+NAMES END /* CodeWarrior will pass all the needed files to the linker by command line. But here you may add your own files too. */
+
+SEGMENTS /* Here all RAM/ROM areas of the device are listed. Used in PLACEMENT below. */
+
+    /* RAM */
+    Z_RAM                    =  READ_WRITE   0x0080 TO 0x00B4; // Overlayed + Initialised
+    RAM                      =  READ_WRITE   0x00B5 TO 0x01FF;     // 256 bytes
+    /* ROM area is reduced for ICP boot code */
+    ROM                      =  READ_ONLY    0xBA00 TO 0xF7CB FILL 0xFF;
+
+    ICP_RAM                  =  PAGED        0x0080 TO 0x00FF; // Overlayed, not initialised
+    ICP_ROM                  =  READ_ONLY    0xF802 TO 0xF9FF; // ICP code goes here
+END
+
+PLACEMENT /* Here all predefined and user segments are placed into the SEGMENTS defined above. */
+    Z_PAGE                              /* zero page variables */
+                                        INTO  Z_RAM;
+                                        
+    DEFAULT_RAM,                         /* non-zero page variables */
+    SSTACK
+                                        INTO  RAM;
+
+    _PRESTART,                          /* startup code */
+    STARTUP,                            /* startup data structures */
+    ROM_VAR,                            /* constant variables */
+    STRINGS,                            /* string literals */
+    VIRTUAL_TABLE_SEGMENT,              /* C++ virtual table segment */
+    DEFAULT_ROM,
+    COPY                                /* copy down information: how to initialize variables */
+                                        INTO  ROM; 
+
+    BOOT_ROM,BOOT_CONST                 INTO  ICP_ROM;
+    BOOT_RAM                            INTO  ICP_RAM;
+END
+
+CHECKSUM
+  CHECKSUM_ENTRY METHOD_ADD
+    OF      READ_ONLY   0xBA00 TO 0xF7FE
+    INTO    READ_ONLY   0xF7FF SIZE 1
+    UNDEFINED 0xff
+  END
+END
+
+STACKSIZE 110       // Measured as 99 bytes
+
+ENTRIES /* keep the following unreferenced variables */
+
+vectorTable     /* Hardware vector table */
+userVectorTable /* Redirected vector (jump) table */
+
+END
+
+/*
+ * Don't use VECTORS in this file.
+ * Instead, modify the userVectorTable in UserVectorTable.c file
+ */
+
