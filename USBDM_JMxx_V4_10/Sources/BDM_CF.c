@@ -65,10 +65,11 @@
 #endif
 
 #if (HW_CAPABILITY&CAP_CFVx_HW)
+
 //!< SPI Masks - Mask to enable SPI as master Tx
-#define SPIxC1_M_ON     (SPIxC1_SPE_MASK|SPIxC1_MSTR_MASK|SPIxC1_CPOL_MASK)                   //!< SPI Masks - Mask to enable SPI as master Tx
-#define SPIxC2_M_8      (0)                                                                   //!< SPI Masks - 8-bit mode
-#define SPIxC2_M_16     (SPIxC2_SPIMODE_MASK)                                                 //!< SPI Masks - 8-bit mode
+#define SPIxC1_OFF   (SPIxC1_MSTR_MASK)                 //!< SPI Masks - Mask to disable SPI
+#define SPIxC1_M_ON  (SPIxC1_SPE_MASK|SPIxC1_MSTR_MASK) //!< SPI Masks - Mask to enable SPI as master Tx
+#define SPIxC2_16    (SPIxC2_SPIMODE_MASK)              //!< SPI Masks - 16-bit mode
 
 U16 bdmcf_txRx16(U16 data);
 void bdmcf_tx16(U16 data);
@@ -347,7 +348,7 @@ void bdmcf_init(void) {
    SPI2C1 = SPIxC1_OFF;     // SPI2 is unused (Port pin is used for BKPT*)
 #endif
    (void)spi_setSpeed(0);
-   SPIxC2 = SPIxC2_M_8;       // Initialise SPI1 but leave disabled
+   SPIxC2 = SPIxC2_16;    // Initialise SPI1 but leave disabled
    bdmcf_interfaceIdle();
    
 #ifdef TCLK_CTL_DISABLE

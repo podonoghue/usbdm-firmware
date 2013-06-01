@@ -21,7 +21,7 @@
 // Debugging options
 //
 #define DEBUG_COMMANDS (1<<0)                   //!< Implement debugging command interface (see \ref CMD_USBDM_DEBUG)
-#define STACK_DEBUG    (DEBUG_COMMANDS|(1<<1))  //!< Implement measurement of stack size code (see \ref BDM_DBG_STACKSIZE)
+#define STACK_DEBUG    (1<<1)                   //!< Implement measurement of stack size code (see \ref BDM_DBG_STACKSIZE)
 #define ACK_DEBUG      (1<<2)                   //!< Debug pin toggles during ACK code
 #define SYNC_DEBUG     (1<<3)                   //!< Debug pin toggles during SYNC code
 #define RESET_DEBUG    (1<<4)                   //!< Debug pin toggles during Reset sequence
@@ -36,6 +36,9 @@
     This is a bit mask made up of all the debugging options that are to be implemented in the code.
  */
 #define DEBUG (DEBUG_COMMANDS|STACK_DEBUG)
+
+// Define for automatic WINUSB Driver loading 
+//#define MS_COMPATIBLE_ID_FEATURE (1)
 
 #if DEBUG&DEBUG_MESSAGES
 extern void dputs(char *msg);
@@ -117,11 +120,15 @@ extern void dputs(char *msg);
 #define H_USBDM_TWR_CFV1        20  //!< TWR Coldfire V1 boards
 #define H_USBDM_TWR_HCS08       21  //!< TWR HCS08 boards
 #define H_USBDM_TWR_CFVx        22  //!< TWR Coldfire Vx boards
-#define H_USBDM_SWD_SER_JS16CWJ 23  //!< USBDM MC9S08JS16CWJ with BDM, SWD & Serial interface
+#define H_USBDM_SWD_SER_JS16CWJ 23  //!< USBDM MC9S08JS16CWJ with BDM, SWD & Serial interfaces
+#define H_USBDM_SWD_JS16CWJ     24  //!< USBDM MC9S08JS16CWJ with BDM & SWD interfaces
+#define H_USBDM_FREEDOM         25  //!< Freescale FRDM-KL25 board (MK20 chip)
+#define H_USBDM_MKL25Z          26  //!< Experimental MKL25Z
+#define H_USBDM_MK20D5          27  //!< Experimental MK20DX5
 
 #if (TARGET_HARDWARE==H_USBDM_JS16CWJ)    ||(TARGET_HARDWARE==H_USBDM_CF_JS16CWJ) || \
 	(TARGET_HARDWARE==H_USBDM_SER_JS16CWJ)||(TARGET_HARDWARE==H_USBDM_CF_SER_JS16CWJ) || \
-	(TARGET_HARDWARE==H_USBDM_SWD_SER_JS16CWJ)
+	(TARGET_HARDWARE==H_USBDM_SWD_SER_JS16CWJ) || (TARGET_HARDWARE==H_USBDM_SWD_JS16CWJ)
 #include <mc9s08js16.h>
 #else
 #include <mc9s08jm60.h>
@@ -130,10 +137,10 @@ extern void dputs(char *msg);
 //==========================================================================================
 //! Software Version Information
 //
-#define VERSION_MAJOR 4     // 4.10.0 - Last published -- 4.9.5
+#define VERSION_MAJOR 4     // 4.10.3 - Last published -- 4.10.0
 #define VERSION_MINOR 10
-#define VERSION_MICRO 0
-#define VERSION_STR "4.10.0"
+#define VERSION_MICRO 5
+#define VERSION_STR "4.10.5"
 #define VERSION_SW  ((VERSION_MAJOR<<4)+VERSION_MINOR)
 //! Selected hardware platform
 #if TARGET_HARDWARE==H_USBDM_JMxxCLD
@@ -164,6 +171,14 @@ extern void dputs(char *msg);
 #include "USBDM_TWR_CFVx.h"
 #elif TARGET_HARDWARE==H_USBDM_SWD_SER_JS16CWJ
 #include "USBDM_SWD_SER_JS16CWJ.h"
+#elif TARGET_HARDWARE==H_USBDM_SWD_JS16CWJ
+#include "USBDM_SWD_JS16CWJ.h"
+#elif TARGET_HARDWARE==H_USBDM_MKL25Z
+#include "USBDM_MKL25Z.h"
+#elif TARGET_HARDWARE==H_USBDM_MK20D5
+#include "USBDM_MK20D5.h"
+#elif TARGET_HARDWARE==H_USBDM_FREEDOM
+#include "USBDM_FREEDOM.h"
 #else
 #error "Target Hardware not specified (see TARGET_HARDWARE)"
 // To stop lots of further errors!
@@ -212,17 +227,20 @@ extern void dputs(char *msg);
 
 #define VendorID  (0x16D0)
 #define ProductID (0x0567)
-//#define VendorID  (0x16D0)
-//#define ProductID (0x9999)
+//#define ProductID (0x9999) // Testing
+//#define ProductID (0x06A5) // Alternative number
+//#define ProductID (0x06A6) // Alternative number
 
 //==========================================================================================
 // CPUs supported (just clock frequency changes)
 //
-#define JB8  (1)      // Not supported
-#define JB16 (2)
-#define JMxx (3)
-#define UF32 (5)
-#define JS16 (6)
+#define JB8      (1)      // Not supported
+#define JB16     (2)
+#define JMxx     (3)
+#define UF32     (5)
+#define JS16     (6)
+#define MK20D5   (7)
+#define MKL25Z4  (8)
 
 #ifndef CPU
 #error "Please define CPU in Configure.h"
@@ -245,6 +263,12 @@ extern void dputs(char *msg);
 #define OSC_FREQ     (60000000UL)               // Oscillator frequency
 #define BUS_FREQ     (OSC_FREQ/2)               // Bus freq. derived from oscillator
 #error "UF32 is not supported by this version of the software"
+#elif (CPU == MK20D5)
+#define OSC_FREQ     (96000000UL)               // Oscillator frequency
+#define BUS_FREQ     (OSC_FREQ/2)               // Bus freq. derived from oscillator
+#elif (CPU == MKL25Z4)
+#define OSC_FREQ     (96000000UL)               // Oscillator frequency
+#define BUS_FREQ     (OSC_FREQ/4)               // Bus freq. derived from oscillator
 #else
 #error "Please correctly define CPU in Configure.h"
 #define CPU JM60

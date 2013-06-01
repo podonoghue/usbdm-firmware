@@ -48,6 +48,7 @@
 #include "Commands.h"
 #include "Configure.h"
 #include "BDM_CF.h"
+#include "ARM.h"
 
 static U8 getValueByte(U8 value);
 
@@ -847,6 +848,7 @@ U8 DSC_writeMemory(const U8 **dataOutPtr) {
 	return BDM_RC_OK;
 }
 
+#if (TARGET_CAPABILITY & CAP_ARM_JTAG) && !defined(MINIMAL_MEMORY_USE)
 // ARM JTAG Commands
 #define ARM_JTAG_MASTER_IR_LENGTH   (4)     // IR length for commands below
 
@@ -855,8 +857,8 @@ U8 DSC_writeMemory(const U8 **dataOutPtr) {
 #define JTAG_DP_APACC_SEL_LENGTH    (35)
 #define JTAG_DP_APACC_SEL_COMMAND   (0x0B)  // JTAG-DP AP Access Register (APACC)
 
-#define DP_WRITE           (0x0)
-#define DP_READ            (0x1)
+#define DP_AP_WRITE           (0x0)
+#define DP_AP_READ            (0x1)
 
 #define DP_CTRL_STAT_REG   (0x2) //!< R/W access DP STATUS/CONTROL registers
 #define DP_SELECT_REG      (0x4) //!< R/W access AP SELECT register
@@ -886,9 +888,10 @@ U8 DSC_writeMemory(const U8 **dataOutPtr) {
 //! @return error code
 //!
 U8 ARM_readAP(const U8 **sequence, U8 **dataInPtr) {
-   const U8 writeSelect        = DP_WRITE|DP_SELECT_REG;
-   const U8 readRdBuff         = DP_READ|DP_RDBUFF_REG;
-   const U8 readStatus         = DP_READ|DP_CTRL_STAT_REG;
+#if 1
+   const U8 writeSelect        = DP_AP_WRITE|DP_SELECT_REG;
+   const U8 readRdBuff         = DP_AP_READ|DP_RDBUFF_REG;
+   const U8 readStatus         = DP_AP_READ|DP_CTRL_STAT_REG;
    const U8 dummyValue[4]      = {0,0,0,0};
    const U8 dpAccSelectCommand = JTAG_DP_DPACC_SEL_COMMAND;
    const U8 apAccSelectCommand = JTAG_DP_APACC_SEL_COMMAND;
@@ -903,7 +906,7 @@ U8 ARM_readAP(const U8 **sequence, U8 **dataInPtr) {
    selectValue[1] = 0;
    selectValue[2] = 0;
    selectValue[3] = **sequence&0xF0;
-   reg32RnW       = DP_READ|((*(*sequence)++&0x0C)>>1);
+   reg32RnW       = DP_AP_READ|((*(*sequence)++&0x0C)>>1);
    
    // Write DPACC_SEL command to IR, move to JTAG_SHIFT_DR
    USBDM_JTAG_SelectShift(JTAG_SHIFT_IR);
@@ -963,7 +966,7 @@ U8 ARM_readAP(const U8 **sequence, U8 **dataInPtr) {
    (*dataInPtr) += 4;
    if (ack != ACK_OK_FAULT)
 	   return BDM_RC_ACK_TIMEOUT;
-
+#endif
    return BDM_RC_OK;
 }
 
@@ -985,9 +988,10 @@ U8 ARM_readAP(const U8 **sequence, U8 **dataInPtr) {
 //! @return error code
 //!
 U8 ARM_writeAP(const U8 **sequence, U8 **dataInPtr, U8 **dataOutPtr) {
-   const U8 writeSelect        = DP_WRITE|DP_SELECT_REG;
-   const U8 readRdBuff         = DP_READ|DP_RDBUFF_REG;
-   const U8 readStatus         = DP_READ|DP_CTRL_STAT_REG;
+#if 1
+   const U8 writeSelect        = DP_AP_WRITE|DP_SELECT_REG;
+   const U8 readRdBuff         = DP_AP_READ|DP_RDBUFF_REG;
+   const U8 readStatus         = DP_AP_READ|DP_CTRL_STAT_REG;
    const U8 dummyValue[4]      = {0,0,0,0};
    const U8 dpAccSelectCommand = JTAG_DP_DPACC_SEL_COMMAND;
    const U8 apAccSelectCommand = JTAG_DP_APACC_SEL_COMMAND;
@@ -1001,7 +1005,7 @@ U8 ARM_writeAP(const U8 **sequence, U8 **dataInPtr, U8 **dataOutPtr) {
    selectValue[1] = 0;
    selectValue[2] = 0;
    selectValue[3] = **sequence&0xF0;
-   reg32RnW       = DP_WRITE|((*(*sequence)++&0x0C)>>1);
+   reg32RnW       = DP_AP_WRITE|((*(*sequence)++&0x0C)>>1);
 
    // Write DPACC_SEL command to IR, move to JTAG_SHIFT_DR
    USBDM_JTAG_SelectShift(JTAG_SHIFT_IR);
@@ -1059,6 +1063,7 @@ U8 ARM_writeAP(const U8 **sequence, U8 **dataInPtr, U8 **dataOutPtr) {
    if (ack != ACK_OK_FAULT) {
 	   return BDM_RC_ACK_TIMEOUT;
    }
+#endif
    return BDM_RC_OK;
 }
 
@@ -1077,8 +1082,21 @@ U8 ARM_writeAP(const U8 **sequence, U8 **dataInPtr, U8 **dataOutPtr) {
 //! @note Expects immediate ACK_OK_FAULT on AP transaction (non-memory)
 //!
 U8 ARM_writeAPI(const U8 **sequence) {
-   const U8 writeSelect        = DP_WRITE|DP_SELECT_REG;
-   const U8 readRdBuff         = DP_READ|DP_RDBUFF_REG;
+
+#if 1
+	const U8 *address;
+	const U8 *data;
+	
+	address = *sequence;
+	(*sequence) += 2;
+	data    = *sequence;
+	(*sequence) += 4;
+	
+	return arm_writeAPReg(address, data);   
+   
+#else   
+   const U8 writeSelect        = DP_AP_WRITE|DP_SELECT_REG;
+   const U8 readRdBuff         = DP_AP_READ|DP_RDBUFF_REG;
    const U8 dummyValue[4]      = {0,0,0,0};
    const U8 dpAccSelectCommand = JTAG_DP_DPACC_SEL_COMMAND;
    const U8 apAccSelectCommand = JTAG_DP_APACC_SEL_COMMAND;
@@ -1090,7 +1108,7 @@ U8 ARM_writeAPI(const U8 **sequence) {
    selectValue[1] = 0;
    selectValue[2] = 0;
    selectValue[3] = **sequence&0xF0;
-   reg32RnW       = DP_WRITE|((*(*sequence)++&0x0C)>>1);
+   reg32RnW       = DP_AP_WRITE|((*(*sequence)++&0x0C)>>1);
 
    // Write DPACC_SEL command to IR, move to JTAG_SHIFT_DR
    USBDM_JTAG_SelectShift(JTAG_SHIFT_IR);
@@ -1125,7 +1143,9 @@ U8 ARM_writeAPI(const U8 **sequence) {
 	   return BDM_RC_ACK_TIMEOUT;
 
    return BDM_RC_OK;
+#endif   
 }
+#endif // MINIMAL_MEMORY_USE (omit ARM-JTAG code)
 
 #endif  // INLINE_TARGET_INSTRUCTION_EXECUTION
 
@@ -1498,6 +1518,7 @@ U8 processJTAGSequence(const U8 *sequenceStart,
             case JTAG_LOAD_VARB:
                variables[regNo] = tempValue;
                break;
+#if (TARGET_CAPABILITY & CAP_ARM_JTAG) && !defined(MINIMAL_MEMORY_USE)
             case JTAG_ARM_READAP:
                 if  (cable_status.target_type == T_ARM_JTAG) {
                    rc = ARM_readAP(&sequence, &dataInPtr);
@@ -1519,6 +1540,7 @@ U8 processJTAGSequence(const U8 *sequenceStart,
                 }
                 rc = BDM_RC_JTAG_ILLEGAL_SEQUENCE;
             	break;
+#endif
             case JTAG_SET_PADDING:// #4x16-bits - sets HDR HIR TDR TIR
             	jtag_set_hdr(*(U16*)sequence); sequence  += 2;
             	jtag_set_hir(*(U16*)sequence); sequence  += 2;

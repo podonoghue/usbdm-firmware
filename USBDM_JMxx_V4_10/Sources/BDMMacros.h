@@ -26,8 +26,9 @@ extern void (*bdm_tx_ptr)(U8);   //! Pointers to BDM Tx routines
 extern void bdmTx16(U16 data); // Tx 16-bit value
 
 // This is a very large size improvement for no performance cost!
-extern U8 doACKN_WAIT64(void);   //! Wait for 64 bit times or ACKN
-extern U8 doACKN_WAIT150(void);  //! Wait for 150 bit times or ACKN
+extern U8   doACKN_WAIT64(void);   //! Wait for 64 bit times or ACKN
+extern U8   doACKN_WAIT150(void);  //! Wait for 150 bit times or ACKN
+extern void doWAIT16(void);        //! Wait fot 16 bit times
 
 // Hardware commands
 #define _BDM_BACKGROUND           (0x90) 
@@ -35,7 +36,7 @@ extern U8 doACKN_WAIT150(void);  //! Wait for 150 bit times or ACKN
 #define _BDM_ACK_DISABLE          (0xD6)
 #define _BDM_READ_BYTE            (0xE0)
 #define _BDM_WRITE_BYTE           (0xC0)
-#define _BDM_WRITE_BLOCK          (0x88)
+//#define _BDM_WRITE_BLOCK          (0x88)
 
 // HC/S12(x) hardware commands
 #define _BDM12_READ_BD_BYTE       (0xE4)
@@ -179,6 +180,12 @@ extern void BDM_CMD_0_1W_NOACK(U8 cmd, U16 *parameter);
 // Write cmd & word without ACK
 extern void BDM_CMD_1W_0_NOACK(U8 cmd, U16 parameter);
 
+//! Write cmd, word, byte & read data(status) without ACK
+extern void BDM_CMD_1W1B_1B_NOACK(U8 cmd, U16 parameter, U8 value, U8 *status);
+
+//! Write cmd, word & read word (status/data) without ACK
+extern void BDM_CMD_1W_1W_NOACK(U8 cmd, U16 parameter, U16 *result);
+
 //====================================================================
 // The following DO expect an ACK or wait at end of the command phase
 
@@ -288,18 +295,27 @@ extern U8 BDM_CMD_1A_1L(U8 cmd, U32 addr, U32 *result);
 #define BDM12_CMD_READB(addr,value_p)        BDM_CMD_1W_1WB(_BDM_READ_BYTE,addr,value_p)  //!< Read 8-bit value (HC12)
 
 // Read and writes from/to the BDM memory space
-#define BDM12_CMD_BDWRITEW(addr,value)       BDM_CMD_2W_0(_BDM12_WRITE_BD_WORD,addr,value)    //!< Write 16-bit value  BDM addres space (HC12)
-#define BDM12_CMD_BDWRITEB(addr,value)       BDM_CMD_2WB_0(_BDM12_WRITE_BD_BYTE,addr,value)   //!< Write 8-bit value  BDM addres space (HC12)
-#define BDM12_CMD_BDREADW(addr,value_p)      BDM_CMD_1W_1W(_BDM12_READ_BD_WORD,addr,value_p)  //!< Read 16-bit value  BDM addres space (HC12)
-#define BDM12_CMD_BDREADB(addr,value_p)      BDM_CMD_1W_1WB(_BDM12_READ_BD_BYTE,addr,value_p) //!< Read 8-bit value  BDM addres space(HC12)
+#define BDM12_CMD_BDWRITEW(addr,value)       BDM_CMD_2W_0(_BDM12_WRITE_BD_WORD,addr,value)    //!< Write 16-bit value  BDM address space (HC12)
+#define BDM12_CMD_BDWRITEB(addr,value)       BDM_CMD_2WB_0(_BDM12_WRITE_BD_BYTE,addr,value)   //!< Write 8-bit value  BDM address space (HC12)
+#define BDM12_CMD_BDREADW(addr,value_p)      BDM_CMD_1W_1W(_BDM12_READ_BD_WORD,addr,value_p)  //!< Read 16-bit value  BDM address space (HC12)
+#define BDM12_CMD_BDREADB(addr,value_p)      BDM_CMD_1W_1WB(_BDM12_READ_BD_BYTE,addr,value_p) //!< Read 8-bit value  BDM address space(HC12)
 
 // Read register commands
 #define BDM08_CMD_READSTATUS(value_p)        BDM_CMD_0_1B_NOACK(_BDM08_READ_STATUS,value_p)  //!< Read Status Register(HCS08,RS08)
-#define BDM08_CMD_WRITECONTROL(value)        BDM_CMD_1B_0_NOACK(_BDM08_WRITE_CONTROL,value)  //!< Write Control Register (HCS08,RS08)  No ACK fix - pgo
-#define BDM08_CMD_READB(addr,value_p)        BDM_CMD_1W_1B(_BDM_READ_BYTE,addr,value_p)      //!< Read 8-bit alue (HCS08,RS08)
-#define BDM08_CMD_WRITEB(addr,value)         BDM_CMD_1W1B_0(_BDM_WRITE_BYTE,addr,value)      //!< Write 8-bit alue (HCS08,RS08)
+#define BDM08_CMD_WRITECONTROL(value)        BDM_CMD_1B_0_NOACK(_BDM08_WRITE_CONTROL,value)  //!< Write Control Register (HCS08,RS08)
+
+// Memory read/write
+#define BDM08_CMD_READB(addr,value_p)          BDM_CMD_1W_1B(_BDM_READ_BYTE,addr,value_p)       //!< Read 8-bit memory value (HCS08,RS08)
+#define BDM08_CMD_WRITEB(addr,value)           BDM_CMD_1W1B_0(_BDM_WRITE_BYTE,addr,value)       //!< Write 8-bit memory value (HCS08,RS08)
+#define BDM08_CMD_WRITE_NEXT(value)            BDM_CMD_1B_0(_BDM08_WRITE_NEXT,value)            //!< Write memory using ++H:X as a pointer
+#define BDM08_CMD_READ_NEXT(value_p)           BDM_CMD_0_1B(_BDM08_READ_NEXT,value_p)           //!< Read memory using ++H:X as a pointer
+#define BDM08_CMD_READB_WS(addr,val_stat_p)    BDM_CMD_1W_1W_NOACK(_BDM08_READ_BYTE_WS,addr,val_stat_p)    //!< Read 8-bit memory value with status (HCS08)
+#define BDM08_CMD_WRITEB_WS(addr,val,stat_p)   BDM_CMD_1W1B_1B_NOACK(_BDM08_WRITE_BYTE_WS,addr,val,stat_p) //!< Write 8-bit memory value with status (HCS08)
+
+#define BDM08_CMD_READ_LAST(val_stat_p)        BDM_CMD_0_1W_NOACK(_BDM08_READ_LAST,val_stat_p)    //!< Read last 8-bit memory location accessed with status (HCS08)
+
 #define BDM08_CMD_RESET()                    BDM_CMD_1W1B_0_T(_BDM_WRITE_BYTE,HCS08_SBDFR, HCS_SBDFR_BDFR) //!< Reset Target (HCS08)
-#define BDM08_CMD_WRITEBLOCK(addr,value)     BDM_CMD_1W1B_0(_BDM_WRITE_BLOCK,addr,value)     //!< Write Block (HCS08)
+//#define BDM08_CMD_WRITEBLOCK(addr,value)     BDM_CMD_1W1B_0(_BDM_WRITE_BLOCK,addr,value)     //!< Write Block (HCS08)
 
 #define BDMRS08_CMD_RESET()                  BDM_CMD_0_0_T(RS_BDC_RESET)                     //!< Reset Target (RS08)
 
@@ -319,11 +335,6 @@ extern U8 BDM_CMD_1A_1L(U8 cmd, U32 addr, U32 *result);
 #define BDM08_CMD_WRITE_CCR(value)           BDM_CMD_1B_0(_BDM08_WRITE_CCR,value)          //!< Write CCR (HC08)
 #define BDM08_CMD_WRITE_BKPT(value)          BDM_CMD_1W_0_NOACK(_BDM08_WRITE_BKPT,value)   //!< Write Breakpoint (HC08) - No ACK fix - pgo
 #define BDMRS08_CMD_WRITE_SPC(value)         BDM_CMD_1W_0(_BDMRS08_WRITE_SPC,value)        //!< Write Shadow PC (RS08)
-
-//! Write memory using X as a pointer with automatic pre-increment (HCS08)
-#define BDM08_CMD_WRITE_NEXT(value)          BDM_CMD_1B_0(_BDM08_WRITE_NEXT,value)
-//! Read memory using X as a pointer with automatic pre-increment (HCS08)
-#define BDM08_CMD_READ_NEXT(value_p)         BDM_CMD_0_1B(_BDM08_READ_NEXT,value_p)
 
 // Coldfire V1 Commands
 #define BDMCF_CMD_ACK_ENABLE()               BDM_CMD_0_0(_BDMCF_ACK_ENABLE)     //!< Enable ACKN (CFv1)

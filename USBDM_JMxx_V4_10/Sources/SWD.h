@@ -2,7 +2,7 @@
  * SWD.h
  *
  *  Created on: 04/08/2012
- *      Author: podonoghue
+ *      Author: PODonoghue
  */
 
 #ifndef SWD_H_
@@ -27,8 +27,8 @@ U8 swd_sendCommandWithWait(U8 command);
 U8 swd_connect(void);
 U8 swd_readReg(U8 command, U8 *data);
 U8 swd_writeReg(U8 command, const U8 *data);
-U8 swd_writeAPReg(const U8 *address, const U8 *buff);
 U8 swd_readAPReg(const U8 *address, U8 *buff);
+U8 swd_writeAPReg(const U8 *address, const U8 *buff);
 U8 swd_clearStickyError(void);
-
+U8 swd_abortAP(void);
 #endif /* SWD_H_ */

@@ -29,7 +29,7 @@
 #define PLATFORM USBDM   //! Choose BDM emulation
 #endif
 
-#define CPU  JMxx
+#define CPU  JMxx        //! Implementation Target
 
 //=================================================================================
 // Debug pin - used to check timing and hardware sequences etc.
@@ -443,7 +443,7 @@
 //================================================================================
 // RESET Detection - falling edge using Timer inputs
 //
-//     KBI     - RESET_IN pin, Reset detection (Falling edge detection)
+//     - RESET_IN pin, Reset detection (Falling edge detection)
 //
 #if (HW_CAPABILITY&CAP_RST_IO)
 // Configure RESET change sensing (Falling edges)

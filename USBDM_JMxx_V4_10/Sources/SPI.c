@@ -14,8 +14,8 @@
 #pragma DATA_SEG __SHORT_SEG Z_PAGE
 // MUST be placed into the direct segment (assumed in ASM code).
 volatile U8 bitDelay;    //!< Required software delay used with SPI base Tx/Rx
-volatile U8 rxTiming1;   //!< bdm_Rx timing constant #1
-volatile U8 txTiming1;   //!< bdm_Tx timing constant #1
+volatile U8 rxTiming1;   //!< bdm_Rx timing scratch #1
+volatile U8 txTiming1;   //!< bdm_Tx timing scratch #1
 #pragma DATA_SEG DEFAULT
 
 #if (HW_CAPABILITY&(CAP_CFVx_HW|CAP_JTAG_HW|CAP_SWD_HW))

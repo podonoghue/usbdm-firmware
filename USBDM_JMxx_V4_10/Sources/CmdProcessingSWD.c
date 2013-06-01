@@ -1,8 +1,34 @@
-/*
- * CmdProcessingSWD.c
- *
- *  Created on: 11/08/2012
- *      Author: podonoghuE
+/*! \file
+    \brief ARM-SWD Command processing
+
+   This file processes the commands received over the USB link from the host
+
+   \verbatim
+
+   USBDM
+   Copyright (C) 2007  Peter O'Donoghue
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+   \endverbatim
+
+   Change History
+   +===============================================================================================
+   | 22 Oct 2012 | Added modifyDHCSR() and assocaited changes                               V4.9.5
+   | 30 Aug 2012 | ARM-JTAG & ARM-SWD Changes                                               V4.9.5
+   +===============================================================================================
+   \endverbatim
  */
 #include <string.h>
 #include "Common.h"
@@ -16,14 +42,16 @@
 #include "CmdProcessingSWD.h"
 #include "SWD.h"
 
-// DP_SELECT register value to access AHB_AP Bank #0 for memory read/write
-static const U8 SWD_AHB_AP_BANK0[4] = {AHB_AP_NUM,  0,  0,  0};
+#if TARGET_CAPABILITY & CAP_ARM_SWD
 
-// Initial value of AHB_SP_CSW register
+// DP_SELECT register value to access AHB_AP Bank #0 for memory read/write
+static const U8 ARM_AHB_AP_BANK0[4] = {AHB_AP_NUM,  0,  0,  0};
+
+// Initial value of AHB_SP_CSW register (msb)
 static       U8 ahb_ap_csw_defaultValue_B0 = 0;
 
 // Maps size (1,2,4 byes) to CSW control value (size+increment)
-U8 cswValues[] = {
+static const U8 cswValues[] = {
 		0,
 		0x40|AHB_AP_CSW_SIZE_BYTE|AHB_AP_CSW_INC_SINGLE,
 		0x40|AHB_AP_CSW_SIZE_HALFWORD|AHB_AP_CSW_INC_SINGLE,
@@ -57,23 +85,29 @@ U8 f_CMD_SWD_CONNECT(void) {
 //!
 //! @note
 //!  commandBuffer\n
-//!   - [2..3]  =>  2-bit register number [MSB ignored]
+//!   - [2..3]  =>  3-bit register number [MSB ignored]
 //!   - [4..7]  =>  32-bit register value
 //!
 //! @return
 //!  == \ref BDM_RC_OK => success
 //!
+//! @note Action depends on register (some responses are pipelined) \n
+//!   SWD_WR_DP_ABORT   - Write value to ABORT register (accepted) \n
+//!   SWD_WR_DP_CONTROL - Write value to CONTROL register (may be pending), FAULT on sticky error. \n
+//!   SWD_WR_DP_SELECT  - Write value to SELECT register (may be pending), FAULT on sticky error. \n
+//!   SWD_WR_AP_REGx    - Write to AP register.  May initiate action e.g. memory access.  Result is pending, FAULT on sticky error.
+//!
 U8 f_CMD_SWD_WRITE_DREG(void) {
-   static const U8 writeDP[] = {SWD_WR_DP_ABORT,  SWD_WR_DP_CONTROL, SWD_WR_DP_SELECT, 0};
-   U8 rc = swd_writeReg(writeDP[commandBuffer[3]&0x03], commandBuffer+4);
-   return rc;
+   static const U8 writeDP[] = {SWD_WR_DP_ABORT, SWD_WR_DP_CONTROL, SWD_WR_DP_SELECT, 0,
+		                        SWD_WR_AP_REG0,  SWD_WR_AP_REG1,    SWD_WR_AP_REG2,   SWD_WR_AP_REG3, };
+   return swd_writeReg(writeDP[commandBuffer[3]&0x07], commandBuffer+4);
 }
 
 //! Read SWD DP register;
 //!
 //! @note
 //!  commandBuffer\n
-//!   - [2..3]  =>  2-bit register number [MSB ignored]
+//!   - [2..3]  =>  3-bit register number [MSB ignored]
 //!
 //! @return
 //!  == \ref BDM_RC_OK => success         \n
@@ -81,14 +115,18 @@ U8 f_CMD_SWD_WRITE_DREG(void) {
 //!  commandBuffer                        \n
 //!   - [1..4]  =>  32-bit register value
 //!
+//! @note Action and Data returned depends on register (some responses are pipelined) \n
+//!   SWD_RD_DP_IDCODE - Value from IDCODE reg \n
+//!   SWD_RD_DP_STATUS - Value from STATUS reg \n
+//!   SWD_RD_DP_RESEND - LAST value read (AP read or DP-RDBUFF), FAULT on sticky error    \n
+//!   SWD_RD_DP_RDBUFF - Value from last AP read and clear READOK flag in STRL/STAT, FAULT on sticky error \n
+//!   SWD_RD_AP_REGx   - Value from last AP read, clear READOK flag in STRL/STAT and INITIATE next AP read, FAULT on sticky error 
+//!
 U8 f_CMD_SWD_READ_DREG(void) {
-   static const U8 readDP[]  = {SWD_RD_DP_IDCODE, SWD_RD_DP_STATUS,  SWD_RD_DP_RESEND, SWD_RD_DP_RDBUFF};
-   U8 rc = swd_readReg(readDP[commandBuffer[3]&0x03], commandBuffer+1);
-   if (rc != BDM_RC_OK) {
-      return rc;
-   }
+   static const U8 readDP[]  = {SWD_RD_DP_IDCODE, SWD_RD_DP_STATUS, SWD_RD_DP_RESEND, SWD_RD_DP_RDBUFF, 
+		                        SWD_RD_AP_REG0,   SWD_RD_AP_REG1,   SWD_RD_AP_REG2,   SWD_RD_AP_REG3, };
    returnSize = 5;
-   return rc;
+   return swd_readReg(readDP[commandBuffer[3]&0x07], commandBuffer+1);
 }
 
 //! Write to AP register (sets AP_SELECT & APACC)
@@ -105,12 +143,11 @@ U8 f_CMD_SWD_READ_DREG(void) {
 //! @return
 //!  == \ref BDM_RC_OK => success
 //!
+//! @note - Access is completed before return
+//!
 U8 f_CMD_SWD_WRITE_CREG(void) {
-   U8 rc;
-
    // Write to AP register
-   rc = swd_writeAPReg(commandBuffer+2, commandBuffer+4);
-   return rc;   
+   return swd_writeAPReg(commandBuffer+2, commandBuffer+4);
 }
 
 //! Read from AP register (sets AP_SELECT & APACC)
@@ -127,18 +164,15 @@ U8 f_CMD_SWD_WRITE_CREG(void) {
 //! @return
 //!  == \ref BDM_RC_OK => success
 //!
+//! @note - Access is completed before return
+//!
 U8 f_CMD_SWD_READ_CREG(void) {
-   U8 rc;
-   
    // Read from AP register
-   rc = swd_readAPReg(commandBuffer+2, commandBuffer+1);
-   if (rc == BDM_RC_OK) {
-      returnSize = 5;
-   }
-   return rc;
+   returnSize = 5;
+   return swd_readAPReg(commandBuffer+2, commandBuffer+1);
 }
 
-//! Write ARM-SWD Memory
+//! Write 32-bit value to ARM-SWD Memory
 //!
 //! @param address 32-bit memory address
 //! @param data    32-bit data value
@@ -157,7 +191,7 @@ U8 swd_writeMemoryWord(const U8 *address, const U8 *data) {
 	*  - Write value to DRW (data value to target memory)
 	*/ 
    // Select AHB-AP memory bank - subsequent AHB-AP register accesses are all in the same bank 
-   rc = swd_writeReg(SWD_WR_DP_SELECT, SWD_AHB_AP_BANK0);
+   rc = swd_writeReg(SWD_WR_DP_SELECT, ARM_AHB_AP_BANK0);
    if (rc != BDM_RC_OK) {
 	  return rc;
    }
@@ -178,15 +212,16 @@ U8 swd_writeMemoryWord(const U8 *address, const U8 *data) {
    // Write data value
    rc = swd_writeReg(SWD_WR_AHB_DRW, data);
    if (rc != BDM_RC_OK) {
-	  return rc;
+	  return rc;	   
    }
-   return rc;   
+   // Dummy read to get status
+   return swd_readReg(SWD_RD_DP_RDBUFF, temp);
 }
 
-//! Read ARM-SWD Memory
+//! Read 32-bit value from ARM-SWD Memory
 //!
 //! @param address 32-bit memory address
-//! @param data    32-bit data value
+//! @param data    32-bit data value from last read!
 //!
 //! @return
 //!  == \ref BDM_RC_OK => success         \n
@@ -204,7 +239,7 @@ U8  temp[4];
     *  - Read data value from DP-READBUFF
     */ 
    // Select AHB-AP memory bank - subsequent AHB-AP register accesses are all in the same bank 
-   rc = swd_writeReg(SWD_WR_DP_SELECT, SWD_AHB_AP_BANK0);
+   rc = swd_writeReg(SWD_WR_DP_SELECT, ARM_AHB_AP_BANK0);
    if (rc != BDM_RC_OK) {
       return rc;
    }
@@ -228,8 +263,7 @@ U8  temp[4];
       return rc;	   
    }
    // Read memory data
-   rc = swd_readReg(SWD_RD_DP_RDBUFF, data);
-   return rc;  
+   return swd_readReg(SWD_RD_DP_RDBUFF, data);
 }
 
 //! Write ARM-SWD Memory
@@ -262,7 +296,7 @@ U8 f_CMD_SWD_WRITE_MEM(void) {
 	*    - Write value to DRW (data value to target memory)
 	*/ 
    // Select AHB-AP memory bank - subsequent AHB-AP register accesses are all in the same bank 
-   rc = swd_writeReg(SWD_WR_DP_SELECT, SWD_AHB_AP_BANK0);
+   rc = swd_writeReg(SWD_WR_DP_SELECT, ARM_AHB_AP_BANK0);
    if (rc != BDM_RC_OK) {
 	  return rc;
    }
@@ -339,12 +373,12 @@ U8 f_CMD_SWD_WRITE_MEM(void) {
          if (rc != BDM_RC_OK) {
       	    return rc;	   
          }
-//         addrLSB  += 4;
          count--;
       }
  	  break;
    }
-   return rc;   
+   // Dummy read to obtain status from last write
+   return swd_readReg(SWD_RD_DP_RDBUFF, temp);
 }
 
 //! Read ARM-SWD Memory
@@ -384,7 +418,7 @@ U8  temp[4];
       return BDM_RC_ILLEGAL_PARAMS;  // requested block+status is too long to fit into the buffer
    }
    // Select AHB-AP memory bank - subsequent AHB-AP register accesses are all in the same bank 
-   rc = swd_writeReg(SWD_WR_DP_SELECT, SWD_AHB_AP_BANK0);
+   rc = swd_writeReg(SWD_WR_DP_SELECT, ARM_AHB_AP_BANK0);
    if (rc != BDM_RC_OK) {
       return rc;
    }
@@ -503,12 +537,12 @@ U8  temp[4];
 
 // Memory addresses of debug/core registers
 const U8 DHCSR[] = {0xE0, 0x00, 0xED, 0xF0}; // RW Debug Halting Control and Status Register
-const U8 DCSR[]  = {0xE0, 0x00, 0xED, 0xF4}; // WO Debug Core Selector Register
-const U8 DCDR[]  = {0xE0, 0x00, 0xED, 0xF8}; // RW Debug Core Data Register
+const U8 DCRSR[] = {0xE0, 0x00, 0xED, 0xF4}; // WO Debug Core Selector Register
+const U8 DCRDR[] = {0xE0, 0x00, 0xED, 0xF8}; // RW Debug Core Data Register
 
-#define DCSR_WRITE_B1         (1<<(16-16))
-#define DCSR_READ_B1          (0<<(16-16))
-#define DCSR_REGMASK_B0       (0x7F)
+#define DCRSR_WRITE_B1         (1<<(16-16))
+#define DCRSR_READ_B1          (0<<(16-16))
+#define DCRSR_REGMASK_B0       (0x7F)
 
 #define DHCSR_DBGKEY_B0       (0xA0<<(24-24))
 #define DHCSR_DBGKEY_B1       (0x5F<<(16-16))
@@ -527,15 +561,15 @@ const U8 DCDR[]  = {0xE0, 0x00, 0xED, 0xF8}; // RW Debug Core Data Register
 //! Initiates core register operation (read/write) and
 //! waits for completion
 //!
-//! @param DCSRData - value to write to DCSRD register to control operation
+//! @param DCRSRvalue - value to write to DCSRD register to control operation
 //!
-//! @note DCSRD is used as scratch buffer so must be ram
+//! @note DCRSRvalue is used as scratch buffer so must be ram
 //!
-static U8 swd_coreRegisterOperation(U8 *DCSRData) {
+static U8 swd_coreRegisterOperation(U8 *DCRSRvalue) {
    U8 retryCount = 40;
    U8 rc;
    
-   rc = swd_writeMemoryWord(DCSR, DCSRData);
+   rc = swd_writeMemoryWord(DCRSR, DCRSRvalue);
    if (rc != BDM_RC_OK) {
 	  return rc;
    }
@@ -544,11 +578,11 @@ static U8 swd_coreRegisterOperation(U8 *DCSRData) {
 		 return BDM_RC_ARM_ACCESS_ERROR;
 	  }
 	  // Check complete (use DCSRData as scratch)
-	  rc = swd_readMemoryWord(DHCSR, DCSRData);
+	  rc = swd_readMemoryWord(DHCSR, DCRSRvalue);
 	  if (rc != BDM_RC_OK) {
 		 return rc;
 	  }
-   } while ((DCSRData[1] & DHCSR_S_REGRDY_B1) == 0);
+   } while ((DCRSRvalue[1] & DHCSR_S_REGRDY_B1) == 0);
    return BDM_RC_OK;
 }
 
@@ -569,7 +603,7 @@ U8 f_CMD_SWD_READ_REG(void) {
    
    // Use commandBuffer as scratch
    commandBuffer[4+0] = 0;
-   commandBuffer[4+1] = DCSR_READ_B1;
+   commandBuffer[4+1] = DCRSR_READ_B1;
    commandBuffer[4+2] = 0;
    commandBuffer[4+3] = commandBuffer[3];
    // Execute register transfer 
@@ -579,7 +613,7 @@ U8 f_CMD_SWD_READ_REG(void) {
    }
    returnSize = 5;
    // Read data value from DCDR holding register
-   return swd_readMemoryWord(DCDR, commandBuffer+1);
+   return swd_readMemoryWord(DCRDR, commandBuffer+1);
 }
 
 //! Write ARM-SWD core register
@@ -596,17 +630,43 @@ U8 f_CMD_SWD_WRITE_REG(void) {
    U8 rc;
    
    // Write data value to DCDR holding register
-   rc = swd_writeMemoryWord(DCDR,commandBuffer+4);
+   rc = swd_writeMemoryWord(DCRDR, commandBuffer+4);
    if (rc != BDM_RC_OK) {
 	  return rc;
    }
    // Use commandBuffer as scratch
    commandBuffer[4+0] = 0;
-   commandBuffer[4+1] = DCSR_WRITE_B1;
+   commandBuffer[4+1] = DCRSR_WRITE_B1;
    commandBuffer[4+2] = 0;
    commandBuffer[4+3] = commandBuffer[3];
    // Execute register transfer 
    return swd_coreRegisterOperation(commandBuffer+4);
+}
+
+//! ARM-SWD -  Modifies value in LSB of DHCSR
+//!  DHCSR.lsb = (DHCSR&preserveBits)|setBits
+//! 
+//! @param preserveBits - Bits to preserve (done first)
+//! @param setBits      - Bits to set (done last)
+//!
+//! @return
+//!    == \ref BDM_RC_OK => success       \n
+//!    != \ref BDM_RC_OK => error         \n
+//!
+static U8 modifyDHCSR(U8 preserveBits, U8 setBits) {
+	   U8 debugStepValue[4];
+	   U8 rc;
+	   
+	   rc = swd_readMemoryWord(DHCSR, debugStepValue);
+	   if (rc != BDM_RC_OK) {
+	      return rc;
+	   }
+	   debugStepValue[0]  = DHCSR_DBGKEY_B0;
+	   debugStepValue[1]  = DHCSR_DBGKEY_B1;
+	   debugStepValue[2]  = 0;
+	   debugStepValue[3] &= preserveBits;
+	   debugStepValue[3] |= setBits;   
+	   return swd_writeMemoryWord(DHCSR, debugStepValue);	
 }
 
 //! ARM-SWD -  Step over 1 instruction
@@ -616,19 +676,9 @@ U8 f_CMD_SWD_WRITE_REG(void) {
 //!    != \ref BDM_RC_OK => error         \n
 //!
 U8 f_CMD_SWD_TARGET_STEP(void) {
-   U8 debugStepValue[4];
-   U8 rc;
    
-   rc = swd_readMemoryWord(DHCSR, debugStepValue);
-   if (rc != BDM_RC_OK) {
-      return rc;
-   }
-   debugStepValue[0]  = DHCSR_DBGKEY_B0;
-   debugStepValue[1]  = DHCSR_DBGKEY_B1;
-   debugStepValue[2]  = 0;
-   debugStepValue[3] &= DHCSR_C_MASKINTS_B3; // Preserve DHCSR_C_MASKINTS value
-   debugStepValue[3] |= DHCSR_C_STEP_B3|DHCSR_C_DEBUGEN_B3;   
-   return swd_writeMemoryWord(DHCSR, debugStepValue);
+   // Preserve DHCSR_C_MASKINTS value
+   return modifyDHCSR(DHCSR_C_MASKINTS_B3, DHCSR_C_STEP_B3|DHCSR_C_DEBUGEN_B3);
 }
 
 //! ARM-SWD -  Start code execution
@@ -638,8 +688,8 @@ U8 f_CMD_SWD_TARGET_STEP(void) {
 //!    != \ref BDM_RC_OK => error         \n
 //!
 U8 f_CMD_SWD_TARGET_GO(void) {
-   static const U8 debugGoValue[] = {DHCSR_DBGKEY_B0, DHCSR_DBGKEY_B1, 0, DHCSR_C_DEBUGEN_B3};
-   return swd_writeMemoryWord(DHCSR, debugGoValue);
+	
+   return modifyDHCSR(DHCSR_C_MASKINTS_B3, DHCSR_C_DEBUGEN_B3);
 }
 
 // ARM-SWD -  Stop the target
@@ -649,6 +699,7 @@ U8 f_CMD_SWD_TARGET_GO(void) {
 //!    != \ref BDM_RC_OK => error         \n
 //!
 U8 f_CMD_SWD_TARGET_HALT(void) {
-   static const U8 debugOnValue[] = {DHCSR_DBGKEY_B0, DHCSR_DBGKEY_B1, 0, DHCSR_C_HALT_B3|DHCSR_C_DEBUGEN_B3};
-   return swd_writeMemoryWord(DHCSR, debugOnValue);
-}
+
+   return modifyDHCSR(DHCSR_C_MASKINTS_B3, DHCSR_C_HALT_B3|DHCSR_C_DEBUGEN_B3);
+} 
+#endif

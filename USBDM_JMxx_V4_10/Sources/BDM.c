@@ -29,6 +29,8 @@
 Change History
 
 -=======================================================================================
+| 26 Dec 2012 | Changed Reset handling to prevent USB timeouts                     - pgo V4.10.4
+| 18 Sep 2012 | Removed output glitch in bdm_rxGeneric() etc (BKGD_3STATE_MASK)    - pgo V4.10.2
 |  5 May 2011 | Modified bdm_enableBDM() to be more careful in modifying BDM reg   - pgo V4.6
 |  7 Jan 2010 | Modified bdmHC12_confirmSpeed() to reduce unnecessary probing      - pgo V4.3
 |  7 Dec 2010 | changed BDM_CMD_0_0_T() etc to leave interrupts disabled           - pgo V4.3
@@ -103,15 +105,32 @@ Change History
 #error "BDM.c requires a Compiler fix (MTWX31284) that is only available in Versions later than 5.0.29"
 #endif
 
-#if (HW_CAPABILITY&CAP_BDM)
-
 //=============================================================================================================================================
 #define BDM_SYNC_REQus          960U //!< us - length of the longest possible SYNC REQUEST pulse (128 BDM cycles @ 400kHz = 320us plus some extra time)
 #define SYNC_TIMEOUTus          460U //!< us - longest time for the target to completed a SYNC pulse (16+128+margin cycles @ 400kHz = 375us)
 #define ACKN_TIMEOUTus          375U //!< us - longest time after which the target should produce ACKN pulse (150 cycles @ 400kHz = 375us)
 #define SOFT_RESETus          10000U //!< us - longest time needed for soft reset of the BDM interface (512 BDM cycles @ 400kHz = 1280us)
 #define RESET_LENGTHms          100U //!< ms - time of RESET assertion
+#define RESET_INITIAL_WAITms     10U //!< ms - max time to wait for the RESET pin to come high after release
 #define RESET_RELEASE_WAITms    270U //!< ms - max time to wait for the RESET pin to come high after release
+
+//! Wait for reset rise with timeout
+//!
+void bdm_WaitForResetRise(void) {
+#if (HW_CAPABILITY&CAP_RST_IO)
+   if (bdm_option.useResetSignal) {
+      // Wait with timeout until RESET is high
+      WAIT_WITH_TIMEOUT_MS(RESET_INITIAL_WAITms, RESET_IS_HIGH);
+      if (RESET_IN==0) {
+         // May take a while
+         setBDMBusy();
+      }
+      WAIT_WITH_TIMEOUT_MS(RESET_RELEASE_WAITms-RESET_INITIAL_WAITms, RESET_IS_HIGH);
+   }
+#endif
+}
+
+#if (HW_CAPABILITY&CAP_BDM)
 
 /* Function prototypes */
        U8   bdm_syncMeasure(void);
@@ -335,9 +354,16 @@ U8 bdm_sts;
 }
 #endif
 
+void bdm_clearConnection(void) {
+//   cable_status.reset = NO_RESET_ACTIVITY; // Clear the reset flag
+   cable_status.speed   = SPEED_NO_INFO;   // No connection
+   bdm_rx_ptr           = bdm_rxEmpty;     // Clear the Tx/Rx pointers
+   bdm_tx_ptr           = bdm_txEmpty;     //    i.e. no com. routines found
+}
+
 //!  Tries to connect to target - doesn't try other strategies such as reset.
-//!  This function does a basic connect sequence.  It doesn't configure the BDM
-//!  registers on the target or enable ACKN
+//!  This function does a basic connect sequence and tries to enable ACKN.
+//!  It doesn't configure the BDM registers on the target.
 //!
 //! @return
 //!    == \ref BDM_RC_OK                  => success                             \n
@@ -346,52 +372,55 @@ U8 bdm_sts;
 //!    == \ref BDM_RC_BKGD_TIMEOUT        => BKGD signal timeout - remained low  \n
 //!    != \ref BDM_RC_OK                  => other failures
 //!
-U8 bdm_physicalConnect(void){
+U8 bdm_physicalConnect(void) {
 U8 rc;
 
-//   cable_status.reset = NO_RESET_ACTIVITY; // Clear the reset flag
-   cable_status.speed   = SPEED_NO_INFO;   // No connection
-   bdm_rx_ptr           = bdm_rxEmpty;     // Clear the Tx/Rx pointers
-   bdm_tx_ptr           = bdm_txEmpty;     //    i.e. no com. routines found
-
    bdmHCS_interfaceIdle(); // Make sure interface is idle
-
+   bdm_clearConnection();  // Assume we know nothing about connection technique & speed
+   
    // Target has power?
    rc = bdm_checkTargetVdd();
-   if (rc != BDM_RC_OK)
+   if (rc != BDM_RC_OK) {
       return rc;
-
+   }
 #if (HW_CAPABILITY&CAP_RST_IO)
    // Wait with timeout until both RESET and BKGD  are high
    if (bdm_option.useResetSignal) {
-      WAIT_WITH_TIMEOUT_MS(RESET_RELEASE_WAITms,(RESET_IN!=0)&&(BDM_IN!=0));
-      if (RESET_IN==0)
+	   if (RESET_IN==0) {
+		  // May take a while
+		  setBDMBusy();
+	      WAIT_WITH_TIMEOUT_MS(RESET_RELEASE_WAITms,(RESET_IN!=0)&&(BDM_IN!=0));
+	  }
+      if (RESET_IN==0) {
          return(BDM_RC_RESET_TIMEOUT_RISE);  // RESET timeout
+      }
    }
 #else
+   // Wait with timeout until BKGD is high
    WAIT_WITH_TIMEOUT_MS(RESET_RELEASE_WAITms,(BDM_IN!=0));
 #endif
-
-   if (BDM_IN==0) {
+   if (BDM_IN == 0) {
       return(BDM_RC_BKGD_TIMEOUT);  // BKGD timeout
    }
+   // Try SYNC method
    rc = bdm_syncMeasure();
-   if (rc != BDM_RC_OK) // try again
+   if (rc != BDM_RC_OK) {
+      // try again
       rc = bdm_syncMeasure();
-   if ((rc != BDM_RC_OK) &&                // Trying to measure SYNC was not successful
-       (bdm_option.guessSpeed) &&          // Try alternative method if enabled
+   }
+   if (rc == BDM_RC_OK) {
+      rc = bdm_RxTxSelect();
+      if (rc == BDM_RC_OK) {
+         cable_status.speed = SPEED_SYNC;
+      }
+   }
+   else if ((bdm_option.guessSpeed) &&          // Try alternative method if enabled
        (cable_status.target_type == T_HC12)) { // and HC12 target
       rc = bdmHC12_alt_speed_detect();     // Try alternative method (guessing!)
    }
-   if (rc != BDM_RC_OK)
-      return(rc);
-
-   // If at least one of the two methods succeeded, we can select
-   //  the right Rx and Tx routines
-   rc = bdm_RxTxSelect();
-   if (rc != BDM_RC_OK) {
-      cable_status.speed = SPEED_NO_INFO;  // Indicate that we do not have a connection
-      }
+   if (rc == BDM_RC_OK) {
+      bdm_acknInit();  // Try the ACKN feature
+   }
    return(rc);
 }
 
@@ -421,8 +450,6 @@ U8 rc;
    	     return rc;
       }
    }
-   bdm_acknInit();  // Try the ACKN feature
-
    // Try to enable BDM
    return bdm_enableBDM();
 }
@@ -448,8 +475,10 @@ U8 bdm_hardwareReset(U8 mode) {
       return BDM_RC_ILLEGAL_PARAMS;
       // Doesn't return BDM_RC_ILLEGAL_COMMAND as method is controlled by a parameter
 
+#ifdef DISABLE_RESET_SENSE_INT
    DISABLE_RESET_SENSE_INT(); // Mask RESET IC interrupts
-
+#endif
+   
    bdmHCS_interfaceIdle();  // Make sure BDM interface is idle
 
    mode &= RESET_MODE_MASK;
@@ -475,7 +504,7 @@ U8 bdm_hardwareReset(U8 mode) {
    RESET_3STATE();
 
    // Wait with timeout until RESET is high
-   WAIT_WITH_TIMEOUT_MS(RESET_RELEASE_WAITms, (RESET_IN!=0));
+   bdm_WaitForResetRise();
 
    // Assume RESET risen - check later after cleanUp
 
@@ -497,12 +526,16 @@ U8 bdm_hardwareReset(U8 mode) {
    DEBUG_PIN   = 0;
 #endif
 
-   if (RESET_IN==0)      // RESET failed to rise
+   if (RESET_IN==0) {     // RESET failed to rise
       return(BDM_RC_RESET_TIMEOUT_RISE);
-
+   }
+#ifdef CLEAR_RESET_SENSE_FLAG
    CLEAR_RESET_SENSE_FLAG(); // Clear RESET IC Event
+#endif
+#ifdef ENABLE_RESET_SENSE_INT
    ENABLE_RESET_SENSE_INT(); // Enable RESET IC interrupts
-
+#endif
+   
    return(BDM_RC_OK);
 }
 #endif //(HW_CAPABILITY&CAP_RST_IO)
@@ -560,7 +593,6 @@ U8 rc;
       default:
          return BDM_RC_UNKNOWN_TARGET; // Don't know how to reset this one!
    }
-
    if (mode == RESET_SPECIAL) {  // Special mode - need BKGD held low out of reset
       BDM_LOW(); // drive BKGD low (out of reset)
    }
@@ -576,7 +608,7 @@ U8 rc;
 #if (HW_CAPABILITY&CAP_RST_IO)
    if (bdm_option.useResetSignal) {
       // Wait with timeout until RESET is high (may be held low by processor)
-      WAIT_WITH_TIMEOUT_MS(RESET_RELEASE_WAITms, (RESET_IN!=0));
+      bdm_WaitForResetRise();
       // Assume RESET risen - check later after cleanup
    }
 #endif // (HW_CAPABILITY&CAP_RST_IO)
@@ -774,9 +806,9 @@ U16 time;
    // Wait with timeout until BKGD is high
    WAIT_WITH_TIMEOUT_US(BDM_SYNC_REQus, (BDM_IN!=0));
 
-   if (BDM_IN==0)
+   if (BDM_IN==0) {
       return(BDM_RC_BKGD_TIMEOUT); // Timeout !
-
+   }
    BDM_LOW();                   //ToDo - check if glitches
    WAIT_US(BDM_SYNC_REQus);     // Wait SYNC request time
 
@@ -789,13 +821,13 @@ U16 time;
    BKGD_TPMxCnSC       = BKGD_TPMxCnSC_FALLING_EDGE_MASK;  // TPMx.CHb : Input capture, falling edge on pin
 
    TIMEOUT_TPMxCnVALUE  = TPMCNT+TIMER_MICROSECOND(SYNC_TIMEOUTus);  // Set Timeout value
-   BKGD_TPMxCnSC_CHF    = 0;                                      // TPMx.CHa : Clear capture flag
-   TIMEOUT_TPMxCnSC_CHF = 0;                                      // TPMx.CHb : Clear timeout flag
+   BKGD_TPMxCnSC_CHF    = 0;                                         // TPMx.CHa : Clear capture flag
+   TIMEOUT_TPMxCnSC_CHF = 0;                                         // TPMx.CHb : Clear timeout flag
    asm {
       LDX   #BDM_OUT_MASK|BDM_EN_WR_MASK  // Mask to Drive BKGD high
       LDA   #BDM_OUT_MASK|BDM_EN_RD_MASK  // Mask to 3-state BKGD
-      STX   DATA_PORT                     // [3   wpp]  Drive BKGD high (for 125 ns)
-      STA   DATA_PORT                     // [3   wpp]  3-state BKGD
+      STX   DATA_PORT                     // [3 wpp]  Drive BKGD high (for 125 ns)
+      STA   DATA_PORT                     // [3 wpp]  3-state BKGD
       // It took 125 ns cycles from bringing BKGD high to 3-state (3 cycles/24 MHz)
       // Target drives BKGD line after 16 BDM clock cycles
       // Fast enough up to approx 125ns/(16 BDM cycles) = 128 MHz BDM Frequency
@@ -803,7 +835,7 @@ U16 time;
    while ((BKGD_TPMxCnSC_CHF==0)&&(TIMEOUT_TPMxCnSC_CHF==0)) {   // Wait for capture or timeout
    }
    time          = BKGD_TPMxCnVALUE;                 // TPM1.Ch1 : Save time of start of the SYNC interval
-   BKGD_TPMxCnSC = BKGD_TPMxCnSC_RISING_EDGE_MASK;   // TPM1.Ch1 : Clear IC flag, config for IC rising edge
+   BKGD_TPMxCnSC = BKGD_TPMxCnSC_RISING_EDGE_MASK;   // TPM1.Ch1 : Clear IC flag, configure for IC rising edge
 
    // It takes 23 cycles to re-enable capture (worst case) which is good enough up to 128*24/23 = 130 MHz!
    while ((BKGD_TPMxCnSC_CHF==0)&&(TIMEOUT_TPMxCnSC_CHF==0)){   // Wait for capture or timeout
@@ -818,7 +850,6 @@ U16 time;
    if (TIMEOUT_TPMxCnSC_CHF==1) {
       return(BDM_RC_SYNC_TIMEOUT);         // Timeout !
    }
-
 #if (TIMER_FREQ==3000000UL)
    cable_status.sync_length=(time<<2)+(time<<4);  // multiply by 20 to get the time in 60MHz ticks
 #elif (TIMER_FREQ==6000000UL)
@@ -863,6 +894,19 @@ U8 rc;
       cable_status.ackn = WAIT;  // Switch the ackn feature off
 }
 
+//! Wait for 64 target clock cycles
+//!
+void bdm_wait64() {
+   asm {
+		 cli
+		 ldhx  cable_status.wait64_cnt    // Number of loop iterations to wait
+	  loop:
+		 aix   #-1      ; [2]
+		 cphx  #0       ; [3]
+		 bne   loop     ; [3] 8 cycles / iteration
+   }
+}
+
 //! Depending on ACKN mode this function:       \n
 //!   - Waits for ACKN pulse with timeout.
 //!      OR
@@ -884,14 +928,8 @@ U8 doACKN_WAIT64(void) {
          return BDM_RC_ACK_TIMEOUT;  //   Return timeout error
       }
    }
-   else asm {
-      // Wait for 64 target clock cycles
-         cli
-         ldhx  cable_status.wait64_cnt   // Number of loop iterations to wait
-      loop:
-         aix   #-1      ; [2]
-         cphx  #0       ; [3]
-         bne   loop     ; [3] 8 cycles / iteration
+   else {
+      bdm_wait64();
    }
    return BDM_RC_OK;
 }
@@ -1054,7 +1092,7 @@ void bdmHCS_init(void) {
 // Masks to modify BKGD
 #define BKGD_LOW_MASK    (BDM_EN_WR_MASK|     0      )
 #define BKGD_HIGH_MASK   (BDM_EN_WR_MASK|BDM_OUT_MASK)
-#define BKGD_3STATE_MASK (BDM_EN_RD_MASK|BDM_OUT_MASK)
+#define BKGD_3STATE_MASK (BDM_EN_RD_MASK|     0      )
 
 //! Prepares for transmission of BDM data
 //!
@@ -1273,7 +1311,7 @@ void bdm_txGeneric(U8 data) {
 //  Rx Routines bdm_rx..
 //==============================================================
 //  Receive 8 bit of data, MSB first
-//  These routines assume the following call bdm_txFinish:
+//  These routines assume the following:
 //     BDM direction to be controlled by BDM_DIR_Rx in DATA_PORT
 //     BDM output value may be controlled by DATA_PORT.7 hard coded in bdm_rxN
 //     BDM input value may be read from DATA_PORT.0 hard coded in rxStackDecode
@@ -1830,12 +1868,11 @@ const RxConfiguration rxConfiguration[] =
 //!   \ref BDM_RC_NO_RX_ROUTINE  => No suitable Rx routine found \n
 //!
 U8 bdm_RxTxSelect(void) {
-   const TxConfiguration  * far txConfigPtr;
-   const RxConfiguration  * far rxConfigPtr;
+   const TxConfiguration  * txConfigPtr;
+   const RxConfiguration  * rxConfigPtr;
 
-   bdm_rx_ptr = bdm_rxEmpty; // clear the Tx/Rx pointers
-   bdm_tx_ptr = bdm_txEmpty; // i.e. no routines found
-
+   bdm_clearConnection();
+   
    for (  txConfigPtr  = txConfiguration+sizeof(txConfiguration)/sizeof(txConfiguration[0]);
         --txConfigPtr >= txConfiguration; ) { // Search the table
 
@@ -1847,9 +1884,9 @@ U8 bdm_RxTxSelect(void) {
          break;                               // Quit search
       }
    }
-   if (bdm_tx_ptr==bdm_txEmpty) // Return if no function found
+   if (bdm_tx_ptr==bdm_txEmpty) { // Return if no function found
       return(BDM_RC_NO_TX_ROUTINE);
-
+   }
    for (  rxConfigPtr  = rxConfiguration+sizeof(rxConfiguration)/sizeof(rxConfiguration[0]);
         --rxConfigPtr >= rxConfiguration; ) { // Search the table
 
@@ -1861,26 +1898,31 @@ U8 bdm_RxTxSelect(void) {
          break;                               // Quit search
       }
    }
-   if (bdm_rx_ptr==bdm_rxEmpty) // Return if no function found
+   if (bdm_rx_ptr==bdm_rxEmpty) { // Return if no function found
       return(BDM_RC_NO_RX_ROUTINE);
-
+   }
    // Calculate number of iterations for manual delay (each iteration is 8 cycles)
    cable_status.wait64_cnt  = cable_status.sync_length/(U16)(((8*60*128UL)/(BUS_FREQ/1000000)/64));
    cable_status.wait150_cnt = cable_status.sync_length/(U16)(((8*60*128UL)/(BUS_FREQ/1000000)/150));
+
    // Correct for overhead in calling function etc. (JSR+RTS+JSR) = (5+4+5) ~ 2 iterations
-   if (cable_status.wait64_cnt<=2)
+   if (cable_status.wait64_cnt<=2) {
       cable_status.wait64_cnt = 1; // minimum of 1 iteration
-   else
+   }
+   else {
       cable_status.wait64_cnt -= 2;
-   if (cable_status.wait150_cnt<=2)
+   }
+   if (cable_status.wait150_cnt<=2) {
       cable_status.wait150_cnt = 1; // minimum of 1 iteration
-   else
+   }
+   else {
       cable_status.wait150_cnt -= 2;
+   }
    return(0);
 }
 
 // PARTID read from HCS12 - used to confirm target connection speed and avoid needless probing
-static U16 partid = 0x00;
+static U16 partid = 0xFA50;
 
 //! Confirm communication at given Sync value.
 //! Only works on HC12 (and maybe only 1 of 'em!)
@@ -1896,9 +1938,9 @@ U8 rc;
    cable_status.sync_length = syncValue;
 
    rc = bdm_RxTxSelect(); // Drivers available for this frequency?
-   if (rc != BDM_RC_OK)
+   if (rc != BDM_RC_OK) {
       goto tidyUp;
-
+   }
    rc = BDM_RC_BDM_EN_FAILED; // Assume probing failed
    {
       U16 probe;
@@ -2003,7 +2045,6 @@ U8 rc;
 
 tidyUp:
    cable_status.sync_length  = 1;
-   cable_status.speed        = SPEED_NO_INFO; // Connection cannot be established at this speed
    cable_status.ackn         = WAIT;    // Clear indication of ACKN feature
    return rc;
 }
@@ -2038,7 +2079,7 @@ static const U16 typicalSpeeds[] = { // Table of 'nice' BDM speeds to try
 static U16 lastGuess1 = SYNC_MULTIPLE(8000000UL);  // Used to remember last 2 guesses
 static U16 lastGuess2 = SYNC_MULTIPLE(16000000UL); // Common situation to change between 2 speeds (reset,running)
 #pragma DATA_SEG DEFAULT
-const TxConfiguration  * far txConfigPtr;
+const TxConfiguration  *txConfigPtr;
 int sub;
 U16 currentGuess;
 U8  rc;
@@ -2048,20 +2089,18 @@ U8  rc;
       cable_status.speed = SPEED_GUESSED;  // Speed found by trial and error
       return BDM_RC_OK;
    }
-
    // Try last used speed #2
    currentGuess = lastGuess2;
    rc = bdmHC12_confirmSpeed(lastGuess2);
-
    if (rc != BDM_RC_OK) {
       // This may take a while
       setBDMBusy();
    }
-   
    // Try some likely numbers!
    for (sub=0; typicalSpeeds[sub]>0; sub++) {
-      if (rc == BDM_RC_OK)
+      if (rc == BDM_RC_OK) {
          break;
+      }
       currentGuess = typicalSpeeds[sub];
       rc           = bdmHC12_confirmSpeed(currentGuess);
       }
@@ -2069,8 +2108,9 @@ U8  rc;
    // Try each Tx driver BDM frequency
    for (  txConfigPtr  = txConfiguration+(sizeof(txConfiguration)/sizeof(txConfiguration[0])-1);
         --txConfigPtr >= txConfiguration; ) { // Search the table
-      if (rc == BDM_RC_OK)
+      if (rc == BDM_RC_OK) {
          break;
+      }
       currentGuess = (txConfigPtr->syncThreshold+(txConfigPtr+1)->syncThreshold)/2;
       rc           = bdmHC12_confirmSpeed(currentGuess);
       }
@@ -2082,14 +2122,12 @@ U8  rc;
       cable_status.speed = SPEED_GUESSED;  // Speed found by trial and error
       return BDM_RC_OK;
    }
-
-   cable_status.speed = SPEED_NO_INFO;  // Speed not found
    return rc;
 }
 
 #if (DEBUG&DEBUG_COMMANDS) // Debug commands enabled
 U8 bdm_testTx(U8 speedIndex) {
-const TxConfiguration  * far txConfigPtr;
+const TxConfiguration  *txConfigPtr;
 
     // Validate index
    if (speedIndex > (sizeof(txConfiguration)/sizeof(txConfiguration[0])))
@@ -2232,7 +2270,6 @@ void bdmRx32(U32 *data) {
 
 //============================================================
 // The following commands DO NOT expect an ACK & do not delay
-// They leave the interface in the Tx condition (ready to drive )
 // Interrupts are left disabled!
 //
 
@@ -2240,31 +2277,11 @@ void bdmRx32(U32 *data) {
 //!
 //! @param cmd command byte to write
 //!
-//! @note The interface is left in the Tx condition (ready to drive )
 //! @note Interrupts are left disabled
 //!
 void BDM_CMD_0_0_T(U8 cmd) {
    bdm_txPrepare();
    bdmTx(cmd);
-// NO bdm_txFinish()
-//   enableInterrupts();
-}
-
-//!  Special for Software Reset HCS08, truncated sequence
-//!
-//! @param cmd         command byte to write
-//! @param parameter1  word parameter to write
-//! @param parameter2  byte parameter to write
-//!
-//! @note The interface is left in the Tx condition (ready to drive )
-//! @note Interrupts are left disabled
-//!
-void BDM_CMD_1W1B_0_T(U8 cmd, U16 parameter1, U8 parameter2) {
-   bdm_txPrepare();
-   bdmTx(cmd);
-   bdmTx16(parameter1);
-   bdmTx(parameter2);
-// NO bdm_txFinish()
 //   enableInterrupts();
 }
 
@@ -2273,17 +2290,30 @@ void BDM_CMD_1W1B_0_T(U8 cmd, U16 parameter1, U8 parameter2) {
 //! @param cmd         command byte to write
 //! @param parameter   byte parameter to write
 //!
-//! @note The interface is left in the Tx condition (ready to drive )
 //! @note Interrupts are left disabled
 //!
 void BDM_CMD_1B_0_T(U8 cmd, U8 parameter) {
-   bdm_txPrepare();
-   bdmTx(cmd);
+   BDM_CMD_0_0_T(cmd);
    bdmTx(parameter);
-// NO bdm_txFinish()
 //   enableInterrupts();
 }
    
+//!  Special for Software Reset HCS08, truncated sequence
+//!
+//! @param cmd         command byte to write
+//! @param parameter1  word parameter to write
+//! @param parameter2  byte parameter to write
+//!
+//! @note Interrupts are left disabled
+//!
+void BDM_CMD_1W1B_0_T(U8 cmd, U16 parameter1, U8 parameter2) {
+   bdm_txPrepare();
+   bdmTx(cmd);
+   bdmTx16(parameter1);
+   bdmTx(parameter2);
+//   enableInterrupts();
+}
+
 //============================================================
 // The following commands DO NOT expect an ACK & do not delay
 //
@@ -2294,13 +2324,12 @@ void BDM_CMD_1B_0_T(U8 cmd, U8 parameter) {
 //!
 //! @note No ACK is expected
 //!
-void BDM_CMD_0_0_NOACK(U8 cmd) {
-   bdm_txPrepare();
-   bdmTx(cmd);
-//   bdm_txFinish();
-   BDM_3STATE();
-   enableInterrupts();
-}
+//void BDM_CMD_0_0_NOACK(U8 cmd) {
+//   bdm_txPrepare();
+//   bdmTx(cmd);
+//   BDM_3STATE();
+//   enableInterrupts();
+//}
    
 //! Write cmd & read byte without ACK (HCS08)
 //!
@@ -2312,7 +2341,6 @@ void BDM_CMD_0_0_NOACK(U8 cmd) {
 void BDM_CMD_0_1B_NOACK(U8 cmd, U8 *result) {
    bdm_txPrepare();
    bdmTx(cmd);
-//   bdm_txFinish();
    *result = bdm_rx();
    enableInterrupts();
 }
@@ -2328,7 +2356,6 @@ void BDM_CMD_1B_0_NOACK(U8 cmd, U8 parameter) {
    bdm_txPrepare();
    bdmTx(cmd);
    bdmTx(parameter);
-//   bdm_txFinish();
    BDM_3STATE();
    enableInterrupts();
 }
@@ -2343,7 +2370,6 @@ void BDM_CMD_1B_0_NOACK(U8 cmd, U8 parameter) {
 void BDM_CMD_0_1W_NOACK(U8 cmd, U16 *result) {
    bdm_txPrepare();
    bdmTx(cmd);
-//   bdm_txFinish();
    bdmRx16(result);
    enableInterrupts();
 }
@@ -2359,11 +2385,45 @@ void BDM_CMD_1W_0_NOACK(U8 cmd, U16 parameter) {
    bdm_txPrepare();
    bdmTx(cmd);
    bdmTx16(parameter);
-//   bdm_txFinish();
    BDM_3STATE();
    enableInterrupts();
 }
 
+//! Write cmd, word & read word without ACK
+//!
+//! @param cmd        command byte to write
+//! @param parameter  word to write
+//! @param result     word ptr for read (status+data byte)
+//!
+//! @note no ACK is expected
+//!
+void BDM_CMD_1W_1W_NOACK(U8 cmd, U16 parameter, U16 *result) {
+   bdm_txPrepare();
+   bdmTx(cmd);
+   bdmTx16(parameter);
+   bdmRx16(result);
+   enableInterrupts();
+}
+
+//! Write cmd, word, byte & read byte without ACK
+//!
+//! @param cmd        command byte to write
+//! @param parameter  word to write
+//! @param value      byte to write
+//! @param status     byte ptr for read
+//!
+//! @note no ACK is expected 
+//!
+void BDM_CMD_1W1B_1B_NOACK(U8 cmd, U16 parameter, U8 value, U8 *status) {
+   bdm_txPrepare();
+   bdmTx(cmd);
+   bdmTx16(parameter);
+   bdmTx(value);
+//   bdm_wait64();
+   *status = bdm_rx();
+   enableInterrupts();
+}
+                                                         
 //====================================================================
 // The following DO expect an ACK or wait at end of the command phase
 
@@ -2375,11 +2435,80 @@ void BDM_CMD_1W_0_NOACK(U8 cmd, U16 parameter) {
 //!
 U8 BDM_CMD_0_0(U8 cmd) {
 U8 rc;
-    bdm_txPrepare();
-    bdmTx(cmd);
+    BDM_CMD_0_0_T(cmd);
+//    bdm_txPrepare();
+//    bdmTx(cmd);
     rc = doACKN_WAIT64();
     enableInterrupts();
     return rc;
+}
+
+//! Write cmd, read byte
+//!
+//! @param cmd        command byte to write
+//! @param result     byte read
+//!
+//! @note ACK is expected
+//!
+U8 BDM_CMD_0_1B(U8 cmd, U8 *result) {
+U8 rc;
+   bdm_txPrepare();
+   bdmTx(cmd);
+   rc = doACKN_WAIT64();
+   *result = bdm_rx();
+   enableInterrupts();
+   return rc;
+}
+
+//! Write cmd & read word
+//!
+//! @param cmd    command byte to write
+//! @param result word read
+//!
+//! @note ACK is expected
+//!
+U8 BDM_CMD_0_1W(U8 cmd, U16 *result) {
+U8 rc;
+   bdm_txPrepare();
+   bdmTx(cmd);
+   rc = doACKN_WAIT64();
+   bdmRx16(result);
+   enableInterrupts();
+   return rc;
+}
+
+//! Write cmd & read longword
+//!
+//! @param cmd    command byte to write
+//! @param result longword read
+//!
+//! @note ACK is expected
+//!
+U8 BDM_CMD_0_1L(U8 cmd, U32 *result) {
+U8 rc;
+//   bdm_txPrepare();
+//   bdmTx(cmd);
+   BDM_CMD_0_0_T(cmd);
+   rc = doACKN_WAIT64();
+   bdmRx32(result);
+   return rc;
+}
+
+//! Write cmd & byte
+//!
+//! @param cmd        command byte to write
+//! @param parameter  byte to write
+//!
+//! @note ACK is expected
+//!
+U8 BDM_CMD_1B_0(U8 cmd, U8 parameter) {
+U8 rc;
+   bdm_txPrepare();
+   bdmTx(cmd);
+   bdmTx(parameter);
+   rc = doACKN_WAIT64();
+   enableInterrupts();
+   return rc;
 }
 
 //! Write cmd & word
@@ -2399,23 +2528,6 @@ U8 rc;
    return rc;
 }
    
-//! Write cmd & read word
-//!
-//! @param cmd    command byte to write
-//! @param result word read
-//!
-//! @note ACK is expected
-//!
-U8 BDM_CMD_0_1W(U8 cmd, U16 *result) {
-U8 rc;
-   bdm_txPrepare();
-   bdmTx(cmd);
-   rc = doACKN_WAIT64();
-   bdmRx16(result);
-   enableInterrupts();
-   return rc;
-}
-
 //! Write cmd & longword
 //!
 //! @param cmd       command byte to write
@@ -2425,8 +2537,9 @@ U8 rc;
 //!
 U8 BDM_CMD_1L_0(U8 cmd, U32 parameter) {
 U8 rc;
-   bdm_txPrepare();
-   bdmTx(cmd);
+//   bdm_txPrepare();
+//   bdmTx(cmd);
+   BDM_CMD_0_0_T(cmd);
    bdmTx16(parameter>>16);
    bdmTx16((U16)parameter);
    rc = doACKN_WAIT64();
@@ -2434,22 +2547,6 @@ U8 rc;
    return rc;
 }
    
-//! Write cmd & read longword
-//!
-//! @param cmd    command byte to write
-//! @param result longword read
-//!
-//! @note ACK is expected
-//!
-U8 BDM_CMD_0_1L(U8 cmd, U32 *result) {
-U8 rc;
-   bdm_txPrepare();
-   bdmTx(cmd);
-   rc = doACKN_WAIT64();
-   bdmRx32(result);
-   return rc;
-}
-
 //! Write cmd, word & read byte (read word but return byte - HC/S12(x))
 //!
 //! @param cmd       command byte to write
@@ -2460,8 +2557,9 @@ U8 rc;
 //!
 U8 BDM_CMD_1W_1WB(U8 cmd, U16 parameter, U8 *result) {
 U8 rc;
-   bdm_txPrepare();
-   bdmTx(cmd);
+//   bdm_txPrepare();
+//   bdmTx(cmd);
+   BDM_CMD_0_0_T(cmd);
    bdmTx16(parameter);
    rc = doACKN_WAIT150();
    if ((parameter)&0x0001) {
@@ -2485,8 +2583,9 @@ U8 rc;
 //!
 U8 BDM_CMD_2W_0(U8 cmd, U16 parameter1, U16 parameter2) {
 U8 rc;
-   bdm_txPrepare();
-   bdmTx(cmd);
+//   bdm_txPrepare();
+//   bdmTx(cmd);
+   BDM_CMD_0_0_T(cmd);
    bdmTx16(parameter1);
    bdmTx16(parameter2);
    rc = doACKN_WAIT150();
@@ -2524,46 +2623,13 @@ U8 rc;
 //!
 U8 BDM_CMD_2WB_0(U8 cmd, U16 parameter1, U8 parameter2) {
 U8 rc;
-   bdm_txPrepare();
-   bdmTx(cmd);
+//   bdm_txPrepare();
+//   bdmTx(cmd);
+   BDM_CMD_0_0_T(cmd);
    bdmTx16(parameter1);
    bdmTx(parameter2);
    bdmTx(parameter2);
    rc = doACKN_WAIT150();
-   enableInterrupts();
-   return rc;
-}
-
-//! Write cmd, read byte
-//!
-//! @param cmd        command byte to write
-//! @param result     byte read
-//!
-//! @note ACK is expected
-//!
-U8 BDM_CMD_0_1B(U8 cmd, U8 *result) {
-U8 rc;
-   bdm_txPrepare();
-   bdmTx(cmd);
-   rc = doACKN_WAIT64();
-   *result = bdm_rx();
-   enableInterrupts();
-   return rc;
-}
-
-//! Write cmd & byte
-//!
-//! @param cmd        command byte to write
-//! @param parameter  byte to write
-//!
-//! @note ACK is expected
-//!
-U8 BDM_CMD_1B_0(U8 cmd, U8 parameter) {
-U8 rc;
-   bdm_txPrepare();
-   bdmTx(cmd);
-   bdmTx(parameter);
-   rc = doACKN_WAIT64();
    enableInterrupts();
    return rc;
 }

@@ -16,7 +16,7 @@
 
 //==========================================================================================
 // USB Serial Number
-#define SERIAL_NO "USBDM-JMxx-SER-CF-0001"
+#define SERIAL_NO          "USBDM-JMxx-SER-CF-0001"
 #define ProductDescription "USBDM RS08,HCS08,HCS12,DSC,Coldfire BDM"
 
 //==========================================================================================
@@ -425,7 +425,7 @@
 #define BKGD_TPMxCnSC_RISING_EDGE_MASK    TPM1C0SC_ELS0A_MASK // TPMxCnSC value for rising edge
 #define BKGD_TPMxCnSC_FALLING_EDGE_MASK   TPM1C0SC_ELS0B_MASK // TPMxCnSC value for falling edge
 #define BKGD_TPMxCnVALUE                  TPM1C0V             // IC Event time
-#define BKGD_TPM_SETUP_ASM                    BCLR 7,BKGD_TPMxCnSC 
+#define BKGD_TPM_SETUP_ASM                BCLR 7,BKGD_TPMxCnSC 
 
 // Timeout TPM1.Ch1 : Output Compare (no pin)
 #define TIMEOUT_TPMxCnSC_CHF              TPM1C1SC_CH1F       // Event Flag

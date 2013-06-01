@@ -30,6 +30,9 @@
 
 #define CPU  JS16
 
+// Define for automatic WINUSB Driver loading 
+//#define MS_COMPATIBLE_ID_FEATURE (1)
+
 //=================================================================================
 // Debug pin - used to check timing and hardware sequences etc.
 //

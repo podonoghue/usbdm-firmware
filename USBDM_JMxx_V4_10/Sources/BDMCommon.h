@@ -98,6 +98,8 @@ U16  bdm_targetVddMeasure(void);
 U8   bdm_setTargetVdd( void );  // Low-level - bdm_cycleTargetVddOn() preferred
 void bdm_interfaceOff( void );
 
+U8   bdm_clearStatus(void);
+
 // Interrupt monitoring routines
 interrupt void timerHandler(void);
 interrupt void kbiHandler(void);

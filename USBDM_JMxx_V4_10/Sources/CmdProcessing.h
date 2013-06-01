@@ -4,8 +4,6 @@
 #ifndef _CMDPROCESSING_H_
 #define _CMDPROCESSING_H_
 
-extern U8 commandExec(void);
-
 extern void commandLoop(void);
 extern U8   compatibleCommandExec(void);
 extern U8   optionalReconnect(U8 when);

@@ -53,7 +53,7 @@
 #define SPIxD16 			  SPID16
 #endif
 
-#define SPIxC1_OFF   (SPIxC1_MSTR_MASK)     //!< SPI Masks - Mask to disable SPI
+#define SPIxC1_OFF   (SPIxC1_MSTR_MASK)  //!< SPI Masks - Mask to disable SPI
 
 #define SPIS_SPTEF_BIT (5)
 #define SPIS_SPRF_BIT  (7)

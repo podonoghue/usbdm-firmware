@@ -225,7 +225,7 @@ static U8 _userDetectICP(void){
 void myStartup(void) {
 #if !defined(SOPT1_BKGDPE_MASK) || defined(DISABLE_BKGD)
 #undef SOPT1_BKGDPE_MASK
-#define SOPT1_BKGDPE_MASK (0) // Only exists on some CPUs or BKGD pin in use as BKGD
+#define SOPT1_BKGDPE_MASK (0) // Only exists on some CPUs or BKGD pin in use as GPIO
 #endif
    SOPT1 = SOPT1_STOPE_MASK|SOPT1_BKGDPE_MASK; // Disable COP, enable STOP instr. & BKGD pin
    if (detectICP() || flashInvalid() || _userDetectICP()) {

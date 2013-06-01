@@ -34,6 +34,8 @@
    \verbatim
    Change History
    +===============================================================================================
+   | 26 Dec 2012 | Changed Reset handling to prevent USB timeouts                     - pgo V4.10.4
+   | 30 Aug 2012 | ARM-JTAG & ARM-SWD Changes                                               V4.10.3
    | 20 May 2012 | Extended firmware version information                                    V4.9.5
    |  8 Apr 2012 | Fixed missing PST status in makeStatusWord()                       - pgo V4.7.4
    | 20 Apr 2011 | Added DE to f_CMD_USBDM_CONTROL_PINS                               - pgo V4.7
@@ -68,6 +70,7 @@
 #include "BDM_RS08.h"
 #include "BDM.h"
 #include "SWD.h"
+#include "ARM.h"
 #include "USB.h"
 #include "ICP.h"
 #include "CmdProcessing.h"
@@ -75,6 +78,7 @@
 #include "CmdProcessingCFVx.h"
 #include "CmdProcessingCFV1.h"
 #include "CmdProcessingSWD.h"
+#include "CmdProcessingARM.h"
 
 #ifdef __HC08__
 #pragma DATA_SEG __SHORT_SEG Z_PAGE
@@ -82,7 +86,7 @@
 //! Status of the BDM
 //!
 //! see \ref CableStatus_t
-CableStatus_t cable_status = { T_OFF };
+CableStatus_t cable_status;
 
 //! Options for the BDM
 //!
@@ -146,6 +150,8 @@ U16 status = 0;
       }
 	  break;
 #endif	  
+      default: 
+    	  break;
    }
 #if (HW_CAPABILITY&CAP_RST_IO)
    if (RESET_IS_HIGH) {
@@ -202,8 +208,8 @@ U8 rc = BDM_RC_OK;
    case T_RS08:
    case T_HCS08:
    case T_CFV1:
-	   if (bdm_option.autoReconnect == when) // If auto re-connect enabled at this time AND
-		  rc = bdm_physicalConnect();        // Make sure of connection
+	   if (bdm_option.autoReconnect == when) // If auto re-connect enabled at this time then ...
+		  rc = bdm_physicalConnect();        //    ...make sure of connection
 	   break;
    default: ;
    }
@@ -253,8 +259,9 @@ DebugSubCommands subCommand = commandBuffer[2];
       case BDM_DBG_SYNC: { // try the sync feature
          U8 rc;
          rc = bdm_syncMeasure();
-         if (rc != BDM_RC_OK)
+         if (rc != BDM_RC_OK) {
             return rc;
+         }
          commandBuffer[1] = (U8)makeStatusWord(); // return the status byte
          (*(U16*)(commandBuffer+2)) = cable_status.sync_length;
          returnSize = 4;
@@ -328,9 +335,13 @@ DebugSubCommands subCommand = commandBuffer[2];
       case BDM_DBG_TESTBDMTX: // Test BDM Tx routine
          return bdm_testTx(commandBuffer[3]);
 #endif
-#if HW_CAPABILITY & CAP_SWD_HW
-      case   BDM_DBG_SWD: //!< - Test SWD functions
+#if TARGET_CAPABILITY & CAP_ARM_SWD
+      case   BDM_DBG_SWD: //!< - Test ARM-SWD functions
     	 return swd_test();
+#endif
+#if TARGET_CAPABILITY & CAP_ARM_JTAG
+      case   BDM_DBG_ARM: //!< - Test ARM-JTAG functions
+    	 return arm_test();
 #endif
    } // switch
    return BDM_RC_ILLEGAL_PARAMS;
@@ -457,6 +468,7 @@ U8 f_CMD_CONTROL_PINS(void) {
    }
    // Restrict control to mode specific active pins
    switch (cable_status.target_type) {
+#if (HW_CAPABILITY&CAP_BDM)
    case T_HC12 :  
    case T_HCS08 :
    case T_RS08 :
@@ -464,6 +476,7 @@ U8 f_CMD_CONTROL_PINS(void) {
 	   if (control & ~(PIN_BKGD|PIN_RESET))
 		   return BDM_RC_ILLEGAL_PARAMS;
 	   break;
+#endif	   
 #if (HW_CAPABILITY&CAP_CFVx_HW)
    case T_CFVx :
 	   if (control & ~(PIN_TA|PIN_RESET|PIN_BKPT))
@@ -509,7 +522,7 @@ U8 f_CMD_CONTROL_PINS(void) {
    switch (control & PIN_RESET) {
    case PIN_RESET_3STATE : 
 	   RESET_3STATE(); 
-	   WAIT_WITH_TIMEOUT_S(2, (RESET_IS_HIGH));
+	   bdm_WaitForResetRise();
 	   if (RESET_IS_LOW) { 
           return(BDM_RC_RESET_TIMEOUT_RISE);
 	   }
@@ -539,7 +552,6 @@ U8 f_CMD_CONTROL_PINS(void) {
 	   TA_LOW(); 
 	   break;
    }
-
    switch(control&PIN_BKPT) {
    case PIN_BKPT_3STATE:
 	   BKPT_HIGH(); // should be 3-state!
@@ -553,14 +565,14 @@ U8 f_CMD_CONTROL_PINS(void) {
 #if (HW_CAPABILITY & CAP_SWD_HW)
    switch (control & PIN_SWD) {
    case PIN_SWD_3STATE : 
-	   SWD_3STATE();    // Disable SWD buffer, SWDIO = Z
-       break;
+      SWD_3STATE();    // Disable SWD buffer, SWDIO = Z
+      break;
    case PIN_SWD_LOW :
-	   SWD_LOW();       // Enable SWD buffer,  SWDIO = 0
-       break;
+      SWD_LOW();       // Enable SWD buffer,  SWDIO = 0
+      break;
    case PIN_SWD_HIGH :
-	   SWD_HIGH();      // Enable SWD buffer,  SWDIO = 1
-       break;
+      SWD_HIGH();      // Enable SWD buffer,  SWDIO = 1
+      break;
    }
 #endif
    getPinStatus();
@@ -774,18 +786,51 @@ static const FunctionPtr CFVxfunctionPtrs[] = {
 
    f_CMD_CFVx_WRITE_MEM             ,//= 32  CMD_USBDM_WRITE_MEM
    f_CMD_CFVx_READ_MEM              ,//= 33  CMD_USBDM_READ_MEM
-
-   f_CMD_ILLEGAL                    ,//= 34, CMD_USBDM_TRIM_CLOCK
-   f_CMD_ILLEGAL                    ,//= 35, CMD_USBDM_RS08_FLASH_ENABLE
-   f_CMD_ILLEGAL                    ,//= 36, CMD_USBDM_RS08_FLASH_STATUS
-   f_CMD_ILLEGAL                    ,//= 37, CMD_USBDM_RS08_FLASH_DISABLE
    };
 static const FunctionPtrs CFVxFunctionPointers  = {CMD_USBDM_CONNECT,
                                                    sizeof(CFVxfunctionPtrs)/sizeof(FunctionPtr),
                                                    CFVxfunctionPtrs};
 #endif 
-
-#if (TARGET_CAPABILITY&(CAP_DSC|CAP_JTAG|CAP_ARM_JTAG))
+#if (TARGET_CAPABILITY&CAP_ARM_JTAG)
+// Combined JTAG/ARM_JTAG Table
+static const FunctionPtr JTAGfunctionPtrs[] = {
+   // Target specific versions
+   f_CMD_ARM_CONNECT                ,//= 15, CMD_USBDM_CONNECT
+   f_CMD_SPI_SET_SPEED              ,//= 16, CMD_USBDM_SET_SPEED
+   f_CMD_SPI_GET_SPEED              ,//= 17, CMD_USBDM_GET_SPEED
+   f_CMD_ILLEGAL                    ,//= 18, CMD_USBDM_CONTROL_INTERFACE
+   f_CMD_ILLEGAL                    ,//= 19, RESERVED
+   f_CMD_ILLEGAL                    ,//= 20, CMD_USBDM_READ_STATUS_REG
+   f_CMD_ILLEGAL                    ,//= 21, CMD_USBDM_WRITE_CONTROL_REG
+   f_CMD_JTAG_RESET                 ,//= 22, CMD_USBDM_TARGET_RESET
+   f_CMD_ARM_TARGET_STEP            ,//= 23, CMD_USBDM_TARGET_STEP
+   f_CMD_ARM_TARGET_GO              ,//= 24, CMD_USBDM_TARGET_GO
+   f_CMD_ARM_TARGET_HALT            ,//= 25, CMD_USBDM_TARGET_HALT
+   f_CMD_ARM_WRITE_REG              ,//= 26, CMD_USBDM_WRITE_REG
+   f_CMD_ARM_READ_REG               ,//= 27  CMD_USBDM_READ_REG
+   f_CMD_ARM_WRITE_CREG             ,//= 28  CMD_USBDM_WRITE_CREG
+   f_CMD_ARM_READ_CREG              ,//= 29  CMD_USBDM_READ_CREG
+   f_CMD_ARM_WRITE_DREG             ,//= 30  CMD_USBDM_WRITE_DREG
+   f_CMD_ARM_READ_DREG              ,//= 31  CMD_USBDM_READ_DREG
+   f_CMD_ARM_WRITE_MEM              ,//= 32  CMD_USBDM_WRITE_MEM
+   f_CMD_ARM_READ_MEM               ,//= 33  CMD_USBDM_READ_MEM
+   f_CMD_ILLEGAL                    ,//= 34, CMD_USBDM_TRIM_CLOCK
+   f_CMD_ILLEGAL                    ,//= 35, CMD_USBDM_RS08_FLASH_ENABLE
+   f_CMD_ILLEGAL                    ,//= 36, CMD_USBDM_RS08_FLASH_STATUS
+   f_CMD_ILLEGAL                    ,//= 37, CMD_USBDM_RS08_FLASH_DISABLE
+   f_CMD_JTAG_GOTORESET             ,//= 38, CMD_USBDM_JTAG_GOTORESET
+   f_CMD_JTAG_GOTOSHIFT             ,//= 39, CMD_USBDM_JTAG_GOTOSHIFT
+   f_CMD_JTAG_WRITE                 ,//= 40, CMD_USBDM_JTAG_WRITE
+   f_CMD_JTAG_READ                  ,//= 41, CMD_USBDM_JTAG_READ
+   f_CMD_ILLEGAL                    ,//= 42, CMD_USBDM_SET_VPP
+   f_CMD_JTAG_READ_WRITE            ,//= 43, CMD_USBDM_JTAG_READ_WRITE
+   f_CMD_JTAG_EXECUTE_SEQUENCE      ,//= 44, CMD_JTAG_EXECUTE_SEQUENCE
+   };
+static const FunctionPtrs JTAGFunctionPointers   = {CMD_USBDM_CONNECT,
+                                                    sizeof(JTAGfunctionPtrs)/sizeof(FunctionPtr),     
+                                                    JTAGfunctionPtrs};
+#elif (TARGET_CAPABILITY&(CAP_DSC|CAP_JTAG))
+// Table for JTAG w/o JTAG_ARM
 static const FunctionPtr JTAGfunctionPtrs[] = {
    // Target specific versions
    f_CMD_ILLEGAL                    ,//= 15, CMD_USBDM_CONNECT
@@ -827,7 +872,6 @@ static const FunctionPtrs JTAGFunctionPointers   = {CMD_USBDM_CONNECT,
 #if (TARGET_CAPABILITY&CAP_ARM_SWD)
 static const FunctionPtr SWDfunctionPtrs[] = {
    // Target specific versions
-   // Target specific versions
    f_CMD_SWD_CONNECT                ,//= 15, CMD_USBDM_CONNECT
    f_CMD_SPI_SET_SPEED              ,//= 16, CMD_USBDM_SET_SPEED
    f_CMD_SPI_GET_SPEED              ,//= 17, CMD_USBDM_GET_SPEED
@@ -856,6 +900,77 @@ static const FunctionPtrs SWDFunctionPointers   = {CMD_USBDM_CONNECT,
 //! Ptr to function table for current target type
 static const FunctionPtrs *currentFunctions = NULL; // default to empty
 
+#if 1
+static const FunctionPtrs *const functionsPtrs[] = {
+#if (TARGET_CAPABILITY&CAP_HCS12)
+   /* T_HC12 */ &HCS12FunctionPointers,
+#else
+   NULL,   
+#endif
+#if (TARGET_CAPABILITY&CAP_HCS08)
+   /* T_HCS08 */ &HCS08FunctionPointers,
+#else
+   NULL,   
+#endif
+#if (TARGET_CAPABILITY & CAP_RS08)
+   /* T_RS08 */  &HCS08FunctionPointers,
+#else
+   NULL,   
+#endif
+#if (TARGET_CAPABILITY & CAP_CFV1)
+   /* T_CFV1 */ &CFV1FunctionPointers,
+#else
+   NULL,   
+#endif         
+#if (TARGET_CAPABILITY&CAP_CFVx)
+   /* T_CFVx */ &CFVxFunctionPointers,
+#else
+   NULL,   
+#endif
+#if (TARGET_CAPABILITY&CAP_JTAG)
+   /* T_JTAG */ &JTAGFunctionPointers,
+#else
+   NULL,   
+#endif
+   /* T_EZFLASH */ NULL,
+#if (TARGET_CAPABILITY&CAP_DSC)
+   /* T_MC56F80xx */ &JTAGFunctionPointers,
+#else
+   NULL,   
+#endif
+#if (TARGET_CAPABILITY&CAP_ARM_JTAG)
+   /* T_ARM_JTAG */ &JTAGFunctionPointers,
+#else
+   NULL,   
+#endif
+#if (TARGET_CAPABILITY&CAP_ARM_SWD)
+   /* T_ARM_SWD */ &SWDFunctionPointers,
+#else
+   NULL,   
+#endif
+};
+
+//! Set target type
+//! Initialise interface for given target
+//! @note
+//!   commandBuffer        \n
+//!   - [2] = target type
+//!
+U8 f_CMD_SET_TARGET(void) {
+U8 target = commandBuffer[2];
+
+   if (target >= (sizeof(functionsPtrs)/sizeof(functionsPtrs[0]))) {
+      currentFunctions = NULL;
+   }
+   else {
+      currentFunctions = functionsPtrs[target];
+   }
+   if ((target != T_OFF) && (currentFunctions == NULL)) {
+      target = T_ILLEGAL;
+   }
+   return bdm_setTarget(target);
+}
+#else
 //! Set target type
 //! Initialise interface for given target
 //! @note
@@ -922,6 +1037,7 @@ U8 target = commandBuffer[2];
    }
    return bdm_setTarget(target);
 }
+#endif
 
 //!  Processes all commands received over USB
 //!
@@ -931,7 +1047,7 @@ U8 target = commandBuffer[2];
 //!         commandBuffer[0]    = result code, BDM_RC_OK => success, else failure error code\n
 //!         commandBuffer[1..N] = command results
 //!
-U8 commandExec(void) {
+static void commandExec(void) { 
 BDMCommands command    = commandBuffer[1];  // Command is 1st byte
 FunctionPtr commandPtr = f_CMD_ILLEGAL;     // Default to illegal command
 
@@ -970,11 +1086,28 @@ FunctionPtr commandPtr = f_CMD_ILLEGAL;     // Default to illegal command
    }
    if (commandStatus != BDM_RC_OK) {
       returnSize = 1;  // Return a single byte error code
-      // Do any common cleanup here
+      // Do any common error recovery or cleanup here
+#if (TARGET_CAPABILITY&CAP_ARM_JTAG)
+   if (cable_status.target_type == T_ARM_JTAG) {
+	   // Re-connect in case synchronisation lost
+      if (commandStatus == BDM_RC_ACK_TIMEOUT) {
+    	 // Abort AP transactions as they are the usual cause of WAIT timeouts
+    	 (void)arm_abortAP();
+	  }
+      // Clear sticky bits since already reporting error
+      (void)arm_CheckStickyUnpipelined();
+   }
+#endif
 #if (TARGET_CAPABILITY&CAP_ARM_SWD)
    if (cable_status.target_type == T_ARM_SWD) {
-      // Clear stick bits since already reporting error
-	   (void)swd_clearStickyError();
+	   // Re-connect in case synchronisation lost
+      (void)swd_connect();
+      if (commandStatus == BDM_RC_ACK_TIMEOUT) {
+    	 // Abort AP transactions as they are the usual cause of WAIT timeouts
+    	 (void)swd_abortAP();
+	  }
+      // Clear sticky bits since already reporting error
+      (void)swd_clearStickyError();
    }
 #endif
 #if (TARGET_CAPABILITY&CAP_CFVx)
@@ -988,16 +1121,15 @@ FunctionPtr commandPtr = f_CMD_ILLEGAL;     // Default to illegal command
    DEBUG_PIN_DDR = 1;
    DEBUG_PIN     = 0;
 #endif
-   return returnSize;
 }
 
 #if (VERSION_HW!=(HW_JB+TARGET_HARDWARE))
 void commandLoop(void) {
-U8 size;
 // Define to discard commands at random for command retry testing
 //#define TESTDISCARD
 
    static U8 commandToggle = 0;
+   
 #ifdef TESTDISCARD
    static U8 doneErrorFlag = FALSE;
    RTCSC = (2<<RTCSC_RTCLKS_BITNUM)|(8<<RTCSC_RTCPS_BITNUM);
@@ -1019,9 +1151,9 @@ U8 size;
 #endif
       commandToggle = commandBuffer[1] & 0x80;
       commandBuffer[1] &= 0x7F;
-      size = commandExec();
+      commandExec();
       commandBuffer[0] |= commandToggle;
-	  sendUSBResponse( size, commandBuffer );
+      sendUSBResponse( returnSize, commandBuffer );
    }
 #elif 0
    for(;;) {

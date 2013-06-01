@@ -80,9 +80,9 @@ U32 addr        = *(U32*)(commandBuffer+4);  // Address in target memory
 U8  *data_ptr   = commandBuffer+8;           // Where the data is
 U8  rc;
 
-   if (cable_status.speed == SPEED_NO_INFO)
+   if (cable_status.speed == SPEED_NO_INFO) {
       return BDM_RC_NO_CONNECTION;
-
+   }
    if (count > 0) {
       switch (elementSize) {
          case 1:

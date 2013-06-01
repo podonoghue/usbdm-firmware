@@ -282,9 +282,9 @@
 #define TIMEOUT_TPMxCnVALUE               TPM1C3V             // OC Event time
 
 //================================================================================
-// RESET Detection - 
+// RESET Detection - falling edge using Timer inputs
 //
-//     KBI     - RESET_IN pin, Reset detection (Falling edge detection)
+//     - RESET_IN pin, Reset detection (Falling edge detection)
 //
 #if (HW_CAPABILITY&CAP_RST_IO)
 // Configure RESET change sensing (Falling edges)
@@ -308,6 +308,8 @@
 #define VDD_SENSE                 (1) // Assume VDD present
 #endif
 
+//===================================================================================
+// Target Vdd measuring
 
 #define VDD_MEASURE_CHANNEL 9
 // Enable & Configure Vdd Change interrupts (Using Analogue comparator, rising or falling edges)

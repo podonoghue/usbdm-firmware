@@ -28,7 +28,9 @@
 #define HC08_BDCSCR_BKPTEN (0x20) //!< BDCSCR Breakpoint enable
 #define HC08_BDCSCR_FTS    (0x10) //!< BDCSCR Breakpoint tag instruction
 #define HC08_BDCSCR_CLKSW  (0x08) //!< BDCSCR BDM Clock select mask
-#define HC08_BDCSCR_WS     (0x04) //!< BDCSCR ??
+#define HC08_BDCSCR_WS     (0x04) //!< BDCSCR CPU in wait/stop (or was before BACKGROUND cmd)
+#define HC08_BDCSCR_WSF    (0x04) //!< BDCSCR Memory access failed due to Wait or Stop entry
+#define HC08_BDCSCR_DVF    (0x04) //!< BDCSCR Data Valid Failure - memory access failed due to slow memory access conflict 
 
 //=======================================================================
 // RS08
@@ -228,10 +230,10 @@
 #define SWD_WR_AP_REG2    0x93 // 10010011
 #define SWD_WR_AP_REG3    0xBB // 10111011
 
-#define AHB_AP_NUM     (0x0)  // AP number for AHB-AP (MEM-AP implementation)
-#define AHB_CSW_REGNUM (0x0)  // CSW register bank+register number
-#define AHB_TAR_REGNUM (0x4)  // TAR register bank+register number
-#define AHB_DRW_REGNUM (0xC)  // DRW register bank+register number
+#define AHB_AP_NUM        (0x0)  // AP number for AHB-AP (MEM-AP implementation)
+//#define AHB_CSW_REGNUM    (0x0)  // CSW register bank+register number
+//#define AHB_TAR_REGNUM    (0x4)  // TAR register bank+register number
+//#define AHB_DRW_REGNUM    (0xC)  // DRW register bank+register number
 
 #define SWD_RD_AHB_CSW SWD_RD_AP_REG0 // SWD command for reading AHB-CSW
 #define SWD_RD_AHB_TAR SWD_RD_AP_REG1 // SWD command for reading AHB-TAR

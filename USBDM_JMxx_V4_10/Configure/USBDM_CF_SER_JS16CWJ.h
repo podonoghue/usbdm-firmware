@@ -30,6 +30,7 @@
 #endif
 
 #define CPU  JS16
+#define MINIMAL_MEMORY_USE // Very pressed for space on this version - omit old ARM-JTAG code
 
 //=================================================================================
 // Debug pin - used to check timing and hardware sequences etc.

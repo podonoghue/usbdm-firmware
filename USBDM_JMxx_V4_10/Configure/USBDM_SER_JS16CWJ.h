@@ -50,6 +50,7 @@
 // Type of BDM interface chips are supported
 
 #define DRIVER  LVC125  //! Choose driver IC being used
+
 #ifndef DRIVER
 #error "Please define DRIVER in Configure.h"
 #define DRIVER LVC125 //! Choose driver IC being used
@@ -98,25 +99,18 @@
 #define BDM_IN_MASK       (1<<BDM_IN_BIT)
 
 // BDM data direction pin - controls buffer enable/direction
-#define BDM_EN        PTAD_PTAD1
-#define BDM_EN_BIT    (1)  // Bit number!
-#define BDM_EN_MASK   (1<<BDM_EN_BIT)
-#define BDM_EN_PER    PTAPE_PTAPE1
+#define BDM_EN            PTAD_PTAD1
+#define BDM_EN_BIT        (1)  // Bit number!
+#define BDM_EN_MASK       (1<<BDM_EN_BIT)
+#define BDM_EN_PER        PTAPE_PTAPE1
 
-// Polarity of BDM buffer enable/direction varies with driver IC
-#if (DRIVER == LVC125)
-#define BDM_EN_RD_MASK  BDM_EN_MASK
-#define BDM_EN_WR_MASK  0
+#define BDM_EN_RD_MASK    BDM_EN_MASK
+#define BDM_EN_WR_MASK    0
+
 // These two ASM macros assume port pin direction is already correct
-#define BDM_ENABLE_ASM  BCLR BDM_EN_BIT,DATA_PORT
-#define BDM_3STATE_ASM  BSET BDM_EN_BIT,DATA_PORT
-#elif (DRIVER == LVC45)
-#define BDM_EN_RD_MASK  0
-#define BDM_EN_WR_MASK  BDM_EN_MASK
-// These two ASM macros assume port pin direction is already correct
-#define BDM_ENABLE_ASM  BSET BDM_EN_BIT,DATA_PORT
-#define BDM_3STATE_ASM  BCLR BDM_EN_BIT,DATA_PORT
-#endif
+#define BDM_ENABLE_ASM    BCLR BDM_EN_BIT,DATA_PORT
+#define BDM_3STATE_ASM    BSET BDM_EN_BIT,DATA_PORT
+
 //======================================================================
 // State     BDM_O   BDM_EN   BDM_I  LVC125  LVC45   Bare Pin  BKGD_PIN
 // Low        L        WR       Z     EN,L    Tx,L      L         L
@@ -140,6 +134,8 @@
 #define RESET_OUT_PER       PTAPE_PTAPE4
 #define RESET_LOW()         (RESET_OUT=0,RESET_OUT_DDR=1)
 #define RESET_3STATE()      (RESET_OUT=1,RESET_OUT_DDR=0) // Pull-up on pin
+#define RESET_DISABLE()     (RESET_OUT=1,RESET_OUT_DDR=0) // No separate 3-state control
+
 // RESET input pin
 #define RESET_IN            PTAD_PTAD3
 #define RESET_IN_DDR        PTADD_PTADD3
@@ -151,29 +147,31 @@
 #define RESET_IS_LOW        (RESET_IN==0)
 
 #endif // CAP_RST_IO
+
 //=================================================================================
 // LED Port bit masks
 //
-#define GREEN_LED_MASK  (PTBD_PTBD3_MASK)
-#define RED_LED_MASK    (0) // No red LED!
-#define LED_PORT_DATA   (PTBD)
-#define LED_PORT_DDR    (PTBDD)
+#define GREEN_LED_MASK      (PTBD_PTBD3_MASK)
+#define RED_LED_MASK        (0) // No red LED!
+#define LED_PORT_DATA       (PTBD)
+#define LED_PORT_DDR        (PTBDD)
 
 // LEDs off, LED pins are outputs 
-#define LED_INIT()         ((LED_PORT_DATA |= RED_LED_MASK|GREEN_LED_MASK), \
-                            (LED_PORT_DDR  |= RED_LED_MASK|GREEN_LED_MASK))
-#define GREEN_LED_ON()     (LED_PORT_DATA &= (GREEN_LED_MASK^0xFF))			//!
-#define GREEN_LED_OFF()    (LED_PORT_DATA |= GREEN_LED_MASK)				//!
-#define GREEN_LED_TOGGLE() (LED_PORT_DATA ^= GREEN_LED_MASK)				//!
+#define LED_INIT()          ((LED_PORT_DATA |= RED_LED_MASK|GREEN_LED_MASK), \
+                             (LED_PORT_DDR  |= RED_LED_MASK|GREEN_LED_MASK))
+#define GREEN_LED_ON()      (LED_PORT_DATA &= (GREEN_LED_MASK^0xFF))
+#define GREEN_LED_OFF()     (LED_PORT_DATA |= GREEN_LED_MASK)
+#define GREEN_LED_TOGGLE()  (LED_PORT_DATA ^= GREEN_LED_MASK)
 #if RED_LED_MASK == 0
-#define RED_LED_ON()       ; //!
-#define RED_LED_OFF()      ; //!
-#define RED_LED_TOGGLE()   ; //!
+#define RED_LED_ON()        ; //!
+#define RED_LED_OFF()       ; //!
+#define RED_LED_TOGGLE()    ; //!
 #else
-#define RED_LED_ON()       (LED_PORT_DATA &= (RED_LED_MASK^0xFF))
-#define RED_LED_OFF()      (LED_PORT_DATA |= RED_LED_MASK)
-#define RED_LED_TOGGLE()   (LED_PORT_DATA ^= RED_LED_MASK)
+#define RED_LED_ON()        (LED_PORT_DATA &= (RED_LED_MASK^0xFF))
+#define RED_LED_OFF()       (LED_PORT_DATA |= RED_LED_MASK)
+#define RED_LED_TOGGLE()    (LED_PORT_DATA ^= RED_LED_MASK)
 #endif
+
 //=================================================================================
 // Flash programming control
 //
@@ -227,13 +225,14 @@
 #define BKGD_TPMxCnSC_RISING_EDGE_MASK    TPMC0SC_ELS0A_MASK // TPMxCnSC value for rising edge
 #define BKGD_TPMxCnSC_FALLING_EDGE_MASK   TPMC0SC_ELS0B_MASK // TPMxCnSC value for falling edge
 #define BKGD_TPMxCnVALUE                  TPMC0V             // IC Event time
-#define BKGD_TPM_SETUP_ASM                    BCLR 7,BKGD_TPMxCnSC 
+#define BKGD_TPM_SETUP_ASM                BCLR 7,BKGD_TPMxCnSC 
 
 // Timeout TPM.Ch1 : Output Compare (no pin)
 #define TIMEOUT_TPMxCnSC_CHF              TPMC1SC_CH1F       // Event Flag
 #define TIMEOUT_TPMxCnSC                  TPMC1SC            // TPM Status & Configuration
 #define TIMEOUT_TPMxCnSC_OC_MASK          TPMC1SC_MS1A_MASK  // TPMxCnSC value for OC event
 #define TIMEOUT_TPMxCnVALUE               TPMC1V             // OC Event time
+
 //================================================================================
 // RESET Detection - falling edge using KBI inputs
 //
@@ -255,8 +254,6 @@
 //===================================================================================
 // Target Vdd sensing
 #if (HW_CAPABILITY&CAP_VDDSENSE)
-// Target Vdd Present
-
 
 #else // !CAP_VDDSENSE
 #define VDD_SENSE                 (1) // Assume VDD present

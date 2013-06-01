@@ -1,8 +1,31 @@
-/*
- * SWD.c
- *
- *  Created on: 04/08/2012
- *      Author: podonoghue
+/*! \file
+    \brief ARM-SWD routines
+
+   \verbatim
+
+   USBDM
+   Copyright (C) 2007  Peter O'Donoghue
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+   \endverbatim
+
+   Change History
+   +===============================================================================================
+   | 30 Aug 2012 | ARM-JTAG & ARM-SWD Changes                                               V4.9.5
+   +===============================================================================================
+   \endverbatim
  */
 #include "Common.h"
 #include "Configure.h"
@@ -15,14 +38,12 @@
 #include "BDMCommon.h"
 #include "SPI.h"
 #include "TargetDefines.h"
-
-//#if (HW_CAPABILITY&CAP_JTAG_HW)
-//#include "JTAGSequence.h"
-//#endif
+#include "SWD.h"
   
-#if HW_CAPABILITY & CAP_SWD_HW
+#if TARGET_CAPABILITY & CAP_ARM_SWD
 
-//!< SPI Masks - Mask to enable SPI as master Tx
+//! SPI Masks - Mask to enable SPI as master Tx
+#define SPIxC1_OFF      (SPIxC1_MSTR_MASK)     //!< SPI Masks - Mask to disable SPI
 #define SPIxC1_M_ON_TX  (SPIxC1_SPE_MASK|SPIxC1_MSTR_MASK|SPIxC1_CPOL_MASK|SPIxC1_CPHA_MASK|SPIxC1_SSOE_MASK|SPIxC1_LSBFE_MASK)
 #define SPIxC1_M_ON_RX  (SPIxC1_SPE_MASK|SPIxC1_MSTR_MASK|SPIxC1_CPOL_MASK)                   //!< SPI Masks - Mask to enable SPI as master Tx
 #define SPIxC2_M_8      (0)                                                                   //!< SPI Masks - 8-bit mode
@@ -37,8 +58,11 @@
 
 #define SWD_READ_IDCODE 0xA5 // (Park,Stop,Parity,A[32],R/W,AP/DP,Start) = 10100101
 
-// Masks for SWD_WR_DP_ABORT
-#define SWD_DP_ABORT_CLEAR_ERRORS_B3 0x1E
+// Masks for SWD_WR_DP_ABORT clear sticky
+#define SWD_DP_ABORT_CLEAR_STICKY_ERRORS_B3 0x1E
+
+// Masks for SWD_WR_DP_ABORT abort AP
+#define SWD_DP_ABORT_ABORT_AP_B3 0x01
 
 // Masks for SWD_RD_DP_STATUS
 #define SWD_RD_DP_STATUS_ANYERROR_B3 0xB2
@@ -124,16 +148,16 @@ void swd_turnAround() {
 //!
 void swd_txIdle8(void) {
    asm {               
-	  mov    #SPIxC2_M_8,SPIxC2             // Initialise SPI (8 bit)
-	  mov    #SPIxC1_M_ON_TX,SPIC1          // Enable SPI
-	  clr    DATA_PORT                      // Enable SWD drive
-	  cmp    SPIxS                          // Dummy status read
-	  clr    SPIxD                          // Tx data (=0)
+     mov    #SPIxC2_M_8,SPIxC2             // Initialise SPI (8 bit)
+     mov    #SPIxC1_M_ON_TX,SPIC1          // Enable SPI
+     clr    DATA_PORT                      // Enable SWD drive
+     cmp    SPIxS                          // Dummy status read
+     clr    SPIxD                          // Tx data (=0)
    L1: 
-	  brclr  SPIS_SPRF_BIT,SPIxS,L1         // Wait until Tx/Rx complete
-	  lda    SPIxD                          // Discard rx data
-	  mov    #SWCLK_OUT_MASK|SWD_OUT_EN_MASK,DATA_PORT // Setup for SWCLK=1, SWD=3-state
-	  clr    SPIC1                          // Disable SPI
+     brclr  SPIS_SPRF_BIT,SPIxS,L1         // Wait until Tx/Rx complete
+     lda    SPIxD                          // Discard rx data
+     mov    #SWCLK_OUT_MASK|SWD_OUT_EN_MASK,DATA_PORT // Setup for SWCLK=1, SWD=3-state
+     clr    SPIC1                          // Disable SPI
    }
 }
 
@@ -159,8 +183,10 @@ void swd_txIdle8(void) {
 U8 swd_sendCommandWithWait(U8 command) {
    asm {
       mov    #20,rxTiming1                  // Set up retry count
+      sta    txTiming1                      // Save data (for retry)
       
    retry:
+      lda    txTiming1                      // Get Tx data
       mov    #SPIxC2_M_8,SPIxC2             // Initialise SPI (8 bit)
       mov    #SPIxC1_M_ON_TX,SPIC1          // Enable SPI
       clr    DATA_PORT                      // Enable SWD drive
@@ -168,7 +194,7 @@ U8 swd_sendCommandWithWait(U8 command) {
       sta    SPIxD                          // Tx data
    L1: 
       brclr  SPIS_SPRF_BIT,SPIxS,L1         // Wait until Tx/Rx complete
-      lda    SPIxD                          // Discard rx data
+      ldx    SPIxD                          // Discard rx data
       SWD_3STATE_ASM                        // SWD=3-state
       clr    SPIC1                          // Disable SPI
 
@@ -218,7 +244,7 @@ U8 swd_sendCommandWithWait(U8 command) {
       lda    #BDM_RC_OKx
       cbeqx  #SWD_ACK_OK,done
       
-      // Do turn-around clock on any error
+      // Do turn-around clock on anything other than ACK_OK response
       bclr   SWCLK_OUT_BIT,DATA_PORT        // SWCLK=0
       lda    bitDelay                       // Low time delay
       dbnza  *-0                            // [4n fppp]
@@ -226,9 +252,12 @@ U8 swd_sendCommandWithWait(U8 command) {
       lda    bitDelay                       // High time delay
       dbnza  *-0                            // [4n fppp]
       
+      // Check for wait response
       lda    #BDM_RC_ACK_TIMEOUTx
       cpx    #SWD_ACK_WAIT
       bne    identifyError
+      
+      // Check for wait timeout
       dbnz   rxTiming1,retry
       bra    done
       
@@ -256,34 +285,34 @@ U8 swd_sendCommandWithWait(U8 command) {
 //!
 static void swd_tx32(const U8 *data) {
    asm {
-	  // 1 clock turn-around
-	  bclr   SWCLK_OUT_BIT,DATA_PORT        // SWCLK=0
-	  lda    bitDelay                       // Low time delay
-	  dbnza  *-0                            // [4n fppp]
+      // 1 clock turn-around
+      bclr   SWCLK_OUT_BIT,DATA_PORT        // SWCLK=0
+      lda    bitDelay                       // Low time delay
+      dbnza  *-0                            // [4n fppp]
       bset   SWCLK_OUT_BIT,DATA_PORT        // SWCLK=1
 
-	  mov    #SPIxC2_M_16,SPIxC2            // Initialise SPI (16 bit)
+      mov    #SPIxC2_M_16,SPIxC2            // Initialise SPI (16 bit)
       mov    #SPIxC1_M_ON_TX,SPIxC1         // Enable SPI
       clr    DATA_PORT                      // Enable SWD drive
 
-   	  cmp    SPIxS                          // Dummy status read
-   	  
-   	  lda    3,x                            // Start Tx 1st & 2nd bytes
-   	  sta    SPIxDL                         
-   	  lda    2,x
-   	  sta    SPIxDH                         
-   	  lda    0,x                            // Do byte-wide parity
-   	  eor    1,x
-   	  eor    2,x
-   	  eor    3,x
-   	  ldhx   0,x                            // Get 3rd & 4th bytes
+      cmp    SPIxS                          // Dummy status read
+      
+      lda    3,x                            // Start Tx 1st & 2nd bytes
+      sta    SPIxDL                         
+      lda    2,x
+      sta    SPIxDH                         
+      lda    0,x                            // Do byte-wide parity
+      eor    1,x
+      eor    2,x
+      eor    3,x
+      ldhx   0,x                            // Get 3rd & 4th bytes
   L1:
-   	  brclr  SPIS_SPRF_BIT,SPIxS,L1         // Wait until previous Tx/Rx complete
-  	  sthx   SPIxD16                        // Tx 3rd & 4th bytes
-   	  ldhx   SPIxD16                        // Discard read data
-
-   	  // Calculate nibble parity
-   	  psha             // [2]
+      brclr  SPIS_SPRF_BIT,SPIxS,L1         // Wait until previous Tx/Rx complete
+      cphx   SPIxD16                        // Discard read data
+      sthx   SPIxD16                        // Tx 3rd & 4th bytes
+      
+      // Calculate nibble parity
+      psha             // [2]
       nsa              // [1]
       eor    1,sp      // [4]
       ais    #1        // [2]
@@ -302,8 +331,8 @@ static void swd_tx32(const U8 *data) {
       //parity in A.0
 
   L2:
-	  brclr  SPIS_SPRF_BIT,SPIxS,L2         // Wait until previous Tx/Rx complete
-	  ldhx   SPIxD16                        // Discard read data
+     brclr  SPIS_SPRF_BIT,SPIxS,L2         // Wait until previous Tx/Rx complete
+     ldhx   SPIxD16                        // Discard read data
       
 #if SWD_OUT_BIT >= 1                        // move to SWD_OUT position
       lsla
@@ -321,18 +350,18 @@ static void swd_tx32(const U8 *data) {
       bset   SWCLK_OUT_BIT,DATA_PORT        // SWD=p, SWCLK=1
 
       // Start Tx of 8-bit idle
-	  mov    #SPIxC2_M_8,SPIxC2             // Initialise SPI (8 bit)
-	  mov    #SPIxC1_M_ON_TX,SPIC1          // Enable SPI
-	  clr    DATA_PORT                      // Enable SWD drive
-	  cmp    SPIxS                          // Dummy status read
-	  clr    SPIxD                          // Tx data (=0)
+     mov    #SPIxC2_M_8,SPIxC2             // Initialise SPI (8 bit)
+     mov    #SPIxC1_M_ON_TX,SPIC1          // Enable SPI
+     clr    DATA_PORT                      // Enable SWD drive
+     cmp    SPIxS                          // Dummy status read
+     clr    SPIxD                          // Tx data (=0)
 
-	  // Wait for Idle Tx to complete
+     // Wait for Idle Tx to complete
    L3: 
-	  brclr  SPIS_SPRF_BIT,SPIxS,L3         // Wait until Tx/Rx complete
-	  cmp    SPIxD                          // Discard rx data
-	  mov    #SWCLK_OUT_MASK|SWD_OUT_EN_MASK,DATA_PORT // Setup for SWCLK=1, SWD=3-state
-	  clr    SPIC1                          // Disable SPI
+     brclr  SPIS_SPRF_BIT,SPIxS,L3         // Wait until Tx/Rx complete
+     cmp    SPIxD                          // Discard rx data
+     mov    #SWCLK_OUT_MASK|SWD_OUT_EN_MASK,DATA_PORT // Setup for SWCLK=1, SWD=3-state
+     clr    SPIC1                          // Disable SPI
       rts 
    }
 }
@@ -356,26 +385,26 @@ static U8 swd_rx32(U8 *data) {
 #define SPIS_SPRF_BIT  (7)
 
    asm {
-	  SWD_3STATE_ASM                        // SWD=3-state
-	  mov    #SPIxC2_M_16,SPIxC2            // Initialise SPI (16 bit)
+      SWD_3STATE_ASM                        // SWD=3-state
+      mov    #SPIxC2_M_16,SPIxC2            // Initialise SPI (16 bit)
       mov    #SPIxC1_M_ON_TX,SPIxC1         // Enable SPI
-   	  cmp    SPIxS                          // Dummy status read
-   	  
-   	  sthx   SPIxD16                        // Tx dummy/Rx                         
+      cmp    SPIxS                          // Dummy status read
+
+      sthx   SPIxD16                        // Tx dummy/Rx                         
   L1:
-	  brclr  SPIS_SPRF_BIT,SPIxS,L1         // Wait until Rx complete
-	  lda    SPIxDH                         // Save data
-	  sta    2,x
-	  lda    SPIxDL
-	  sta    3,x
-   	  sthx   SPIxD16                        // Tx dummy/Rx                         
+      brclr  SPIS_SPRF_BIT,SPIxS,L1         // Wait until Rx complete
+      lda    SPIxDH                         // Save data
+      sta    2,x
+      lda    SPIxDL
+      sta    3,x
+      sthx   SPIxD16                        // Tx dummy/Rx                         
   L2:
-	  brclr  SPIS_SPRF_BIT,SPIxS,L2         // Wait until Rx complete
-	  lda    SPIxDH                         // Save data
-	  sta    0,x
-	  lda    SPIxDL
-	  sta    1,x
-	  
+      brclr  SPIS_SPRF_BIT,SPIxS,L2         // Wait until Rx complete
+      lda    SPIxDH                         // Save data
+      sta    0,x
+      lda    SPIxDL
+      sta    1,x
+
       bclr   SWCLK_OUT_BIT,DATA_PORT        // Setup for SWCLK=0
       clr    SPIC1                          // Disable SPI (SWCLK=0)
 
@@ -385,30 +414,30 @@ static U8 swd_rx32(U8 *data) {
       lda    DATA_PORT                      // Capture data before rising clock edge
       bset   SWCLK_OUT_BIT,DATA_PORT        // SWCLK=1
       and    #SWD_IN_MASK                   // Convert parity to byte width
-   	  // Single Parity bit remains - position is unimportant
+      // Single Parity bit remains - position is unimportant
 
       // Start Tx of 8-bit idle
-	  mov    #SPIxC2_M_8,SPIxC2             // Initialise SPI (8 bit)
-	  mov    #SPIxC1_M_ON_TX,SPIC1          // Enable SPI
-	  clr    DATA_PORT                      // Enable SWD drive
-	  cmp    SPIxS                          // Dummy status read
-	  clr    SPIxD                          // Tx data (=0)
+      mov    #SPIxC2_M_8,SPIxC2             // Initialise SPI (8 bit)
+      mov    #SPIxC1_M_ON_TX,SPIC1          // Enable SPI
+      clr    DATA_PORT                      // Enable SWD drive
+      cmp    SPIxS                          // Dummy status read
+      clr    SPIxD                          // Tx data (=0)
 
-	  // Do parity calculation
-	  eor    0,x                            // Do byte-wide parity on data & parity bit
-   	  eor    1,x
-   	  eor    2,x
-   	  eor    3,x
+      // Do parity calculation
+      eor    0,x                            // Do byte-wide parity on data & parity bit
+      eor    1,x
+      eor    2,x
+      eor    3,x
 
-   	  ldx    bitDelay                       // High time delay
-	  dbnzx  *-0                            // [4n fppp]
-	  
-	  // Calculate nibble parity
-   	  psha             // [2]
+      ldx    bitDelay                       // High time delay
+      dbnzx  *-0                            // [4n fppp]
+
+      // Calculate nibble parity
+      psha             // [2]
       nsa              // [1]
       eor    1,sp      // [4]
       ais    #1        // [2]
-      
+
       // Calculate final parity
       tax              // [1]
       clra             // [1]
@@ -421,17 +450,17 @@ static U8 swd_rx32(U8 *data) {
       rorx             // [1]
       adc    #0        // [2]
       and    #1
-      //parity in A.0 - should be 0
+      // Parity in A.0 - should be 0
       beq    okExit
       lda    #BDM_RC_ARM_PARITY_ERRORx
    okExit:
 
-	  // Wait for Idle Tx to complete
+      // Wait for Idle Tx to complete
    L3: 
-	  brclr  SPIS_SPRF_BIT,SPIxS,L3         // Wait until Tx/Rx complete
-	  cmp    SPIxD                          // Discard rx data
-	  mov    #SWCLK_OUT_MASK|SWD_OUT_EN_MASK,DATA_PORT // Setup for SWCLK=1, SWD=3-state
-	  clr    SPIC1                          // Disable SPI
+      brclr  SPIS_SPRF_BIT,SPIxS,L3         // Wait until Tx/Rx complete
+      cmp    SPIxD                          // Discard rx data
+      mov    #SWCLK_OUT_MASK|SWD_OUT_EN_MASK,DATA_PORT // Setup for SWCLK=1, SWD=3-state
+      clr    SPIC1                          // Disable SPI
       rts 
    }
 }
@@ -450,30 +479,30 @@ static U8 swd_rx32(U8 *data) {
 //!
 static void swd_JTAGtoSWD(void) {
    asm {
-	  mov    #SPIxC2_M_16,SPIxC2            // Initialise SPI (16 bit)
+      mov    #SPIxC2_M_16,SPIxC2            // Initialise SPI (16 bit)
       mov    #SPIxC1_M_ON_TX,SPIxC1         // Enable SPI
       clr    DATA_PORT                      // Enable SWD drive
-   	  cmp    SPIxS                          // Dummy status read
+      cmp    SPIxS                          // Dummy status read
       
-   	  bsr    txOnes							// Send 64 clocks
+      bsr    txOnes                         // Send 64 clocks
       ldhx   #0xE79E                        // Send magic #
       sthx   SPIxD16                        
   L5:
       brclr  SPIS_SPTEF_BIT,SPIxS,L5        // Wait until Tx buffer empty
-   	  bsr    txOnes                         // Send 64 clocks
+      bsr    txOnes                         // Send 64 clocks
   L6:
       brclr  SPIS_SPTEF_BIT,SPIxS,L6                   // Wait until Tx buffer empty
       ldhx   SPIxD16                                   // Discard last data
-	  mov    #SWCLK_OUT_MASK|SWD_OUT_EN_MASK,DATA_PORT // Setup for SWCLK=1, SWD=3-state
+      mov    #SWCLK_OUT_MASK|SWD_OUT_EN_MASK,DATA_PORT // Setup for SWCLK=1, SWD=3-state
   L7:
-	  brclr  SPIS_SPRF_BIT,SPIxS,L7                    // Wait until Tx complete
+      brclr  SPIS_SPRF_BIT,SPIxS,L7                    // Wait until Tx complete
       ldhx   SPIxD16                                   // Discard rx data
       clr    SPIC1                                     // Disable SPI (SWCLK=1)
       rts
       
   txOnes:
-   	  ldhx   #0xFFFF                        // Tx 64 bits with '1'
-   	  sthx   SPIxD16                         
+      ldhx   #0xFFFF                        // Tx 64 bits with '1'
+      sthx   SPIxD16                         
   L1:
       brclr  SPIS_SPTEF_BIT,SPIxS,L1        // Wait until Tx buffer empty
       sthx   SPIxD16                         
@@ -505,12 +534,12 @@ U8 swd_connect(void) {
    
    swd_JTAGtoSWD();
    swd_txIdle8();
-	  
+     
    // Target must respond to read IDCODE immediately
    return swd_readReg(SWD_READ_IDCODE, buff);
 }
 
-//! Read SWD register
+//! Read ARM-SWD DP & AP register
 //!
 //! @param command - SWD command byte to select register etc.
 //! @param data    - buffer for 32-bit value read
@@ -522,6 +551,13 @@ U8 swd_connect(void) {
 //!    == \ref BDM_RC_NO_CONNECTION    => Unexpected/no response from target \n
 //!    == \ref BDM_RC_ARM_PARITY_ERROR => Parity error on data read
 //!
+//! @note Action and Data returned depends on register (some responses are pipelined)\n
+//!   SWD_RD_DP_IDCODE - Value from IDCODE reg \n
+//!   SWD_RD_DP_STATUS - Value from STATUS reg \n
+//!   SWD_RD_DP_RESEND - LAST value read (AP read or DP-RDBUFF), FAULT on sticky error    \n
+//!   SWD_RD_DP_RDBUFF - Value from last AP read and clear READOK flag in STRL/STAT, FAULT on sticky error \n
+//!   SWD_RD_AP_REGx   - Value from last AP read, clear READOK flag in STRL/STAT and INITIATE next AP read, FAULT on sticky error 
+//!
 U8 swd_readReg(U8 command, U8 *data) {
    U8 rc = swd_sendCommandWithWait(command);
    if (rc != BDM_RC_OK) {
@@ -530,7 +566,7 @@ U8 swd_readReg(U8 command, U8 *data) {
    return swd_rx32(data);
 }
 
-//! Write SWD register
+//! Write ARM-SWD DP & AP register
 //!
 //! @param command - SWD command byte to select register etc.
 //! @param data    - buffer containing 32-bit value to write
@@ -541,6 +577,12 @@ U8 swd_readReg(U8 command, U8 *data) {
 //!    == \ref BDM_RC_ACK_TIMEOUT      => Excessive number of WAIT responses from target \n
 //!    == \ref BDM_RC_NO_CONNECTION    => Unexpected/no response from target
 //!
+//! @note Action depends on register (some responses are pipelined)\n
+//!   SWD_WR_DP_ABORT   - Write value to ABORT register (accepted) \n
+//!   SWD_WR_DP_CONTROL - Write value to CONTROL register (may be pending), FAULT on sticky error. \n
+//!   SWD_WR_DP_SELECT  - Write value to SELECT register (may be pending), FAULT on sticky error. \n
+//!   SWD_WR_AP_REGx    - Write to AP register.  May initiate action e.g. memory access.  Result is pending, FAULT on sticky error.
+//!
 U8 swd_writeReg(U8 command, const U8 *data) {
    U8 rc = swd_sendCommandWithWait(command);
    if (rc != BDM_RC_OK) {
@@ -550,7 +592,7 @@ U8 swd_writeReg(U8 command, const U8 *data) {
    return rc;
 }
 
-//! Write AP register
+//! Write register of Access Port
 //!
 //! @param 16-bit address \n
 //!    A[15:8]  => DP-AP-SELECT[31:24] (AP # Select) \n
@@ -561,6 +603,8 @@ U8 swd_writeReg(U8 command, const U8 *data) {
 //!
 //! @return
 //!  == \ref BDM_RC_OK => success
+//!
+//! @note - Access is completed before return
 //!
 U8 swd_writeAPReg(const U8 *address, const U8 *buff) {
    static const U8 writeAP[] = {SWD_WR_AP_REG0,   SWD_WR_AP_REG1,    SWD_WR_AP_REG2,   SWD_WR_AP_REG3};
@@ -583,11 +627,10 @@ U8 swd_writeAPReg(const U8 *address, const U8 *buff) {
       return rc;
    }
    // Read from READBUFF register to allow stall/status response
-   rc = swd_readReg(SWD_RD_DP_RDBUFF, selectData);
-   return rc;
+   return swd_readReg(SWD_RD_DP_RDBUFF, selectData);
 }
 
-//! Read AP register
+//! Read register of Access Port
 //!
 //! @param 16-bit address \n
 //!    A[15:8]  => DP-AP-SELECT[31:24] (AP # Select) \n
@@ -598,6 +641,8 @@ U8 swd_writeAPReg(const U8 *address, const U8 *buff) {
 //!
 //! @return
 //!  == \ref BDM_RC_OK => success
+//!
+//! @note - Access is completed before return
 //!
 U8 swd_readAPReg(const U8 *address, U8 *buff) {
    static const U8 readAP[]  = {SWD_RD_AP_REG0,   SWD_RD_AP_REG1,    SWD_RD_AP_REG2,   SWD_RD_AP_REG3};
@@ -612,38 +657,34 @@ U8 swd_readAPReg(const U8 *address, U8 *buff) {
    // Set up SELECT register for AP access
    rc = swd_writeReg(SWD_WR_DP_SELECT, selectData);
    if (rc != BDM_RC_OK) {
-	  return rc;
+     return rc;
    }
    // Initiate read from AP register (dummy data)
    rc = swd_readReg(regNo, buff);
    if (rc != BDM_RC_OK) {
-	  return rc;	   
+     return rc;	   
    }
    // Read from READBUFF register
-   rc = swd_readReg(SWD_RD_DP_RDBUFF, buff);
-   return rc;
+   return swd_readReg(SWD_RD_DP_RDBUFF, buff);
 }
 
-//! ARM-SWD - check  &clear stick bits
+//! ARM-SWD - clear sticky bits
 //!
 //! @return error code
 //!
 U8 swd_clearStickyError(void) {
-   static const U8 swdClearErrors[4] = {0,0,0,SWD_DP_ABORT_CLEAR_ERRORS_B3};
+   static const U8 swdClearErrors[4] = {0,0,0,SWD_DP_ABORT_CLEAR_STICKY_ERRORS_B3};
    return swd_writeReg(SWD_WR_DP_ABORT, swdClearErrors);
+}
 
-//   U8 statusValue[4];
-//   U8 rc;
-//   rc = swd_readReg(SWD_RD_AHB_CSW, statusValue);
-//   if (rc != BDM_RC_OK) {
-//      return rc;
-//   }
-//   if ((statusValue[3] & SWD_RD_DP_STATUS_ANYERROR_B3) != 0) {
-//      // Clear sticky flags
-//      return swd_writeReg(SWD_WR_DP_ABORT, swdClearErrors);
-//   }
-//   return swd_writeReg(SWD_WR_DP_ABORT, swdClearErrors);
-//   return BDM_RC_OK;
+//! ARM-SWD - clear sticky bits and abort AP transactions
+//!
+//! @return error code
+//!
+U8 swd_abortAP(void) {
+   static const U8 swdClearErrors[4] = 
+      {0,0,0,SWD_DP_ABORT_CLEAR_STICKY_ERRORS_B3|SWD_DP_ABORT_ABORT_AP_B3};
+   return swd_writeReg(SWD_WR_DP_ABORT, swdClearErrors);
 }
 
 U8 swd_test(void) {

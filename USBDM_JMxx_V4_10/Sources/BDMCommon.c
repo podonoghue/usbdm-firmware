@@ -46,6 +46,7 @@
 */
 
 #include <hidef.h> /* for EnableInterrupts macro */
+#include <string.h>
 #include "Common.h"
 #include "Configure.h"
 #include "Commands.h"
@@ -130,7 +131,7 @@ U8 initTimers(void) {
    ENABLE_VDD_SENSE_INT();        // Enable Vdd IC interrupts
 #endif
 
-#if (HW_CAPABILITY&CAP_RST_IO)
+#ifdef CONFIGURE_RESET_SENSE
    //===================================================================
    // Setup RESET detection (Input Capture or keyboard interrupt)
    if (bdm_option.useResetSignal) {
@@ -154,8 +155,8 @@ U8 initTimers(void) {
 
 //! Interrupt function servicing the IC interrupt from Vdd changes
 //! This routine has several purposes:
-//!  - Triggers POR into Debug mode on HCS08/RS08 targets\n
-//!  - Turns off Target power on short circuits\n
+//!  - Triggers POR into Debug mode on RS08/HCS08/CFV1 targets\n
+//!  - Turns off Target power on overload\n
 //!  - Updates Target power status\n
 //!
 void bdm_targetVddSense(void) {
@@ -196,13 +197,14 @@ void bdm_targetVddSense(void) {
 #endif // CAP_VDDSENSE
 }
 
-#if (HW_CAPABILITY&CAP_RST_IO)
+#ifdef CLEAR_RESET_SENSE_FLAG
 //! Interrupt function servicing the IC interrupt from RESET_IN assertion
 //!
 void bdm_resetSense(void) {
-   CLEAR_RESET_SENSE_FLAG();             // Acknowledge RESET IC Event
-   if (RESET_IS_LOW)
+   CLEAR_RESET_SENSE_FLAG();                // Acknowledge RESET IC Event
+   if (RESET_IS_LOW) {
       cable_status.reset = RESET_DETECTED;  // Record that reset was asserted
+   }
 }
 #endif
 
@@ -212,7 +214,7 @@ void bdm_resetSense(void) {
 //! Target Vdd sense on 56F8006Demo(KBIP5) - incomplete
 #pragma TRAP_PROC
 void kbiHandler(void) {
-#if (HW_CAPABILITY&CAP_RST_IO)
+#ifdef CLEAR_RESET_SENSE_FLAG
 	bdm_resetSense();
 #endif	
 #if TARGET_HARDWARE==H_USBDM_MC56F8006DEMO   
@@ -226,7 +228,7 @@ void kbiHandler(void) {
 //!
 #pragma TRAP_PROC
 void timerHandler(void) {
-#if (HW_CAPABILITY&CAP_RST_IO)
+#ifdef CLEAR_RESET_SENSE_FLAG
 	bdm_resetSense();
 #endif
 }
@@ -561,8 +563,9 @@ U8 rc;
    setBDMBusy();
 
    rc = bdm_cycleTargetVddOff();
-   if (rc != BDM_RC_OK)
+   if (rc != BDM_RC_OK) {
       return rc;
+   }
    WAIT_MS(1000);
    rc = bdm_cycleTargetVddOn(mode);
    return rc;
@@ -636,9 +639,10 @@ void bdm_init(void) {
 #if (HW_CAPABILITY&CAP_FLASH)
    (void)bdmSetVpp(BDM_TARGET_VPP_OFF);
 #endif   
+   
    VDD_OFF();
-   cable_status.target_type = T_OFF;
-   (void)initTimers(); // Initialise Timer system & input monitors
+   (void)bdm_clearStatus();
+
    // Update power status
    (void)bdm_checkTargetVdd();
 }
@@ -723,8 +727,17 @@ void bdm_interfaceOff( void ) {
 //!
 void bdm_off( void ) {
    bdm_interfaceOff();
-   if (!bdm_option.leaveTargetPowered)
+   if (!bdm_option.leaveTargetPowered) {
       VDD_OFF();
+   }
+}
+
+//! Clear Cable status
+U8 bdm_clearStatus(void) {
+   (void)memset(&cable_status, 0, sizeof(cable_status));
+   cable_status.target_type = T_OFF;
+   
+   return initTimers();
 }
 
 //! Initialises BDM module for the given target type
@@ -746,17 +759,12 @@ U8 rc = BDM_RC_OK;
    }   
    bdm_interfaceOff();
 
-   cable_status             = cable_statusDefault; // Set default status/settings
-   cable_status.target_type = target; // Assume mode is valid
-
-#if (HW_CAPABILITY&CAP_FLASH)
-   (void)bdmSetVpp(BDM_TARGET_VPP_OFF);
-#endif
-
-   rc = initTimers();         // re-init timers in case settings changed
+   rc = bdm_clearStatus();
    if (rc != BDM_RC_OK) {
       return rc;
    }
+   cable_status.target_type = target; // Assume mode is valid
+
    switch (target) {
 #if (TARGET_CAPABILITY & CAP_HCS12)   
       case T_HC12:
@@ -806,7 +814,7 @@ U8 rc = BDM_RC_OK;
           break;
 #endif
       case T_OFF:
-    	  return BDM_RC_OK;
+    	  break;
     	  
       default:
          bdm_off();                        // Turn off the interface

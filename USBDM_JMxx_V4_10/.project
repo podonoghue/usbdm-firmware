@@ -19,15 +19,15 @@
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildArguments</key>
-					<value>-j6</value>
+					<value>-j8</value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildCommand</key>
-					<value>${system:ECLIPSE_HOME}/../gnu/bin/mingw32-make</value>
+					<value>${GNU_Make_Install_Dir}mingw32-make</value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildLocation</key>
-					<value>${ProjDirPath}/USBDM_CF_SER_JS16CWJ</value>
+					<value>${ProjDirPath}/USBDM_JMxxCLD</value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.contents</key>

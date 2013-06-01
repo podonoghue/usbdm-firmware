@@ -29,7 +29,15 @@
 #endif
 
 #define CPU  JS16
+
+#define DISABLE_BKGD  // BKGD pin is used as GPIO, comment for enable debug using BDM
+
+#if !defined(LOG) && !defined(DISABLE_BKGD)
 #define DISABLE_BKGD  // BKGD pin is used as GPIO
+#endif
+
+// Define for automatic WINUSB Driver loading 
+//#define MS_COMPATIBLE_ID_FEATURE (1)
 
 //=================================================================================
 // Debug pin - used to check timing and hardware sequences etc.
@@ -203,7 +211,7 @@
 #if (HW_CAPABILITY&CAP_RST_IO)
 
 // RESET output pin
-#define RESET_OUT           PTBD_PTBD3
+#define RESET_OUT             PTBD_PTBD3
 //#define RESET_OUT_DDR       PTBPE_PTBPE3 // PTE3 is output always
 //#define RESET_OUT_PER       PTBPE_PTBPE3  // PTE3 is output always, so no PUP
 #define RESET_LOW()         (RESET_OUT=0)
@@ -217,6 +225,7 @@
 #define RESET_IN_NUM        (5)
 #define RESET_IN_MASK       (1<<RESET_IN_NUM)
 
+// RESET input pin
 #define RESET_IS_HIGH       (RESET_IN!=0)
 #define RESET_IS_LOW        (RESET_IN==0)
 
