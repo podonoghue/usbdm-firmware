@@ -1,0 +1,90 @@
+/*
+ * sciColdfire.c
+ *
+ *  Created on: 02/03/2012
+ *      Author: podonoghue
+ */
+#include "Configure.h"
+#include "dspiColdfire.h"
+#include "derivative.h" /* include peripheral declarations */
+#include "Commands.h"
+
+typedef struct {
+   uint32_t freq; 
+   uint32_t ctar0; 
+   uint32_t ctar1; 
+} Scidata;
+
+static const Scidata spiColdfireSettings[] = {
+     //  freq(kHz)                        ctar0                                                                         ctar1
+ /*  0 */ {12000, SPI_CTAR_PBR(0)|SPI_CTAR_BR(0)|SPI_CTAR_PCSSCK(0)|SPI_CTAR_CSSCK(0), SPI_CTAR_PCSSCK(0)|SPI_CTAR_CSSCK(0)|SPI_CTAR_PBR(0)|SPI_CTAR_BR(0)|SPI_CTAR_PASC(0)|SPI_CTAR_ASC(0)},
+ /*  1 */ { 8000, SPI_CTAR_PBR(1)|SPI_CTAR_BR(0)|SPI_CTAR_PCSSCK(0)|SPI_CTAR_CSSCK(1), SPI_CTAR_PCSSCK(0)|SPI_CTAR_CSSCK(0)|SPI_CTAR_PBR(1)|SPI_CTAR_BR(0)|SPI_CTAR_PASC(0)|SPI_CTAR_ASC(1)},
+ /*  2 */ { 6000, SPI_CTAR_PBR(0)|SPI_CTAR_BR(1)|SPI_CTAR_PCSSCK(0)|SPI_CTAR_CSSCK(1), SPI_CTAR_PCSSCK(0)|SPI_CTAR_CSSCK(0)|SPI_CTAR_PBR(0)|SPI_CTAR_BR(1)|SPI_CTAR_PASC(0)|SPI_CTAR_ASC(1)},
+ /*  3 */ { 4800, SPI_CTAR_PBR(2)|SPI_CTAR_BR(0)|SPI_CTAR_PCSSCK(1)|SPI_CTAR_CSSCK(0), SPI_CTAR_PCSSCK(0)|SPI_CTAR_CSSCK(1)|SPI_CTAR_PBR(2)|SPI_CTAR_BR(0)|SPI_CTAR_PASC(1)|SPI_CTAR_ASC(0)},
+ /*  4 */ { 4000, SPI_CTAR_PBR(1)|SPI_CTAR_BR(1)|SPI_CTAR_PCSSCK(1)|SPI_CTAR_CSSCK(0), SPI_CTAR_PCSSCK(0)|SPI_CTAR_CSSCK(1)|SPI_CTAR_PBR(1)|SPI_CTAR_BR(1)|SPI_CTAR_PASC(1)|SPI_CTAR_ASC(0)},
+ /*  5 */ { 3000, SPI_CTAR_PBR(0)|SPI_CTAR_BR(3)|SPI_CTAR_PCSSCK(0)|SPI_CTAR_CSSCK(2), SPI_CTAR_PCSSCK(1)|SPI_CTAR_CSSCK(0)|SPI_CTAR_PBR(0)|SPI_CTAR_BR(3)|SPI_CTAR_PASC(0)|SPI_CTAR_ASC(2)},
+ /*  6 */ { 2667, SPI_CTAR_PBR(1)|SPI_CTAR_BR(2)|SPI_CTAR_PCSSCK(2)|SPI_CTAR_CSSCK(0), SPI_CTAR_PCSSCK(0)|SPI_CTAR_CSSCK(2)|SPI_CTAR_PBR(1)|SPI_CTAR_BR(2)|SPI_CTAR_PASC(2)|SPI_CTAR_ASC(0)},
+ /*  7 */ { 2400, SPI_CTAR_PBR(2)|SPI_CTAR_BR(1)|SPI_CTAR_PCSSCK(2)|SPI_CTAR_CSSCK(0), SPI_CTAR_PCSSCK(0)|SPI_CTAR_CSSCK(2)|SPI_CTAR_PBR(2)|SPI_CTAR_BR(1)|SPI_CTAR_PASC(2)|SPI_CTAR_ASC(0)},
+ /*  8 */ { 2000, SPI_CTAR_PBR(1)|SPI_CTAR_BR(3)|SPI_CTAR_PCSSCK(1)|SPI_CTAR_CSSCK(1), SPI_CTAR_PCSSCK(2)|SPI_CTAR_CSSCK(0)|SPI_CTAR_PBR(1)|SPI_CTAR_BR(3)|SPI_CTAR_PASC(1)|SPI_CTAR_ASC(1)},
+ /*  9 */ { 1500, SPI_CTAR_PBR(0)|SPI_CTAR_BR(4)|SPI_CTAR_PCSSCK(0)|SPI_CTAR_CSSCK(3), SPI_CTAR_PCSSCK(0)|SPI_CTAR_CSSCK(3)|SPI_CTAR_PBR(0)|SPI_CTAR_BR(4)|SPI_CTAR_PASC(0)|SPI_CTAR_ASC(3)},
+ /* 10 */ { 1200, SPI_CTAR_PBR(2)|SPI_CTAR_BR(3)|SPI_CTAR_PCSSCK(2)|SPI_CTAR_CSSCK(1), SPI_CTAR_PCSSCK(2)|SPI_CTAR_CSSCK(1)|SPI_CTAR_PBR(2)|SPI_CTAR_BR(3)|SPI_CTAR_PASC(2)|SPI_CTAR_ASC(1)},
+ /* 11 */ { 1000, SPI_CTAR_PBR(1)|SPI_CTAR_BR(4)|SPI_CTAR_PCSSCK(1)|SPI_CTAR_CSSCK(2), SPI_CTAR_PCSSCK(1)|SPI_CTAR_CSSCK(2)|SPI_CTAR_PBR(1)|SPI_CTAR_BR(4)|SPI_CTAR_PASC(1)|SPI_CTAR_ASC(2)},
+ /* 12 */ {  857, SPI_CTAR_PBR(3)|SPI_CTAR_BR(3)|SPI_CTAR_PCSSCK(1)|SPI_CTAR_CSSCK(2), SPI_CTAR_PCSSCK(1)|SPI_CTAR_CSSCK(2)|SPI_CTAR_PBR(3)|SPI_CTAR_BR(3)|SPI_CTAR_PASC(1)|SPI_CTAR_ASC(2)},
+ /* 13 */ {  750, SPI_CTAR_PBR(0)|SPI_CTAR_BR(5)|SPI_CTAR_PCSSCK(2)|SPI_CTAR_CSSCK(2), SPI_CTAR_PCSSCK(2)|SPI_CTAR_CSSCK(2)|SPI_CTAR_PBR(0)|SPI_CTAR_BR(5)|SPI_CTAR_PASC(2)|SPI_CTAR_ASC(2)},
+ /* 14 */ {  600, SPI_CTAR_PBR(2)|SPI_CTAR_BR(4)|SPI_CTAR_PCSSCK(2)|SPI_CTAR_CSSCK(2), SPI_CTAR_PCSSCK(2)|SPI_CTAR_CSSCK(2)|SPI_CTAR_PBR(2)|SPI_CTAR_BR(4)|SPI_CTAR_PASC(2)|SPI_CTAR_ASC(2)},
+ /* 15 */ {  500, SPI_CTAR_PBR(1)|SPI_CTAR_BR(5)|SPI_CTAR_PCSSCK(1)|SPI_CTAR_CSSCK(3), SPI_CTAR_PCSSCK(1)|SPI_CTAR_CSSCK(3)|SPI_CTAR_PBR(1)|SPI_CTAR_BR(5)|SPI_CTAR_PASC(1)|SPI_CTAR_ASC(3)},
+ /* 16 */ {  429, SPI_CTAR_PBR(3)|SPI_CTAR_BR(4)|SPI_CTAR_PCSSCK(3)|SPI_CTAR_CSSCK(2), SPI_CTAR_PCSSCK(3)|SPI_CTAR_CSSCK(2)|SPI_CTAR_PBR(3)|SPI_CTAR_BR(4)|SPI_CTAR_PASC(3)|SPI_CTAR_ASC(2)},
+ /* 17 */ {  250, SPI_CTAR_PBR(1)|SPI_CTAR_BR(6)|SPI_CTAR_PCSSCK(1)|SPI_CTAR_CSSCK(4), SPI_CTAR_PCSSCK(1)|SPI_CTAR_CSSCK(4)|SPI_CTAR_PBR(1)|SPI_CTAR_BR(6)|SPI_CTAR_PASC(1)|SPI_CTAR_ASC(4)},
+ /* 18 */ {  125, SPI_CTAR_PBR(1)|SPI_CTAR_BR(7)|SPI_CTAR_PCSSCK(1)|SPI_CTAR_CSSCK(5), SPI_CTAR_PCSSCK(1)|SPI_CTAR_CSSCK(5)|SPI_CTAR_PBR(1)|SPI_CTAR_BR(7)|SPI_CTAR_PASC(1)|SPI_CTAR_ASC(5)},
+ /* 19 */ {  107, SPI_CTAR_PBR(3)|SPI_CTAR_BR(6)|SPI_CTAR_PCSSCK(3)|SPI_CTAR_CSSCK(4), SPI_CTAR_PCSSCK(3)|SPI_CTAR_CSSCK(4)|SPI_CTAR_PBR(3)|SPI_CTAR_BR(6)|SPI_CTAR_PASC(3)|SPI_CTAR_ASC(4)},
+};                                                                                 
+
+#define FIRST_BITS  (2)               // Bits to send in first Tx
+#define SECOND_BITS (17-FIRST_BITS)   // Bits to send in second Tx
+
+//! Initialise SPI for Coldfire BDM (17 bits as 1 + 16 transfer)
+//!
+//! @param freq - frequency to use
+//!
+uint8_t initDSPIColdfire(uint32_t freq /* kHz */) {
+   int index;
+   for(index=0; index<sizeof(spiColdfireSettings)/sizeof(spiColdfireSettings[0]); index++) {
+      if (spiColdfireSettings[index].freq <= freq) {
+         break;
+      }
+   }
+   if (index>=sizeof(spiColdfireSettings)/sizeof(spiColdfireSettings[0])) {
+      return -1;
+   }
+   // Set SCI Pin muxes
+   PORTA_PCR14 = PORT_PCR_MUX(2) | PORT_PCR_DSE_MASK;   // Enable SPI0_PCS0 on on the pin PTA14
+   PORTA_PCR15 = PORT_PCR_MUX(2) | PORT_PCR_DSE_MASK;   // Enable SPI0_SCK  on on the pin PTA15
+   PORTA_PCR16 = PORT_PCR_MUX(2) | PORT_PCR_DSE_MASK;   // Enable SPI0_SOUT on on the pin PTA16
+   PORTA_PCR17 = PORT_PCR_MUX(2) | PORT_PCR_DSE_MASK;   // Enable SPI0_SIN  on on the pin PTA17
+
+   // Enable DSPI0 module clock
+   SPI_CLK_ENABLE();
+
+   // Configure SPI
+   SPI0_MCR   = SPI_MCR_CLR_RXF_MASK|SPI_MCR_CLR_TXF_MASK|SPI_MCR_MSTR_MASK|SPI_MCR_FRZ_MASK|SPI_MCR_DCONF(0)|SPI_MCR_SMPL_PT(0);
+   SPI0_CTAR0 = spiColdfireSettings[index].ctar0|SPI_CTAR_FMSZ(FIRST_BITS-1);  // 1st transfer = FIRST_BITS bit 
+   SPI0_CTAR1 = spiColdfireSettings[index].ctar1|SPI_CTAR_FMSZ(SECOND_BITS-1); // 2nd transfer = SECOND_BITS bits
+   
+   return BDM_RC_OK;
+}
+
+//! Exchange a 17-bit word with the target 
+//!
+//! @param send    - data to send
+//! @param receive - data received
+//!
+uint8_t rxtxDSPIColdfire(uint32_t send, uint32_t *receive) {
+   SPI0_PUSHR = SPI_PUSHR_CTAS(0)|SPI_PUSHR_PCS(0x1)|SPI_PUSHR_CONT_MASK|SPI_PUSHR_TXDATA((send>>SECOND_BITS)&((1<<FIRST_BITS)-1)); 
+   SPI0_PUSHR = SPI_PUSHR_CTAS(1)|SPI_PUSHR_PCS(0x1)|SPI_PUSHR_EOQ_MASK|SPI_PUSHR_TXDATA(send&((1<<SECOND_BITS)-1)); 
+   while ((SPI0_SR & SPI_SR_EOQF_MASK) == 0) {
+   }
+   SPI0_SR = SPI_SR_EOQF_MASK;
+   *receive  = SPI0_POPR<<SECOND_BITS;
+   *receive += SPI0_POPR&((1<<SECOND_BITS)-1);
+   return BDM_RC_OK;
+}
