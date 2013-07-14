@@ -80,7 +80,8 @@ typedef enum {
 
    CMD_USBDM_WRITE_MEM             = 32,  //!< Write to target memory
    CMD_USBDM_READ_MEM              = 33,  //!< Read from target memory
-
+   CMD_USBDM_READ_ALL_REGS         = 34,  //!< Read all target core registers
+   
    //CMD_USBDM_TRIM_CLOCK            = 34,  //!< Trim target clock - deleted in V3.2
    //CMD_USBDM_RS08_FLASH_ENABLE     = 35,  //!< Enable target flash programming (Vpp on)
    //CMD_USBDM_RS08_FLASH_STATUS     = 36,  //!< Status of target flash programming

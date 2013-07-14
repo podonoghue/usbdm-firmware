@@ -25,6 +25,7 @@
 
    Change History
    +===============================================================================================
+   |    Jul 2013 | Added Read all registers                                                 V4.10.6
    | 22 Oct 2012 | Added modifyDHCSR() and assocaited changes                               V4.9.5
    | 30 Aug 2012 | ARM-JTAG & ARM-SWD Changes                                               V4.9.5
    +===============================================================================================
@@ -572,7 +573,7 @@ const uint8_t DCDR[]  = {0xE0, 0x00, 0xED, 0xF8}; // RW Debug Core Data Register
 //!
 //! @param DCSRData - value to write to DCSRD register to control operation
 //!
-//! @note DCSRD is used as scratch buffer so must be ram
+//! @note DCSRData is used as scratch buffer so must be ram
 //!
 static uint8_t swd_coreRegisterOperation(uint8_t *DCSRData) {
    uint8_t retryCount = 40;
@@ -623,6 +624,70 @@ uint8_t f_CMD_SWD_READ_REG(void) {
    returnSize = 5;
    // Read data value from DCDR holding register
    return swd_readMemoryWord(DCDR, commandBuffer+1);
+}
+
+// Maps register index into magic number for ARM device register number
+static const uint8_t regIndexMap[] = {
+   ARM_RegR0, ARM_RegR1, ARM_RegR2, ARM_RegR3, ARM_RegR4, ARM_RegR5, ARM_RegR6, ARM_RegR7, 
+   ARM_RegR8, ARM_RegR9, ARM_RegR10, ARM_RegR11, ARM_RegR12, ARM_RegSP, ARM_RegLR, ARM_RegPC,
+   ARM_RegxPSR, ARM_RegMSP,  ARM_RegPSP, ARM_RegMISC,
+   ARM_RegFPSCR,
+   ARM_RegFPS0+0x00, ARM_RegFPS0+0x01, ARM_RegFPS0+0x02, ARM_RegFPS0+0x03,
+   ARM_RegFPS0+0x04, ARM_RegFPS0+0x05, ARM_RegFPS0+0x06, ARM_RegFPS0+0x07,
+   ARM_RegFPS0+0x08, ARM_RegFPS0+0x09, ARM_RegFPS0+0x0A, ARM_RegFPS0+0x0B,
+   ARM_RegFPS0+0x0C, ARM_RegFPS0+0x0D, ARM_RegFPS0+0x0E, ARM_RegFPS0+0x0F,
+   ARM_RegFPS0+0x10, ARM_RegFPS0+0x11, ARM_RegFPS0+0x12, ARM_RegFPS0+0x13,
+   ARM_RegFPS0+0x14, ARM_RegFPS0+0x15, ARM_RegFPS0+0x16, ARM_RegFPS0+0x17,
+   ARM_RegFPS0+0x18, ARM_RegFPS0+0x19, ARM_RegFPS0+0x1A, ARM_RegFPS0+0x1B,
+   ARM_RegFPS0+0x1C, ARM_RegFPS0+0x1D, ARM_RegFPS0+0x1E, ARM_RegFPS0+0x1F,
+   };
+//! Read all ARM-SWD core registers
+//!
+//! @note
+//!  commandBuffer\n
+//!   - [2]  =>  flag - must be zero
+//!   - [3]  =>  register index to start at
+//!   - [4]  =>  register index to end at
+//!
+//! @return
+//!  == \ref BDM_RC_OK => success         \n
+//!                                       \n
+//!  commandBuffer                        \n
+//!   - [1..N]  =>  32-bit register values
+//!
+uint8_t f_CMD_SWD_READ_ALL_CORE_REGS(void) {
+   uint8_t rc;
+   uint8_t regIndex    = commandBuffer[3];
+   uint8_t endRegister = commandBuffer[4];
+   uint8_t* outputPtr  = commandBuffer+1;
+   returnSize = 1;
+   if (commandBuffer[2] != 0) {
+	   // Check flag is zero
+	   return BDM_RC_ILLEGAL_PARAMS;
+   }
+   while (regIndex<=endRegister) {
+	   // Set up command
+	   uint8_t command[4] = {0, DCSR_READ_B1, 0, regIndexMap[regIndex]};
+	   
+	   // Execute register transfer command
+	   rc = swd_coreRegisterOperation(command);
+	   if (rc != BDM_RC_OK) {
+		  return rc;
+	   }
+	   // Read register value back (Big-endian) (command is used a buffer)
+	   rc = swd_readMemoryWord(DCDR, command);
+	   if (rc != BDM_RC_OK) {
+		  return rc;
+	   }
+	   // Write to buffer (target format - Little-endian ARM)
+	   *outputPtr++ = command[3];
+	   *outputPtr++ = command[2];
+	   *outputPtr++ = command[1];
+	   *outputPtr++ = command[0];
+	   returnSize += 4;
+	   regIndex++;
+   }
+   return BDM_RC_OK;
 }
 
 //! Write ARM-SWD core register

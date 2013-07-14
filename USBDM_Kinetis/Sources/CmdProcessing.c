@@ -34,6 +34,7 @@
    \verbatim
    Change History
    +===============================================================================================
+   |    Jul 2013 | Added Read all registers                                                 V4.10.6
    | 30 Aug 2012 | ARM-JTAG & ARM-SWD Changes                                               V4.9.5
    | 20 May 2012 | Extended firmware version information                                    V4.9.5
    |  8 Apr 2012 | Fixed missing PST status in makeStatusWord()                       - pgo V4.7.4
@@ -959,6 +960,7 @@ static const FunctionPtr SWDfunctionPtrs[] = {
    f_CMD_SWD_READ_DREG              ,//= 31  CMD_USBDM_READ_DREG
    f_CMD_SWD_WRITE_MEM              ,//= 32  CMD_USBDM_WRITE_MEM
    f_CMD_SWD_READ_MEM               ,//= 33  CMD_USBDM_READ_MEM
+   f_CMD_SWD_READ_ALL_CORE_REGS     ,//= 34  CMD_USBDM_READ_ALL_REGS
    };
 static const FunctionPtrs SWDFunctionPointers   = {CMD_USBDM_CONNECT,
                                                     sizeof(SWDfunctionPtrs)/sizeof(FunctionPtr),     
