@@ -22,7 +22,7 @@
 //==========================================================================================
 // Capabilities of the hardware - used to enable/disable appropriate code
 //
-#define HW_CAPABILITY     (CAP_VDDCONTROL|CAP_VDDSENSE|CAP_JTAG_HW|CAP_BDM  |CAP_FLASH|        CAP_RST_IO|CAP_CFVx)
+#define HW_CAPABILITY     (CAP_VDDCONTROL|CAP_VDDSENSE|CAP_JTAG_HW|CAP_BDM  |CAP_FLASH|        CAP_RST_IO|CAP_CFVx|CAP_CORE_REGS)
 #define TARGET_CAPABILITY (CAP_VDDCONTROL|CAP_VDDSENSE|CAP_HCS12 |CAP_HCS08|CAP_RS08 |CAP_CFV1|CAP_RST   |CAP_CFVx|CAP_JTAG|CAP_DSC|CAP_ARM_JTAG|CAP_PST)
 
 #ifndef PLATFORM
@@ -34,11 +34,9 @@
 //=================================================================================
 // Debug pin - used to check timing and hardware sequences etc.
 //
-#if (DEBUG != 0)
 #define DEBUG_PIN_DDR PTGDD_PTGDD2
 #define DEBUG_PIN_PER PTGPE_PTGPE2
 #define DEBUG_PIN     PTGD_PTGD2
-#endif
 
 //=================================================================================
 // ICP pin - used to force ICP in bootstrap code

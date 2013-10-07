@@ -22,7 +22,7 @@
 //==========================================================================================
 // Capabilities of the hardware - used to enable/disable appropriate code
 //
-#define HW_CAPABILITY     (CAP_VDDCONTROL|CAP_VDDSENSE|CAP_RST_IO|CAP_BDM  |CAP_FLASH)
+#define HW_CAPABILITY     (CAP_VDDCONTROL|CAP_VDDSENSE|CAP_RST_IO|CAP_BDM  |CAP_FLASH|CAP_CORE_REGS)
 #define TARGET_CAPABILITY (CAP_VDDCONTROL|CAP_VDDSENSE|CAP_HCS12 |CAP_HCS08|CAP_RS08|CAP_CFV1)
 
 #ifndef PLATFORM

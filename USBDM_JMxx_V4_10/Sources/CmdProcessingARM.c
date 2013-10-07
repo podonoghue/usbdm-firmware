@@ -25,6 +25,7 @@
 
    Change History
    +===============================================================================================
+   | 27 Jul 2013 | Added f_CMD_SWD_READ_ALL_CORE_REGS()                                     V4.10.6   - pgo
    | 22 Oct 2012 | Added modifyDHCSR() and associated changes                               V4.9.5
    | 30 Aug 2012 | ARM-JTAG & ARM-SWD Changes                                               V4.9.5
    +===============================================================================================
@@ -36,7 +37,7 @@
 #include "Commands.h"
 #include "TargetDefines.h"
 #include "BDM.h"
-#include "BDMMacros.h"
+//#include "BDMMacros.h"
 #include "BDMCommon.h"
 #include "CmdProcessing.h"
 #include "CmdProcessingSWD.h"
@@ -45,13 +46,13 @@
 #if TARGET_CAPABILITY & CAP_ARM_JTAG
 
 // DP_SELECT register value to access AHB_AP Bank #0 for memory read/write
-static const U8 ARM_AHB_AP_BANK0[4] = {AHB_AP_NUM,  0,  0,  0};
+static const uint8_t ARM_AHB_AP_BANK0[4] = {AHB_AP_NUM,  0,  0,  0};
 
-// Initial value of AHB_SP_CSW register
-static       U8 ahb_ap_csw_defaultValue_B0 = 0;
+// Initial value of AHB_SP_CSW register (msb)
+static       uint8_t ahb_ap_csw_defaultValue_B0 = 0;
 
 // Maps size (1,2,4 byes) to CSW control value (size+increment)
-static U8 cswValues[] = {
+static const uint8_t cswValues[] = {
 		0,
 		0x40|AHB_AP_CSW_SIZE_BYTE|AHB_AP_CSW_INC_SINGLE,
 		0x40|AHB_AP_CSW_SIZE_HALFWORD|AHB_AP_CSW_INC_SINGLE,
@@ -65,7 +66,7 @@ static U8 cswValues[] = {
 //!    == \ref BDM_RC_OK => success        \n
 //!    != \ref BDM_RC_OK => error
 //!
-U8 f_CMD_ARM_CONNECT(void) {
+uint8_t f_CMD_ARM_CONNECT(void) {
    lastJtagIR_Value = -1; // Ensure no carry over from previous connection
    return BDM_RC_OK;
 }
@@ -80,8 +81,8 @@ U8 f_CMD_ARM_CONNECT(void) {
 //! @return
 //!  == \ref BDM_RC_OK => success
 //!
-U8 f_CMD_ARM_WRITE_DREG(void) {
-   U8 rc;
+uint8_t f_CMD_ARM_WRITE_DREG(void) {
+   uint8_t rc;
    // Initiate write to register
    rc = arm_writeReg(commandBuffer[3], commandBuffer+4);
    if (rc != BDM_RC_OK) {
@@ -103,8 +104,8 @@ U8 f_CMD_ARM_WRITE_DREG(void) {
 //!  commandBuffer                        \n
 //!   - [1..4]  =>  32-bit register value
 //!
-U8 f_CMD_ARM_READ_DREG(void) {
-   U8 rc;
+uint8_t f_CMD_ARM_READ_DREG(void) {
+   uint8_t rc;
    returnSize = 5;
    // Initiate register read
    rc = arm_readReg(commandBuffer[3], commandBuffer+1);
@@ -134,9 +135,11 @@ U8 f_CMD_ARM_READ_DREG(void) {
 //! @return
 //!  == \ref BDM_RC_OK => success
 //!
-U8 f_CMD_ARM_WRITE_CREG(void) {
+//! @note - Access is completed before return
+//!
+uint8_t f_CMD_ARM_WRITE_CREG(void) {
    // Write to AP register
-   U8 rc = arm_writeAPReg(commandBuffer+2, commandBuffer+4);
+   uint8_t rc = arm_writeAPReg(commandBuffer+2, commandBuffer+4);
    if (rc != BDM_RC_OK) {
 	   return rc;
    }
@@ -157,8 +160,10 @@ U8 f_CMD_ARM_WRITE_CREG(void) {
 //! @return
 //!  == \ref BDM_RC_OK => success
 //!
-U8 f_CMD_ARM_READ_CREG(void) {
-   U8 rc;
+//! @note - Access is completed before return
+//!
+uint8_t f_CMD_ARM_READ_CREG(void) {
+   uint8_t rc;
    
    // Read from AP register
    returnSize = 5;
@@ -183,9 +188,9 @@ U8 f_CMD_ARM_READ_CREG(void) {
 //!  == \ref BDM_RC_OK => success         \n
 //!  != \ref BDM_RC_OK => various errors
 //!                                       
-U8 arm_writeMemoryWord(const U8 *address, const U8 *data) {
-	U8  rc;
-	U8  temp[4];
+static uint8_t writeMemoryWord(const uint8_t *address, const uint8_t *data) {
+	uint8_t  rc;
+	uint8_t  temp[4];
    /* Steps
 	*  - Set up to access AHB-AP register bank 0 (CSW,TAR,DRW)
 	*  - Write AP-CSW value (auto-increment etc)
@@ -214,7 +219,7 @@ U8 arm_writeMemoryWord(const U8 *address, const U8 *data) {
    // Write data value
    rc = arm_writeReg(ARM_WR_AHB_DRW, data);
    if (rc != BDM_RC_OK) {
-	  return rc;
+	  return rc;	   
    }
    return rc;   
 }
@@ -222,15 +227,15 @@ U8 arm_writeMemoryWord(const U8 *address, const U8 *data) {
 //! Read 32-bit value from ARM-SWD Memory
 //!
 //! @param address 32-bit memory address
-//! @param data    32-bit data value
+//! @param data    32-bit data value from last read!
 //!
 //! @return
 //!  == \ref BDM_RC_OK => success         \n
 //!  != \ref BDM_RC_OK => various errors
 //!
-U8 arm_readMemoryWord(const U8 *address, U8 *data) {
-U8  rc;
-U8  temp[4];
+static uint8_t readMemoryWord(const uint8_t *address, uint8_t *data) {
+uint8_t  rc;
+uint8_t  temp[4];
 
    /* Steps
     *  - Set up to DP_SELECT to access AHB-AP register bank 0 (CSW,TAR,DRW)
@@ -264,11 +269,8 @@ U8  temp[4];
       return rc;	   
    }
    // Read memory data
-   rc = arm_readReg(ARM_RD_DP_RDBUFF, data);
-   return rc;  
+   return arm_readReg(ARM_RD_DP_RDBUFF, data);
 }
-
-//extern U8 arm_repeatWriteReg(const U8 *data);
 
 //! Write ARM-JTAG Memory
 //!
@@ -283,13 +285,13 @@ U8  temp[4];
 //!  == \ref BDM_RC_OK => success         \n
 //!  != \ref BDM_RC_OK => various errors
 //!                                       
-U8 f_CMD_ARM_WRITE_MEM(void) {
-	U8  elementSize = commandBuffer[2];  // Size of the data writes
-	U8  count       = commandBuffer[3];  // # of bytes
-	U8  addrLSB     = commandBuffer[7];  // Address in target memory
-	U8  *data_ptr   = commandBuffer+8;   // Where the data is
-	U8  rc;
-	U8  temp[4];
+uint8_t f_CMD_ARM_WRITE_MEM(void) {
+	uint8_t  elementSize = commandBuffer[2];  // Size of the data writes
+	uint8_t  count       = commandBuffer[3];  // # of bytes
+	uint8_t  addrLSB     = commandBuffer[7];  // Address in target memory
+	uint8_t  *data_ptr   = commandBuffer+8;   // Where the data is
+	uint8_t  rc;
+	uint8_t  temp[4];
 
    /* Steps
 	*  - Set up to access AHB-AP register bank 0 (CSW,TAR,DRW)
@@ -368,17 +370,11 @@ U8 f_CMD_ARM_WRITE_MEM(void) {
 	  break;
    case MS_Long:
       count >>= 2;
-//      temp[3] = *data_ptr++;
-//      temp[2] = *data_ptr++;
-//      temp[1] = *data_ptr++;
-//      temp[0] = *data_ptr++;
-//      rc = arm_writeReg(ARM_WR_AHB_DRW, temp);
       while (count-- > 0) {
      	 temp[3] = *data_ptr++;
     	 temp[2] = *data_ptr++;
     	 temp[1] = *data_ptr++;
     	 temp[0] = *data_ptr++;
-//         rc = arm_repeatWriteReg(temp);
          rc = arm_writeReg(ARM_WR_AHB_DRW, temp);
          if (rc != BDM_RC_OK) {
       	    return rc;	   
@@ -404,13 +400,13 @@ U8 f_CMD_ARM_WRITE_MEM(void) {
 //!  commandBuffer                        \n
 //!   - [1..N]  =>  Data read
 //!
-U8 f_CMD_ARM_READ_MEM(void) {
-U8  elementSize = commandBuffer[2];          // Size of the data writes
-U8  count       = commandBuffer[3];          // # of data bytes
-U8  addrLSB     = commandBuffer[7];          // LSB of Address in target memory
-U8 *data_ptr    = commandBuffer+1;           // Where in buffer to write the data
-U8  rc;
-U8  temp[4];
+uint8_t f_CMD_ARM_READ_MEM(void) {
+uint8_t  elementSize = commandBuffer[2];          // Size of the data writes
+uint8_t  count       = commandBuffer[3];          // # of data bytes
+uint8_t  addrLSB     = commandBuffer[7];          // LSB of Address in target memory
+uint8_t *data_ptr    = commandBuffer+1;           // Where in buffer to write the data
+uint8_t  rc;
+uint8_t  temp[4];
 
    /* Steps
     *  - Set up to DP_SELECT to access AHB-AP register bank 0 (CSW,TAR,DRW)
@@ -544,13 +540,13 @@ U8  temp[4];
 }
 
 // Memory addresses of debug/core registers
-const U8 DHCSR[] = {0xE0, 0x00, 0xED, 0xF0}; // RW Debug Halting Control and Status Register
-const U8 DCSR[]  = {0xE0, 0x00, 0xED, 0xF4}; // WO Debug Core Selector Register
-const U8 DCDR[]  = {0xE0, 0x00, 0xED, 0xF8}; // RW Debug Core Data Register
+static const uint8_t DHCSR_ADDR[] = {0xE0, 0x00, 0xED, 0xF0}; // RW Debug Halting Control and Status Register
+static const uint8_t DCRSR_ADDR[] = {0xE0, 0x00, 0xED, 0xF4}; // WO Debug Core Selector Register
+static const uint8_t DCRDR_ADDR[] = {0xE0, 0x00, 0xED, 0xF8}; // RW Debug Core Data Register
 
-#define DCSR_WRITE_B1         (1<<(16-16))
-#define DCSR_READ_B1          (0<<(16-16))
-#define DCSR_REGMASK_B0       (0x7F)
+#define DCRSR_WRITE_B1         (1<<(16-16))
+#define DCRSR_READ_B1          (0<<(16-16))
+#define DCRSR_REGMASK_B0       (0x7F)
 
 #define DHCSR_DBGKEY_B0       (0xA0<<(24-24))
 #define DHCSR_DBGKEY_B1       (0x5F<<(16-16))
@@ -569,15 +565,15 @@ const U8 DCDR[]  = {0xE0, 0x00, 0xED, 0xF8}; // RW Debug Core Data Register
 //! Initiates core register operation (read/write) and
 //! waits for completion
 //!
-//! @param DCSRData - value to write to DCSRD register to control operation
+//! @param DCRSRvalue - value to write to DCSRD register to control operation
 //!
-//! @note DCSRD is used as scratch buffer so must be ram
+//! @note DCRSRvalue is used as scratch buffer so must be ram
 //!
-static U8 arm_coreRegisterOperation(U8 *DCSRData) {
-   U8 retryCount = 40;
-   U8 rc;
+static uint8_t coreRegisterOperation(uint8_t *DCRSRvalue) {
+   uint8_t retryCount = 40;
+   uint8_t rc;
    
-   rc = arm_writeMemoryWord(DCSR, DCSRData);
+   rc = writeMemoryWord(DCRSR_ADDR, DCRSRvalue);
    if (rc != BDM_RC_OK) {
 	  return rc;
    }
@@ -586,13 +582,106 @@ static U8 arm_coreRegisterOperation(U8 *DCSRData) {
 		 return BDM_RC_ARM_ACCESS_ERROR;
 	  }
 	  // Check complete (use DCSRData as scratch)
-	  rc = arm_readMemoryWord(DHCSR, DCSRData);
+	  rc = readMemoryWord(DHCSR_ADDR, DCRSRvalue);
 	  if (rc != BDM_RC_OK) {
 		 return rc;
 	  }
-   } while ((DCSRData[1] & DHCSR_S_REGRDY_B1) == 0);
+   } while ((DCRSRvalue[1] & DHCSR_S_REGRDY_B1) == 0);
    return BDM_RC_OK;
 }
+
+/*!
+ *  Read target register
+ *  
+ *  @param regNo 	Number of register to read
+ *  @param outptr 	Where to place data read (in big-endian order)
+ *  
+ *  @return error code
+ */
+static uint8_t readCoreRegister(uint8_t regNo, uint8_t *outptr) {
+   uint8_t rc;
+   // Set up command
+   uint8_t command[4] = {0, DCRSR_READ_B1, 0, 0};
+   command[3] = regNo;
+   // Execute register transfer command
+   rc = coreRegisterOperation(command);
+   if (rc != BDM_RC_OK) {
+	  return rc;
+   }
+   // Read register value from DCRDR holding register (Big-endian) (command is used as buffer)
+   return readMemoryWord(DCRDR_ADDR, outptr);
+}
+
+#if HW_CAPABILITY&CAP_CORE_REGS
+// Insufficient memory on some chips!
+
+// Maps register index into magic number for ARM device register number
+static const uint8_t regIndexMap[] = {
+   ARM_RegR0, ARM_RegR1, ARM_RegR2, ARM_RegR3, ARM_RegR4, ARM_RegR5, ARM_RegR6, ARM_RegR7, 
+   ARM_RegR8, ARM_RegR9, ARM_RegR10, ARM_RegR11, ARM_RegR12, ARM_RegSP, ARM_RegLR, ARM_RegPC,
+   ARM_RegxPSR, ARM_RegMSP,  ARM_RegPSP, ARM_RegMISC,
+   ARM_RegFPSCR,
+   ARM_RegFPS0+0x00, ARM_RegFPS0+0x01, ARM_RegFPS0+0x02, ARM_RegFPS0+0x03,
+   ARM_RegFPS0+0x04, ARM_RegFPS0+0x05, ARM_RegFPS0+0x06, ARM_RegFPS0+0x07,
+   ARM_RegFPS0+0x08, ARM_RegFPS0+0x09, ARM_RegFPS0+0x0A, ARM_RegFPS0+0x0B,
+   ARM_RegFPS0+0x0C, ARM_RegFPS0+0x0D, ARM_RegFPS0+0x0E, ARM_RegFPS0+0x0F,
+   ARM_RegFPS0+0x10, ARM_RegFPS0+0x11, ARM_RegFPS0+0x12, ARM_RegFPS0+0x13,
+   ARM_RegFPS0+0x14, ARM_RegFPS0+0x15, ARM_RegFPS0+0x16, ARM_RegFPS0+0x17,
+   ARM_RegFPS0+0x18, ARM_RegFPS0+0x19, ARM_RegFPS0+0x1A, ARM_RegFPS0+0x1B,
+   ARM_RegFPS0+0x1C, ARM_RegFPS0+0x1D, ARM_RegFPS0+0x1E, ARM_RegFPS0+0x1F,
+   };
+//! Read all core registers
+//!
+//! @note
+//!  commandBuffer\n
+//!   - [2]  =>  flag - must be zero
+//!   - [3]  =>  register index to start at
+//!   - [4]  =>  register index to end at
+//!
+//! @return
+//!  == \ref BDM_RC_OK => success         \n
+//!                                       \n
+//!  commandBuffer                        \n
+//!   - [1..N]  =>  32-bit register values
+//!
+uint8_t f_CMD_ARM_READ_ALL_CORE_REGS(void) {
+	
+   uint8_t  rc;
+   uint8_t  regIndex    = commandBuffer[3];
+   uint8_t  endRegister = commandBuffer[4];
+   uint8_t* outputPtr   = commandBuffer+1;
+   uint8_t  command[4];
+   returnSize = 1;
+   if (commandBuffer[2] != 0) {
+	   // Check flag is zero
+	   return BDM_RC_ILLEGAL_PARAMS;
+   }
+   while (regIndex<=endRegister) {
+	   rc = readCoreRegister(regIndexMap[regIndex], command);
+//	   // Set up command
+//	   uint8_t command[4] = {0, DCRSR_READ_B1, 0, 0};
+//	   command[3] = regIndexMap[regIndex];
+//	   // Execute register transfer command
+//	   rc = coreRegisterOperation(command);
+//	   if (rc != BDM_RC_OK) {
+//		  return rc;
+//	   }
+//	   // Read register value from DCRDR holding register (Big-endian) (command is used as buffer)
+//	   rc = readMemoryWord(DCRDR_ADDR, command);
+	   if (rc != BDM_RC_OK) {
+		  return rc;
+	   }
+	   // Write to buffer (target format - Little-endian ARM)
+	   *outputPtr++ = command[3];
+	   *outputPtr++ = command[2];
+	   *outputPtr++ = command[1];
+	   *outputPtr++ = command[0];
+	   returnSize += 4;
+	   regIndex++;
+   }
+   return BDM_RC_OK;
+}
+#endif
 
 //! Read ARM-SWD core register
 //!
@@ -606,22 +695,25 @@ static U8 arm_coreRegisterOperation(U8 *DCSRData) {
 //!  commandBuffer                        \n
 //!   - [1..4]  =>  32-bit register value
 //!
-U8 f_CMD_ARM_READ_REG(void) {
-   U8 rc;
+uint8_t f_CMD_ARM_READ_REG(void) {
    
-   // Use commandBuffer as scratch
-   commandBuffer[4+0] = 0;
-   commandBuffer[4+1] = DCSR_READ_B1;
-   commandBuffer[4+2] = 0;
-   commandBuffer[4+3] = commandBuffer[3];
-   // Execute register transfer 
-   rc = arm_coreRegisterOperation(commandBuffer+4);
-   if (rc != BDM_RC_OK) {
-	  return rc;
-   }
    returnSize = 5;
-   // Read data value from DCDR holding register
-   return arm_readMemoryWord(DCDR, commandBuffer+1);
+   return readCoreRegister(commandBuffer[3], commandBuffer+1);
+
+//   uint8_t rc;
+//   // Use commandBuffer as scratch
+//   commandBuffer[4+0] = 0;
+//   commandBuffer[4+1] = DCRSR_READ_B1;
+//   commandBuffer[4+2] = 0;
+//   commandBuffer[4+3] = commandBuffer[3];
+//   // Execute register transfer 
+//   rc = coreRegisterOperation(commandBuffer+4);
+//   if (rc != BDM_RC_OK) {
+//	  return rc;
+//   }
+//   returnSize = 5;
+//   // Read data value from DCRDR holding register
+//   return readMemoryWord(DCRDR_ADDR, commandBuffer+1);
 }
 
 //! Write ARM-SWD core register
@@ -634,21 +726,21 @@ U8 f_CMD_ARM_READ_REG(void) {
 //! @return
 //!  == \ref BDM_RC_OK => success
 //!
-U8 f_CMD_ARM_WRITE_REG(void) {
-   U8 rc;
+uint8_t f_CMD_ARM_WRITE_REG(void) {
+   uint8_t rc;
    
-   // Write data value to DCDR holding register
-   rc = arm_writeMemoryWord(DCDR,commandBuffer+4);
+   // Write data value to DCRDR holding register
+   rc = writeMemoryWord(DCRDR_ADDR,commandBuffer+4);
    if (rc != BDM_RC_OK) {
 	  return rc;
    }
    // Use commandBuffer as scratch
    commandBuffer[4+0] = 0;
-   commandBuffer[4+1] = DCSR_WRITE_B1;
+   commandBuffer[4+1] = DCRSR_WRITE_B1;
    commandBuffer[4+2] = 0;
    commandBuffer[4+3] = commandBuffer[3];
    // Execute register transfer 
-   return arm_coreRegisterOperation(commandBuffer+4);
+   return coreRegisterOperation(commandBuffer+4);
 }
 
 //! ARM-SWD -  Modifies value in LSB of DHCSR
@@ -661,11 +753,11 @@ U8 f_CMD_ARM_WRITE_REG(void) {
 //!    == \ref BDM_RC_OK => success       \n
 //!    != \ref BDM_RC_OK => error         \n
 //!
-static U8 modifyDHCSR(U8 preserveBits, U8 setBits) {
-	   U8 debugStepValue[4];
-	   U8 rc;
+static uint8_t modifyDHCSR(uint8_t preserveBits, uint8_t setBits) {
+	   uint8_t debugStepValue[4];
+	   uint8_t rc;
 	   
-	   rc = arm_readMemoryWord(DHCSR, debugStepValue);
+	   rc = readMemoryWord(DHCSR_ADDR, debugStepValue);
 	   if (rc != BDM_RC_OK) {
 	      return rc;
 	   }
@@ -674,7 +766,7 @@ static U8 modifyDHCSR(U8 preserveBits, U8 setBits) {
 	   debugStepValue[2]  = 0;
 	   debugStepValue[3] &= preserveBits;
 	   debugStepValue[3] |= setBits;   
-	   return arm_writeMemoryWord(DHCSR, debugStepValue);	
+	   return writeMemoryWord(DHCSR_ADDR, debugStepValue);	
 }
 
 //! ARM-SWD -  Step over 1 instruction
@@ -683,7 +775,7 @@ static U8 modifyDHCSR(U8 preserveBits, U8 setBits) {
 //!    == \ref BDM_RC_OK => success       \n
 //!    != \ref BDM_RC_OK => error         \n
 //!
-U8 f_CMD_ARM_TARGET_STEP(void) {
+uint8_t f_CMD_ARM_TARGET_STEP(void) {
    
    // Preserve DHCSR_C_MASKINTS value
    return modifyDHCSR(DHCSR_C_MASKINTS_B3, DHCSR_C_STEP_B3|DHCSR_C_DEBUGEN_B3);
@@ -695,7 +787,7 @@ U8 f_CMD_ARM_TARGET_STEP(void) {
 //!    == \ref BDM_RC_OK => success       \n
 //!    != \ref BDM_RC_OK => error         \n
 //!
-U8 f_CMD_ARM_TARGET_GO(void) {
+uint8_t f_CMD_ARM_TARGET_GO(void) {
 	
    return modifyDHCSR(DHCSR_C_MASKINTS_B3, DHCSR_C_DEBUGEN_B3);
 }
@@ -706,7 +798,7 @@ U8 f_CMD_ARM_TARGET_GO(void) {
 //!    == \ref BDM_RC_OK => success       \n
 //!    != \ref BDM_RC_OK => error         \n
 //!
-U8 f_CMD_ARM_TARGET_HALT(void) {
+uint8_t f_CMD_ARM_TARGET_HALT(void) {
 
    return modifyDHCSR(DHCSR_C_MASKINTS_B3, DHCSR_C_HALT_B3|DHCSR_C_DEBUGEN_B3);
 } 

@@ -4,6 +4,7 @@
    \verbatim
 
    USBDM
+
    Copyright (C) 2007  Peter O'Donoghue
 
    This program is free software; you can redistribute it and/or modify
@@ -26,7 +27,8 @@
    | 30 Aug 2012 | ARM-JTAG & ARM-SWD Changes                                               V4.9.5
    +===============================================================================================
    \endverbatim
- */
+*/
+
 #include "Common.h"
 #include "Configure.h"
 #include "Commands.h"
@@ -86,6 +88,7 @@ void swd_interfaceIdle(void) {
 //! RESET=3-state, SWCLK=High, SWDIO=3-state
 //!
 //! @note This includes once-off initialisation such as PUPs etc 
+//!
 void swd_init(void) {
    // 4 pins SWD_OUT, SWD_OUT_EN, SWCLK_OUT, SWCLK_OUT_EN
    // Individually controlled PUPs
@@ -180,7 +183,7 @@ void swd_txIdle8(void) {
 //!
 //! @note A turn-around clock period will be added on error responses
 //!
-U8 swd_sendCommandWithWait(U8 command) {
+uint8_t swd_sendCommandWithWait(uint8_t command) {
    asm {
       mov    #20,rxTiming1                  // Set up retry count
       sta    txTiming1                      // Save data (for retry)
@@ -283,7 +286,7 @@ U8 swd_sendCommandWithWait(U8 command) {
 //!
 //! @param data - ptr to 32-bit data to Tx
 //!
-static void swd_tx32(const U8 *data) {
+static void swd_tx32(const uint8_t *data) {
    asm {
       // 1 clock turn-around
       bclr   SWCLK_OUT_BIT,DATA_PORT        // SWCLK=0
@@ -380,7 +383,7 @@ static void swd_tx32(const U8 *data) {
 //! @return BDM_RC_OK \n
 //!         BDM_RC_ARM_PARITY_ERROR
 //!
-static U8 swd_rx32(U8 *data) {
+static uint8_t swd_rx32(uint8_t *data) {
 #define SPIS_SPTEF_BIT (5)
 #define SPIS_SPRF_BIT  (7)
 
@@ -529,8 +532,8 @@ static void swd_JTAGtoSWD(void) {
 //!    == \ref BDM_RC_OK              => Success        \n
 //!    == \ref BDM_RC_NO_CONNECTION   => Unexpected/no response from target
 //!
-U8 swd_connect(void) {
-   U8 buff[4];	
+uint8_t swd_connect(void) {
+   uint8_t buff[4];	
    
    swd_JTAGtoSWD();
    swd_txIdle8();
@@ -558,8 +561,8 @@ U8 swd_connect(void) {
 //!   SWD_RD_DP_RDBUFF - Value from last AP read and clear READOK flag in STRL/STAT, FAULT on sticky error \n
 //!   SWD_RD_AP_REGx   - Value from last AP read, clear READOK flag in STRL/STAT and INITIATE next AP read, FAULT on sticky error 
 //!
-U8 swd_readReg(U8 command, U8 *data) {
-   U8 rc = swd_sendCommandWithWait(command);
+uint8_t swd_readReg(uint8_t command, uint8_t *data) {
+   uint8_t rc = swd_sendCommandWithWait(command);
    if (rc != BDM_RC_OK) {
       return rc;
    }
@@ -583,8 +586,8 @@ U8 swd_readReg(U8 command, U8 *data) {
 //!   SWD_WR_DP_SELECT  - Write value to SELECT register (may be pending), FAULT on sticky error. \n
 //!   SWD_WR_AP_REGx    - Write to AP register.  May initiate action e.g. memory access.  Result is pending, FAULT on sticky error.
 //!
-U8 swd_writeReg(U8 command, const U8 *data) {
-   U8 rc = swd_sendCommandWithWait(command);
+uint8_t swd_writeReg(uint8_t command, const uint8_t *data) {
+   uint8_t rc = swd_sendCommandWithWait(command);
    if (rc != BDM_RC_OK) {
       return rc;
    }
@@ -606,11 +609,11 @@ U8 swd_writeReg(U8 command, const U8 *data) {
 //!
 //! @note - Access is completed before return
 //!
-U8 swd_writeAPReg(const U8 *address, const U8 *buff) {
-   static const U8 writeAP[] = {SWD_WR_AP_REG0,   SWD_WR_AP_REG1,    SWD_WR_AP_REG2,   SWD_WR_AP_REG3};
-   U8 rc;
-   U8 regNo = writeAP[(address[1]&0xC)>>2];
-   U8 selectData[4];
+uint8_t swd_writeAPReg(const uint8_t *address, const uint8_t *buff) {
+   static const uint8_t writeAP[] = {SWD_WR_AP_REG0,   SWD_WR_AP_REG1,    SWD_WR_AP_REG2,   SWD_WR_AP_REG3};
+   uint8_t rc;
+   uint8_t regNo = writeAP[(address[1]&0xC)>>2];
+   uint8_t selectData[4];
    selectData[0] = address[0];
    selectData[1] = 0;
    selectData[2] = 0;
@@ -644,11 +647,11 @@ U8 swd_writeAPReg(const U8 *address, const U8 *buff) {
 //!
 //! @note - Access is completed before return
 //!
-U8 swd_readAPReg(const U8 *address, U8 *buff) {
-   static const U8 readAP[]  = {SWD_RD_AP_REG0,   SWD_RD_AP_REG1,    SWD_RD_AP_REG2,   SWD_RD_AP_REG3};
-   U8 rc;
-   U8 regNo = readAP[(address[1]&0xC)>>2];
-   U8 selectData[4];
+uint8_t swd_readAPReg(const uint8_t *address, uint8_t *buff) {
+   static const uint8_t readAP[]  = {SWD_RD_AP_REG0,   SWD_RD_AP_REG1,    SWD_RD_AP_REG2,   SWD_RD_AP_REG3};
+   uint8_t rc;
+   uint8_t regNo = readAP[(address[1]&0xC)>>2];
+   uint8_t selectData[4];
    selectData[0] = address[0];
    selectData[1] = 0;
    selectData[2] = 0;
@@ -672,8 +675,8 @@ U8 swd_readAPReg(const U8 *address, U8 *buff) {
 //!
 //! @return error code
 //!
-U8 swd_clearStickyError(void) {
-   static const U8 swdClearErrors[4] = {0,0,0,SWD_DP_ABORT_CLEAR_STICKY_ERRORS_B3};
+uint8_t swd_clearStickyError(void) {
+   static const uint8_t swdClearErrors[4] = {0,0,0,SWD_DP_ABORT_CLEAR_STICKY_ERRORS_B3};
    return swd_writeReg(SWD_WR_DP_ABORT, swdClearErrors);
 }
 
@@ -681,13 +684,13 @@ U8 swd_clearStickyError(void) {
 //!
 //! @return error code
 //!
-U8 swd_abortAP(void) {
-   static const U8 swdClearErrors[4] = 
+uint8_t swd_abortAP(void) {
+   static const uint8_t swdClearErrors[4] = 
       {0,0,0,SWD_DP_ABORT_CLEAR_STICKY_ERRORS_B3|SWD_DP_ABORT_ABORT_AP_B3};
    return swd_writeReg(SWD_WR_DP_ABORT, swdClearErrors);
 }
 
-U8 swd_test(void) {
+uint8_t swd_test(void) {
 
    return swd_connect();
 }

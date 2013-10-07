@@ -30,16 +30,17 @@
 
 //==========================================================================================
 // USB Serial Number
+#ifdef UNIQUE_ID
+#define SERIAL_NO "USBDM-OPENSDA-%lu"
+#else
 #define SERIAL_NO "USBDM-OPENSDA-0001"
+#endif
 #define ProductDescription "USBDM ARM-SWD for OpenSDA"
 
 //==========================================================================================
 // Capabilities of the hardware - used to enable/disable appropriate code
 //
-// CAP_CDC
-//#define HW_CAPABILITY     (CAP_VDDCONTROL|CAP_VDDSENSE|CAP_JTAG_HW|CAP_BDM  |CAP_FLASH|        CAP_RST_IO|CAP_CFVx)
-//#define TARGET_CAPABILITY (CAP_VDDCONTROL|CAP_VDDSENSE|CAP_HCS12 |CAP_HCS08|CAP_RS08 |CAP_CFV1|CAP_RST   |CAP_CFVx|CAP_JTAG|CAP_DSC|CAP_ARM_JTAG|CAP_PST)
-#define HW_CAPABILITY       (CAP_RST_IO|CAP_SWD_HW|CAP_CDC)
+#define HW_CAPABILITY       (CAP_RST_IO|CAP_SWD_HW|CAP_CDC|CAP_CORE_REGS)
 #define TARGET_CAPABILITY   (CAP_RST   |CAP_ARM_SWD|CAP_CDC)
 
 #ifndef PLATFORM

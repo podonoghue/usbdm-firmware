@@ -18,7 +18,7 @@
 //==========================================================================================
 // Capabilities of the hardware - used to enable/disable appropriate code
 //
-#define HW_CAPABILITY     (CAP_VDDCONTROL|CAP_VDDSENSE|CAP_CDC|CAP_BDM|CAP_FLASH)
+#define HW_CAPABILITY     (CAP_VDDCONTROL|CAP_VDDSENSE|CAP_CDC|CAP_BDM|CAP_FLASH|CAP_CORE_REGS)
 #define TARGET_CAPABILITY (CAP_VDDCONTROL|CAP_VDDSENSE|CAP_CDC|CAP_RS08|CAP_HCS08)
 
 // Include common pin assignments

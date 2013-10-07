@@ -18,7 +18,7 @@
 //==========================================================================================
 // Capabilities of the hardware - used to enable/disable appropriate code
 //
-#define HW_CAPABILITY     (CAP_VDDCONTROL|CAP_VDDSENSE|CAP_CDC|CAP_RST_IO|CAP_JTAG_HW|CAP_CFVx_HW|CAP_PST)
+#define HW_CAPABILITY     (CAP_VDDCONTROL|CAP_VDDSENSE|CAP_CDC|CAP_RST_IO|CAP_JTAG_HW|CAP_CFVx_HW|CAP_PST|CAP_CORE_REGS)
 #define TARGET_CAPABILITY (CAP_VDDCONTROL|CAP_VDDSENSE|CAP_CDC|CAP_RST|CAP_CFVx|CAP_JTAG|CAP_PST)
 
 // Include common pin assignments

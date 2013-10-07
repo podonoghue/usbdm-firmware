@@ -11,6 +11,7 @@
          -  Modify the \b Linker options for this target so that the Application Filename is unique (change  \b USBDM_JB16 appropriately)
  */
 
+
 //==========================================================================================
 // Define the following to enable use of USBDM with MC51AC256 Colfire CPU
 // Not extensively tested - may affect other coldfire chips adversely
@@ -35,7 +36,7 @@
 
     This is a bit mask made up of all the debugging options that are to be implemented in the code.
  */
-#define DEBUG (DEBUG_COMMANDS|STACK_DEBUG)
+#define DEBUG (STACK_DEBUG)
 
 // Define for automatic WINUSB Driver loading 
 //#define MS_COMPATIBLE_ID_FEATURE (1)
@@ -60,6 +61,7 @@ extern void dputs(char *msg);
 #define CAP_JTAG_HW     (1<<7)   // Supports JTAG interface (TCK/TDI/TDO/TMS/TRST?)
 #define CAP_SWD_HW      (1<<8)   // Supports SWD interface (SWD/SWCLK)
 #define CAP_CDC         (1<<12)  // Supports CDC USB interface
+#define CAP_CORE_REGS   (1<<31)  // Supports reading core regs
 
 //==========================================================================================
 // Targets and visible capabilities supported - related to above but not exactly!
@@ -125,6 +127,7 @@ extern void dputs(char *msg);
 #define H_USBDM_FREEDOM         25  //!< Freescale FRDM-KL25 board (MK20 chip)
 #define H_USBDM_MKL25Z          26  //!< Experimental MKL25Z
 #define H_USBDM_MK20D5          27  //!< Experimental MK20DX5
+#define H_USBDM_TWR_HCS12       28  //!< TWR HCS12 boards
 
 #if (TARGET_HARDWARE==H_USBDM_JS16CWJ)    ||(TARGET_HARDWARE==H_USBDM_CF_JS16CWJ) || \
 	(TARGET_HARDWARE==H_USBDM_SER_JS16CWJ)||(TARGET_HARDWARE==H_USBDM_CF_SER_JS16CWJ) || \
@@ -179,6 +182,8 @@ extern void dputs(char *msg);
 #include "USBDM_MK20D5.h"
 #elif TARGET_HARDWARE==H_USBDM_FREEDOM
 #include "USBDM_FREEDOM.h"
+#elif TARGET_HARDWARE==H_USBDM_TWR_HCS12
+#include "USBDM_TWR_HCS12.h"
 #else
 #error "Target Hardware not specified (see TARGET_HARDWARE)"
 // To stop lots of further errors!

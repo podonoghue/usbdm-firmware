@@ -8,17 +8,20 @@
 #ifndef CMDPROCESSINGARM_H_
 #define CMDPROCESSINGARM_H_
 
-U8 f_CMD_ARM_CONNECT(void);
-U8 f_CMD_ARM_TARGET_STEP(void); 
-U8 f_CMD_ARM_TARGET_GO(void); 
-U8 f_CMD_ARM_TARGET_HALT(void); 
-U8 f_CMD_ARM_WRITE_MEM(void);
-U8 f_CMD_ARM_READ_MEM(void);
-U8 f_CMD_ARM_WRITE_REG(void);
-U8 f_CMD_ARM_READ_REG(void);
-U8 f_CMD_ARM_WRITE_DREG(void);
-U8 f_CMD_ARM_READ_DREG(void);
-U8 f_CMD_ARM_WRITE_CREG(void);
-U8 f_CMD_ARM_READ_CREG(void);
+#include <stdint.h>
+
+uint8_t f_CMD_ARM_CONNECT(void);
+uint8_t f_CMD_ARM_TARGET_STEP(void); 
+uint8_t f_CMD_ARM_TARGET_GO(void); 
+uint8_t f_CMD_ARM_TARGET_HALT(void); 
+uint8_t f_CMD_ARM_WRITE_MEM(void);
+uint8_t f_CMD_ARM_READ_MEM(void);
+uint8_t f_CMD_ARM_WRITE_REG(void);
+uint8_t f_CMD_ARM_READ_ALL_CORE_REGS(void);
+uint8_t f_CMD_ARM_READ_REG(void);
+uint8_t f_CMD_ARM_WRITE_DREG(void);
+uint8_t f_CMD_ARM_READ_DREG(void);
+uint8_t f_CMD_ARM_WRITE_CREG(void);
+uint8_t f_CMD_ARM_READ_CREG(void);
 
 #endif /* CMDPROCESSINGARM_H_ */

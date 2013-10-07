@@ -25,8 +25,8 @@
 
    Change History
    +===============================================================================================
-   |    Jul 2013 | Added Read all registers                                                 V4.10.6
-   | 22 Oct 2012 | Added modifyDHCSR() and assocaited changes                               V4.9.5
+   | 27 Jul 2013 | Added f_CMD_SWD_READ_ALL_CORE_REGS()                                     V4.10.6   - pgo
+   | 22 Oct 2012 | Added modifyDHCSR() and associated changes                               V4.9.5
    | 30 Aug 2012 | ARM-JTAG & ARM-SWD Changes                                               V4.9.5
    +===============================================================================================
    \endverbatim
@@ -48,11 +48,11 @@
 // DP_SELECT register value to access AHB_AP Bank #0 for memory read/write
 static const uint8_t ARM_AHB_AP_BANK0[4] = {AHB_AP_NUM,  0,  0,  0};
 
-// Initial value of AHB_SP_CSW register
+// Initial value of AHB_SP_CSW register (msb)
 static       uint8_t ahb_ap_csw_defaultValue_B0 = 0;
 
 // Maps size (1,2,4 byes) to CSW control value (size+increment)
-static uint8_t cswValues[] = {
+static const uint8_t cswValues[] = {
 		0,
 		0x40|AHB_AP_CSW_SIZE_BYTE|AHB_AP_CSW_INC_SINGLE,
 		0x40|AHB_AP_CSW_SIZE_HALFWORD|AHB_AP_CSW_INC_SINGLE,
@@ -365,7 +365,7 @@ uint8_t f_CMD_SWD_WRITE_MEM(void) {
 	  break;
    case MS_Long:
       count >>= 2;
-      while (count > 0) {
+      while (count-- > 0) {
      	 temp[3] = *data_ptr++;
     	 temp[2] = *data_ptr++;
     	 temp[1] = *data_ptr++;
@@ -374,7 +374,6 @@ uint8_t f_CMD_SWD_WRITE_MEM(void) {
          if (rc != BDM_RC_OK) {
       	    return rc;	   
          }
-         count--;
       }
  	  break;
    }
@@ -541,18 +540,18 @@ uint8_t  temp[4];
 	  } while (count > 0);
  	  break;
    }
-   return rc;
+   return rc;  
 #endif
 }
 
 // Memory addresses of debug/core registers
-const uint8_t DHCSR[] = {0xE0, 0x00, 0xED, 0xF0}; // RW Debug Halting Control and Status Register
-const uint8_t DCSR[]  = {0xE0, 0x00, 0xED, 0xF4}; // WO Debug Core Selector Register
-const uint8_t DCDR[]  = {0xE0, 0x00, 0xED, 0xF8}; // RW Debug Core Data Register
+static const uint8_t DHCSR_ADDR[] = {0xE0, 0x00, 0xED, 0xF0}; // RW Debug Halting Control and Status Register
+static const uint8_t DCRSR_ADDR[] = {0xE0, 0x00, 0xED, 0xF4}; // WO Debug Core Selector Register
+static const uint8_t DCRDR_ADDR[] = {0xE0, 0x00, 0xED, 0xF8}; // RW Debug Core Data Register
 
-#define DCSR_WRITE_B1         (1<<(16-16))
-#define DCSR_READ_B1          (0<<(16-16))
-#define DCSR_REGMASK_B0       (0x7F)
+#define DCRSR_WRITE_B1         (1<<(16-16))
+#define DCRSR_READ_B1          (0<<(16-16))
+#define DCRSR_REGMASK_B0       (0x7F)
 
 #define DHCSR_DBGKEY_B0       (0xA0<<(24-24))
 #define DHCSR_DBGKEY_B1       (0x5F<<(16-16))
@@ -571,15 +570,15 @@ const uint8_t DCDR[]  = {0xE0, 0x00, 0xED, 0xF8}; // RW Debug Core Data Register
 //! Initiates core register operation (read/write) and
 //! waits for completion
 //!
-//! @param DCSRData - value to write to DCSRD register to control operation
+//! @param DCRSRvalue - value to write to DCSRD register to control operation
 //!
-//! @note DCSRData is used as scratch buffer so must be ram
+//! @note DCRSRvalue is used as scratch buffer so must be ram
 //!
-static uint8_t swd_coreRegisterOperation(uint8_t *DCSRData) {
+static uint8_t swd_coreRegisterOperation(uint8_t *DCRSRvalue) {
    uint8_t retryCount = 40;
    uint8_t rc;
    
-   rc = swd_writeMemoryWord(DCSR, DCSRData);
+   rc = swd_writeMemoryWord(DCRSR_ADDR, DCRSRvalue);
    if (rc != BDM_RC_OK) {
 	  return rc;
    }
@@ -588,43 +587,16 @@ static uint8_t swd_coreRegisterOperation(uint8_t *DCSRData) {
 		 return BDM_RC_ARM_ACCESS_ERROR;
 	  }
 	  // Check complete (use DCSRData as scratch)
-	  rc = swd_readMemoryWord(DHCSR, DCSRData);
+	  rc = swd_readMemoryWord(DHCSR_ADDR, DCRSRvalue);
 	  if (rc != BDM_RC_OK) {
 		 return rc;
 	  }
-   } while ((DCSRData[1] & DHCSR_S_REGRDY_B1) == 0);
+   } while ((DCRSRvalue[1] & DHCSR_S_REGRDY_B1) == 0);
    return BDM_RC_OK;
 }
 
-//! Read ARM-SWD core register
-//!
-//! @note
-//!  commandBuffer\n
-//!   - [2..3]  =>  16-bit register number [MSB ignored]
-//!
-//! @return
-//!  == \ref BDM_RC_OK => success         \n
-//!                                       \n
-//!  commandBuffer                        \n
-//!   - [1..4]  =>  32-bit register value
-//!
-uint8_t f_CMD_SWD_READ_REG(void) {
-   uint8_t rc;
-   
-   // Use commandBuffer as scratch
-   commandBuffer[4+0] = 0;
-   commandBuffer[4+1] = DCSR_READ_B1;
-   commandBuffer[4+2] = 0;
-   commandBuffer[4+3] = commandBuffer[3];
-   // Execute register transfer 
-   rc = swd_coreRegisterOperation(commandBuffer+4);
-   if (rc != BDM_RC_OK) {
-	  return rc;
-   }
-   returnSize = 5;
-   // Read data value from DCDR holding register
-   return swd_readMemoryWord(DCDR, commandBuffer+1);
-}
+#if HW_CAPABILITY&CAP_CORE_REGS
+// Insufficient memory on some chips!
 
 // Maps register index into magic number for ARM device register number
 static const uint8_t regIndexMap[] = {
@@ -667,15 +639,15 @@ uint8_t f_CMD_SWD_READ_ALL_CORE_REGS(void) {
    }
    while (regIndex<=endRegister) {
 	   // Set up command
-	   uint8_t command[4] = {0, DCSR_READ_B1, 0, regIndexMap[regIndex]};
-	   
+	   uint8_t command[4] = {0, DCRSR_READ_B1, 0, 0};
+	   command[3] = regIndexMap[regIndex];
 	   // Execute register transfer command
 	   rc = swd_coreRegisterOperation(command);
 	   if (rc != BDM_RC_OK) {
 		  return rc;
 	   }
-	   // Read register value back (Big-endian) (command is used a buffer)
-	   rc = swd_readMemoryWord(DCDR, command);
+	   // Read register value from DCRDR holding register (Big-endian) (command is used as buffer)
+	   rc = swd_readMemoryWord(DCRDR_ADDR, command);
 	   if (rc != BDM_RC_OK) {
 		  return rc;
 	   }
@@ -688,6 +660,37 @@ uint8_t f_CMD_SWD_READ_ALL_CORE_REGS(void) {
 	   regIndex++;
    }
    return BDM_RC_OK;
+}
+#endif
+
+//! Read ARM-SWD core register
+//!
+//! @note
+//!  commandBuffer\n
+//!   - [2..3]  =>  16-bit register number [MSB ignored]
+//!
+//! @return
+//!  == \ref BDM_RC_OK => success         \n
+//!                                       \n
+//!  commandBuffer                        \n
+//!   - [1..4]  =>  32-bit register value
+//!
+uint8_t f_CMD_SWD_READ_REG(void) {
+   uint8_t rc;
+   
+   // Use commandBuffer as scratch
+   commandBuffer[4+0] = 0;
+   commandBuffer[4+1] = DCRSR_READ_B1;
+   commandBuffer[4+2] = 0;
+   commandBuffer[4+3] = commandBuffer[3];
+   // Execute register transfer 
+   rc = swd_coreRegisterOperation(commandBuffer+4);
+   if (rc != BDM_RC_OK) {
+	  return rc;
+   }
+   returnSize = 5;
+   // Read data value from DCRDR holding register
+   return swd_readMemoryWord(DCRDR_ADDR, commandBuffer+1);
 }
 
 //! Write ARM-SWD core register
@@ -703,14 +706,14 @@ uint8_t f_CMD_SWD_READ_ALL_CORE_REGS(void) {
 uint8_t f_CMD_SWD_WRITE_REG(void) {
    uint8_t rc;
    
-   // Write data value to DCDR holding register
-   rc = swd_writeMemoryWord(DCDR,commandBuffer+4);
+   // Write data value to DCRDR holding register
+   rc = swd_writeMemoryWord(DCRDR_ADDR, commandBuffer+4);
    if (rc != BDM_RC_OK) {
 	  return rc;
    }
    // Use commandBuffer as scratch
    commandBuffer[4+0] = 0;
-   commandBuffer[4+1] = DCSR_WRITE_B1;
+   commandBuffer[4+1] = DCRSR_WRITE_B1;
    commandBuffer[4+2] = 0;
    commandBuffer[4+3] = commandBuffer[3];
    // Execute register transfer 
@@ -731,7 +734,7 @@ static uint8_t modifyDHCSR(uint8_t preserveBits, uint8_t setBits) {
 	   uint8_t debugStepValue[4];
 	   uint8_t rc;
 	   
-	   rc = swd_readMemoryWord(DHCSR, debugStepValue);
+	   rc = swd_readMemoryWord(DHCSR_ADDR, debugStepValue);
 	   if (rc != BDM_RC_OK) {
 	      return rc;
 	   }
@@ -740,7 +743,7 @@ static uint8_t modifyDHCSR(uint8_t preserveBits, uint8_t setBits) {
 	   debugStepValue[2]  = 0;
 	   debugStepValue[3] &= preserveBits;
 	   debugStepValue[3] |= setBits;   
-	   return swd_writeMemoryWord(DHCSR, debugStepValue);	
+	   return swd_writeMemoryWord(DHCSR_ADDR, debugStepValue);	
 }
 
 //! ARM-SWD -  Step over 1 instruction

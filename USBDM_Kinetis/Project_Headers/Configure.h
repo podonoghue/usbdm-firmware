@@ -37,6 +37,9 @@
  */
 #define DEBUG (DEBUG_COMMANDS|USB_PING_DEBUG)
 
+// Define for automatic WINUSB Driver loading 
+//#define MS_COMPATIBLE_ID_FEATURE (1)
+
 #if DEBUG&DEBUG_MESSAGES
 extern void dputs(char *msg);
 #define dprint(x) dputs(x)
@@ -128,10 +131,10 @@ extern void dputs(char *msg);
 //==========================================================================================
 //! Software Version Information
 //
-#define VERSION_MAJOR 4     // 4.10.5 - Last published -- 4.10.4
+#define VERSION_MAJOR 4     // 4.10.6 - Last published -- 4.10.5
 #define VERSION_MINOR 10
-#define VERSION_MICRO 5
-#define VERSION_STR "4.10.5"
+#define VERSION_MICRO 6
+#define VERSION_STR "4.10.6"
 #define VERSION_SW  ((VERSION_MAJOR<<4)+VERSION_MINOR)
 //! Selected hardware platform
 #if TARGET_HARDWARE==H_USBDM_JMxxCLD

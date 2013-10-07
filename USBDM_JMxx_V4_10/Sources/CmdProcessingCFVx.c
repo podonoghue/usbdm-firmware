@@ -34,11 +34,12 @@
    \verbatim
    Change History
    +=======================================================================================
-   |    Sep 2009 | Major changes for V2                                               - pgo
-   -=======================================================================================
+   | 27 Jul 2013 | Added f_CMD_CFVx_READ_ALL_CORE_REGS()                    V4.10.6   - pgo
    | 20 Jan 2011 | Removed setBDMBusy() from f_CMD_JTAG_EXECUTE_SEQUENCE{}            - pgo
    |  9 Jun 2010 | Added f_CMD_JTAG_RESET{}                                           - pgo
    |  9 Jun 2010 | Added f_CMD_JTAG_EXECUTE_SEQUENCE{}                                - pgo
+   |    Sep 2009 | Major changes for V2                                               - pgo
+   -=======================================================================================
    | 25 Sep 2009 | Added f_CMD_CFVX_READ_STATUS_REG{}                                 - pgo
    | 23 Jan 2009 | Many size optimizations made                                       - pgo
    | 13 Jan 2009 | Re-organization for merge with USBDM                               - pgo
@@ -416,6 +417,64 @@ U8 buff[2];
 //======================================================================
 //======================================================================
 
+#if HW_CAPABILITY&CAP_CORE_REGS
+// Insufficient memory !
+
+// Maps register index into magic number for CFVx device register number
+static const uint16_t regIndexMap[] = {
+   CFVx_RegD0, CFVx_RegD1, CFVx_RegD2, CFVx_RegD3, CFVx_RegD4, CFVx_RegD5, CFVx_RegD6, CFVx_RegD7, 
+   CFVx_RegA0, CFVx_RegA1, CFVx_RegA2, CFVx_RegA3, CFVx_RegA4, CFVx_RegA5, CFVx_RegA6, CFVx_RegA7,
+   CFVx_CRegSR, CFVx_CRegPC,
+   };
+//! Read all core registers
+//!
+//! @note
+//!  commandBuffer\n
+//!   - [2]  =>  flag - must be zero
+//!   - [3]  =>  register index to start at
+//!   - [4]  =>  register index to end at
+//!
+//! @return
+//!  == \ref BDM_RC_OK => success         \n
+//!                                       \n
+//!  commandBuffer                        \n
+//!   - [1..N]  =>  32-bit register values
+//!
+uint8_t f_CMD_CFVx_READ_ALL_CORE_REGS(void) {
+   uint8_t rc;
+   uint8_t regIndex    = commandBuffer[3];
+   uint8_t endRegister = commandBuffer[4];
+   uint8_t* outputPtr  = commandBuffer+1;
+   returnSize = 1;
+   if (commandBuffer[2] != 0) {
+	   // Check flag is zero
+	   return BDM_RC_ILLEGAL_PARAMS;
+   }
+   while (regIndex<=endRegister) {
+	   uint16_t regNo = regIndexMap[regIndex];
+	   if (regNo<=CFVx_RegA7) {
+		   // Read A/D Reg
+		   (void)bdmcf_tx_msg(BDMCF_CMD_RAREG+regNo);    // send the command
+	   }
+	   else {
+		   // Read Control Reg
+		   (void)bdmcf_tx_msg(BDMCF_CMD_RCREG);      // send the command
+		   (void)bdmcf_tx_msg(0);                    // and the register address (padded)
+		   (void)bdmcf_tx_msg(regNo);
+	   }
+	   // Write to buffer (target format - Big-endian)
+	   rc = bdmcf_rx(2,outputPtr);
+	   if (rc != BDM_RC_OK) {
+		   return rc;
+	   }
+	   outputPtr  += 4;
+	   returnSize += 4;
+	   regIndex++;
+   }
+   return BDM_RC_OK;
+}
+#endif
+
 //! Write CFVx address/data register
 //!
 //! @note
@@ -456,6 +515,8 @@ U8 rc;
 //!
 U8 f_CMD_CFVx_READ_REG(void) {
 
+	// Note - manual appears wrong
+	// When CPU is running the response is NOT READY (1,00000000,00000000) not bus error
    returnSize  = 5;
    (void)bdmcf_tx_msg(BDMCF_CMD_RAREG+(commandBuffer[3]&0x0F));    /* send the command */
    return bdmcf_rx(2,commandBuffer+1);

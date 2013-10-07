@@ -24,11 +24,13 @@
 \verbatim
 Change History
 +=================================================================================
+| 15 Jul 2013 | Changed serial number to use chip UID 
 | 04 Sep 2011 | Ported to MK20DX128
 +=================================================================================
 \endverbatim
 */
 #include <string.h>
+#include <stdio.h>
 #include "derivative.h" /* include peripheral declarations */
 #include "Common.h"
 #include "Configure.h"
@@ -1490,7 +1492,16 @@ const uint8_t  *dataPtr = NULL;
          }
          if (descriptorIndex == 0) { // Language bytes
             dataPtr  = stringDescriptors[0];
+         }
+#ifdef UNIQUE_ID
+         else if (descriptorIndex == 3) { // Serial number
+        	uint32_t uid = SIM_UIDH^SIM_UIDMH^SIM_UIDML^SIM_UIDL;
+        	char buff[20];
+        	snprintf(buff, sizeof(buff), SERIAL_NO, uid);
+            dataPtr = commandBuffer;
+            utf8ToStringDescriptor((unsigned char *)buff, commandBuffer);
          } 
+#endif
          else { // Strings are stored in limited UTF-8 and need conversion
             dataPtr = commandBuffer;
             utf8ToStringDescriptor(stringDescriptors[descriptorIndex], commandBuffer);

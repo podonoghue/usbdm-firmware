@@ -22,7 +22,7 @@
 //==========================================================================================
 // Capabilities of the hardware - used to enable/disable appropriate code
 //
-#define HW_CAPABILITY     (CAP_RST_IO|CAP_CFVx_HW|CAP_JTAG_HW)
+#define HW_CAPABILITY     (CAP_RST_IO|CAP_CFVx_HW|CAP_JTAG_HW|CAP_CORE_REGS)
 #define TARGET_CAPABILITY (CAP_RST   |CAP_CFVx   |CAP_JTAG   |CAP_DSC |CAP_ARM_JTAG)
 
 #ifndef PLATFORM

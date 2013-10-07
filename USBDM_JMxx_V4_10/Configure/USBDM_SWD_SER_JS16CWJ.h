@@ -21,7 +21,7 @@
 //==========================================================================================
 // Capabilities of the hardware - used to enable/disable appropriate code
 //
-#define HW_CAPABILITY     (CAP_RST_IO|CAP_CDC|CAP_BDM|CAP_SWD_HW)
+#define HW_CAPABILITY     (CAP_RST_IO|CAP_CDC|CAP_BDM|CAP_SWD_HW|CAP_CORE_REGS)
 #define TARGET_CAPABILITY (CAP_HCS12 |CAP_CDC|CAP_HCS08|CAP_CFV1|CAP_ARM_SWD)
 
 #ifndef PLATFORM

@@ -32,6 +32,8 @@
    \verbatim
    Change History
    +=======================================================================================
+   | 27 Jul 2013 | Changes to bdmcf_resync() to improve error detection     V4.10.6   - pgo
+   | 27 Jul 2013 | Added BDM_RC_CF_NOT_READY response when CF running       V4.10.6   - pgo
    |  4 Aug 2011 | Some changes to default SPI Speed code                      V3.7   - pgo
    |  4 Aug 2011 | Added JTAG_DRV control                                      V3.7   - pgo
    |  1 Aug 2010 | Split JTAG code to new module                               V3.5   - pgo
@@ -176,6 +178,7 @@ U16  dataOut = BDMCF_CMD_NOP; // Dummy command to send
          switch (data) {
             case BDMCF_RES_BUS_ERROR : return BDM_RC_CF_BUS_ERROR;
             case BDMCF_RES_ILLEGAL   : return BDM_RC_CF_ILLEGAL_COMMAND;
+            case BDMCF_RES_NOT_READY : return BDM_RC_CF_NOT_READY;
             default                  : return BDM_RC_NO_CONNECTION;
          }
       *(U16*)dataPtr  = data;
@@ -251,6 +254,7 @@ U8 status;
    return(status);
 }
 
+#if 1
 //! Resynchronizes communication with the target in case of noise on the CLK line, etc.
 //!
 //! @return  \ref BDM_RC_OK                    => success                     \n
@@ -259,14 +263,25 @@ U8 status;
 U8 bdmcf_resync(void) {
 U8  bitCount;
 U16 data;
+U8 status;
 
    (void)bdmcf_tx_msg(BDMCF_CMD_NOP);     // Send in 3 NOPs to clear any error
    (void)bdmcf_tx_msg(BDMCF_CMD_NOP);
-   (void)bdmcf_rx_msg(&data);
-   if ((data&3)==0) {
-      // The last NOP did not return the expected value (at least one of the two bits should be 1)
-      return(BDM_RC_NO_CONNECTION);             
+   status = bdmcf_rx_msg(&data);
+
+   if (status == 1) {
+	   // Check for cases that are unlikely to be chance on loss of sync
+	   // and likely to confuse the sync which looks for a single zero bit
+	   switch (data) {
+	      case BDMCF_RES_BUS_ERROR :	// 1,00000000,00000001 
+	    	  return BDM_RC_CF_BUS_ERROR; 
+	      case BDMCF_RES_NOT_READY :	// 1,00000000,00000000 
+	    	  return BDM_RC_CF_NOT_READY;
+	      default                  :    // Fall through
+	    	  break; 
+	   }	   
    }
+   
    for (bitCount=20; bitCount>0; bitCount--) {  
 	  // Now start sending in another NOP and watch the result
       if (bdmcf_txrx_start()==0) {
@@ -281,6 +296,39 @@ U16 data;
    
    return(BDM_RC_OK);
 }
+#else
+
+	//! Resynchronizes communication with the target in case of noise on the CLK line, etc.
+	//!
+	//! @return  \ref BDM_RC_OK                    => success                     \n
+	//!          \ref BDM_RC_NO_CONNECTION         => no connection with target   
+	//!
+	U8 bdmcf_resync(void) {
+	U8  bitCount;
+	U16 data;
+
+	   (void)bdmcf_tx_msg(BDMCF_CMD_NOP);     // Send in 3 NOPs to clear any error
+	   (void)bdmcf_tx_msg(BDMCF_CMD_NOP);
+	   (void)bdmcf_rx_msg(&data);
+	   if ((data&3)==0) {
+	      // The last NOP did not return the expected value (at least one of the two bits should be 1)
+	      return(BDM_RC_NO_CONNECTION);             
+	   }
+	   for (bitCount=20; bitCount>0; bitCount--) {  
+		  // Now start sending in another NOP and watch the result
+	      if (bdmcf_txrx_start()==0) {
+	         break;   // The first 0 is the status bit
+	      }
+	   }
+	   if (bitCount==0) { // No status bit found in 20 bits
+	      return(BDM_RC_NO_CONNECTION);
+	   }
+	   // Transmitted & received the status bit, finish the NOP
+	   bdmcf_tx16(BDMCF_CMD_NOP);
+	   
+	   return(BDM_RC_OK);
+	}
+#endif
 
 //!  Sets the CF BDM interface hardware to an idle condition
 //!

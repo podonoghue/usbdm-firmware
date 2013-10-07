@@ -328,6 +328,7 @@ static const struct {
 #endif   
 };
 
+#ifdef MS_COMPATIBLE_ID_FEATURE    	  
 static const MS_CompatibleIdFeatureDescriptor msCompatibleIdFeatureDescriptor = {
 	/* lLength;             */  CONST_NATIVE_TO_LE32((uint32_t)sizeof(MS_CompatibleIdFeatureDescriptor)),
 	/* wVersion;            */  CONST_NATIVE_TO_LE16(0x0100),
@@ -362,6 +363,8 @@ static const MS_PropertiesFeatureDescriptor msPropertiesFeatureDescriptor = {
 	                           "-\000A\0008\0000\000F\000C\0007\0008\000C\0007\000E\000A\0001\000"
 	                           "}\000"
 }; 
+#endif
+
 #pragma MESSAGE DEFAULT C3303 //  Implicit concatenation of strings
 
 #define VENDOR_CODE 0x30
@@ -1190,7 +1193,7 @@ static void initialiseEndpoints(void) {
 
 #if (HW_CAPABILITY&CAP_CDC)
    //ToDo - check is sensible on re-init????
-   ep3StartInTransaction();		  // Interrupt pipe IN - status
+   ep3StartInTransaction();	    // Interrupt pipe IN - status
    ep4InitialiseBDTOut();         // Tx pipe OUT
    CTL_ODDRST = 1;
    CTL_ODDRST = 0;
@@ -1549,7 +1552,7 @@ static void handleSetConfiguration( void ) {
    setUSBconfiguredState(ep0SetupBuffer.wValue.be.lo);
 
    ep1InitialiseBDTOut();
-//   initialiseEndpoints();
+   initialiseEndpoints(); // ToDo Check this
 
    ep0StartInTransaction( 0, NULL, DATA1 ); // Tx empty Status packet
 }
@@ -1686,6 +1689,7 @@ static void handleSetupToken( void ) {
 				 ep0StartInTransaction( sizeof(versionResponse),  versionResponse, DATA1 );
 				 }
 				 break;
+#ifdef MS_COMPATIBLE_ID_FEATURE    	  
 	          case VENDOR_CODE:	        	  
                  // ToDo: The commented code should be used but seems to prevent the WCID process from completing!
                  //       Needs investigation & debugging to find reason
@@ -1703,6 +1707,7 @@ static void handleSetupToken( void ) {
 //	                handleUnexpected();
 //	             }
 	        	 break;
+#endif
 	          case CMD_USBDM_ICP_BOOT :
 	        	  // Reboots to ICP mode
                   ep0State.callback = resetDeviceCallback;

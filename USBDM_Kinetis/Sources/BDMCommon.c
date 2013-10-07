@@ -163,8 +163,8 @@ U8 initTimers(void) {
 
 //! Interrupt function servicing the IC interrupt from Vdd changes
 //! This routine has several purposes:
-//!  - Triggers POR into Debug mode on HCS08/RS08 targets\n
-//!  - Turns off Target power on short circuits\n
+//!  - Triggers POR into Debug mode on RS08/HCS08/CFV1 targets\n
+//!  - Turns off Target power on overload\n
 //!  - Updates Target power status\n
 //!
 void bdm_targetVddSense(void) {
@@ -210,8 +210,9 @@ void bdm_targetVddSense(void) {
 //!
 void bdm_resetSense(void) {
 //   CLEAR_RESET_SENSE_FLAG();             // Acknowledge RESET IC Event
-   if (RESET_IS_LOW())
+   if (RESET_IS_LOW()) {
       cable_status.reset = RESET_DETECTED;  // Record that reset was asserted
+   }
 }
 #endif
 

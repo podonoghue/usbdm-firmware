@@ -60,8 +60,8 @@
 //
 #if (HW_CAPABILITY&CAP_CDC)
 #define CTS_IN             // Not used
-#define DTR_OUT            PTGD_PTGD2   // Not connected
-#define DTR_OUT_DDR        PTGDD_PTGDD2 // Not connected
+#define DTR_OUT            PTGD_PTGD2   
+#define DTR_OUT_DDR        PTGDD_PTGDD2
 
 #define CTS_IS_HIGH()      (CTS_IN!=0)
 #define DTR_INACTIVE()     (DTR_OUT_DDR = 1, DTR_OUT=0)

@@ -4,6 +4,7 @@
 #ifndef _COMMANDS_H_
 #define _COMMANDS_H_
 
+#include "Configure.h"
 
 //! \brief Maximum USB transfer size - entire transfer!
 //!
@@ -12,7 +13,7 @@
 #error "Please define CPU"
 #endif
 
-#if (CPU==JMxx)||(CPU==UF32)
+#if (CPU==JMxx)||(CPU==UF32)||(CPU==MKL25Z4)||(CPU==MK20D5)
 #define MAX_COMMAND_SIZE       (254)
 #else
 #define MAX_COMMAND_SIZE       (145)
@@ -79,7 +80,8 @@ typedef enum {
 
    CMD_USBDM_WRITE_MEM             = 32,  //!< Write to target memory
    CMD_USBDM_READ_MEM              = 33,  //!< Read from target memory
-
+   CMD_USBDM_READ_ALL_REGS         = 34,  //!< Read all target core registers
+   
    //CMD_USBDM_TRIM_CLOCK            = 34,  //!< Trim target clock - deleted in V3.2
    //CMD_USBDM_RS08_FLASH_ENABLE     = 35,  //!< Enable target flash programming (Vpp on)
    //CMD_USBDM_RS08_FLASH_STATUS     = 36,  //!< Status of target flash programming
@@ -111,7 +113,7 @@ typedef enum  {
  BDM_RC_USB_DEVICE_REMOVED                     = 11,    //!< BDM Open Failed - LIBUSB_ERROR_NO_DEVICE - enumerated device has been removed
  BDM_RC_USB_RETRY_OK                           = 12,    //!< USB Debug use only
  BDM_RC_UNEXPECTED_RESET                       = 13,    //!< Target reset was detected
- //
+ BDM_RC_CF_NOT_READY                           = 14,    //!< Coldfire 2,3,4 Not ready response
  BDM_RC_UNKNOWN_TARGET                         = 15,    //!< Target unknown or not supported by this BDM
  BDM_RC_NO_TX_ROUTINE                          = 16,    //!< No Tx routine available at measured BDM communication speed
  BDM_RC_NO_RX_ROUTINE                          = 17,    //!< No Rx routine available at measured BDM communication speed
@@ -374,6 +376,11 @@ typedef enum {
    CFV1_RegA6     = 14, //!< A6
    CFV1_RegA7     = 15, //!< A7
    CFV1_PSTBASE   = 16, //!< Start of PST registers, access as CFV1_PSTBASE+n
+   CFV1_RegOTHER_A7  = 0xC0|0,  //!< Other A7 (not active in target)
+   CFV1_RegVBR       = 0xC0|1,  //!< Vector Base register
+   CFV1_RegCPUCR     = 0xC0|2,  //!< CPUCR
+   CFV1_RegSR        = 0xC0|14, //!< Status register
+   CFV1_RegPC        = 0xC0|15, //!< Program Counter
 } CFV1_Registers_t;
 
 //! regNo Parameter for USBDM_ReadReg() with CFVx target
@@ -442,23 +449,23 @@ typedef enum {
 } CFV1_CRegisters_t;
 
 //! regNo Parameter for USBDM_ReadCReg() with CFVx target
-//!
+//! Note - These values vary with processor
 typedef enum {
-   CFVx_CRegD0        = 0x80, //!< D0-D7
-   CFVx_CRegD1,
-   CFVx_CRegD2,
-   CFVx_CRegD3,
-   CFVx_CRegD4,
-   CFVx_CRegD5,
-   CFVx_CRegD6,
-   CFVx_CRegD7,
-   CFVx_CRegA0,               //!< A0-A7
-   CFVx_CRegA1,
-   CFVx_CRegA2,
-   CFVx_CRegA3,
-   CFVx_CRegA4,
-   CFVx_CRegA5,
-   CFVx_CRegA6,
+//   CFVx_CRegD0        = 0x80, //!< D0-D7 not available on all targets
+//   CFVx_CRegD1,
+//   CFVx_CRegD2,
+//   CFVx_CRegD3,
+//   CFVx_CRegD4,
+//   CFVx_CRegD5,
+//   CFVx_CRegD6,
+//   CFVx_CRegD7,
+//   CFVx_CRegA0,               //!< A0-A7
+//   CFVx_CRegA1,
+//   CFVx_CRegA2,
+//   CFVx_CRegA3,
+//   CFVx_CRegA4,
+//   CFVx_CRegA5,
+//   CFVx_CRegA6,
    CFVx_CRegUSER_SP,
    CFVx_CRegOTHER_SP  = 0x800, //!< Other A7 (not active in target)
    CFVx_CRegVBR       = 0x801, //!< Vector Base register
@@ -670,6 +677,13 @@ typedef enum {
    PIN_SWD_3STATE     = (1<<PIN_SWD_OFFS),   //!< Set SWD 3-state
    PIN_SWD_LOW        = (2<<PIN_SWD_OFFS),   //!< Set SWD low
    PIN_SWD_HIGH       = (3<<PIN_SWD_OFFS),   //!< Set SWD high
+
+   PIN_SWCLK_OFFS     = (12),
+   PIN_SWCLK          = (3<<PIN_SWCLK_OFFS),   //!< Mask for SWD values (PIN_SWCLK_LOW, PIN_SWCLK_HIGH & PIN_SWCLK_3STATE)
+   PIN_SWCLK_NC       = (0<<PIN_SWCLK_OFFS),   //!< No change
+   PIN_SWCLK_3STATE   = (1<<PIN_SWCLK_OFFS),   //!< Set SWD 3-state
+   PIN_SWCLK_LOW      = (2<<PIN_SWCLK_OFFS),   //!< Set SWD low
+   PIN_SWCLK_HIGH     = (3<<PIN_SWCLK_OFFS),   //!< Set SWD high
 
    PIN_NOCHANGE       = 0,    //!< No change to pins (used to get pin status)
    PIN_RELEASE        = -1,   //!< Release all pins (go to default for current target)
