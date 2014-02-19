@@ -47,7 +47,7 @@ static const Scidata spiColdfireSettings[] = {
 //! @param freq - frequency to use
 //!
 uint8_t initDSPIColdfire(uint32_t freq /* kHz */) {
-   int index;
+   unsigned index;
    for(index=0; index<sizeof(spiColdfireSettings)/sizeof(spiColdfireSettings[0]); index++) {
       if (spiColdfireSettings[index].freq <= freq) {
          break;

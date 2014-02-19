@@ -11,7 +11,6 @@
          -  Modify the \b Linker options for this target so that the Application Filename is unique (change  \b USBDM_JB16 appropriately)
  */
 
-
 //==========================================================================================
 // Define the following to enable use of USBDM with MC51AC256 Colfire CPU
 // Not extensively tested - may affect other coldfire chips adversely
@@ -124,12 +123,14 @@ extern void dputs(char *msg);
 #define H_USBDM_TWR_CFVx        22  //!< TWR Coldfire Vx boards
 #define H_USBDM_SWD_SER_JS16CWJ 23  //!< USBDM MC9S08JS16CWJ with BDM, SWD & Serial interfaces
 #define H_USBDM_SWD_JS16CWJ     24  //!< USBDM MC9S08JS16CWJ with BDM & SWD interfaces
-#define H_USBDM_FREEDOM         25  //!< Freescale FRDM-KL25 board (MK20 chip)
+#define H_USBDM_OPENSDA         25  //!< Freescale FRDM-KL25 board (MK20 chip)
 #define H_USBDM_MKL25Z          26  //!< Experimental MKL25Z
 #define H_USBDM_MK20D5          27  //!< Experimental MK20DX5
 #define H_USBDM_TWR_HCS12       28  //!< TWR HCS12 boards
 
-#if (TARGET_HARDWARE==H_USBDM_JS16CWJ)    ||(TARGET_HARDWARE==H_USBDM_CF_JS16CWJ) || \
+#if (TARGET_HARDWARE==H_USBDM_OPENSDA) || (TARGET_HARDWARE==H_USBDM_MKL25Z) || (TARGET_HARDWARE==H_USBDM_MK20D5)
+#include "derivative.h"
+#elif (TARGET_HARDWARE==H_USBDM_JS16CWJ)||(TARGET_HARDWARE==H_USBDM_CF_JS16CWJ) || \
 	(TARGET_HARDWARE==H_USBDM_SER_JS16CWJ)||(TARGET_HARDWARE==H_USBDM_CF_SER_JS16CWJ) || \
 	(TARGET_HARDWARE==H_USBDM_SWD_SER_JS16CWJ) || (TARGET_HARDWARE==H_USBDM_SWD_JS16CWJ)
 #include <mc9s08js16.h>
@@ -140,10 +141,10 @@ extern void dputs(char *msg);
 //==========================================================================================
 //! Software Version Information
 //
-#define VERSION_MAJOR 4     // 4.10.3 - Last published -- 4.10.0
+#define VERSION_MAJOR 4     // 4.10.6 - Last published -- 4.10.5
 #define VERSION_MINOR 10
-#define VERSION_MICRO 5
-#define VERSION_STR "4.10.5"
+#define VERSION_MICRO 6
+#define VERSION_STR "4.10.6.10"
 #define VERSION_SW  ((VERSION_MAJOR<<4)+VERSION_MINOR)
 //! Selected hardware platform
 #if TARGET_HARDWARE==H_USBDM_JMxxCLD
@@ -180,8 +181,8 @@ extern void dputs(char *msg);
 #include "USBDM_MKL25Z.h"
 #elif TARGET_HARDWARE==H_USBDM_MK20D5
 #include "USBDM_MK20D5.h"
-#elif TARGET_HARDWARE==H_USBDM_FREEDOM
-#include "USBDM_FREEDOM.h"
+#elif TARGET_HARDWARE==H_USBDM_OPENSDA
+#include "USBDM_OpenSDA.h"
 #elif TARGET_HARDWARE==H_USBDM_TWR_HCS12
 #include "USBDM_TWR_HCS12.h"
 #else
@@ -214,7 +215,11 @@ extern void dputs(char *msg);
 #define HW_UF        0xC0
 #define HW_ARM       0x40
 
+#if (TARGET_HARDWARE==H_USBDM_OPENSDA) || (TARGET_HARDWARE==H_USBDM_MKL25Z) || (TARGET_HARDWARE==H_USBDM_MK20D5)
+#define VERSION_HW  (HW_ARM+TARGET_HARDWARE)
+#else
 #define VERSION_HW  (HW_JM+TARGET_HARDWARE)
+#endif
 
 //===========================================================================================
 // Platforms

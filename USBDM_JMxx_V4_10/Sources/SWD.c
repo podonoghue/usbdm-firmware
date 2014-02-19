@@ -23,9 +23,10 @@
    \endverbatim
 
    Change History
-   +===============================================================================================
+   +==================================================================================================
+   | 10 Feb 2014 | Extended retry times to allow for slow clocks               V4.10.6.20
    | 30 Aug 2012 | ARM-JTAG & ARM-SWD Changes                                               V4.9.5
-   +===============================================================================================
+   +==================================================================================================
    \endverbatim
 */
 
@@ -185,9 +186,14 @@ void swd_txIdle8(void) {
 //!
 uint8_t swd_sendCommandWithWait(uint8_t command) {
    asm {
-      mov    #20,rxTiming1                  // Set up retry count
-      sta    txTiming1                      // Save data (for retry)
-      
+	  sta    txTiming1                      // Save data (for retry)
+
+	  ldx    #(2000/250)                    // Set up outer retry count
+
+   retry_outer:
+	  pshx                                  // Save outer retry count
+      mov    #250,rxTiming1                 // reset inner retry count
+
    retry:
       lda    txTiming1                      // Get Tx data
       mov    #SPIxC2_M_8,SPIxC2             // Initialise SPI (8 bit)
@@ -262,6 +268,9 @@ uint8_t swd_sendCommandWithWait(uint8_t command) {
       
       // Check for wait timeout
       dbnz   rxTiming1,retry
+      
+      pulx
+      dbnzx  retry_outer   
       bra    done
       
    identifyError:

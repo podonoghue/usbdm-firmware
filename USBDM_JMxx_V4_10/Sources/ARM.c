@@ -64,7 +64,7 @@
 #define ACK_WAIT                    (0x01) //!< Access incomplete - try again
                                    
 //! How many times to retry a MEM-AP access
-#define MAX_ARM_RETRY               (30)
+#define MAX_ARM_RETRY               (500)
 
 #define ARM_WR_ABORT_B3     (0x01)
 
@@ -119,7 +119,7 @@ U8 arm_readReg(U8 regNo, U8 *data) {
    static const U8 apDpRegNo[] = {0, DP_AP_READ|DP_CTRL_STAT_REG, DP_AP_READ|DP_SELECT_REG, DP_AP_READ|DP_RDBUFF_REG,
                                   DP_AP_READ|0, DP_AP_READ|2, DP_AP_READ|4, DP_AP_READ|6};
    U8 ack;
-   U8 retry = MAX_ARM_RETRY;  
+   U16 retry = MAX_ARM_RETRY;  
    if ((regNo == 0) || (regNo > 7)) {
       return BDM_RC_ILLEGAL_PARAMS;
    }
@@ -162,7 +162,7 @@ U8 arm_writeReg(U8 regNo, const U8 *data) {
    static const U8 apDpRegNo[] = {DP_AP_WRITE|0, DP_AP_WRITE|DP_CTRL_STAT_REG, DP_AP_WRITE|DP_SELECT_REG, DP_AP_WRITE|DP_RDBUFF_REG,
 		                          DP_AP_WRITE|0, DP_AP_WRITE|2, DP_AP_WRITE|4, DP_AP_WRITE|6};
    U8 ack;
-   U8 retry = MAX_ARM_RETRY;  
+   U16 retry = MAX_ARM_RETRY;  
    if (regNo > 7) {
       return BDM_RC_ILLEGAL_PARAMS;
    }
@@ -260,7 +260,7 @@ U8 arm_repeatWriteReg(const U8 *data) {
    // 3-bit code to access register for write
    static const U8 apDpRegNo = DP_AP_WRITE|6;
    U8 ack;
-   U8 retry = MAX_ARM_RETRY;  
+   U16 retry = MAX_ARM_RETRY;  
    jtag_transition_shift(JTAG_SHIFT_DR);
    for(;;) {
       // Write write-operation/read status, stay in SHIFT-DR
@@ -368,7 +368,7 @@ U8 arm_writeAPReg(const U8 *address, const U8 *data) {
 U8 arm_readAP(U8 numWords, const U8 *address, U8 *data) {
    U8 ack;
    U8 increment;
-   U8 retry = MAX_ARM_RETRY;
+   U16 retry = MAX_ARM_RETRY;
    U8 reg32RnW = DP_AP_READ|((address[1]&0x0C)>>1);
    U8 selectData[4];
    selectData[0] = address[0];
@@ -455,7 +455,7 @@ U8 arm_readAP(U8 numWords, const U8 *address, U8 *data) {
 //!
 U8 arm_writeAP(U8 numWords, const U8 *address, U8 *dataOutPtr, U8 *status) {
    U8 ack;
-   U8 retry = MAX_ARM_RETRY;
+   U16 retry = MAX_ARM_RETRY;
    U8 reg32RnW = DP_AP_WRITE|((address[1]&0x0C)>>1);
    U8 selectData[4];
    selectData[0] = address[0];

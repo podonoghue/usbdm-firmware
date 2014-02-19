@@ -1,0 +1,15 @@
+-Ms
+-D__NO_FLOAT__
+-DBOOTLOADER
+-DTARGET_HARDWARE=H_USBDM_JS16CWJ
+-I"$(ProjDirPath)/Configure"
+-I"$(MCUToolsBaseDirEnv)/lib/hc08c/device/include"
+-I"$(MCUToolsBaseDirEnv)/lib/hc08c/include"
+-I"$(MCUToolsBaseDirEnv)/lib/hc08c/device/asm_include"
+-I"$(ProjDirPath)/Sources"
+-BfaTSRON
+-Qvtpnone
+-F2
+-ViewHidden
+-WmsgFob"%f%e:%l:%k:%d %m\n"
+-Cs08

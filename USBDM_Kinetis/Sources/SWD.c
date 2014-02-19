@@ -23,9 +23,10 @@
    \endverbatim
 
    Change History
-   +===============================================================================================
+   +==================================================================================================
+   | 10 Feb 2014 | Dramatically extended retry times to allow for slow clocks               V4.10.6.20
    | 30 Aug 2012 | ARM-JTAG & ARM-SWD Changes                                               V4.9.5
-   +===============================================================================================
+   +==================================================================================================
    \endverbatim
 */
 
@@ -73,9 +74,8 @@
 //! @return 0/1 indicating even/odd parity
 //!
 __forceinline
-static inline uint8_t calcParity(uint32_t data) {
-   data = (data>>16)^data;
-   data = (data>>8)^data;
+static inline uint8_t calcParity(const uint8_t dataptr[]) {
+   uint32_t data = dataptr[0]^dataptr[1]^dataptr[2]^dataptr[3];
    data = (data>>4)^data;
    data = (data>>2)^data;
    data = (data>>1)^data;
@@ -101,7 +101,9 @@ void swd_init(void) {
    SWD_OUT_INIT();
    SWD_IN_INIT();
    RESET_OUT_INIT();
+#ifdef RESET_IN_INIT
    RESET_IN_INIT();
+#endif
 #ifdef SWCLK_ENABLE
    SWCLK_ENABLE();
 #endif
@@ -134,7 +136,9 @@ void swd_off( void ) {
    SWD_OUT_FINI();
    SWD_IN_FINI();
    RESET_OUT_FINI();
+#ifdef RESET_IN_FINI
    RESET_IN_FINI();
+#endif
 }
 
 static const int ctas_8bit  = 0;
@@ -184,7 +188,7 @@ static inline void spi_mark_tx8(uint8_t data) {
 __forceinline
 static inline void spi_mark_tx32_parity(const uint8_t *data) {
    SWD_ENABLE();
-   uint8_t parity = calcParity(*(uint32_t *) data);
+   uint8_t parity = calcParity(data);
    spi_setCTAR1(SPI_CTAR_MASK|SPI_CTAR_FMSZ(9-1));
 
    SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_Xbit)|SWD_PUSHR_TX|SPI_PUSHR_CONT_MASK|SPI_PUSHR_TXDATA((data[3]<<1)|1);
@@ -246,7 +250,7 @@ static inline uint8_t spi_rx32_parity(uint8_t *receive) {
    receive[1]  = SPI0_POPR;
    dummy       = SPI0_POPR;
    receive[0]  = dummy;
-   return ((dummy>>8)!=calcParity(*(uint32_t *)receive))?BDM_RC_ARM_PARITY_ERROR:BDM_RC_OK;   
+   return ((dummy>>8)!=calcParity(receive))?BDM_RC_ARM_PARITY_ERROR:BDM_RC_OK;
 }
 
 #if 0
@@ -322,7 +326,7 @@ static inline uint8_t spi_tx8_rx4(uint8_t command) {
 //!    - EXIT  SWCLK=unchanged(high), SWDIO=3-state
 //!
 __forceinline
-void inline swd_txIdle8(void) {
+inline void swd_txIdle8(void) {
    spi_tx8(0);
 }
 
@@ -352,7 +356,7 @@ void inline swd_txIdle8(void) {
 //!    == \ref BDM_RC_NO_CONNECTION   => Unexpected/no response from target
 //!
 uint8_t swd_sendCommandWithWait(uint8_t command) {
-   int retry  = 20; // Set up retry count
+   int retry  = 2000; // Set up retry count
    uint8_t rxData;
    uint8_t rc = BDM_RC_OK;
    spi_tx8(command);           // Tx command
@@ -401,7 +405,7 @@ static void swd_tx32(const uint8_t *data) {
 
 //! Switches interface to SWD
 //!
-//! Reference ARM® Debug Interface v5 Architecture Specification
+//! Reference ARM Debug Interface v5 Architecture Specification
 //!           ADIv5.1 Supplement - 6.2.1 JTAG to Serial Wire switching
 //!
 //! Sequence as follows:
@@ -470,7 +474,7 @@ uint8_t swd_connect(void) {
 //!   SWD_RD_AP_REGx   - Value from last AP read, clear READOK flag in STRL/STAT and INITIATE next AP read, FAULT on sticky error 
 //!
 uint8_t swd_readReg(uint8_t command, uint8_t *data) {
-   int retry  = 20;            // Set up retry count
+   int retry  = 2000;            // Set up retry count
    uint8_t ack;
    uint8_t rc;
    ack = spi_tx8_rx4(command)>>1; // Tx command & get ACK (1st attempt)
@@ -544,7 +548,7 @@ uint8_t swd_readReg(uint8_t command, uint8_t *data) {
 //!   SWD_WR_AP_REGx    - Write to AP register.  May initiate action e.g. memory access.  Result is pending, FAULT on sticky error.
 //!
 uint8_t swd_writeReg(uint8_t command, const uint8_t *data) {
-   int retry = 20;            // Set up retry count
+   int retry = 2000;            // Set up retry count
    uint8_t ack;
    ack = spi_tx8_rx4(command)>>1; // Tx command & get ACK (1st attempt)
    while (ack != SWD_ACK_OK) {
@@ -687,15 +691,147 @@ uint8_t swd_abortAP(void) {
    return swd_writeReg(SWD_WR_DP_ABORT, swdClearErrors);
 }
 
-uint8_t swd_test(void) {
-//   uint8_t testValue[] = {0xF0,0xAA,0x55,0x0F};
-//   swd_txIdle8();
-//   swd_tx32(testValue);
-//   swd_rx32(testValue);
+#define MDM_AP_CONTROL 0x01000004
+#define MDM_AP_STATUS  0x01000000
+#define MDM_AP_IDR     0x0100003F
 
-   swd_JTAGtoSWD();
+#define MDM_AP_CONTROL_MASS_ERASE_REQUEST (1<<0)
+#define MDM_AP_CONTROL_DEBUG_REQUEST      (1<<2)
+#define MDM_AP_CONTROL_RESET_REQUEST      (1<<3)
+#define MDM_AP_CONTROL_VLLDBGREQ          (1<<5)
+#define MDM_AP_CONTROL_VLLDBGACK          (1<<6)
+#define MDM_AP_CONTROL_LLS_VLLSx_ACK      (1<<7)
+
+#define MDM_AP_STATUS_FLASH_READY         (1<<1)
+#define MDM_AP_STATUS_MASS_ERASE_ENABLE   (1<<5)
+
+#define MDM_AP_CONTROL_HALT_VALUE      (MDM_AP_CONTROL_RESET_REQUEST)
+#define MDM_AP_CONTROL_ERASE_VALUE     (MDM_AP_CONTROL_HALT_VALUE|MDM_AP_CONTROL_MASS_ERASE_REQUEST)
+
+#define DP_CONTROL_CSYSPWRUPREG  (1<<30)
+#define DP_CONTROL_CDBGPWRUPREG  (1<<28)
+
+#define DP_CONTROL_VALUE (DP_CONTROL_CSYSPWRUPREG|DP_CONTROL_CDBGPWRUPREG)
+
+#define SETTLE_COUNT (1000)  // How long to wait for Power-on bounces
+
+uint8_t massErase(void) {
+   // Compressed address for MDM-AP.Status register
+   static const uint8_t statusRegAddress[2]   = { (MDM_AP_STATUS>>24)&0xFF, MDM_AP_STATUS&0xFF };
+   // Compressed address for MDM-AP.Control register
+   static const uint8_t controlRegAddress[2]   = { (MDM_AP_CONTROL>>24)&0xFF, MDM_AP_CONTROL&0xFF };
+   static const uint8_t controlValueWrite[4]   = { (MDM_AP_CONTROL_ERASE_VALUE>>24)&0xFF, (MDM_AP_CONTROL_ERASE_VALUE>>16)&0xFF, 
+                                                   (MDM_AP_CONTROL_ERASE_VALUE>>8)&0xFF,  (MDM_AP_CONTROL_ERASE_VALUE>>0)&0xFF };
+   uint8_t valueRead[4];
+   int eraseWait;
+   uint8_t rc;
+
+   // Wait for flash ready
+   for (eraseWait=0; eraseWait<10000; eraseWait++) {
+      rc = swd_readAPReg(statusRegAddress, valueRead);      
+      if (rc != BDM_RC_OK) {
+         continue;
+      }  
+      if ((valueRead[3]&MDM_AP_STATUS_FLASH_READY) != 0) {
+         break;
+      }
+   }
+   // Device Secured - Flash angrily
+   while ((valueRead[3]&MDM_AP_STATUS_MASS_ERASE_ENABLE) == 0) {
+      greenLedToggle();
+      WAIT_MS(100);
+   }
+
+   // Write erase command
+   rc = swd_writeAPReg(controlRegAddress, controlValueWrite);      
+   if (rc != BDM_RC_OK) {
+      return rc;
+   }
+
+   WAIT_MS(100);
+   // Wait until complete
+   for (eraseWait=0; eraseWait<10000; eraseWait++) {
+      greenLedOn();
+      rc = swd_readAPReg(controlRegAddress, valueRead);      
+      if (rc != BDM_RC_OK) {
+         continue;
+      }
+      rc = (((valueRead[3]&MDM_AP_CONTROL_ERASE_VALUE)&0xFF) == (MDM_AP_CONTROL_HALT_VALUE&0xFF))?BDM_RC_OK:BDM_RC_FAIL;
+      if (rc == BDM_RC_OK) {
+         break;
+      }
+   }
+   return rc;
+}
+
+uint8_t swd_reset_capture_mass_erase(uint8_t *returnSize, uint8_t *buff) {
    
-   return BDM_RC_OK;
+   static const uint8_t dpControlValueWrite[4] = { (DP_CONTROL_VALUE>>24)&0xFF, (DP_CONTROL_VALUE>>16)&0xFF, 
+                                                   (DP_CONTROL_VALUE>>8)&0xFF,  (DP_CONTROL_VALUE>>0)&0xFF };
+   // Compressed address for MDM-AP.Control register
+   static const uint8_t controlRegAddress[2]   = { (MDM_AP_CONTROL>>24)&0xFF, MDM_AP_CONTROL&0xFF };
+   static const uint8_t controlValueWrite[4]   = { (MDM_AP_CONTROL_HALT_VALUE>>24)&0xFF, (MDM_AP_CONTROL_HALT_VALUE>>16)&0xFF, 
+                                                   (MDM_AP_CONTROL_HALT_VALUE>>8)&0xFF,  (MDM_AP_CONTROL_HALT_VALUE>>0)&0xFF };
+   unsigned successCount = 0;
+   uint8_t rc;
+   unsigned attemptCount = 0;
+   
+   resetLow();
+   for (;;) {
+      attemptCount++;
+      if ((attemptCount&0xFFF)==0) {
+         greenLedToggle();
+      }
+      // Do connect sequence
+      rc = swd_connect();
+      if (rc != BDM_RC_OK) {
+         successCount = 0;
+         continue;
+      }
+      // Power up Debug interface
+      rc = swd_writeReg(SWD_WR_DP_CONTROL, dpControlValueWrite);
+      if (rc != BDM_RC_OK) {
+         successCount = 0;
+         continue;
+      }
+      // Hold processor in reset
+      rc = swd_writeAPReg(controlRegAddress, controlValueWrite);      
+      if (rc != BDM_RC_OK) {
+         successCount = 0;
+         continue;
+      }
+      // Check processor status
+      rc = swd_readAPReg(controlRegAddress, buff);      
+      if (rc != BDM_RC_OK) {
+         successCount = 0;
+         continue;
+      }
+      rc = ((buff[3]&controlValueWrite[3]) == controlValueWrite[3])?BDM_RC_OK:BDM_RC_FAIL;
+      if (rc != BDM_RC_OK) {
+         successCount = 0;
+         continue;
+      }
+      successCount++;
+      // Only consider successful if done SETTLE_COUNT times in a row
+      // This prevents mass-erase attempts during power-on bounces etc.
+      rc = (successCount>SETTLE_COUNT)?BDM_RC_OK:BDM_RC_FAIL;
+      if (rc == BDM_RC_OK) {
+         successCount = 0;
+         rc = massErase();
+      }
+      if (rc == BDM_RC_OK) {
+         break;
+      }
+   }
+   reset3State();
+   *returnSize = 4;
+   return rc;
+}
+
+uint8_t swd_test(uint8_t *returnSize, uint8_t *buff) {
+   (void)returnSize;
+   (void)buff;
+   return swd_connect();
 }
 #endif // HW_CAPABILITY && CAP_SWD_HW
 

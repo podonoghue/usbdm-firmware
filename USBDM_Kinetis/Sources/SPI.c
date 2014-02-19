@@ -15,9 +15,6 @@
 
 volatile uint8_t bitDelay;    //!< Required software delay used with SPI base Tx/Rx
 
-static const int ctas_8bit  = 0;
-static const int ctas_16bit = 1;
-
 static uint32_t ctar0Value = 0;
 static uint32_t ctar1Value = 0;
 
@@ -79,7 +76,7 @@ uint8_t spi_setSpeed(uint16_t freq) {
    if (freq == 0) {
       freq = DEFAULT_SPI_FREQUENCY;
    }
-   int index;
+   unsigned index;
    for(index=0; index<sizeof(spiBaudTable)/sizeof(spiBaudTable[0]); index++) {
       if (spiBaudTable[index].freq <= freq) {
          break;

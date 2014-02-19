@@ -1,0 +1,10 @@
+################################################################################
+# These macros are used by makefiles and argument files.
+# When a space is included in the path and quotes (") cannot be used,
+# a _ESCAPE version of the macro is added that escapes the space with backslash (\).
+################################################################################
+
+export HC08ToolsEnv=$(CWInstallLocationEnv)/MCU/prog
+export ProjDirPath=C:/Users/podonoghue/Development/USBDM/usbdm-firmware/USBDM_JMxx_V4_10
+export CWInstallLocationEnv=C:/Apps/Freescale/CW MCU v10.5
+export MCUToolsBaseDirEnv=$(CWInstallLocationEnv)/MCU

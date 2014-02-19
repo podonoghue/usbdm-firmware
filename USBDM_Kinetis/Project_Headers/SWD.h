@@ -9,6 +9,7 @@
 #define SWD_H_
 
 #include "Common.h"
+#include <stdint.h>
 
 // Ack values displaced by offset introduced during read (left justified 8-bit value)
 #define SWD_ACK_OK       (0x1)
@@ -20,15 +21,16 @@ void swd_interfaceIdle(void);
 void swd_init(void);
 void swd_txIdle8(void);
 
-U8 swd_test(void);
+uint8_t swd_test(uint8_t *returnSize, uint8_t *buff);
+uint8_t swd_reset_capture_mass_erase(uint8_t *returnSize, uint8_t *buff);
 
-U8 swd_sendCommandWithWait(U8 command);
+uint8_t swd_sendCommandWithWait(uint8_t command);
 
-U8 swd_connect(void);
-U8 swd_readReg(U8 command, U8 *data);
-U8 swd_writeReg(U8 command, const U8 *data);
-U8 swd_readAPReg(const U8 *address, U8 *buff);
-U8 swd_writeAPReg(const U8 *address, const U8 *buff);
-U8 swd_clearStickyError(void);
-U8 swd_abortAP(void);
+uint8_t swd_connect(void);
+uint8_t swd_readReg(uint8_t command, uint8_t *data);
+uint8_t swd_writeReg(uint8_t command, const uint8_t *data);
+uint8_t swd_readAPReg(const uint8_t *address, uint8_t *buff);
+uint8_t swd_writeAPReg(const uint8_t *address, const uint8_t *buff);
+uint8_t swd_clearStickyError(void);
+uint8_t swd_abortAP(void);
 #endif /* SWD_H_ */

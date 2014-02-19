@@ -60,20 +60,6 @@
 //=============================================================================================================================================
 #define SOFT_RESETus       1280U //!< us - longest time needed for soft reset of the BDM interface (512 BDM cycles @ 400kHz = 1280us)
 
-//! Status of the BDM
-//!
-static const CableStatus_t cable_statusDefault =  {
-   T_OFF,             // target_type
-   WAIT,              // ackn
-   NO_RESET_ACTIVITY, // reset
-   SPEED_NO_INFO,     // speed
-   0,                 // power
-   0,                 // wait150_cnt
-   0,                 // wait64_cnt
-   0,                 // sync_length
-   0,                 // bdmpprValue
-};
-
 //=========================================================================
 // Timer routines
 //
@@ -115,45 +101,7 @@ U8 initTimers(void) {
 	
 	SIM_SCGC6 |= SIM_SCGC6_PIT_MASK;
 	PIT_MCR    = PIT_MCR_FRZ_MASK; // Enable timers
-	
-	
-	
-// ToDo
-//   //====================================================================
-//   // Set up timers
-//   TPMSC      = TIMER_TPMxSC_VALUE;     // Set timer tick rate
-//
-//   // Set up Input capture & timeout timers
-//   TIMEOUT_TPMxCnSC    = TIMEOUT_TPMxCnSC_OC_MASK;         // TPMx.CHa : Output compare no pin
-//   
-//#if (HW_CAPABILITY&CAP_BDM)
-//   BKGD_TPMxCnSC       = BKGD_TPMxCnSC_FALLING_EDGE_MASK;  // TPMx.CHb : Input capture, falling edge on pin
-//#endif
-//	   
-//#if (HW_CAPABILITY&CAP_VDDSENSE)
-//   //====================================================================
-//   // Set up Vdd monitoring (ACMP interrupts or Input capture)
-//   // Clear existing flag, enable falling & rising transitions (Vdd rising & falling!), enable Bandgap (~1.2V)
-//   CONFIGURE_VDD_SENSE();         // Capture Vdd rising & falling edges
-//   CLEAR_VDD_SENSE_FLAG();        // Clear Vdd Change Event
-//   ENABLE_VDD_SENSE_INT();        // Enable Vdd IC interrupts
-//#endif
-//
-//#ifdef CONFIGURE_RESET_SENSE
-//   //===================================================================
-//   // Setup RESET detection (Input Capture or keyboard interrupt)
-//   if (bdm_option.useResetSignal) {
-//      CONFIGURE_RESET_SENSE();         // Capture RESET falling edges
-//      CLEAR_RESET_SENSE_FLAG();        // Clear RESET IC Event
-//      ENABLE_RESET_SENSE_INT();        // Enable RESET IC interrupts
-//      }
-//   else
-//      DISABLE_RESET_SENSE_INT();       // Disable RESET IC interrupts
-//#endif
-//
-//   cable_status.reset = NO_RESET_ACTIVITY;  // Clear the reset detection flag
-//
-   return BDM_RC_OK;
+	return BDM_RC_OK;
 }
 
 //=========================================================================
@@ -826,8 +774,8 @@ U8 rc = BDM_RC_OK;
     	  break;
     	  
       default:
-         bdm_off();                        // Turn off the interface
-         cable_status.target_type = T_OFF; // Safe mode!
+         bdm_off();          // Turn off the interface
+         bdm_clearStatus();  // Safe mode!
          return BDM_RC_UNKNOWN_TARGET;
    }
    return rc;

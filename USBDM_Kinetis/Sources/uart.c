@@ -5,7 +5,7 @@
  *      Author: podonoghue
  */
 #include "derivative.h" /* include peripheral declarations */
-#include "clock.h"
+#include "Clock.h"
 
 void initUart0(int baud) {
    register uint16_t ubd;//, brfa;
@@ -65,7 +65,7 @@ int InitializeUART(void) {
 }
 
 int ReadUARTN(void* bytes, unsigned long limit) {
-	int count;
+	unsigned count;
 	for (count = 0; count < limit; count++) {
     	*( (char *)bytes + count ) = getchUart0();
   	}
@@ -73,7 +73,7 @@ int ReadUARTN(void* bytes, unsigned long limit) {
 }
 
 int WriteUARTN(const void* bytes, unsigned long length) {
-	int count;
+	unsigned count;
 	for (count = 0; count < length; count++) {
 		putchUart0(*( ((char *)bytes) + count));
 	}

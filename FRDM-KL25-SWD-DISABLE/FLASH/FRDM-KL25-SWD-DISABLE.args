@@ -1,0 +1,26 @@
+"./Project_Settings/Startup_Code/kinetis_sysinit.o"
+"./Project_Settings/Startup_Code/__arm_start.o"
+"./Project_Settings/Startup_Code/__arm_end.o"
+"./Sources/sa_mtb.o"
+"./Sources/main.o"
+-mcpu=cortex-m0
+-mthumb
+-mfloat-abi=soft
+-g3
+-gdwarf-2
+-gstrict-dwarf
+-T"C:/Users/podonoghue/Development/USBDM/usbdm-firmware/FRDM-KL25-SWD-DISABLE/Project_Settings/Linker_Files/MKL25Z128_flash.ld"
+-Xlinker
+--gc-sections
+-L"C:/Apps/Freescale/CW MCU v10.5/MCU/ARM_GCC_Support/ewl/lib/armv6-m"
+-Wl,-Map,FRDM-KL25-SWD-DISABLE.map
+-n
+-specs=ewl_c.specs
+-Xlinker
+--undefined=__pformatter_
+-Xlinker
+--defsym=__pformatter=__pformatter_
+-Xlinker
+--undefined=__sformatter
+-Xlinker
+--defsym=__sformatter=__sformatter

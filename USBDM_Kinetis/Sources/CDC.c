@@ -7,7 +7,7 @@
 #include <string.h>
 #include "derivative.h" /* include peripheral declarations */
 #include "Common.h"
-#include "clock.h"
+#include "Clock.h"
 #include "CDC.h"
 
 #if (HW_CAPABILITY&CAP_CDC)
@@ -274,6 +274,7 @@ static LineCodingStructure lineCoding = {CONST_NATIVE_TO_LE32(9600UL),0,1,8};
 //! The CDC is quite limited when compared to the serial interface implied by
 //! LineCodingStructure.
 //! It does not support many of the combinations available.
+//! BAUD > 300
 //!
 void cdc_setLineCoding(const LineCodingStructure *lineCodingStructure) {
    uint32_t baudrate;
@@ -315,9 +316,12 @@ void cdc_setLineCoding(const LineCodingStructure *lineCodingStructure) {
    UARTx_BDH = (UARTx_BDH&~UART_BDH_SBR_MASK) | UART_BDH_SBR((ubd>>8));
    UARTx_BDL = UART_BDL_SBR(ubd);
 
+#if defined(UART_C4_BRFA_MASK) && 0
    // Determine fractional divider to get closer to the baud rate
-//   brfa     = (uint8_t)(((sysclk*32000)/(baud * 16)) - (ubd * 32));
-   UARTx_C4 = 0x00;  
+   uint16_t brfa;
+   brfa     = (uint8_t)(((SystemCoreClock*(32000/16))/baudrate) - (ubd * 32));
+   UART1_C4 = (UART1_C4&~UART_C4_BRFA_MASK) | UART_C4_BRFA(brfa);
+#endif
 
 // Note: lineCoding.bCharFormat is ignored (always 1 stop bit)
 //   switch (lineCoding.bCharFormat) {

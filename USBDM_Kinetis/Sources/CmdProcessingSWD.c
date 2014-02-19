@@ -595,7 +595,29 @@ static uint8_t swd_coreRegisterOperation(uint8_t *DCRSRvalue) {
    return BDM_RC_OK;
 }
 
-#if HW_CAPABILITY&CAP_CORE_REGS
+/*!
+ *  Read target register
+ *  
+ *  @param regNo 	Number of register to read
+ *  @param outptr 	Where to place data read (in big-endian order)
+ *  
+ *  @return error code
+ */
+static uint8_t readCoreRegister(uint8_t regNo, uint8_t *outptr) {
+   uint8_t rc;
+   // Set up command
+   uint8_t command[4] = {0, DCRSR_READ_B1, 0, 0};
+   command[3] = regNo;
+   // Execute register transfer command
+   rc = swd_coreRegisterOperation(command);
+   if (rc != BDM_RC_OK) {
+	  return rc;
+   }
+   // Read register value from DCRDR holding register (Big-endian) (command is used as buffer)
+   return swd_readMemoryWord(DCRDR_ADDR, outptr);
+}
+
+#if (HW_CAPABILITY&CAP_CORE_REGS)
 // Insufficient memory on some chips!
 
 // Maps register index into magic number for ARM device register number
@@ -613,7 +635,7 @@ static const uint8_t regIndexMap[] = {
    ARM_RegFPS0+0x18, ARM_RegFPS0+0x19, ARM_RegFPS0+0x1A, ARM_RegFPS0+0x1B,
    ARM_RegFPS0+0x1C, ARM_RegFPS0+0x1D, ARM_RegFPS0+0x1E, ARM_RegFPS0+0x1F,
    };
-//! Read all ARM-SWD core registers
+//! Read all core registers
 //!
 //! @note
 //!  commandBuffer\n
@@ -628,28 +650,21 @@ static const uint8_t regIndexMap[] = {
 //!   - [1..N]  =>  32-bit register values
 //!
 uint8_t f_CMD_SWD_READ_ALL_CORE_REGS(void) {
-   uint8_t rc;
-   uint8_t regIndex    = commandBuffer[3];
-   uint8_t endRegister = commandBuffer[4];
-   uint8_t* outputPtr  = commandBuffer+1;
+	
+   uint8_t  rc;
+   uint8_t  regIndex    = commandBuffer[3];
+   uint8_t  endRegister = commandBuffer[4];
+   uint8_t* outputPtr   = commandBuffer+1;
+   uint8_t  command[4];
    returnSize = 1;
    if (commandBuffer[2] != 0) {
 	   // Check flag is zero
 	   return BDM_RC_ILLEGAL_PARAMS;
    }
    while (regIndex<=endRegister) {
-	   // Set up command
-	   uint8_t command[4] = {0, DCRSR_READ_B1, 0, 0};
-	   command[3] = regIndexMap[regIndex];
-	   // Execute register transfer command
-	   rc = swd_coreRegisterOperation(command);
-	   if (rc != BDM_RC_OK) {
-		  return rc;
-	   }
-	   // Read register value from DCRDR holding register (Big-endian) (command is used as buffer)
-	   rc = swd_readMemoryWord(DCRDR_ADDR, command);
-	   if (rc != BDM_RC_OK) {
-		  return rc;
+      rc = readCoreRegister(regIndexMap[regIndex], command);
+      if (rc != BDM_RC_OK) {
+         return rc;
 	   }
 	   // Write to buffer (target format - Little-endian ARM)
 	   *outputPtr++ = command[3];
@@ -676,21 +691,9 @@ uint8_t f_CMD_SWD_READ_ALL_CORE_REGS(void) {
 //!   - [1..4]  =>  32-bit register value
 //!
 uint8_t f_CMD_SWD_READ_REG(void) {
-   uint8_t rc;
    
-   // Use commandBuffer as scratch
-   commandBuffer[4+0] = 0;
-   commandBuffer[4+1] = DCRSR_READ_B1;
-   commandBuffer[4+2] = 0;
-   commandBuffer[4+3] = commandBuffer[3];
-   // Execute register transfer 
-   rc = swd_coreRegisterOperation(commandBuffer+4);
-   if (rc != BDM_RC_OK) {
-	  return rc;
-   }
    returnSize = 5;
-   // Read data value from DCRDR holding register
-   return swd_readMemoryWord(DCRDR_ADDR, commandBuffer+1);
+   return readCoreRegister(commandBuffer[3], commandBuffer+1);
 }
 
 //! Write ARM-SWD core register

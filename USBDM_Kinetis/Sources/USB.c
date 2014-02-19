@@ -213,8 +213,8 @@ uint8_t ep5DataBuffer0[ENDPT5MAXSIZE];
 uint8_t ep5DataBuffer1[ENDPT5MAXSIZE];
 #endif
 
-__attribute__ ((section(".user_data2"))) 
-static EndpointBdtEntry endPointBdts[16];
+//__attribute__ ((section(".user_data2")))
+static EndpointBdtEntry endPointBdts[16] __attribute__ ((aligned (512)));
 // Raw BDTS (0 - 4*#endpoints)
 #define BDTS(n) (*((&endPointBdts[0].rxEven)+(n))) 
 
@@ -390,6 +390,7 @@ static const struct {
 #endif   
 };
 
+#if 0
 static const MS_CompatibleIdFeatureDescriptor msCompatibleIdFeatureDescriptor = {
     /* lLength;             */  CONST_NATIVE_TO_LE32((uint32_t)sizeof(MS_CompatibleIdFeatureDescriptor)),
     /* wVersion;            */  CONST_NATIVE_TO_LE16(0x0100),
@@ -426,6 +427,7 @@ static const MS_PropertiesFeatureDescriptor msPropertiesFeatureDescriptor = {
 
 #define VENDOR_CODE 0x30
 static const U8 OS_StringDescriptor[] = {18, DT_STRING, 'M',0,'S',0,'F',0,'T',0,'1',0,'0',0,'0',0,VENDOR_CODE,0x00};
+#endif
 
 static const uint8_t sd0[] = {4,  DT_STRING, 0x09, 0x0C};  // Language IDs
 static const uint8_t sd1[] = "pgo";                        // Manufacturer
@@ -1453,7 +1455,7 @@ uint8_t *size = dest; // 1st byte is where to place descriptor size
 // Get Descriptor - Device Req 0x06
 //       
 static void handleGetDescriptor( void ) {
-int             descriptorIndex = ep0SetupBuffer.wValue.le.lo;
+unsigned        descriptorIndex = (unsigned)ep0SetupBuffer.wValue.le.lo;
 int             dataSize = 0;
 const uint8_t  *dataPtr = NULL;
 

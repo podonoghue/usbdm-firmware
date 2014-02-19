@@ -45,12 +45,16 @@ typedef struct {
 /* Exception frame without floating-point storage
  * hard fault handler in C,
  * with stack frame location as input parameter
+ *
+ * @param exceptionFrame address of exception frame
+ *
  */
 __attribute__((weak,__interrupt__))
 void HardFault_Handler(ExceptionFrame *exceptionFrame) {
+   (void)exceptionFrame;
 #ifdef SCB_HFSR
    char reason[200] = "";
-   ExceptionInfo exceptionInfo = {0};
+   volatile ExceptionInfo exceptionInfo = {0};
    exceptionInfo.scb_hfsr = SCB_HFSR;
    (void)exceptionInfo.scb_hfsr;
    if ((exceptionInfo.scb_hfsr&SCB_HFSR_FORCED_MASK) != 0) {

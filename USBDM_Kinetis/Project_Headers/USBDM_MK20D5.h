@@ -30,16 +30,19 @@
 
 //==========================================================================================
 // USB Serial Number
-#define SERIAL_NO "USBDM-MK20D5-SWD-0001"
+#ifdef UNIQUE_ID
+#define SERIAL_NO "USBDM-OPENSDA-%lu"
+#else
+#define SERIAL_NO "USBDM-OPENSDA-0001"
+#endif
 #define ProductDescription "USBDM ARM-SWD for MK20D5"
+
+#define CRYSTAL 4000000UL
 
 //==========================================================================================
 // Capabilities of the hardware - used to enable/disable appropriate code
 //
-// CAP_CDC
-//#define HW_CAPABILITY     (CAP_VDDCONTROL|CAP_VDDSENSE|CAP_JTAG_HW|CAP_BDM  |CAP_FLASH|        CAP_RST_IO|CAP_CFVx)
-//#define TARGET_CAPABILITY (CAP_VDDCONTROL|CAP_VDDSENSE|CAP_HCS12 |CAP_HCS08|CAP_RS08 |CAP_CFV1|CAP_RST   |CAP_CFVx|CAP_JTAG|CAP_DSC|CAP_ARM_JTAG|CAP_PST)
-#define HW_CAPABILITY       (CAP_RST_IO|CAP_SWD_HW|CAP_CDC)
+#define HW_CAPABILITY       (CAP_RST_IO|CAP_RST_IN|CAP_SWD_HW|CAP_CDC|CAP_CORE_REGS)
 #define TARGET_CAPABILITY   (CAP_RST   |CAP_ARM_SWD|CAP_CDC)
 
 #ifndef PLATFORM
@@ -273,32 +276,77 @@
 #define RESET_OUT_PDIR        PDIR(RESET_OUT_REG)  // Data input
 #define RESET_OUT_PDDR        PDDR(RESET_OUT_REG)  // Data direction
 
-// RESET output pin control
-#define RESET_LOW()          (RESET_OUT_PDDR |=  RESET_OUT_MASK)
-#define RESET_3STATE()       (RESET_OUT_PDDR &= ~RESET_OUT_MASK)
-#define RESET_OUT_INIT()     (RESET_3STATE(), \
-                              RESET_OUT_PCOR = RESET_OUT_MASK, \
-                              RESET_OUT_PCR  = PORT_PCR_MUX(1)|PORT_PCR_DSE_MASK|PORT_PCR_PE_MASK|PORT_PCR_PS_MASK)
-#define RESET_OUT_FINI()     RESET_3STATE() //(RESET_OUT_PCR=PORT_PCR_MUX(0)|PORT_PCR_DSE_MASK|PORT_PCR_PE_MASK|PORT_PCR_PS_MASK)
+/*!
+ * Drives RESET line low
+ * Assumes reset pin is already configured
+ */
+__inline__ static void resetLow() {
+   RESET_OUT_PDDR |=  RESET_OUT_MASK;
+}
+/*!
+ * 3-states RESET line
+ * Assumes reset pin is already configured
+ */
+__inline__ static void reset3State() {
+   RESET_OUT_PDDR &=  ~RESET_OUT_MASK;
+}
+/*!
+ * Initialises RESET line (3-state)
+ */
+__inline__ static void resetOutInit() {
+   // Configures Reset output as 3-state ready to drive low when enabled
+   reset3State();
+   RESET_OUT_PCOR = RESET_OUT_MASK;
+   RESET_OUT_PCR  = PORT_PCR_MUX(1)|PORT_PCR_DSE_MASK|PORT_PCR_PE_MASK|PORT_PCR_PS_MASK;
+}
+/*!
+ * Finalises RESET line - places in default state (3-state)
+ * This should only be used when changing targets
+ */
+__inline__ static void resetOutFini() {
+   // Just set to 3-state rather than disable to prevent glitches
+   reset3State();
+}
+
+#define RESET_OUT_INIT()     resetOutInit()
+#define RESET_LOW()          resetLow()
+#define RESET_3STATE()       reset3State()
+#define RESET_OUT_FINI()     resetOutFini()
+
+#endif
 
 //---------------------------------------------------------------------------------------
+#if (HW_CAPABILITY&CAP_RST_IN)
 
-// RESET in pin
-#define RESET_IN_NUM         3
-#define RESET_IN_REG         B
-#define RESET_IN_MASK        (1<<RESET_IN_NUM)
-#define RESET_IN_PCR         PCR(RESET_IN_REG,RESET_IN_NUM)
-#define RESET_IN_PDIR        PDIR(RESET_IN_REG)  // Data input
-#define RESET_IN_PDDR        PDDR(RESET_IN_REG)  // Data direction
-#define RESET_IN_FINI()      (RESET_IN_PCR=PORT_PCR_MUX(0)|PORT_PCR_DSE_MASK|PORT_PCR_PE_MASK)
-#define RESET_IN_INIT()      (RESET_IN_PCR=PORT_PCR_MUX(1)|PORT_PCR_PFE_MASK|PORT_PCR_PE_MASK, \
-                              RESET_IN_PDDR &= ~RESET_IN_MASK)
-
-#define RESET_IN             (RESET_IN_PDIR&RESET_IN_MASK)
+// RESET in pin = RESET out pin WITH external driver
+// This means that RESET_IN just reflects RESET_OUT and does not truly sense the RESET value
+ 
+/*!
+ * Checks is RESET line is high
+ * 
+ * @return T => is high  
+ * 
+ * @note returns true if reset sensing is not available 
+ */
+__inline__ static int resetIsHigh() {
+   return (RESET_OUT_PDIR&RESET_OUT_MASK) != 0;
+}
+/*!
+ * Checks is RESET line is low
+ * 
+ * @return T => is low 
+ * 
+ * @note returns true if reset sensing is not available 
+ */
+__inline__ static int resetIsLow() {
+   return (RESET_OUT_PDIR&RESET_OUT_MASK) == 0;
+}
 
 // RESET input pin status
-#define RESET_IS_HIGH()      (RESET_IN!=0)
-#define RESET_IS_LOW()       (RESET_IN==0)
+#define RESET_IN_INIT()      resetOutInit()
+#define RESET_IS_HIGH()      resetIsHigh()
+#define RESET_IS_LOW()       resetIsLow()
+#define RESET_IN_FINI()      resetOutFini()
 
 #endif // CAP_RST_IO
 
@@ -317,24 +365,20 @@
 #define GREEN_LED_PDDR        PDDR(GREEN_LED_REG)  // Data direction
 
 //! Enable green LED
-__inline 
-static void greenLedEnable(void) {
+__inline__ static void greenLedEnable(void) {
    GREEN_LED_PDDR |= GREEN_LED_MASK;
    GREEN_LED_PCR   = PORT_PCR_MUX(1)|PORT_PCR_DSE_MASK|PORT_PCR_PE_MASK|PORT_PCR_PS_MASK;
 }
 //! Turn on green LED
-__inline 
-static void greenLedOn(void) {
+__inline__ static void greenLedOn(void) {
    GREEN_LED_PSOR = GREEN_LED_MASK;
 }
 //! Turn off green LED
-__inline 
-static void greenLedOff(void) {
+__inline__ static void greenLedOff(void) {
    GREEN_LED_PCOR = GREEN_LED_MASK;
 }
 //! Toggle green LED
-__inline 
-static void greenLedToggle(void) {
+__inline__ static void greenLedToggle(void) {
    GREEN_LED_PTOR = GREEN_LED_MASK;
 }
 
@@ -350,31 +394,26 @@ static void greenLedToggle(void) {
 #define RED_LED_PDDR          PDDR(RED_LED_REG)  // Data direction
 
 //! Enable red LED
-__inline 
-static void redLedEnable(void) {
+__inline__ static void redLedEnable(void) {
    RED_LED_PDDR |= RED_LED_MASK;
    RED_LED_PCR   = PORT_PCR_MUX(1)|PORT_PCR_DSE_MASK|PORT_PCR_PE_MASK|PORT_PCR_PS_MASK;
 }
 //! Turn on red LED
-__inline 
-static void redLedOn(void) {
+__inline__ static void redLedOn(void) {
    RED_LED_PSOR = RED_LED_MASK;
 }
 //! Turn off red LED
-__inline 
-static void redLedOff(void) {
+__inline__ static void redLedOff(void) {
    RED_LED_PCOR = RED_LED_MASK;
 }
 //! Toggle red LED
-__inline 
-static void redLedToggle(void) {
+__inline__ static void redLedToggle(void) {
    RED_LED_PTOR = RED_LED_MASK;
 }
 //! Initialise LEDs
 //! Pins are outputs, off
 //!
-__inline 
-static void ledInit(void) {
+__inline static void ledInit(void) {
    greenLedOff();
    redLedOff();
    greenLedEnable();
@@ -506,7 +545,7 @@ static void ledInit(void) {
 //
 //     KBI     - RESET_IN pin, Reset detection (Keypress falling edge detection)
 //
-#if (HW_CAPABILITY&CAP_RST_IO)
+#if (HW_CAPABILITY&CAP_RST_IN)
 // Configure RESET change sensing (Falling edges)
 #define CONFIGURE_RESET_SENSE()   (RESET_TPMxCnSC = RESET_TPMxCnSC_FALLING_EDGE_MASK)
 // Enable & Configure RESET Change interrupts

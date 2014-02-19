@@ -182,7 +182,7 @@ uint8_t f_CMD_SWD_READ_CREG(void) {
 //!  == \ref BDM_RC_OK => success         \n
 //!  != \ref BDM_RC_OK => various errors
 //!                                       
-static uint8_t writeMemoryWord(const uint8_t *address, const uint8_t *data) {
+uint8_t swd_writeMemoryWord(const uint8_t *address, const uint8_t *data) {
 	uint8_t  rc;
 	uint8_t  temp[4];
    /* Steps
@@ -228,7 +228,7 @@ static uint8_t writeMemoryWord(const uint8_t *address, const uint8_t *data) {
 //!  == \ref BDM_RC_OK => success         \n
 //!  != \ref BDM_RC_OK => various errors
 //!
-static uint8_t readMemoryWord(const uint8_t *address, uint8_t *data) {
+uint8_t swd_readMemoryWord(const uint8_t *address, uint8_t *data) {
 uint8_t  rc;
 uint8_t  temp[4];
 
@@ -574,11 +574,11 @@ static const uint8_t DCRDR_ADDR[] = {0xE0, 0x00, 0xED, 0xF8}; // RW Debug Core D
 //!
 //! @note DCRSRvalue is used as scratch buffer so must be ram
 //!
-static uint8_t coreRegisterOperation(uint8_t *DCRSRvalue) {
+static uint8_t swd_coreRegisterOperation(uint8_t *DCRSRvalue) {
    uint8_t retryCount = 40;
    uint8_t rc;
    
-   rc = writeMemoryWord(DCRSR_ADDR, DCRSRvalue);
+   rc = swd_writeMemoryWord(DCRSR_ADDR, DCRSRvalue);
    if (rc != BDM_RC_OK) {
 	  return rc;
    }
@@ -587,7 +587,7 @@ static uint8_t coreRegisterOperation(uint8_t *DCRSRvalue) {
 		 return BDM_RC_ARM_ACCESS_ERROR;
 	  }
 	  // Check complete (use DCSRData as scratch)
-	  rc = readMemoryWord(DHCSR_ADDR, DCRSRvalue);
+	  rc = swd_readMemoryWord(DHCSR_ADDR, DCRSRvalue);
 	  if (rc != BDM_RC_OK) {
 		 return rc;
 	  }
@@ -609,12 +609,12 @@ static uint8_t readCoreRegister(uint8_t regNo, uint8_t *outptr) {
    uint8_t command[4] = {0, DCRSR_READ_B1, 0, 0};
    command[3] = regNo;
    // Execute register transfer command
-   rc = coreRegisterOperation(command);
+   rc = swd_coreRegisterOperation(command);
    if (rc != BDM_RC_OK) {
 	  return rc;
    }
    // Read register value from DCRDR holding register (Big-endian) (command is used as buffer)
-   return readMemoryWord(DCRDR_ADDR, outptr);
+   return swd_readMemoryWord(DCRDR_ADDR, outptr);
 }
 
 #if (HW_CAPABILITY&CAP_CORE_REGS)
@@ -662,19 +662,9 @@ uint8_t f_CMD_SWD_READ_ALL_CORE_REGS(void) {
 	   return BDM_RC_ILLEGAL_PARAMS;
    }
    while (regIndex<=endRegister) {
-	   rc = readCoreRegister(regIndexMap[regIndex], command);
-//	   // Set up command
-//	   uint8_t command[4] = {0, DCRSR_READ_B1, 0, 0};
-//	   command[3] = regIndexMap[regIndex];
-//	   // Execute register transfer command
-//	   rc = arm_coreRegisterOperation(command);
-//	   if (rc != BDM_RC_OK) {
-//		  return rc;
-//	   }
-//	   // Read register value from DCRDR holding register (Big-endian) (command is used as buffer)
-//	   rc = readMemoryWord(DCRDR_ADDR, command);
-	   if (rc != BDM_RC_OK) {
-		  return rc;
+      rc = readCoreRegister(regIndexMap[regIndex], command);
+      if (rc != BDM_RC_OK) {
+         return rc;
 	   }
 	   // Write to buffer (target format - Little-endian ARM)
 	   *outputPtr++ = command[3];
@@ -704,21 +694,6 @@ uint8_t f_CMD_SWD_READ_REG(void) {
    
    returnSize = 5;
    return readCoreRegister(commandBuffer[3], commandBuffer+1);
-
-//   uint8_t rc;
-//   // Use commandBuffer as scratch
-//   commandBuffer[4+0] = 0;
-//   commandBuffer[4+1] = DCRSR_READ_B1;
-//   commandBuffer[4+2] = 0;
-//   commandBuffer[4+3] = commandBuffer[3];
-//   // Execute register transfer 
-//   rc = arm_coreRegisterOperation(commandBuffer+4);
-//   if (rc != BDM_RC_OK) {
-//	  return rc;
-//   }
-//   returnSize = 5;
-//   // Read data value from DCRDR holding register
-//   return readMemoryWord(DCRDR_ADDR, commandBuffer+1);
 }
 
 //! Write ARM-SWD core register
@@ -735,7 +710,7 @@ uint8_t f_CMD_SWD_WRITE_REG(void) {
    uint8_t rc;
    
    // Write data value to DCRDR holding register
-   rc = writeMemoryWord(DCRDR_ADDR, commandBuffer+4);
+   rc = swd_writeMemoryWord(DCRDR_ADDR, commandBuffer+4);
    if (rc != BDM_RC_OK) {
 	  return rc;
    }
@@ -745,7 +720,7 @@ uint8_t f_CMD_SWD_WRITE_REG(void) {
    commandBuffer[4+2] = 0;
    commandBuffer[4+3] = commandBuffer[3];
    // Execute register transfer 
-   return coreRegisterOperation(commandBuffer+4);
+   return swd_coreRegisterOperation(commandBuffer+4);
 }
 
 //! ARM-SWD -  Modifies value in LSB of DHCSR
@@ -762,7 +737,7 @@ static uint8_t modifyDHCSR(uint8_t preserveBits, uint8_t setBits) {
 	   uint8_t debugStepValue[4];
 	   uint8_t rc;
 	   
-	   rc = readMemoryWord(DHCSR_ADDR, debugStepValue);
+	   rc = swd_readMemoryWord(DHCSR_ADDR, debugStepValue);
 	   if (rc != BDM_RC_OK) {
 	      return rc;
 	   }
@@ -771,7 +746,7 @@ static uint8_t modifyDHCSR(uint8_t preserveBits, uint8_t setBits) {
 	   debugStepValue[2]  = 0;
 	   debugStepValue[3] &= preserveBits;
 	   debugStepValue[3] |= setBits;   
-	   return writeMemoryWord(DHCSR_ADDR, debugStepValue);	
+	   return swd_writeMemoryWord(DHCSR_ADDR, debugStepValue);	
 }
 
 //! ARM-SWD -  Step over 1 instruction

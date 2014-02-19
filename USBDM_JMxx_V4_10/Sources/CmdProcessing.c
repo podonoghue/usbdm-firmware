@@ -470,9 +470,11 @@ uint16_t word;
 }
 
 void getPinStatus(void) {
-uint16_t status;
+uint16_t status = 0;
 
+#ifdef RESET_IS_LOW
    status = RESET_IS_LOW?PIN_RESET_LOW:PIN_RESET_HIGH;
+#endif
    
    commandBuffer[1] = (uint8_t) (status>>8);
    commandBuffer[2] = (uint8_t) status;

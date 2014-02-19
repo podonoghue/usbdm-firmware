@@ -153,7 +153,7 @@ uint16_t status = 0;
       default: 
     	  break;
    }
-#if (HW_CAPABILITY&CAP_RST_IO)
+#if (HW_CAPABILITY&CAP_RST_IN)
    if (RESET_IS_HIGH()) {
       status |= S_RESET_STATE;   // The RSTO pin is currently high
    }
@@ -356,7 +356,11 @@ DebugSubCommands subCommand = commandBuffer[2];
 #endif
 #if (HW_CAPABILITY & CAP_VDDSENSE)
       case BDM_DBG_MEASURE_VDD: // Measure Target Vdd
-         (*(uint16_t*)(commandBuffer+1)) = bdm_targetVddMeasure(); // return the value
+      {
+    	  uint16_t voltage = bdm_targetVddMeasure(); // return the value
+    	  commandBuffer[1] = (uint8_t)(voltage>>8);
+    	  commandBuffer[2] = (uint8_t)voltage;
+      }
          returnSize = 3;
          return BDM_RC_OK;
 #endif
@@ -375,10 +379,15 @@ DebugSubCommands subCommand = commandBuffer[2];
          extern char  __SEG_START_SSTACK[];     // Bottom of stack space
          extern char  __SEG_END_SSTACK[];       // Top of stack space
          char *stackProbe = __SEG_START_SSTACK; // Probe for stack RAM
+         uint32_t size;
 
          while (*++stackProbe == 0) { // Find 1st used (non-zero) byte on stack
          }
-         (*(uint32_t*)(commandBuffer+1)) = (uint32_t) __SEG_END_SSTACK - (uint32_t) stackProbe;
+         size =  (uint32_t) __SEG_END_SSTACK - (uint32_t) stackProbe;
+         commanBuffer[1] = (uint8_t) (size>>24);
+         commanBuffer[2] = (uint8_t) (size>>16);
+         commanBuffer[3] = (uint8_t) (size>>8);
+         commanBuffer[4] = (uint8_t) (size>);
          returnSize = 5;
          return BDM_RC_OK;
          }
@@ -388,8 +397,11 @@ DebugSubCommands subCommand = commandBuffer[2];
          return bdm_testTx(commandBuffer[3]);
 #endif
 #if TARGET_CAPABILITY & CAP_ARM_SWD
+      case   BDM_DBG_SWD_ERASE_LOOP: //!< - Mass erase on reset capture
+         return swd_reset_capture_mass_erase(&returnSize, commandBuffer+1);
+         
       case   BDM_DBG_SWD: //!< - Test ARM-SWD functions
-         return swd_test();
+         return swd_test(&returnSize, commandBuffer+1);
 #endif
 #if (TARGET_CAPABILITY & CAP_ARM_SWD) && defined(ERASE_KINETIS)
 
@@ -414,9 +426,18 @@ DebugSubCommands subCommand = commandBuffer[2];
 //!    BDM_RC_OK => success
 //!
 uint8_t f_CMD_SET_OPTIONS(void) {
-uint8_t rc = BDM_RC_OK;
+   uint8_t rc = BDM_RC_OK;
    // Save BDM Options
-   (void)memcpy((uint8_t*)&bdm_option, commandBuffer+2, sizeof(bdm_option));
+   int sub=2;
+   bdm_option.targetVdd          = commandBuffer[sub++];
+   bdm_option.cycleVddOnReset    = commandBuffer[sub++];
+   bdm_option.cycleVddOnConnect  = commandBuffer[sub++];
+   bdm_option.leaveTargetPowered = commandBuffer[sub++];
+   bdm_option.autoReconnect      = commandBuffer[sub++];
+   bdm_option.guessSpeed         = commandBuffer[sub++];
+   bdm_option.useAltBDMClock     = commandBuffer[sub++];
+   bdm_option.useResetSignal     = commandBuffer[sub++];
+//   (void)memcpy((uint8_t*)&bdm_option, commandBuffer+2, sizeof(bdm_option));
    return rc;
 }
 
@@ -462,9 +483,11 @@ uint16_t word;
 }
 
 void getPinStatus(void) {
-uint16_t status;
+uint16_t status = 0;
 
+#ifdef RESET_IS_LOW
    status = RESET_IS_LOW()?PIN_RESET_LOW:PIN_RESET_HIGH;
+#endif
    
    commandBuffer[1] = (uint8_t) (status>>8);
    commandBuffer[2] = (uint8_t) status;
@@ -577,14 +600,17 @@ uint8_t f_CMD_CONTROL_PINS(void) {
        break;
    }
 #endif
+
 #if (HW_CAPABILITY & CAP_RST_IO)
    switch (control & PIN_RESET) {
    case PIN_RESET_3STATE : 
 	   RESET_3STATE(); 
+#if (HW_CAPABILITY & CAP_RST_IN)
 	   WAIT_WITH_TIMEOUT_MS(200, (RESET_IS_HIGH()));
 	   if (RESET_IS_LOW()) { 
           return(BDM_RC_RESET_TIMEOUT_RISE);
 	   }
+#endif
 	   break;
    case PIN_RESET_LOW :
 	   RESET_LOW(); 
@@ -692,11 +718,7 @@ static const FunctionPtr commonFunctionPtrs[] = {
    f_CMD_GET_COMMAND_STATUS         ,//= 0,  CMD_USBDM_GET_COMMAND_STATUS
    f_CMD_SET_TARGET                 ,//= 1,  CMD_USBDM_SET_TARGET
    f_CMD_SET_VDD                    ,//= 2,  CMD_USBDM_SET_VDD
-#if (DEBUG&DEBUG_COMMANDS)
    f_CMD_DEBUG                      ,//= 3,  CMD_USBDM_DEBUG
-#else
-   f_CMD_ILLEGAL                    ,//= 3,  CMD_USBDM_DEBUG - disabled
-#endif
    f_CMD_GET_BDM_STATUS             ,//= 4,  CMD_USBDM_GET_BDM_STATUS
    f_CMD_GET_CAPABILITIES           ,//= 5,  CMD_USBDM_GET_CAPABILITIES
    f_CMD_SET_OPTIONS                ,//= 6,  CMD_USBDM_SET_OPTIONS

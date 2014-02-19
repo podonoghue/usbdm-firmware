@@ -332,8 +332,10 @@
 #define RESET_OUT_INIT()     (RESET_3STATE(), \
                               RESET_OUT_PCOR = RESET_OUT_MASK, \
                               RESET_OUT_PCR=PORT_PCR_MUX(1)|PORT_PCR_DSE_MASK|PORT_PCR_PE_MASK|PORT_PCR_PS_MASK)
+#endif
 
 //---------------------------------------------------------------------------------------
+#if (HW_CAPABILITY&CAP_RST_IN)
 
 // RESET in pin
 #define RESET_IN_NUM         3
@@ -558,7 +560,7 @@ static void ledInit(void) {
 //
 //     KBI     - RESET_IN pin, Reset detection (Keypress falling edge detection)
 //
-#if (HW_CAPABILITY&CAP_RST_IO)
+#if (HW_CAPABILITY&CAP_RST_IN)
 // Configure RESET change sensing (Falling edges)
 #define CONFIGURE_RESET_SENSE()   (RESET_TPMxCnSC = RESET_TPMxCnSC_FALLING_EDGE_MASK)
 // Enable & Configure RESET Change interrupts
