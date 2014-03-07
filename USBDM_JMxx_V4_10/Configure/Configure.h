@@ -35,7 +35,7 @@
 
     This is a bit mask made up of all the debugging options that are to be implemented in the code.
  */
-#define DEBUG (STACK_DEBUG)
+#define DEBUG 0 //DEBUG_COMMANDS // (STACK_DEBUG)
 
 // Define for automatic WINUSB Driver loading 
 //#define MS_COMPATIBLE_ID_FEATURE (1)

@@ -29,6 +29,7 @@
 Change History
 
 -=======================================================================================
+| 28 Feb 2013 | Changed Timeouts for slow target clocks e.g. 32kHz                 - pgo V4.10.6.120
 | 26 Dec 2012 | Changed Reset handling to prevent USB timeouts                     - pgo V4.10.4
 | 18 Sep 2012 | Removed output glitch in bdm_rxGeneric() etc (BKGD_3STATE_MASK)    - pgo V4.10.2
 |  5 May 2011 | Modified bdm_enableBDM() to be more careful in modifying BDM reg   - pgo V4.6
@@ -106,9 +107,9 @@ Change History
 #endif
 
 //=============================================================================================================================================
-#define BDM_SYNC_REQus          960U //!< us - length of the longest possible SYNC REQUEST pulse (128 BDM cycles @ 400kHz = 320us plus some extra time)
+#define BDM_SYNC_REQms            1U //!< ms - length of the longest possible SYNC REQUEST pulse (128 BDM cycles @ 400kHz = 320us plus some extra time)
 #define SYNC_TIMEOUTus          460U //!< us - longest time for the target to completed a SYNC pulse (16+128+margin cycles @ 400kHz = 375us)
-#define ACKN_TIMEOUTus          375U //!< us - longest time after which the target should produce ACKN pulse (150 cycles @ 400kHz = 375us)
+#define ACKN_TIMEOUTus         2500U //!< us - longest time after which the target should produce ACKN pulse (150 cycles @ 400kHz = 375us)
 #define SOFT_RESETus          10000U //!< us - longest time needed for soft reset of the BDM interface (512 BDM cycles @ 400kHz = 1280us)
 #define RESET_LENGTHms          100U //!< ms - time of RESET assertion
 #define RESET_INITIAL_WAITms     10U //!< ms - max time to wait for the RESET pin to come high after release
@@ -804,13 +805,13 @@ U16 time;
    bdmHCS_interfaceIdle();        // Make sure BDM interface is idle
 
    // Wait with timeout until BKGD is high
-   WAIT_WITH_TIMEOUT_US(BDM_SYNC_REQus, (BDM_IN!=0));
+   WAIT_WITH_TIMEOUT_MS(BDM_SYNC_REQms, (BDM_IN!=0));
 
    if (BDM_IN==0) {
       return(BDM_RC_BKGD_TIMEOUT); // Timeout !
    }
-   BDM_LOW();                   //ToDo - check if glitches
-   WAIT_US(BDM_SYNC_REQus);     // Wait SYNC request time
+   BDM_LOW();
+   WAIT_MS(BDM_SYNC_REQms);     // Wait SYNC request time
 
 #if (DEBUG&SYNC_DEBUG)
    DEBUG_PIN   = 0;
@@ -818,7 +819,7 @@ U16 time;
 #endif
 
    // Set up Input capture & timeout timers
-   BKGD_TPMxCnSC       = BKGD_TPMxCnSC_FALLING_EDGE_MASK;  // TPMx.CHb : Input capture, falling edge on pin
+   BKGD_TPMxCnSC        = BKGD_TPMxCnSC_FALLING_EDGE_MASK;  // TPMx.CHb : Input capture, falling edge on pin
 
    TIMEOUT_TPMxCnVALUE  = TPMCNT+TIMER_MICROSECOND(SYNC_TIMEOUTus);  // Set Timeout value
    BKGD_TPMxCnSC_CHF    = 0;                                         // TPMx.CHa : Clear capture flag
@@ -834,11 +835,11 @@ U16 time;
    }
    while ((BKGD_TPMxCnSC_CHF==0)&&(TIMEOUT_TPMxCnSC_CHF==0)) {   // Wait for capture or timeout
    }
-   time          = BKGD_TPMxCnVALUE;                 // TPM1.Ch1 : Save time of start of the SYNC interval
-   BKGD_TPMxCnSC = BKGD_TPMxCnSC_RISING_EDGE_MASK;   // TPM1.Ch1 : Clear IC flag, configure for IC rising edge
+   time          = BKGD_TPMxCnVALUE;                 // TPMx.Chx : Save time of start of the SYNC interval
+   BKGD_TPMxCnSC = BKGD_TPMxCnSC_RISING_EDGE_MASK;   // TPMx.Chx : Clear IC flag, configure for IC rising edge
 
    // It takes 23 cycles to re-enable capture (worst case) which is good enough up to 128*24/23 = 130 MHz!
-   while ((BKGD_TPMxCnSC_CHF==0)&&(TIMEOUT_TPMxCnSC_CHF==0)){   // Wait for capture or timeout
+   while ((BKGD_TPMxCnSC_CHF==0)&&(TIMEOUT_TPMxCnSC_CHF==0)) {   // Wait for capture or timeout
    }
    time = BKGD_TPMxCnVALUE-time;                     // Calculate length of the SYNC pulse
 
@@ -890,8 +891,9 @@ U8 rc;
       rc = BDM_CMD_ACK_ENABLE();
 
    // If ACKN fails turn off ACKN (RS08 or early HCS12 target)
-   if (rc == BDM_RC_ACK_TIMEOUT)
+   if (rc == BDM_RC_ACK_TIMEOUT) {
       cable_status.ackn = WAIT;  // Switch the ackn feature off
+   }
 }
 
 //! Wait for 64 target clock cycles
@@ -906,7 +908,19 @@ void bdm_wait64() {
 		 bne   loop     ; [3] 8 cycles / iteration
    }
 }
-
+//! Wait for 150 target clock cycles
+//!
+void bdm_wait150() {
+   asm {
+		 cli
+		 ldhx  cable_status.wait150_cnt    // Number of loop iterations to wait
+	  loop:
+		 aix   #-1      ; [2]
+		 cphx  #0       ; [3]
+		 bne   loop     ; [3] 8 cycles / iteration
+   }
+}
+#if 0
 //! Depending on ACKN mode this function:       \n
 //!   - Waits for ACKN pulse with timeout.
 //!      OR
@@ -963,6 +977,56 @@ U8 doACKN_WAIT150(void) {
          aix   #-1      ; [2]
          cphx  #0       ; [3]
          bne   loop     ; [3] 8 cycles / iteration
+   }
+   return BDM_RC_OK;
+}
+#endif
+
+//! Depending on ACKN mode this function:       \n
+//!   - Waits for ACKN pulse with timeout.
+//!      OR
+//!   - Busy waits for 64 target CPU clocks
+//!
+//! @return
+//!   \ref BDM_RC_OK           => Success \n
+//!   \ref BDM_RC_ACK_TIMEOUT  => No ACKN detected [timeout]
+//!
+//! @note  Modified to extend timeout for very slow bus clocks e.g. 32kHz
+U8 doACKN_WAIT64(void) {
+   if (cable_status.ackn==ACKN) {
+      // Wait for pin capture or timeout
+	  enableInterrupts();
+      WAIT_WITH_TIMEOUT_US(ACKN_TIMEOUTus, (BKGD_TPMxCnSC_CHF!=0));
+	  if (BKGD_TPMxCnSC_CHF==0) {
+		 return BDM_RC_ACK_TIMEOUT;  //   Return timeout error
+	  }
+   }
+   else {
+      bdm_wait64();
+   }
+   return BDM_RC_OK;
+}
+
+//! Depending on ACKN mode this function:       \n
+//!   - Waits for ACKN pulse with timeout.
+//!      OR
+//!   - Busy waits for 150 target CPU clocks
+//!
+//! @return
+//!   \ref BDM_RC_OK           => Success \n
+//!   \ref BDM_RC_ACK_TIMEOUT  => No ACKN detected [timeout]
+//!
+U8 doACKN_WAIT150(void) {
+   if (cable_status.ackn==ACKN) {
+      // Wait for pin capture or timeout
+      enableInterrupts();
+      WAIT_WITH_TIMEOUT_US(ACKN_TIMEOUTus, (BKGD_TPMxCnSC_CHF!=0));
+      if (BKGD_TPMxCnSC_CHF==0) {
+         return BDM_RC_ACK_TIMEOUT;  //   Return timeout error
+      }
+   }
+   else {
+      bdm_wait150();
    }
    return BDM_RC_OK;
 }
@@ -2752,6 +2816,49 @@ U8 rc;
    enableInterrupts();
    return rc;
 }
+
+////! Converts the Coldfire CFV1_XCSR_CSTAT status to an error code
+////!
+////! @param xcsr_byte byte read from CFV1 XCSR
+////!
+////! @return error code 
+////!
+//U8 convertColdfireStatusByte(U8 xcsr_byte) {
+//	xcsr_byte &= CFV1_XCSR_CSTAT;
+//	if ((xcsr_byte & CFV1_XCSR_CSTAT_INVALID)) {
+//		return BDM_RC_CF_DATA_INVALID;
+//	}
+//	if ((xcsr_byte & CFV1_XCSR_CSTAT_ILLEGAL)) {
+//		return BDM_RC_CF_ILLEGAL_COMMAND;
+//	}
+//	if ((xcsr_byte & CFV1_XCSR_CSTAT_OVERRUN)) {
+//		return BDM_RC_TARGET_BUSY;
+//	}
+//	return BDM_RC_OK;
+//}
+
+////! Write cmd, 24-bit value, check status & read byte
+////!
+////! @param cmd     command byte to write
+////! @param addr    24-bit value to write
+////! @param status  ptr to status byte to read
+////! @param result  ptr to byte to read
+////!
+////! @note ACK is expected
+////!
+////! @return error code
+////!
+//U8 BDM_CMD_1A_CS_1B(U8 cmd, U32 addr, U8 *result) {
+//U8 status;
+//   bdm_txPrepare();
+//   bdmTx(cmd);
+//   bdmTx((U8)(addr>>16)&0xFF);
+//   bdmTx16((U16)addr);
+//   status = bdm_rx();
+//   *result = bdm_rx();
+//   enableInterrupts();
+//   return convertColdfireStatusByte(status);
+//}
 
 //! Write cmd, 24-bit value & read word
 //!

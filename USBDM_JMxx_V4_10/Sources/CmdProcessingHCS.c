@@ -397,8 +397,10 @@ U8 f_CMD_HALT(void) {
 //!
 U8 f_CMD_WRITE_BD(void) {
    U16 addr = *(U16*)(commandBuffer+2);
-   if (addr == HC12_BDMSTS) // Access to BDMSTS is mapped to write control
+   if (addr == HC12_BDMSTS) {
+	   // Access to BDMSTS is mapped to write control
       return bdm_writeBDMControl(commandBuffer[7]);
+   }
    return BDM12_CMD_BDWRITEB(addr,commandBuffer[7]);
 }
 

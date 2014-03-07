@@ -47,6 +47,8 @@ U8    bdm_setInterfaceLevel(U8 level);
 
 void  bdm_WaitForResetRise(void);
 
+U8    convertColdfireStatusByte(U8 bdmStatus);
+
 //! MACRO to calculate a SYNC value from a given frequency in Hz
 #define SYNC_MULTIPLE(x)  (U16)((2*128*(60000000UL/10))/(x/10))
 

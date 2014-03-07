@@ -240,6 +240,9 @@ extern U8 BDM_CMD_1A1L_0(U8 cmd, U32 addr, U32 *value);
 // Write 24-bit address & read byte
 extern U8 BDM_CMD_1A_1B(U8 cmd, U32 addr, U8 *result);
 
+// Write 24-bit address, check status & read byte
+extern U8 BDM_CMD_1A_CS_1B(U8 cmd, U32 addr, U8 *result);
+
 // Write 24-bit address & read word
 extern U8 BDM_CMD_1A_1W(U8 cmd, U32 addr, U16 *result);
 
@@ -361,6 +364,8 @@ extern U8 BDM_CMD_1A_1L(U8 cmd, U32 addr, U32 *result);
 #define BDMCF_CMD_WRITE_XCSR(value)          BDM_CMD_1B_0_NOACK(_BDMCF_WRITE_XCSR_BYTE,value) //!< Write XCSR.msb (CFv1) - No ACK
 #define BDMCF_CMD_WRITE_CSR2(value)          BDM_CMD_1B_0_NOACK(_BDMCF_WRITE_CSR2_BYTE,value) //!< Write CSR2.msb (CFv1) - No ACK
 #define BDMCF_CMD_WRITE_CSR3(value)          BDM_CMD_1B_0_NOACK(_BDMCF_WRITE_CSR3_BYTE,value) //!< Write CSR3.msb (CFv1) - No ACK
+
+#define BDMCF_CMD_READ_MEM_S(addr24,value_p) BDM_CMD_1A_CS_1B(_BDMCF_READ_MEM_WS|_BDMCF_SZ_BYTE,addr24,value_p) //!< Read 8-bit memory value with return status (CFv1)
 
 #define BDMCF_CMD_READ_MEM_B(addr24,value_p) BDM_CMD_1A_1B(_BDMCF_READ_MEM|_BDMCF_SZ_BYTE,addr24,value_p) //!< Read 8-bit memory value (CFv1)
 #define BDMCF_CMD_READ_MEM_W(addr24,value_p) BDM_CMD_1A_1W(_BDMCF_READ_MEM|_BDMCF_SZ_WORD,addr24,value_p) //!< Read 16-bit memory value (CFv1)

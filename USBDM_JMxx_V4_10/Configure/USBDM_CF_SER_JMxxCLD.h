@@ -43,9 +43,9 @@
 //=================================================================================
 // ICP pin - used to force ICP in bootstrap code
 //
-#define ICP_PIN_DDR DEBUG_PIN_DDR
-#define ICP_PIN_PER DEBUG_PIN_PER
-#define ICP_PIN     DEBUG_PIN
+#define ICP_PIN_DDR PTGDD_PTGDD2
+#define ICP_PIN_PER PTGPE_PTGPE2
+#define ICP_PIN     PTGD_PTGD2
 
 //===========================================================================================
 // Type of BDM interface chips are supported

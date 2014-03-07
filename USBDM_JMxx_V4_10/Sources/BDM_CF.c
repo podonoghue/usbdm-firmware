@@ -66,6 +66,8 @@
 #include "JTAGSequence.h"
 #endif
 
+#define BDMCF_RETRY         40   /* how many times to retry before giving up */
+
 #if (HW_CAPABILITY&CAP_CFVx_HW)
 
 //!< SPI Masks - Mask to enable SPI as master Tx
@@ -136,7 +138,7 @@ U16 returnData;
 //! @note Checks bus error as well as not-ready.
 //!
 U8 bdmcf_complete_chk_rx(void) {
-   return bdmcf_complete_chk(BDMCF_CMD_NOP);
+   return bdmcf_complete_chk(_BDMCF_CMD_NOP);
 }
 
 //! Receives a series of 17 bit messages & Transmits next command
@@ -156,7 +158,7 @@ U8 bdmcf_complete_chk_rx(void) {
 U8 bdmcf_rxtx(U8 count, U8 *dataPtr, U16 nextCommand) {
 U8   retryCount,status;
 U16  data;
-U16  dataOut = BDMCF_CMD_NOP; // Dummy command to send 
+U16  dataOut = _BDMCF_CMD_NOP; // Dummy command to send 
 
    while(count>0) {
       retryCount = BDMCF_RETRY;
@@ -199,7 +201,7 @@ U16  dataOut = BDMCF_CMD_NOP; // Dummy command to send
 //!          \ref BDM_RC_NO_CONNECTION         => No connection / unexpected response
 //!
 U8 bdmcf_rx(U8 count, U8 *dataPtr) {
-   return bdmcf_rxtx(count, dataPtr, BDMCF_CMD_NOP);
+   return bdmcf_rxtx(count, dataPtr, _BDMCF_CMD_NOP);
 }
 
 //! Transmits a 17 bit message
@@ -250,7 +252,7 @@ U16 dataIn;
 U8 bdmcf_rx_msg(U16 *data) {
 U8 status;
    status  = bdmcf_txrx_start();
-   *data   = bdmcf_txRx16(BDMCF_CMD_NOP);
+   *data   = bdmcf_txRx16(_BDMCF_CMD_NOP);
    return(status);
 }
 
@@ -265,8 +267,8 @@ U8  bitCount;
 U16 data;
 U8 status;
 
-   (void)bdmcf_tx_msg(BDMCF_CMD_NOP);     // Send in 3 NOPs to clear any error
-   (void)bdmcf_tx_msg(BDMCF_CMD_NOP);
+   (void)bdmcf_tx_msg(_BDMCF_CMD_NOP);     // Send in 3 NOPs to clear any error
+   (void)bdmcf_tx_msg(_BDMCF_CMD_NOP);
    status = bdmcf_rx_msg(&data);
 
    if (status == 1) {
@@ -292,7 +294,7 @@ U8 status;
       return(BDM_RC_NO_CONNECTION);
    }
    // Transmitted & received the status bit, finish the NOP
-   bdmcf_tx16(BDMCF_CMD_NOP);
+   bdmcf_tx16(_BDMCF_CMD_NOP);
    
    return(BDM_RC_OK);
 }
@@ -307,8 +309,8 @@ U8 status;
 	U8  bitCount;
 	U16 data;
 
-	   (void)bdmcf_tx_msg(BDMCF_CMD_NOP);     // Send in 3 NOPs to clear any error
-	   (void)bdmcf_tx_msg(BDMCF_CMD_NOP);
+	   (void)bdmcf_tx_msg(_BDMCF_CMD_NOP);     // Send in 3 NOPs to clear any error
+	   (void)bdmcf_tx_msg(_BDMCF_CMD_NOP);
 	   (void)bdmcf_rx_msg(&data);
 	   if ((data&3)==0) {
 	      // The last NOP did not return the expected value (at least one of the two bits should be 1)
@@ -324,7 +326,7 @@ U8 status;
 	      return(BDM_RC_NO_CONNECTION);
 	   }
 	   // Transmitted & received the status bit, finish the NOP
-	   bdmcf_tx16(BDMCF_CMD_NOP);
+	   bdmcf_tx16(_BDMCF_CMD_NOP);
 	   
 	   return(BDM_RC_OK);
 	}

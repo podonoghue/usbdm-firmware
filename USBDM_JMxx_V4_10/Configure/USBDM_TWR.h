@@ -424,7 +424,7 @@
 #define BKGD_TPMxCnSC_RISING_EDGE_MASK    TPM1C3SC_ELS3A_MASK // TPMxCnSC value for rising edge
 #define BKGD_TPMxCnSC_FALLING_EDGE_MASK   TPM1C3SC_ELS3B_MASK // TPMxCnSC value for falling edge
 #define BKGD_TPMxCnVALUE                  TPM1C3V             // IC Event time
-#define BKGD_TPM_SETUP_ASM                    BCLR 7,BKGD_TPMxCnSC 
+#define BKGD_TPM_SETUP_ASM                BCLR 7,BKGD_TPMxCnSC 
 
 // Timeout TPM1.Ch1 : Output Compare (no pin)
 #define TIMEOUT_TPMxCnSC_CHF              TPM1C1SC_CH1F       // Event Flag

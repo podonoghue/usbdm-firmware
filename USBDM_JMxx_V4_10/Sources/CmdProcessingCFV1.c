@@ -34,8 +34,9 @@
    \verbatim
    Change History
    +=======================================================================================
-   | 27 Jul 2013 | Added f_CMD_CF_READ_ALL_CORE_REGS()                      V4.10.6   - pgo
-   | 15 Feb 2011 | Masked address value for CFV1                              V4.5    - pgo
+   | 28 Feb 2014 | Improved error checking on memory read/write           V4.10.6.120 - pgo
+   | 27 Jul 2013 | Added f_CMD_CF_READ_ALL_CORE_REGS()                    V4.10.6     - pgo
+   | 15 Feb 2011 | Masked address value for CFV1                          V4.5        - pgo
    | 14 Apr 2010 | Fixed f_CMD_CF_READ_DREG for MC51AC256_HACK                        - pgo
    | 01 Apr 2010 | Fixed byte read/writes to CSR2 etc                                 - pgo
    |    Oct 2009 | Added byte read/writes to CSR2 etc                                 - pgo
@@ -79,7 +80,7 @@ U8  elementSize = commandBuffer[2];          // Size of the data writes
 U8  count       = commandBuffer[3];          // # of bytes
 U32 addr        = *(U32*)(commandBuffer+4);  // Address in target memory
 U8  *data_ptr   = commandBuffer+8;           // Where the data is
-U8  rc;
+U8  rc          = BDM_RC_OK;
 
    if (cable_status.speed == SPEED_NO_INFO) {
       return BDM_RC_NO_CONNECTION;
@@ -122,7 +123,7 @@ U8  rc;
             return BDM_RC_ILLEGAL_PARAMS;
       }
    }
-   return BDM_RC_OK;
+   return rc;
 }
 
 //! Read CFV1 Memory
@@ -144,8 +145,8 @@ U8 f_CMD_CF_READ_MEM(void) {
 U8  elementSize = commandBuffer[2];          // Size of the data writes
 U8  count       = commandBuffer[3];          // # of data bytes
 U32 addr        = *(U32*)(commandBuffer+4);  // Address in target memory
-U8 *data_ptr   = commandBuffer+1;            // Where in buffer to write the data
-U8 rc;
+U8 *data_ptr    = commandBuffer+1;            // Where in buffer to write the data
+U8 rc           = BDM_RC_OK;
 
    if (cable_status.speed == SPEED_NO_INFO)
       return BDM_RC_NO_CONNECTION;
@@ -192,7 +193,7 @@ U8 rc;
             return BDM_RC_ILLEGAL_PARAMS;
       }
    }
-   return BDM_RC_OK;
+   return rc;
 }
 
 //======================================================================

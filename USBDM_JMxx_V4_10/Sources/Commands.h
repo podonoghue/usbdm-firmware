@@ -137,7 +137,7 @@ typedef enum  {
  // Used by USBDM DLL
  BDM_RC_WRONG_BDM_REVISION                     = 34,    //!< BDM Hardware is incompatible with driver/program
  BDM_RC_WRONG_DLL_REVISION                     = 35,    //!< Program is incompatible with DLL
- BDM_RC_NO_USBDM_DEVICE                        = 36,    //!< No usbdm device was located
+ BDM_RC_NO_USBDM_DEVICE                        = 36,    //!< No USBDM device was located
 
  BDM_RC_JTAG_UNMATCHED_REPEAT                  = 37,    //!< Unmatched REPEAT-END_REPEAT
  BDM_RC_JTAG_UNMATCHED_RETURN                  = 38,    //!< Unmatched CALL-RETURN
@@ -159,7 +159,9 @@ typedef enum  {
  BDM_RC_ARM_PARITY_ERROR                       = 51,    //!< ARM PARITY error
  BDM_RC_ARM_FAULT_ERROR                        = 52,    //!< ARM FAULT response error
  BDM_RC_UNEXPECTED_RESPONSE                    = 53,    //!< Unexpected/inconsistent response from BDM
- BDM_RC_HCS_ACCESS_ERROR                       = 54,    //!< - Memory access failed due to target in stop or wait state
+ BDM_RC_HCS_ACCESS_ERROR                       = 54,    //!< Memory access failed due to target in stop or wait state
+ BDM_RC_CF_DATA_INVALID                        = 55,    //!< CF target returned data invalid response (whatever that means!)
+ BDM_RC_CF_OVERRUN                             = 56,    //!< CF target returned overrun response
 } USBDM_ErrorCode;
 
 //! Capabilities of the hardware
