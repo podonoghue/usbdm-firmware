@@ -35,7 +35,7 @@
 
     This is a bit mask made up of all the debugging options that are to be implemented in the code.
  */
-#define DEBUG 0 //DEBUG_COMMANDS // (STACK_DEBUG)
+#define DEBUG DEBUG_COMMANDS // (STACK_DEBUG)
 
 // Define for automatic WINUSB Driver loading 
 //#define MS_COMPATIBLE_ID_FEATURE (1)
@@ -144,7 +144,7 @@ extern void dputs(char *msg);
 #define VERSION_MAJOR 4     // 4.10.6 - Last published -- 4.10.5
 #define VERSION_MINOR 10
 #define VERSION_MICRO 6
-#define VERSION_STR "4.10.6.10"
+#define VERSION_STR "4.10.6.30"
 #define VERSION_SW  ((VERSION_MAJOR<<4)+VERSION_MINOR)
 //! Selected hardware platform
 #if TARGET_HARDWARE==H_USBDM_JMxxCLD

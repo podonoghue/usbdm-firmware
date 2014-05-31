@@ -24,7 +24,8 @@
 
    Change History
    +==================================================================================================
-   | 10 Feb 2014 | Extended retry times to allow for slow clocks               V4.10.6.20
+   | 21 Feb 2014 | Fixed unbalanced stack in swd_sendCommandWithWait()                      V4.10.6.30
+   | 10 Feb 2014 | Dramatically extended retry times to allow for slow clocks               V4.10.6.20
    | 30 Aug 2012 | ARM-JTAG & ARM-SWD Changes                                               V4.9.5
    +==================================================================================================
    \endverbatim
@@ -168,9 +169,9 @@ void swd_txIdle8(void) {
 #if (SWD_IN_BIT != 0)
 #error "SWD_IN must be bit #0"
 #endif
-#pragma MESSAGE DISABLE C5703 // Disable warnings about unused parameter
-
-//! SWD command phase 
+#pragma MESSAGE DISABLE C5703  // Disable warnings about unused parameter
+//! SWD command phase
+//!
 //! Writes 8-bit command and receives 3-bit response
 //! It will retry on WAIT response a limited number of times
 //!
@@ -187,14 +188,15 @@ void swd_txIdle8(void) {
 uint8_t swd_sendCommandWithWait(uint8_t command) {
    asm {
 	  sta    txTiming1                      // Save data (for retry)
-
 	  ldx    #(2000/250)                    // Set up outer retry count
 
    retry_outer:
 	  pshx                                  // Save outer retry count
-      mov    #250,rxTiming1                 // reset inner retry count
+      mov    #250,rxTiming1                 // Reset inner retry count
 
    retry:
+   
+      // 8-bit Start|APnDP|R/W|Parity|Stop|Park
       lda    txTiming1                      // Get Tx data
       mov    #SPIxC2_M_8,SPIxC2             // Initialise SPI (8 bit)
       mov    #SPIxC1_M_ON_TX,SPIC1          // Enable SPI
@@ -215,7 +217,7 @@ uint8_t swd_sendCommandWithWait(uint8_t command) {
       ldx    bitDelay                       // High time delay
       dbnzx  *-0                            // [4n fppp]
       
-      // 1st bit
+      // 1st bit ACK
       clra                                  // Clear initial data value
       bclr   SWCLK_OUT_BIT,DATA_PORT        // SWCLK=0
       ldx    bitDelay                       // Low time delay
@@ -227,7 +229,7 @@ uint8_t swd_sendCommandWithWait(uint8_t command) {
       ldx    bitDelay                       // High time delay
       dbnzx  *-0                            // [4n fppp]
 
-      // 2nd bit
+      // 2nd bit ACK
       bclr   SWCLK_OUT_BIT,DATA_PORT        // SWCLK=0
       ldx    bitDelay                       // Low time delay
       dbnzx  *-0                            // [4n fppp]
@@ -238,7 +240,7 @@ uint8_t swd_sendCommandWithWait(uint8_t command) {
       ldx    bitDelay                       // High time delay
       dbnzx  *-0                            // [4n fppp]
 
-      // 3rd bit
+      // 3rd bit ACK
       bclr   SWCLK_OUT_BIT,DATA_PORT        // SWCLK=0
       ldx    bitDelay                       // Low time delay
       dbnzx  *-0                            // [4n fppp]
@@ -251,7 +253,7 @@ uint8_t swd_sendCommandWithWait(uint8_t command) {
       
       tax
       lda    #BDM_RC_OKx
-      cbeqx  #SWD_ACK_OK,done
+      cbeqx  #SWD_ACK_OK,balanceStack
       
       // Do turn-around clock on anything other than ACK_OK response
       bclr   SWCLK_OUT_BIT,DATA_PORT        // SWCLK=0
@@ -262,21 +264,24 @@ uint8_t swd_sendCommandWithWait(uint8_t command) {
       dbnza  *-0                            // [4n fppp]
       
       // Check for wait response
-      lda    #BDM_RC_ACK_TIMEOUTx
-      cpx    #SWD_ACK_WAIT
-      bne    identifyError
+      cpx    #SWD_ACK_WAIT                  // Wait response?
+      bne    identifyError                  // No - exit with other error
       
       // Check for wait timeout
-      dbnz   rxTiming1,retry
-      
+      dbnz   rxTiming1,retry                // Retry limit reached
       pulx
       dbnzx  retry_outer   
-      bra    done
+
+      lda    #BDM_RC_ACK_TIMEOUTx           // Too many retries
+      bra    done                           // Return error (stack already balanced)
       
    identifyError:
-      lda    #BDM_RC_ARM_FAULT_ERRORx
-      cbeqx  #SWD_ACK_FAULT,done
+      lda    #BDM_RC_ARM_FAULT_ERRORx       // Identify error
+      cbeqx  #SWD_ACK_FAULT,balanceStack
       lda    #BDM_RC_NO_CONNECTIONx
+      
+   balanceStack:
+      pulx                                  // Balance stack
       
    done:
    }
@@ -700,8 +705,10 @@ uint8_t swd_abortAP(void) {
 }
 
 uint8_t swd_test(void) {
-
    return swd_connect();
+//   swd_JTAGtoSWD();
+//   return BDM_RC_OK;
+//   return swd_connect();
 }
 #endif // HW_CAPABILITY && CAP_SWD_HW
 

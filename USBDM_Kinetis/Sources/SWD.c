@@ -86,7 +86,9 @@ static inline uint8_t calcParity(const uint8_t dataptr[]) {
 //! RESET=3-state, SWCLK=High, SWDIO=3-state
 //!
 void swd_interfaceIdle(void) {
+#ifdef RESET_3STATE
    RESET_3STATE();
+#endif   
 }
 
 //! Initialise the SWD interface and sets it to an idle state

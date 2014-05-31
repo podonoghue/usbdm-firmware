@@ -394,6 +394,10 @@ DebugSubCommands subCommand = commandBuffer[2];
       case   BDM_DBG_SWD: //!< - Test ARM-SWD functions
          return swd_test();
 #endif
+#if TARGET_CAPABILITY & CAP_ARM_JTAG
+      case   BDM_DBG_SWD: //!< - Test ARM-SWD functions
+         return arm_test();
+#endif
 #if (TARGET_CAPABILITY & CAP_ARM_SWD) && defined(ERASE_KINETIS)
 
       case   BDM_DBG_SWD+10: //!< - Erase Kinetis Security region

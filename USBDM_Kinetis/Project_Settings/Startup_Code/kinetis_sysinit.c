@@ -185,7 +185,7 @@ void PORTE_IRQHandler() __attribute__ ((weak, alias("Default_Handler")));
 void SWI_IRQHandler() __attribute__ ((weak, alias("Default_Handler")));
 
 /* The Interrupt Vector Table */
-void (* const InterruptVector[256])() __attribute__ ((section(".vectortable"))) = {
+void (* const InterruptVector[256-16])() __attribute__ ((section(".vectortable"))) = {
     /* Processor exceptions */
     (void(*)(void)) &_estack,     /*!< Initial stack pointer */
     __thumb_startup,              /*!< Initial program counter */
@@ -429,20 +429,38 @@ void (* const InterruptVector[256])() __attribute__ ((section(".vectortable"))) 
     Default_Handler,              /*!< Unused interrupt */
     Default_Handler,              /*!< Unused interrupt */
     Default_Handler,              /*!< Unused interrupt */
-    Default_Handler,              /*!< Unused interrupt */
-    Default_Handler,              /*!< Unused interrupt */
-    Default_Handler,              /*!< Unused interrupt */
-    Default_Handler,              /*!< Unused interrupt */
-    Default_Handler,              /*!< Unused interrupt */
-    Default_Handler,              /*!< Unused interrupt */
-    Default_Handler,              /*!< Unused interrupt */
-    Default_Handler,              /*!< Unused interrupt */
-    Default_Handler,              /*!< Unused interrupt */
-    Default_Handler,              /*!< Unused interrupt */
-    Default_Handler,              /*!< Unused interrupt */
-    Default_Handler,              /*!< Unused interrupt */
-    Default_Handler,              /*!< Unused interrupt */
-    Default_Handler,              /*!< Unused interrupt */
-    Default_Handler,              /*!< Unused interrupt */
-    Default_Handler,              /*!< Unused interrupt */
+};
+
+typedef struct {
+   char       tag[4];         // Set to "kcfg' to enable
+   uint32_t   crcStartAddress;
+   uint32_t   crcByteCount;
+   uint32_t   crcExpectedValue;
+   uint8_t    enabledPeripherals;
+   uint8_t    i2cSlaveAddress;
+   uint16_t   peripheralDetectionTimeout; //  Timeout in milliseconds for peripheral detection before jumping to application code
+   uint16_t   usbVid;
+   uint16_t   usbPid;
+   char       (*usbStringPointer)[];
+   uint8_t    clockFlags;                 // High Speed and other clock options
+   uint8_t    clockDivider;               // One's complement of clock divider, zero divider is divide by 1
+   uint16_t   reserved;
+   
+} ConfigTable;
+
+// Dummy table - description in documentation is useless!
+ConfigTable BootloaderConfig  __attribute__ ((section(".configtable"))) = {
+   "    ",     // tag[4];
+   0xFFFFFFFF, // crcStartAddress
+   0xFFFFFFFF, // crcByteCount
+   0xFFFFFFFF, // crcExpectedValue
+   0xFF,       // enabledPeripherals
+   0xFF,       // i2cSlaveAddress
+   100,        // peripheralDetectionTimeout
+   0xFFFF,     // usbVid
+   0xFF,       // usbPid
+   NULL,       // usbStringPointer
+   0xFF,       // clockFlags
+   0xFF,       // clockDivider
+   0xFFFF,     // reserved
 };

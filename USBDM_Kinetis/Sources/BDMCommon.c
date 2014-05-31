@@ -213,14 +213,14 @@ void FTM0_IRQHandler(void) {
 U8 bdm_checkTargetVdd(void) {
 #if (HW_CAPABILITY&CAP_VDDSENSE)
    if (bdm_targetVddMeasure() > VDD_2v) {
-      RED_LED_ON();
+      redLedOn();
       if (bdm_option.targetVdd == BDM_TARGET_VDD_OFF)
          cable_status.power = BDM_TARGET_VDD_EXT;
       else
          cable_status.power = BDM_TARGET_VDD_INT;
    }
    else {
-      RED_LED_OFF();
+      redLedOff();
       if (bdm_option.targetVdd == BDM_TARGET_VDD_OFF)
          cable_status.power = BDM_TARGET_VDD_NONE;
       else {
@@ -343,6 +343,9 @@ U8 rc = BDM_RC_OK;
       jtag_interfaceIdle();  // Make sure BDM interface is idle
 #endif      
       break;
+   default:
+      swd_interfaceIdle();
+      break;
    }
 #if (DEBUG&CYCLE_DEBUG)
    DEBUG_PIN     = 0;
@@ -360,7 +363,7 @@ U8 rc = BDM_RC_OK;
    DEBUG_PIN     = 1;
    DEBUG_PIN     = 0;
 #endif //  (DEBUG&CYCLE_DEBUG)
-#if (HW_CAPABILITY&CAP_RST_IO)
+#if (HW_CAPABILITY&CAP_RST_IN)
    // RESET rise may be delayed by target POR
    if (bdm_option.useResetSignal) {
       WAIT_WITH_TIMEOUT_S( 2 /* s */, (RESET_IN!=0) );
@@ -374,7 +377,7 @@ U8 rc = BDM_RC_OK;
    // Let signals settle & CPU to finish reset (with BKGD held low)
    WAIT_US(BKGD_WAITus);
 
-#if (HW_CAPABILITY&CAP_RST_IO)
+#if (HW_CAPABILITY&CAP_RST_IN)
    if (bdm_option.useResetSignal && (RESET_IN==0)) {
       // RESET didn't rise
       rc = BDM_RC_RESET_TIMEOUT_RISE;
@@ -570,13 +573,7 @@ U16 bdm_targetVddMeasure(void) {
 #endif
 #else
    // Simple yes/no code as JB16/JS16/JB8 doesn't have a ADC
-   VDD_SENSE_DDR = 0;
-   asm {
-      nop
-      nop
-      nop
-   }
-   return (VDD_SENSE?255:0); 
+   return (checkTargetVdd()?255:0); 
 #endif
 }
 

@@ -145,7 +145,7 @@ extern void dputs(char *msg);
 #define VERSION_MAJOR 4     // 4.10.6 - Last published -- 4.10.5
 #define VERSION_MINOR 10
 #define VERSION_MICRO 6
-#define VERSION_STR "4.10.6.20"
+#define VERSION_STR "4.10.6.140"
 #define VERSION_SW  ((VERSION_MAJOR<<4)+VERSION_MINOR)
 //! Selected hardware platform
 #if TARGET_HARDWARE==H_USBDM_JMxxCLD
@@ -182,6 +182,8 @@ extern void dputs(char *msg);
 #include "USBDM_MKL25Z.h"
 #elif TARGET_HARDWARE==H_USBDM_MK20D5
 #include "USBDM_MK20D5.h"
+#elif (TARGET_HARDWARE==H_USBDM_OPENSDA) && defined(OPEN_SDA_V2) 
+#include "USBDM_OpenSDAV2.h"
 #elif TARGET_HARDWARE==H_USBDM_OPENSDA
 #include "USBDM_OpenSDA.h"
 #elif TARGET_HARDWARE==H_USBDM_TWR_HCS12

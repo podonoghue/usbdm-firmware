@@ -1969,20 +1969,20 @@ U8 bdm_RxTxSelect(void) {
    cable_status.wait64_cnt  = cable_status.sync_length/(U16)(((8*60*128UL)/(BUS_FREQ/1000000)/64));
    cable_status.wait150_cnt = cable_status.sync_length/(U16)(((8*60*128UL)/(BUS_FREQ/1000000)/150));
 
-   // Correct for overhead in calling function etc. (JSR+RTS+JSR) = (5+4+5) ~ 2 iterations
-   if (cable_status.wait64_cnt<=2) {
-      cable_status.wait64_cnt = 1; // minimum of 1 iteration
-   }
-   else {
-      cable_status.wait64_cnt -= 2;
-   }
-   if (cable_status.wait150_cnt<=2) {
-      cable_status.wait150_cnt = 1; // minimum of 1 iteration
-   }
-   else {
-      cable_status.wait150_cnt -= 2;
-   }
-   return(0);
+//   // Correct for overhead in calling function etc. (JSR+RTS+JSR) = (5+4+5) ~ 2 iterations
+//   if (cable_status.wait64_cnt<=2) {
+//      cable_status.wait64_cnt = 1; // minimum of 1 iteration
+//   }
+//   else {
+//      cable_status.wait64_cnt -= 2;
+//   }
+//   if (cable_status.wait150_cnt<=2) {
+//      cable_status.wait150_cnt = 1; // minimum of 1 iteration
+//   }
+//   else {
+//      cable_status.wait150_cnt -= 2;
+//   }
+   return(BDM_RC_OK);
 }
 
 // PARTID read from HCS12 - used to confirm target connection speed and avoid needless probing
