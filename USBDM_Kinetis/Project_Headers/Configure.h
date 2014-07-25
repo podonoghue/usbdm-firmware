@@ -142,10 +142,10 @@ extern void dputs(char *msg);
 //==========================================================================================
 //! Software Version Information
 //
-#define VERSION_MAJOR 4     // 4.10.6 - Last published -- 4.10.5
+#define VERSION_MAJOR 4     // 4.10.6.170 - Last published -- 4.10.5
 #define VERSION_MINOR 10
 #define VERSION_MICRO 6
-#define VERSION_STR "4.10.6.140"
+#define VERSION_STR "4.10.6.170"
 #define VERSION_SW  ((VERSION_MAJOR<<4)+VERSION_MINOR)
 //! Selected hardware platform
 #if TARGET_HARDWARE==H_USBDM_JMxxCLD

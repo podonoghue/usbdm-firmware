@@ -84,6 +84,21 @@
 
 #pragma MESSAGE DISABLE C4000 // Disable warnings about always true
 
+/*!
+ * Write an arbitrary command using BDM protocol
+ * 
+ * @return 
+ *     == \ref BDM_RC_OK => success        \n
+ *     != \ref BDM_RC_OK => error
+ */
+U8 f_CMD_CUSTOM_COMMAND(void) {
+	BDM_CMD_0_0_NOACK(_BDMZ12_ERASE_FLASH);
+	bdm_wait64();
+	BDM_CMD_0_0_NOACK(_BDMZ12_ERASE_FLASH);
+	bdm_wait64();
+	return BDM_RC_OK;
+}
+
 //! HCS12/HCS08/RS08/CFV1 - Try to connect to the target
 //!
 //! @return

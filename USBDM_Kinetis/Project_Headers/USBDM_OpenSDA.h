@@ -198,7 +198,7 @@
                             
 // Note:
 //    The SWDCLK_O pin is connected to SPI_SCK pin
-//    The SWDCLK_DRV 3-state buffer enable is connected to GPIO pin
+//    The SWDCLK_DRV 3-state buffer enable is connected to a GPIO pin
 
 // SWCLK out pin
 #define SWCLK_OUT_NUM            5

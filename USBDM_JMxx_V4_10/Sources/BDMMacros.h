@@ -1,6 +1,11 @@
 /*! \file
     \brief Header file for BDM MACROS
 
+   Change History
++================================================================================================
+| 18 Jul 2014 | Added HCS12ZVM support                                             - pgo V4.10.6.170
++================================================================================================
+\endverbatim
  */
 #ifndef _BDMMACROS_H_
 #define _BDMMACROS_H_
@@ -100,6 +105,37 @@ extern void doWAIT16(void);        //! Wait fot 16 bit times
 // RS08 BDM Commands
 //=======================================
 #define RS_BDC_RESET (0x18)
+
+// 9S12ZV  Commands
+//=======================================
+#define _BDMZ12_ACK_DISABLE        (0x03)
+#define _BDMZ12_ACK_ENABLE         (0x02)
+#define _BDMZ12_BACKGROUND         (0x04)
+#define _BDMZ12_DUMP_MEM           (0x32)
+#define _BDMZ12_DUMP_MEM_WS        (0x33)
+#define _BDMZ12_FILL_MEM           (0x12)
+#define _BDMZ12_FILL_MEM_WS        (0x13)
+#define _BDMZ12_GO                 (0x08)
+#define _BDMZ12_GO_UNTIL           (0x0C)
+#define _BDMZ12_NOP                (0x00)
+#define _BDMZ12_READ_Rn            (0x60)
+#define _BDMZ12_READ_MEM           (0x30)
+#define _BDMZ12_READ_MEM_WS        (0x31)
+#define _BDMZ12_READ_DBGTB         (0x07)
+#define _BDMZ12_READ_SAME          (0x54)
+#define _BDMZ12_READ_SAME_WS       (0x55)
+#define _BDMZ12_READ_BDCCSR        (0x2D)
+#define _BDMZ12_SYNC_PC            (0x01)
+#define _BDMZ12_WRITE_MEM          (0x10)
+#define _BDMZ12_WRITE_MEM_WS       (0x11)
+#define _BDMZ12_WRITE_Rn           (0x40)
+#define _BDMZ12_WRITE_BDCCSR       (0x0D)
+#define _BDMZ12_ERASE_FLASH        (0x95)
+#define _BDMZ12_TRACE1             (0x09)
+
+#define _BDMZ12_SZ_BYTE            (0x0<<2)
+#define _BDMZ12_SZ_WORD            (0x1<<2)
+#define _BDMZ12_SZ_LONG            (0x2<<2)
 
 // Coldfire V1  Commands
 //=======================================
@@ -339,13 +375,20 @@ extern U8 BDM_CMD_1A_1L(U8 cmd, U32 addr, U32 *result);
 #define BDM08_CMD_WRITE_BKPT(value)          BDM_CMD_1W_0_NOACK(_BDM08_WRITE_BKPT,value)   //!< Write Breakpoint (HC08) - No ACK fix - pgo
 #define BDMRS08_CMD_WRITE_SPC(value)         BDM_CMD_1W_0(_BDMRS08_WRITE_SPC,value)        //!< Write Shadow PC (RS08)
 
+/*
+ * 
+ */
+#define BDMZ12_CMD_READ_BDCCSR(value_p)      BDM_CMD_0_1W_NOACK(_BDMZ12_READ_BDCCSR,value_p)  //!< Read BDCCSR - No ACK
+#define BDMZ12_CMD_WRITE_BDCCSR(value_p)     BDM_CMD_1W_0_NOACK(_BDMZ12_WRITE_BDCCSR,value_p) //!< Read BDCCSR - No ACK
+#define BDMZ12_CMD_TRACE1()                  BDM_CMD_0_0(_BDMZ12_TRACE1)                      //!< Trace a single instruction
+
 // Coldfire V1 Commands
 #define BDMCF_CMD_ACK_ENABLE()               BDM_CMD_0_0(_BDMCF_ACK_ENABLE)     //!< Enable ACKN (CFv1)
-#define BDMCF_CMD_ACK_DISABLE()              BDM_CMD_0_0(_BDMCF_ACK_DISABLE)    //!< Disable ACN (Expects ACK but times out) (CFv1)
+#define BDMCF_CMD_ACK_DISABLE()              BDM_CMD_0_0(_BDMCF_ACK_DISABLE)    //!< Disable ACKN (Expects ACK but times out) (CFv1)
 #define BDMCF_CMD_BACKGROUND()               BDM_CMD_0_0(_BDMCF_BACKGROUND)     //!< Halt Target (CFv1)
 #define BDMCF_CMD_GO()                       BDM_CMD_0_0(_BDMCF_GO)             //!< Target Go (CFv1)
 #define BDMCF_CMD_NOP()                      BDM_CMD_0_0(_BDMCF_NOP)            //!< No Operation (CFv1)
-#define BDMCF_CMD_SYNC_PC()                  BDM_CMD_0_0(_BDMCF_SYNC_PC)        //!< Syc PC (CFv1)
+#define BDMCF_CMD_SYNC_PC()                  BDM_CMD_0_0(_BDMCF_SYNC_PC)        //!< Sync PC (CFv1)
 
 #define BDMCF_CMD_READ_REG(regNo,value_p)    BDM_CMD_0_1L(_BDMCF_READ_Rn|(regNo),value_p)    //!< Read Register (CFv1)
 #define BDMCF_CMD_READ_CREG(regNo,value_p)   BDM_CMD_0_1L(_BDMCF_READ_CREG|(regNo),value_p)  //!< Read Control Register (CFv1)

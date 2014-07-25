@@ -461,6 +461,7 @@ __inline static void ledInit(void) {
 // Target Vdd control
 
 #if (HW_CAPABILITY&CAP_VDDCONTROL)
+#define VDD_ON_INITIALLY 3  // Enable target Vdd=3V on plugin
 
 // Target Vdd data out pin (GPIO)
 #define VDD_EN_NUM            6

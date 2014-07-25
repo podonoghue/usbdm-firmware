@@ -29,6 +29,7 @@
 Change History
 
 -=======================================================================================
+| 18 Jul 2014 | Added HCS12ZVM support                                             - pgo V4.10.6.170
 | 28 Feb 2013 | Changed Timeouts for slow target clocks e.g. 32kHz                 - pgo V4.10.6.120
 | 26 Dec 2012 | Changed Reset handling to prevent USB timeouts                     - pgo V4.10.4
 | 18 Sep 2012 | Removed output glitch in bdm_rxGeneric() etc (BKGD_3STATE_MASK)    - pgo V4.10.2
@@ -178,6 +179,14 @@ void (*bdm_tx_ptr)(U8)   = bdm_txEmpty; //!< pointers to current bdm_Tx routine
 U8 bdm_readBDMStatus(U8 *bdm_sts) {
 
    switch (cable_status.target_type) {
+#if TARGET_CAPABILITY & CAP_S12Z
+      case T_HCS12Z  : {
+    	  uint16_t temp;
+    	  BDMZ12_CMD_READ_BDCCSR(&temp);
+    	  *bdm_sts = temp>>8;
+      	  }
+	  return BDM_RC_OK;
+#endif
       case T_HC12:
          BDM12_CMD_BDREADB(HC12_BDMSTS,bdm_sts);
          return BDM_RC_OK;
@@ -205,6 +214,11 @@ U8 bdm_readBDMStatus(U8 *bdm_sts) {
 static void writeBDMControl(U8 value) {
 
    switch (cable_status.target_type) {
+#if TARGET_CAPABILITY & CAP_S12Z
+      case T_HCS12Z  :
+    	  BDMZ12_CMD_WRITE_BDCCSR((value<<8)|0xFF);
+         break;
+#endif
       case T_HC12:
          BDM12_CMD_BDWRITEB(HC12_BDMSTS,value);
          break;
@@ -238,6 +252,9 @@ U8 statusClkMask;   // The position of the CLKSW bit in control register
 
    // Get clock select mask for this target (CLKSW bit in BDM control register)
    switch (cable_status.target_type) {
+#if TARGET_CAPABILITY & CAP_S12Z
+      case T_HCS12Z  :
+#endif
       case T_HC12:
          statusClkMask = HC12_BDMSTS_CLKSW;
          break;
@@ -885,7 +902,11 @@ U8 rc;
    cable_status.ackn = ACKN;              // Switch ACKN on
 
    // Send the ACK enable command to the target
-   if (cable_status.target_type==T_CFV1)
+   if ((cable_status.target_type==T_CFV1)
+#if TARGET_CAPABILITY & CAP_S12Z
+		   ||(cable_status.target_type==T_HCS12Z  )
+#endif	   
+   )
       rc = BDMCF_CMD_ACK_ENABLE();
    else
       rc = BDM_CMD_ACK_ENABLE();
@@ -1035,7 +1056,11 @@ U8 doACKN_WAIT150(void) {
 //!
 U8 bdm_halt(void) {
 
-   if (cable_status.target_type==T_CFV1)
+   if ((cable_status.target_type==T_CFV1)
+#if TARGET_CAPABILITY & CAP_S12Z
+	  ||(cable_status.target_type==T_HCS12Z  )
+#endif
+	  )
       return BDMCF_CMD_BACKGROUND();
    else
       return BDM_CMD_BACKGROUND();
@@ -1057,8 +1082,9 @@ U32 csr;
 
       return BDMCF_CMD_GO();
       }
-   else
+   else {
       return BDM_CMD_GO();
+   }
 }
 
 //!  Executes a single instruction on the target
@@ -1077,8 +1103,14 @@ U32 csr;
 
       return BDMCF_CMD_GO();
       }
-   else
+#if TARGET_CAPABILITY & CAP_S12Z
+   else if (cable_status.target_type == T_HCS12Z  ) {
+      return BDMZ12_CMD_TRACE1();
+   }
+#endif
+   else {
       return BDM_CMD_TRACE1();
+   }
 }
 
 //!  Turns off the BDM interface
@@ -1842,85 +1874,105 @@ U8 bdm_rxGeneric(void) {
 //! Structure describing Tx configuration
 typedef struct {
    U16   syncThreshold;       //!< Threshold to use this function
-   void  (*txFunc)(U8 data);  //!< Ptr to selected function
+//   void  (*txFunc)(U8 data);  //!< Ptr to selected function
    U8    time1,time2,time3;   //!< Timing Parameters for function use
 } TxConfiguration;
 
+typedef void (*TxConfigurationPtrs)(U8 data);     //!< Ptr to selected function
+
+const TxConfigurationPtrs txPtrs[] = {
+	bdm_txEmpty,
+	bdm_tx1,
+	bdm_tx2,
+	bdm_tx3,
+};
 //! Information for each Tx configuration
 //!
 const TxConfiguration txConfiguration[] =
 {
-{ 0, bdm_txEmpty, 0, 0, 0 },//>68 MHz - Max Fequency
-{ 113, bdm_tx1, 1, 0, 0 },//37.71 - 68 MHz, (3,4,15)
-{ 196, bdm_tx2, 2, 0, 0 },//24 - 40.8 MHz, (5,6,15)
-{ 290, bdm_tx3, 3, 0, 0 },//17.6 - 29.14 MHz, (7,8,15)
-{ 405, bdm_txGeneric, 1, 1, 1 },//12.57 - 20.4 MHz, (10,11,25)
-{ 567, bdm_txGeneric, 2, 2, 1 },//9.1 - 14.57 MHz, (14,15,25)
-{ 779, bdm_txGeneric, 3, 5, 1 },//5.87 - 10.67 MHz, (18,27,25)
-{ 1216, bdm_txGeneric, 6, 7, 1 },//4.27 - 6.8 MHz, (30,35,25)
-{ 1686, bdm_txGeneric, 9, 11, 7 },//2.84 - 4.86 MHz, (42,51,49)
-{ 2344, bdm_txGeneric, 12, 12, 9 },//2.42 - 3.78 MHz, (54,55,57)
-{ 2631, bdm_txGeneric, 13, 17, 11 },//1.98 - 3.52 MHz, (58,75,65)
-{ 3285, bdm_txGeneric, 17, 22, 16 },//1.56 - 2.76 MHz, (74,95,85)
-{ 4348, bdm_txGeneric, 24, 26, 19 },//1.24 - 2 MHz, (102,111,97)
-{ 5244, bdm_txGeneric, 28, 30, 24 },//1.08 - 1.73 MHz, (118,127,117)
-{ 6337, bdm_txGeneric, 36, 40, 34 },//0.83 - 1.36 MHz, (150,167,157)
-{ 7966, bdm_txGeneric, 44, 47, 40 },//0.7 - 1.12 MHz, (182,195,181)
-{ 9418, bdm_txGeneric, 52, 55, 47 },//0.6 - 0.95 MHz, (214,227,209)
-{ 10949, bdm_txGeneric, 61, 65, 56 },//0.51 - 0.82 MHz, (250,267,245)
-{ 12854, bdm_txGeneric, 71, 78, 67 },//0.43 - 0.7 MHz, (290,319,289)
-{ 15120, bdm_txGeneric, 84, 93, 79 },//0.37 - 0.6 MHz, (342,379,337)
-{ 17680, bdm_txGeneric, 98, 105, 92 },//0.32 - 0.51 MHz, (398,427,389)
-{ 20239, bdm_txGeneric, 113, 120, 105 },//0.28 - 0.45 MHz, (458,487,441)
-{ 23241, bdm_txGeneric, 128, 140, 120 },//0.24 - 0.39 MHz, (518,567,501)
-{ 26499, bdm_txGeneric, 146, 166, 140 },//0.21 - 0.35 MHz, (590,671,581)
-{ 36571, bdm_txEmpty, 0, 0 ,0  },//<0.21 MHz - Min. Frequency
+{ 0,  0, 0, 0 },//>68 MHz - Max Fequency
+{ 113,  1, 0, 0 },//37.71 - 68 MHz, (3,4,15)
+{ 196,  2, 0, 0 },//24 - 40.8 MHz, (5,6,15)
+{ 290,  3, 0, 0 },//17.6 - 29.14 MHz, (7,8,15)
+{ 405,  1, 1, 1 },//12.57 - 20.4 MHz, (10,11,25)
+{ 567,  2, 2, 1 },//9.1 - 14.57 MHz, (14,15,25)
+{ 779,  3, 5, 1 },//5.87 - 10.67 MHz, (18,27,25)
+{ 1216,  6, 7, 1 },//4.27 - 6.8 MHz, (30,35,25)
+{ 1686,  9, 11, 7 },//2.84 - 4.86 MHz, (42,51,49)
+{ 2344,  12, 12, 9 },//2.42 - 3.78 MHz, (54,55,57)
+{ 2631,  13, 17, 11 },//1.98 - 3.52 MHz, (58,75,65)
+{ 3285,  17, 22, 16 },//1.56 - 2.76 MHz, (74,95,85)
+{ 4348,  24, 26, 19 },//1.24 - 2 MHz, (102,111,97)
+{ 5244,  28, 30, 24 },//1.08 - 1.73 MHz, (118,127,117)
+{ 6337,  36, 40, 34 },//0.83 - 1.36 MHz, (150,167,157)
+{ 7966,  44, 47, 40 },//0.7 - 1.12 MHz, (182,195,181)
+{ 9418,  52, 55, 47 },//0.6 - 0.95 MHz, (214,227,209)
+{ 10949,  61, 65, 56 },//0.51 - 0.82 MHz, (250,267,245)
+{ 12854,  71, 78, 67 },//0.43 - 0.7 MHz, (290,319,289)
+{ 15120,  84, 93, 79 },//0.37 - 0.6 MHz, (342,379,337)
+{ 17680,  98, 105, 92 },//0.32 - 0.51 MHz, (398,427,389)
+{ 20239,  113, 120, 105 },//0.28 - 0.45 MHz, (458,487,441)
+{ 23241,  128, 140, 120 },//0.24 - 0.39 MHz, (518,567,501)
+{ 26499,  146, 166, 140 },//0.21 - 0.35 MHz, (590,671,581)
+{ 36571,  0, 0 ,0  },//<0.21 MHz - Min. Frequency
 };
 
 //! Structure describing Rx configuration
 typedef struct {
    U16   syncThreshold;       //!< Threshold to use this function
-   U8    (*txFunc)(void);     //!< Ptr to selected function
+//   U8    txFunc;              //!< Ptr to selected function
    U8    time1,time2,time3;   //!< Timing Parameters for function use
 } RxConfiguration;
+
+typedef U8    (*RxConfigurationPtrs)(void);     //!< Ptr to selected function
+
+const RxConfigurationPtrs rxPtrs[] = {
+	bdm_rxEmpty,
+	bdm_rx1,
+	bdm_rx2,
+	bdm_rx3,
+	bdm_rx4,
+	bdm_rx5,
+	bdm_rx6,
+};
 
 //! Information for each Rx configuration
 //!
 const RxConfiguration rxConfiguration[] =
 {
-{ 0, bdm_rxEmpty, 0, 0, 0 },//>56 MHz - Max Fequency
-{ 137, bdm_rx1, 1, 0, 0 },//48.56 - 56 MHz, (3,5,8)
-{ 152, bdm_rx2, 2, 0, 0 },//39.65 - 52.86 MHz, (3,6,8)
-{ 188, bdm_rx3, 3, 0, 0 },//33.5 - 42 MHz, (4,6,10)
-{ 229, bdm_rx4, 4, 0, 0 },//29 - 33.6 MHz, (5,6,10)
-{ 258, bdm_rx5, 5, 0, 0 },//22.86 - 30.48 MHz, (5,8,10)
-{ 320, bdm_rx6, 6, 0, 0 },//18.87 - 25.16 MHz, (6,9,10)
-{ 396, bdm_rxGeneric, 1, 1, 1 },//14.95 - 19.93 MHz, (8,10,20)
-{ 503, bdm_rxGeneric, 1, 2, 1 },//11.71 - 15.61 MHz, (8,14,20)
-{ 627, bdm_rxGeneric, 1, 3, 1 },//9.62 - 12.83 MHz, (8,18,20)
-{ 750, bdm_rxGeneric, 2, 3, 1 },//8.17 - 10.89 MHz, (12,18,20)
-{ 874, bdm_rxGeneric, 2, 4, 2 },//7.09 - 9.46 MHz, (12,22,24)
-{ 998, bdm_rxGeneric, 3, 4, 2 },//6.27 - 8.36 MHz, (16,22,24)
-{ 1121, bdm_rxGeneric, 3, 5, 3 },//5.62 - 7.49 MHz, (16,26,28)
-{ 1301, bdm_rxGeneric, 5, 5, 5 },//4.65 - 6.2 MHz, (24,26,36)
-{ 1548, bdm_rxGeneric, 5, 7, 6 },//3.97 - 5.29 MHz, (24,34,40)
-{ 1852, bdm_rxGeneric, 6, 9, 9 },//3.25 - 4.33 MHz, (28,42,52)
-{ 2224, bdm_rxGeneric, 8, 10, 11 },//2.75 - 3.67 MHz, (36,46,60)
-{ 2652, bdm_rxGeneric, 10, 12, 14 },//2.29 - 3.05 MHz, (44,54,72)
-{ 3197, bdm_rxGeneric, 12, 15, 18 },//1.89 - 2.52 MHz, (52,66,88)
-{ 3873, bdm_rxGeneric, 15, 18, 23 },//1.56 - 2.08 MHz, (64,78,108)
-{ 4675, bdm_rxGeneric, 18, 22, 28 },//1.3 - 1.73 MHz, (76,94,128)
-{ 5594, bdm_rxGeneric, 22, 26, 34 },//1.09 - 1.45 MHz, (92,110,152)
-{ 6687, bdm_rxGeneric, 27, 31, 42 },//0.91 - 1.21 MHz, (112,130,184)
-{ 8011, bdm_rxGeneric, 32, 38, 51 },//0.75 - 1.01 MHz, (132,158,220)
-{ 9734, bdm_rxGeneric, 38, 47, 63 },//0.62 - 0.83 MHz, (156,194,268)
-{ 11742, bdm_rxGeneric, 45, 58, 77 },//0.52 - 0.69 MHz, (184,238,324)
-{ 13984, bdm_rxGeneric, 53, 70, 93 },//0.43 - 0.58 MHz, (216,286,388)
-{ 16905, bdm_rxGeneric, 61, 88, 115 },//0.36 - 0.48 MHz, (248,358,476)
-{ 20239, bdm_rxGeneric, 72, 108, 140 },//0.3 - 0.4 MHz, (292,438,576)
-{ 24409, bdm_rxGeneric, 84, 130, 165 },//0.25 - 0.33 MHz, (340,526,676)
-{ 29028, bdm_rxGeneric, 100, 160, 200 },//0.21 - 0.28 MHz, (404,646,816)
-{ 36571, bdm_rxEmpty, 0, 0 ,0  },//<0.21 MHz - Min. Frequency
+{ 0,  0, 0, 0 },//>56 MHz - Max Fequency
+{ 137,  1, 0, 0 },//48.56 - 56 MHz, (3,5,8)
+{ 152,  2, 0, 0 },//39.65 - 52.86 MHz, (3,6,8)
+{ 188,  3, 0, 0 },//33.5 - 42 MHz, (4,6,10)
+{ 229,  4, 0, 0 },//29 - 33.6 MHz, (5,6,10)
+{ 258,  5, 0, 0 },//22.86 - 30.48 MHz, (5,8,10)
+{ 320,  6, 0, 0 },//18.87 - 25.16 MHz, (6,9,10)
+{ 396,  1, 1, 1 },//14.95 - 19.93 MHz, (8,10,20)
+{ 503,  1, 2, 1 },//11.71 - 15.61 MHz, (8,14,20)
+{ 627,  1, 3, 1 },//9.62 - 12.83 MHz, (8,18,20)
+{ 750,  2, 3, 1 },//8.17 - 10.89 MHz, (12,18,20)
+{ 874,  2, 4, 2 },//7.09 - 9.46 MHz, (12,22,24)
+{ 998,  3, 4, 2 },//6.27 - 8.36 MHz, (16,22,24)
+{ 1121,  3, 5, 3 },//5.62 - 7.49 MHz, (16,26,28)
+{ 1301,  5, 5, 5 },//4.65 - 6.2 MHz, (24,26,36)
+{ 1548,  5, 7, 6 },//3.97 - 5.29 MHz, (24,34,40)
+{ 1852,  6, 9, 9 },//3.25 - 4.33 MHz, (28,42,52)
+{ 2224,  8, 10, 11 },//2.75 - 3.67 MHz, (36,46,60)
+{ 2652,  10, 12, 14 },//2.29 - 3.05 MHz, (44,54,72)
+{ 3197,  12, 15, 18 },//1.89 - 2.52 MHz, (52,66,88)
+{ 3873,  15, 18, 23 },//1.56 - 2.08 MHz, (64,78,108)
+{ 4675,  18, 22, 28 },//1.3 - 1.73 MHz, (76,94,128)
+{ 5594,  22, 26, 34 },//1.09 - 1.45 MHz, (92,110,152)
+{ 6687,  27, 31, 42 },//0.91 - 1.21 MHz, (112,130,184)
+{ 8011,  32, 38, 51 },//0.75 - 1.01 MHz, (132,158,220)
+{ 9734,  38, 47, 63 },//0.62 - 0.83 MHz, (156,194,268)
+{ 11742,  45, 58, 77 },//0.52 - 0.69 MHz, (184,238,324)
+{ 13984,  53, 70, 93 },//0.43 - 0.58 MHz, (216,286,388)
+{ 16905,  61, 88, 115 },//0.36 - 0.48 MHz, (248,358,476)
+{ 20239,  72, 108, 140 },//0.3 - 0.4 MHz, (292,438,576)
+{ 24409,  84, 130, 165 },//0.25 - 0.33 MHz, (340,526,676)
+{ 29028,  100, 160, 200 },//0.21 - 0.28 MHz, (404,646,816)
+{ 36571,  0, 0 ,0  },//<0.21 MHz - Min. Frequency
 };
 
 //! Selects Rx and Tx routine to be used according to SYNC length in \ref cable_status structure.
@@ -1932,11 +1984,44 @@ const RxConfiguration rxConfiguration[] =
 //!   \ref BDM_RC_NO_RX_ROUTINE  => No suitable Rx routine found \n
 //!
 U8 bdm_RxTxSelect(void) {
-   const TxConfiguration  * txConfigPtr;
-   const RxConfiguration  * rxConfigPtr;
+   const TxConfiguration  *txConfigPtr;
+   const RxConfiguration  *rxConfigPtr;
+   U8 sub;
 
    bdm_clearConnection();
    
+#if 1
+   for (sub=0; sub<(sizeof(txConfiguration)/sizeof(txConfiguration[0])); sub++) {
+
+	   if (cable_status.sync_length >= txConfiguration[sub].syncThreshold) { // SYNC is >=
+		 if ( sub >= (sizeof(txPtrs)/sizeof(txPtrs[0])) ) {
+			 bdm_tx_ptr = bdm_txGeneric; // Select this routine
+		 }
+		 else {
+			 bdm_tx_ptr = txPtrs[sub]; // Select this routine
+		 }
+		 txConfigPtr   = txConfiguration+sub;
+         txTiming1     = txConfigPtr->time1;  // Save timing parameters
+         txTiming2     = txConfigPtr->time2;
+         txTiming3     = txConfigPtr->time3;
+	  }
+   }
+   for (sub=0; sub<(sizeof(rxConfiguration)/sizeof(rxConfiguration[0])); sub++) {
+
+	   if (cable_status.sync_length >= rxConfiguration[sub].syncThreshold) { // SYNC is >=
+		 if ( sub >= (sizeof(rxPtrs)/sizeof(rxPtrs[0])) ) {
+			 bdm_rx_ptr = bdm_rxGeneric; // Select this routine
+		 }
+		 else {
+			 bdm_rx_ptr = rxPtrs[sub]; // Select this routine
+		 }
+		 rxConfigPtr   = rxConfiguration+sub;
+         rxTiming1     = rxConfigPtr->time1;  // Save timing parameters
+         rxTiming2     = rxConfigPtr->time2;
+         rxTiming3     = rxConfigPtr->time3;
+	  }
+   }
+#else
    for (  txConfigPtr  = txConfiguration+sizeof(txConfiguration)/sizeof(txConfiguration[0]);
         --txConfigPtr >= txConfiguration; ) { // Search the table
 
@@ -1955,13 +2040,20 @@ U8 bdm_RxTxSelect(void) {
         --rxConfigPtr >= rxConfiguration; ) { // Search the table
 
       if (cable_status.sync_length >= rxConfigPtr->syncThreshold) { // SYNC is >=
-         bdm_rx_ptr    = rxConfigPtr->txFunc; // Select this routine
+    	  
+    	 if ( (rxConfigPtr-rxConfiguration) >= (sizeof(rxPtrs)/sizeof(rxPtrs[0])) ) {
+             bdm_rx_ptr = bdm_rxGeneric; // Select this routine
+    	 }
+    	 else {
+             bdm_rx_ptr = rxPtrs[rxConfigPtr-rxConfiguration]; // Select this routine
+    	 }
          rxTiming1     = rxConfigPtr->time1;  // Save timing parameters
          rxTiming2     = rxConfigPtr->time2;
          rxTiming3     = rxConfigPtr->time3;
          break;                               // Quit search
       }
    }
+#endif
    if (bdm_rx_ptr==bdm_rxEmpty) { // Return if no function found
       return(BDM_RC_NO_RX_ROUTINE);
    }
@@ -2191,30 +2283,35 @@ U8  rc;
 
 #if (DEBUG&DEBUG_COMMANDS) // Debug commands enabled
 U8 bdm_testTx(U8 speedIndex) {
-const TxConfiguration  *txConfigPtr;
+	const TxConfiguration  *txConfigPtr;
 
-    // Validate index
-   if (speedIndex > (sizeof(txConfiguration)/sizeof(txConfiguration[0])))
-      return BDM_RC_ILLEGAL_PARAMS;
-         
-   txConfigPtr = &txConfiguration[speedIndex]; // selected routine
+	// Validate index
+	if (speedIndex > (sizeof(txConfiguration)/sizeof(txConfiguration[0]))) {
+		return BDM_RC_ILLEGAL_PARAMS;
+	}
+	txConfigPtr = &txConfiguration[speedIndex]; // selected routine
 
-   bdm_tx_ptr    = txConfigPtr->txFunc; // Select this routine
-   txTiming1     = txConfigPtr->time1;  // Save timing parameters
-   txTiming2     = txConfigPtr->time2;
-   txTiming3     = txConfigPtr->time3;
-   
-   bdm_txPrepare();
-   bdmTx(0xF0);
-   WAIT_MS(1);
-   bdmTx(0x0F);
-   WAIT_MS(1);
-   bdmTx(0xAA);
-   WAIT_MS(1);
-   bdmTx(0x55);
-   WAIT_MS(1);
-   bdmHCS_interfaceIdle();
-   return BDM_RC_OK;
+	if ( speedIndex >= (sizeof(txPtrs)/sizeof(txPtrs[0])) ) {
+		bdm_tx_ptr = bdm_txGeneric; // Select this routine
+	}
+	else {
+		bdm_tx_ptr = txPtrs[speedIndex]; // Select this routine
+	}
+	txTiming1     = txConfigPtr->time1;  // Save timing parameters
+	txTiming2     = txConfigPtr->time2;
+	txTiming3     = txConfigPtr->time3;
+
+	bdm_txPrepare();
+	bdmTx(0xF0);
+	WAIT_MS(1);
+	bdmTx(0x0F);
+	WAIT_MS(1);
+	bdmTx(0xAA);
+	WAIT_MS(1);
+	bdmTx(0x55);
+	WAIT_MS(1);
+	bdmHCS_interfaceIdle();
+	return BDM_RC_OK;
 }
 #endif
 
@@ -2388,12 +2485,12 @@ void BDM_CMD_1W1B_0_T(U8 cmd, U16 parameter1, U8 parameter2) {
 //!
 //! @note No ACK is expected
 //!
-//void BDM_CMD_0_0_NOACK(U8 cmd) {
-//   bdm_txPrepare();
-//   bdmTx(cmd);
-//   BDM_3STATE();
-//   enableInterrupts();
-//}
+void BDM_CMD_0_0_NOACK(U8 cmd) {
+   bdm_txPrepare();
+   bdmTx(cmd);
+   BDM_3STATE();
+   enableInterrupts();
+}
    
 //! Write cmd & read byte without ACK (HCS08)
 //!

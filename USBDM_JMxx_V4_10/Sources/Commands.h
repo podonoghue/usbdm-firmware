@@ -1,5 +1,11 @@
 /*! \file
     \brief Command and Error codes for BDM communication over USB
+
+   Change History
++================================================================================================
+| 18 Jul 2014 | Added HCS12ZVM support                                             - pgo V4.10.6.170
++================================================================================================
+\endverbatim
 */
 #ifndef _COMMANDS_H_
 #define _COMMANDS_H_
@@ -51,7 +57,7 @@ typedef enum {
                                           //!    to enable ackn feature, @param [2..3] 16-bit tick count
    CMD_USBDM_GET_SPEED             = 17,  //!< Read speed of the target: @return [1..2] 16-bit tick coun
 
-   CMD_USBDM_CONTROL_INTERFACE     = 18,  //!< Directly control BDM interface levels
+   CMD_CUSTOM_COMMAND              = 18,  //!< Directly control BDM interface levels
    // Reserved 19
 
    CMD_USBDM_READ_STATUS_REG       = 20,  //!< Get BDM status
@@ -167,12 +173,23 @@ typedef enum  {
 //! Capabilities of the hardware
 //!
 typedef enum  {
-   BDM_CAP_NONE             = (0),
-   BDM_CAP_RESET            = (1<<0),   //!< - RESET can be driven/sensed (HC12 support)
-   BDM_CAP_FLASH            = (1<<1),   //!< - 12 V Flash programming supply available (RS08 support)
-   BDM_CAP_VDDCONTROL       = (1<<2),   //!< - Control over target Vdd
-   BDM_CAP_VDDSENSE         = (1<<3),   //!< - Sensing of target Vdd
-   BDM_CAP_CFVx             = (1<<4),   //!< - Support for CFV 1,2 & 3
+	   BDM_CAP_NONE         = (0),
+	   BDM_CAP_ALL          = (0xFFFF),
+	   BDM_CAP_HCS12        = (1<<0),   //!< Supports HCS12
+	   BDM_CAP_RS08         = (1<<1),   //!< 12 V Flash programming supply available (RS08 support)
+	   BDM_CAP_VDDCONTROL   = (1<<2),   //!< Control over target Vdd
+	   BDM_CAP_VDDSENSE     = (1<<3),   //!< Sensing of target Vdd
+	   BDM_CAP_CFVx         = (1<<4),   //!< Support for CFV 1,2 & 3
+	   BDM_CAP_HCS08        = (1<<5),   //!< Supports HCS08 targets - inverted when queried
+	   BDM_CAP_CFV1         = (1<<6),   //!< Supports CFV1 targets  - inverted when queried
+	   BDM_CAP_JTAG         = (1<<7),   //!< Supports JTAG targets
+	   BDM_CAP_DSC          = (1<<8),   //!< Supports DSC targets
+	   BDM_CAP_ARM_JTAG     = (1<<9),   //!< Supports ARM targets via JTAG
+	   BDM_CAP_RST          = (1<<10),  //!< Control & sensing of RESET
+	   BDM_CAP_PST          = (1<<11),  //!< Supports PST signal sensing
+	   BDM_CAP_CDC          = (1<<12),  //!< Supports CDC Serial over USB interface
+	   BDM_CAP_ARM_SWD      = (1<<13),  //!< Supports ARM targets via SWD
+	   BDM_CAP_HCS12Z       = (1<<14),  //!< Supports HCS12Z targets via SWD
 } HardwareCapabilities_t;
 
 //===================================================================================
@@ -191,7 +208,8 @@ typedef enum {
    T_ARM_JTAG  = 8,       //!< ARM target using JTAG
    T_ARM_SWD   = 9,       //!< ARM target using SWD
    T_ARM       = 10,      //!< ARM target using either SWD (preferred) or JTAG as supported
-   T_LAST      = T_ARM,
+   T_HCS12Z    = 11,      //!< MC9S12ZVM target
+   T_LAST      = T_HCS12Z,
    T_ILLEGAL   = 0xFE,  //!< - Used to indicate error in selecting target
    T_OFF       = 0xFF,    //!< Turn off interface (no target)
 } TargetType_t;

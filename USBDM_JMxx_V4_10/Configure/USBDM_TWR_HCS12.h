@@ -6,6 +6,14 @@
     @note DO NOT CHANGE THIS FILE \n
     If you need to create another configuration make a copy of this file
     under a new name and change Configure.h appropriately.
+
+   \verbatim
+   Change History
+   +================================================================================================
+   | 18 Jul 2014 | Added     CAP_HCSZVM                                        - pgo, ver 4.10.6.170
+   | 18 Jul 2014 | Removed   CAP_VDDSENSE                                      - pgo, ver 4.10.6.170
+   +================================================================================================
+   \endverbatim
 */
 #ifndef _CONFIGURE_H_
 #define _CONFIGURE_H_
@@ -18,8 +26,8 @@
 //==========================================================================================
 // Capabilities of the hardware - used to enable/disable appropriate code
 //
-#define HW_CAPABILITY     (CAP_VDDCONTROL|CAP_VDDSENSE|CAP_CDC|CAP_RST_IO|CAP_BDM|CAP_CORE_REGS)
-#define TARGET_CAPABILITY (CAP_VDDCONTROL|CAP_VDDSENSE|CAP_CDC|CAP_HCS12)
+#define HW_CAPABILITY     (CAP_VDDCONTROL|CAP_CDC|CAP_RST_IO|CAP_BDM|CAP_CORE_REGS)
+#define TARGET_CAPABILITY (CAP_VDDCONTROL|CAP_CDC|CAP_HCS12|CAP_S12Z)
 
 // Include common pin assignments
 #include "USBDM_TWR.h"

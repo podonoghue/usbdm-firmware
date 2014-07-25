@@ -69,8 +69,7 @@ static void ledToggle2(void) {
 }
 #endif
 
-int main(void) {
-   initClock();
+void init() {
    initPorts();
 
 #ifdef DEBUG_SPEED
@@ -95,9 +94,31 @@ int main(void) {
       delay();
    }
 #else
+
    initUSB();
    initTimers();
    bdm_interfaceOff();
+
+#ifdef VDD_ON_INITIALLY
+   // For compatibility with original board s/w
+   // The board is powered when initially plugged in
+#if (VDD_ON_INITIALLY == 3)
+   bdm_option.targetVdd = BDM_TARGET_VDD_3V3;
+#elif (VDD_ON_INITIALLY == 5)
+   bdm_option.targetVdd = BDM_TARGET_VDD_5;
+#else
+   bdm_option.targetVdd = BDM_TARGET_VDD_OFF;
+#endif
+   bdm_setTargetVdd();
+   RESET_LOW();
+   WAIT_MS(100);
+   RESET_3STATE();
+#endif
+}
+
+int main(void) {
+   initClock();
+   init();
    commandLoop();
 
    //   SWD_OUT_ENABLE();

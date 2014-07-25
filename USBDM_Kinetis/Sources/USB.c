@@ -1255,7 +1255,7 @@ void initUSB( void ) {
 #endif
    // Enable USB regulator
    SIM_SOPT1CFG = SIM_SOPT1CFG_URWE_MASK;
-   SIM_SOPT1 	= SIM_SOPT1_USBREGEN_MASK;
+   SIM_SOPT1    = SIM_SOPT1_USBREGEN_MASK;
     
    //   DEBUG_PIN_DDR = 1;
 

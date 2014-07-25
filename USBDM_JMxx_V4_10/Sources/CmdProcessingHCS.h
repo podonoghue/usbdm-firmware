@@ -1,6 +1,7 @@
 #ifndef _CMDPROCESSINGHCS_H_
 #define _CMDPROCESSINGHCS_H_
 
+U8 f_CMD_CUSTOM_COMMAND(void);
 U8 f_CMD_CONNECT(void);
 U8 f_CMD_SET_SPEED(void);
 U8 f_CMD_GET_SPEED(void);

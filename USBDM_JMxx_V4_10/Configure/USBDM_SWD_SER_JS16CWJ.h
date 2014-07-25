@@ -9,6 +9,13 @@
     @note DO NOT CHANGE THIS FILE \n
     If you need to create another configuration make a copy of this file
     under a new name and change Configure.h appropriately.
+
+   \verbatim
+   Change History
+   +================================================================================================
+   | 18 Jul 2014 | Added     CAP_S12Z                                          - pgo, ver 4.10.6.170
+   +================================================================================================
+   \endverbatim
 */
 #ifndef _CONFIGURE_H_
 #define _CONFIGURE_H_
@@ -22,7 +29,12 @@
 // Capabilities of the hardware - used to enable/disable appropriate code
 //
 #define HW_CAPABILITY     (CAP_RST_IO|CAP_CDC|CAP_BDM|CAP_SWD_HW|CAP_CORE_REGS)
-#define TARGET_CAPABILITY (CAP_HCS12 |CAP_CDC|CAP_HCS08|CAP_CFV1|CAP_ARM_SWD)
+#define TARGET_CAPABILITY (CAP_HCS12 |CAP_CDC|CAP_HCS08|CAP_CFV1|CAP_ARM_SWD|CAP_S12Z)
+
+#ifdef DEBUG
+#undef DEBUG
+#endif
+#define DEBUG (0) 
 
 #ifndef PLATFORM
 #define PLATFORM USBDM   //! Choose BDM emulation

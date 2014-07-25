@@ -9,13 +9,16 @@
          -  Choose the "Clone existing target" option and choose \e USBDM
          -  Modify the \b Compiler options for this target to define the symbol used above (change  \b -DTARGET_HARDWARE=H_USBDM appropriately)
          -  Modify the \b Linker options for this target so that the Application Filename is unique (change  \b USBDM_JB16 appropriately)
- */
 
-//==========================================================================================
-// Define the following to enable use of USBDM with MC51AC256 Colfire CPU
-// Not extensively tested - may affect other coldfire chips adversely
-// NOTE: This has been moved to Codewarrior Legacy DLLs
-//#define MC51AC256_HACK (1)
+   \verbatim
+   Change History
+   +================================================================================================
+   | 18 Jul 2014 | Added     CAP_HCSZVM                                        - pgo, ver 4.10.6.170
+   +================================================================================================
+   \endverbatim
+ */
+#ifndef _CONFIG_H
+#define _CONFIG_H
 
 //=================================================================================
 // Debugging options
@@ -87,6 +90,7 @@ extern void dputs(char *msg);
 #define CAP_PST         (1<<11)     // Supports PST signal sensing
 #define CAP_CDC         (1<<12)     // Supports CDC Serial over USB interface
 #define CAP_ARM_SWD     (1<<13)     // Supports ARM targets via SWD
+#define CAP_S12Z        (1<<14)     // Supports HCS12ZVM
 
 //===========================================================================================
 // Three types of BDM interface chips are supported
@@ -141,10 +145,10 @@ extern void dputs(char *msg);
 //==========================================================================================
 //! Software Version Information
 //
-#define VERSION_MAJOR 4     // 4.10.6 - Last published -- 4.10.5
+#define VERSION_MAJOR 4 
 #define VERSION_MINOR 10
 #define VERSION_MICRO 6
-#define VERSION_STR "4.10.6.30"
+#define VERSION_STR "4.10.6.170"
 #define VERSION_SW  ((VERSION_MAJOR<<4)+VERSION_MINOR)
 //! Selected hardware platform
 #if TARGET_HARDWARE==H_USBDM_JMxxCLD
@@ -283,3 +287,5 @@ extern void dputs(char *msg);
 #error "Please correctly define CPU in Configure.h"
 #define CPU JM60
 #endif
+
+#endif // _CONFIG_H

@@ -31,18 +31,19 @@
 
    \verbatim
    Change History
-   +================================================================================================
-   | 22 Nov 2011 | More thoroughly disabled interfaces when off                       - pgo, ver 4.8 
-   | 27 Oct 2011 | Modified timer code to avoid TSCR1 changes & TCNT resets           - pgo, ver 4.8 
-   |  8 Aug 2010 | Re-factored interrupt handling                                     - pgo 
-   | 10 Apr 2010 | Changed to accommodate changes to Vpp interface                    - pgo 
-   |  5 Feb 2010 | bdm_cycleTargetVdd() now disables Vdd monitoring                   - pgo
-   |  4 Feb 2010 | bdm_cycleTargetVdd() parametised for mode                          - pgo
-   | 19 Oct 2009 | Modified Timer code - Folder together with JS16 code               - pgo
-   | 20 Sep 2009 | Increased Reset wait                                               - pgo
-   |    Sep 2009 | Major changes for V2                                               - pgo
-   +================================================================================================
-   \endverbatim
++================================================================================================
+| 18 Jul 2014 | Added HCS12ZVM support                                             - pgo V4.10.6.170
+| 22 Nov 2011 | More thoroughly disabled interfaces when off                       - pgo, ver 4.8 
+| 27 Oct 2011 | Modified timer code to avoid TSCR1 changes & TCNT resets           - pgo, ver 4.8 
+|  8 Aug 2010 | Re-factored interrupt handling                                     - pgo 
+| 10 Apr 2010 | Changed to accommodate changes to Vpp interface                    - pgo 
+|  5 Feb 2010 | bdm_cycleTargetVdd() now disables Vdd monitoring                   - pgo
+|  4 Feb 2010 | bdm_cycleTargetVdd() parametised for mode                          - pgo
+| 19 Oct 2009 | Modified Timer code - Folder together with JS16 code               - pgo
+| 20 Sep 2009 | Increased Reset wait                                               - pgo
+|    Sep 2009 | Major changes for V2                                               - pgo
++================================================================================================
+\endverbatim
 */
 
 #include <hidef.h> /* for EnableInterrupts macro */
@@ -766,7 +767,10 @@ U8 rc = BDM_RC_OK;
    cable_status.target_type = target; // Assume mode is valid
 
    switch (target) {
-#if (TARGET_CAPABILITY & CAP_HCS12)   
+#if TARGET_CAPABILITY & CAP_S12Z
+      case T_HCS12Z  :
+#endif
+#if (TARGET_CAPABILITY & (CAP_HCS12|CAP_S12Z))   
       case T_HC12:
          bdm_option.useResetSignal = 1; // Must use RESET signal on HC12
          bdmHCS_init();

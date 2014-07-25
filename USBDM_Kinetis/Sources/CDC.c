@@ -259,7 +259,7 @@ void UARTx_IRQHandler() {
    else {
       // Record and clear error status
       cdcStatus |= status;
-      UARTx_S1 = status;
+      (void)UARTx_D;
    }
 }
 

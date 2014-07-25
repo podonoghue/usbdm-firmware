@@ -34,6 +34,7 @@
    \verbatim
    Change History
    +=======================================================================================
+   | 18 Jul 2014 | Added HCS12ZVM support                                             - pgo V4.10.6.170
    | 28 Feb 2014 | Improved error checking on memory read/write           V4.10.6.120 - pgo
    | 27 Jul 2013 | Added f_CMD_CF_READ_ALL_CORE_REGS()                    V4.10.6     - pgo
    | 15 Feb 2011 | Masked address value for CFV1                          V4.5        - pgo
@@ -62,7 +63,7 @@
 //======================================================================
 //======================================================================
 //======================================================================
-#if (TARGET_CAPABILITY&CAP_CFV1)
+#if (TARGET_CAPABILITY&CAP_CFV1) || (TARGET_CAPABILITY&CAP_S12Z)
 //! Write CFV1 Memory
 //!
 //! @note
@@ -196,9 +197,45 @@ U8 rc           = BDM_RC_OK;
    return rc;
 }
 
+//! Read CFV1 core register (or DREG if MSB=1)
+//!
+//! @note
+//!  commandBuffer\n
+//!   - [2..3]  =>  16-bit register number [MSB ignored]
+//!
+//! @return
+//!  == \ref BDM_RC_OK => success         \n
+//!                                       \n
+//!  commandBuffer                        \n
+//!   - [1..4]  =>  32-bit register value
+//!
+U8 f_CMD_CF_READ_REG(void) {
+
+   returnSize = 5;
+   return BDMCF_CMD_READ_REG(commandBuffer[3]&0x9F,(U32*)(commandBuffer+1));
+}
+
+//! Write CFV1 core register (or DREG if MSB=1)
+//!
+//! @note
+//!  commandBuffer\n
+//!   - [2..3]  =>  8-bit register number [MSB ignored - CRG/CRN byte]
+//!   - [4..7]  =>  32-bit register value
+//!
+//! @return
+//!  == \ref BDM_RC_OK => success
+//!
+U8 f_CMD_CF_WRITE_REG(void) {
+   return BDMCF_CMD_WRITE_REG(commandBuffer[3]&0x9F,(*(U32 *)(commandBuffer+4)));
+}
+
+#endif
+
 //======================================================================
 //======================================================================
 //======================================================================
+
+#if (TARGET_CAPABILITY&CAP_CFV1)
 
 #if HW_CAPABILITY&CAP_CORE_REGS
 // Insufficient memory !
@@ -246,38 +283,6 @@ uint8_t f_CMD_CF_READ_ALL_CORE_REGS(void) {
    return BDM_RC_OK;
 }
 #endif
-
-//! Write CFV1 core register (or DREG if MSB=1)
-//!
-//! @note
-//!  commandBuffer\n
-//!   - [2..3]  =>  8-bit register number [MSB ignored - CRG/CRN byte]
-//!   - [4..7]  =>  32-bit register value
-//!
-//! @return
-//!  == \ref BDM_RC_OK => success
-//!
-U8 f_CMD_CF_WRITE_REG(void) {
-   return BDMCF_CMD_WRITE_REG(commandBuffer[3]&0x9F,(*(U32 *)(commandBuffer+4)));
-}
-
-//! Read CFV1 core register (or DREG if MSB=1)
-//!
-//! @note
-//!  commandBuffer\n
-//!   - [2..3]  =>  16-bit register number [MSB ignored]
-//!
-//! @return
-//!  == \ref BDM_RC_OK => success         \n
-//!                                       \n
-//!  commandBuffer                        \n
-//!   - [1..4]  =>  32-bit register value
-//!
-U8 f_CMD_CF_READ_REG(void) {
-
-   returnSize = 5;
-   return BDMCF_CMD_READ_REG(commandBuffer[3]&0x9F,(U32*)(commandBuffer+1));
-}
 
 //! Write CFV1 debug register;
 //!

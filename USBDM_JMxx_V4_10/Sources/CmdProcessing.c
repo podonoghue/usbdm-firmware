@@ -34,6 +34,7 @@
    \verbatim
    Change History
    +===============================================================================================
+   | 18 Jul 2014 | Addes HCS12ZVM support                                             - pgo V4.10.6.170
    | 24 Jul 2013 | Changed guard on common error recovery                             - pgo V4.10.4
    |    Jul 2013 | Added Read all registers                                                 V4.10.6
    | 26 Dec 2012 | Changed Reset handling to prevent USB timeouts                     - pgo V4.10.4
@@ -138,6 +139,9 @@ uint16_t status = 0;
 #endif
 #if HW_CAPABILITY&CAP_BDM	   
    case T_HC12:
+#if TARGET_CAPABILITY & CAP_S12Z
+   case T_HCS12Z  :
+#endif
    case T_HCS08:
    case T_RS08:
    case T_CFV1:
@@ -509,6 +513,9 @@ uint8_t f_CMD_CONTROL_PINS(void) {
 	   switch (cable_status.target_type) {
 #if HW_CAPABILITY&CAP_BDM	 	   
 	   case T_HC12 :  
+#if TARGET_CAPABILITY & CAP_S12Z
+   case T_HCS12Z  :
+#endif
 	   case T_HCS08 :
 	   case T_RS08 :
 	   case T_CFV1 :
@@ -542,6 +549,9 @@ uint8_t f_CMD_CONTROL_PINS(void) {
    // Restrict control to mode specific active pins
    switch (cable_status.target_type) {
 #if (HW_CAPABILITY&CAP_BDM)
+#if TARGET_CAPABILITY & CAP_S12Z
+   case T_HCS12Z  :
+#endif
    case T_HC12 :  
    case T_HCS08 :
    case T_RS08 :
@@ -720,7 +730,7 @@ static const FunctionPtr HCS12functionPtrs[] = {
    f_CMD_SET_SPEED                  ,//= 16, CMD_USBDM_SET_SPEED
    f_CMD_GET_SPEED                  ,//= 17, CMD_USBDM_GET_SPEED
 
-   f_CMD_ILLEGAL                    ,//= 18, CMD_USBDM_CONTROL_INTERFACE
+   f_CMD_ILLEGAL                    ,//= 18, CMD_CUSTOM_COMMAND
    f_CMD_ILLEGAL                    ,//= 19, RESERVED
 
    f_CMD_READ_STATUS_REG            ,//= 20, CMD_USBDM_READ_STATUS_REG
@@ -748,6 +758,41 @@ static const FunctionPtrs HCS12FunctionPointers = {CMD_USBDM_CONNECT,
                                                    HCS12functionPtrs};
 #endif
 
+#if (TARGET_CAPABILITY&CAP_S12Z)
+static const FunctionPtr S12ZfunctionPtrs[] = {
+   // Target specific versions
+   f_CMD_CONNECT                    ,//= 15, CMD_USBDM_CONNECT
+   f_CMD_SET_SPEED                  ,//= 16, CMD_USBDM_SET_SPEED
+   f_CMD_GET_SPEED                  ,//= 17, CMD_USBDM_GET_SPEED
+
+   f_CMD_CUSTOM_COMMAND             ,//= 18, CMD_CUSTOM_COMMAND
+   f_CMD_ILLEGAL                    ,//= 19, RESERVED
+
+   f_CMD_READ_STATUS_REG            ,//= 20, CMD_USBDM_READ_STATUS_REG
+   f_CMD_WRITE_CONTROL_REG          ,//= 21, CMD_USBDM_WRITE_CONTROL_REG
+
+   f_CMD_RESET                      ,//= 22, CMD_USBDM_TARGET_RESET
+   f_CMD_STEP                       ,//= 23, CMD_USBDM_TARGET_STEP
+   f_CMD_GO                         ,//= 24, CMD_USBDM_TARGET_GO
+   f_CMD_HALT                       ,//= 25, CMD_USBDM_TARGET_HALT
+
+   f_CMD_CF_WRITE_REG               ,//= 26, CMD_USBDM_WRITE_REG
+   f_CMD_CF_READ_REG                ,//= 27  CMD_USBDM_READ_REG
+
+   f_CMD_ILLEGAL                    ,//= 28, CMD_USBDM_WRITE_CREG
+   f_CMD_ILLEGAL                    ,//= 29, CMD_USBDM_READ_CREG
+
+   f_CMD_ILLEGAL                    ,//= 30, CMD_USBDM_WRITE_DREG
+   f_CMD_ILLEGAL                    ,//= 31, CMD_USBDM_READ_DREG
+
+   f_CMD_CF_WRITE_MEM               ,//= 32, CMD_USBDM_WRITE_MEM
+   f_CMD_CF_READ_MEM                ,//= 33, CMD_USBDM_READ_MEM
+   };
+static const FunctionPtrs S12ZFunctionPointers = {CMD_USBDM_CONNECT,
+                                                   sizeof(S12ZfunctionPtrs)/sizeof(FunctionPtr),
+                                                   S12ZfunctionPtrs};
+#endif
+
 #if (TARGET_CAPABILITY&(CAP_HCS08|CAP_RS08))
 static const FunctionPtr HCS08functionPtrs[] = {
    // Target specific versions
@@ -755,7 +800,7 @@ static const FunctionPtr HCS08functionPtrs[] = {
    f_CMD_SET_SPEED                  ,//= 16, CMD_USBDM_SET_SPEED
    f_CMD_GET_SPEED                  ,//= 17, CMD_USBDM_GET_SPEED
 
-   f_CMD_ILLEGAL                    ,//= 18, CMD_USBDM_CONTROL_INTERFACE
+   f_CMD_ILLEGAL                    ,//= 18, CMD_CUSTOM_COMMAND
    f_CMD_ILLEGAL                    ,//= 19, RESERVED
 
    f_CMD_READ_STATUS_REG            ,//= 20, CMD_USBDM_READ_STATUS_REG
@@ -802,7 +847,7 @@ static const FunctionPtr CFV1functionPtrs[] = {
    f_CMD_SET_SPEED                  ,//= 16, CMD_USBDM_SET_SPEED
    f_CMD_GET_SPEED                  ,//= 17, CMD_USBDM_GET_SPEED
 
-   f_CMD_ILLEGAL                    ,//= 18, CMD_USBDM_CONTROL_INTERFACE
+   f_CMD_ILLEGAL                    ,//= 18, CMD_CUSTOM_COMMAND
    f_CMD_ILLEGAL                    ,//= 19, RESERVED
 
    f_CMD_READ_STATUS_REG            ,//= 20, CMD_USBDM_READ_STATUS_REG
@@ -842,7 +887,7 @@ static const FunctionPtr CFVxfunctionPtrs[] = {
    f_CMD_SPI_SET_SPEED              ,//= 16, CMD_USBDM_SET_SPEED
    f_CMD_SPI_GET_SPEED              ,//= 17, CMD_USBDM_GET_SPEED
 
-   f_CMD_ILLEGAL                    ,//= 18, CMD_USBDM_CONTROL_INTERFACE
+   f_CMD_ILLEGAL                    ,//= 18, CMD_CUSTOM_COMMAND
    f_CMD_ILLEGAL                    ,//= 19, RESERVED
 
    f_CMD_CFVx_READ_STATUS_REG       ,//= 20, CMD_USBDM_READ_STATUS_REG
@@ -881,7 +926,7 @@ static const FunctionPtr JTAGfunctionPtrs[] = {
    f_CMD_ARM_CONNECT                ,//= 15, CMD_USBDM_CONNECT
    f_CMD_SPI_SET_SPEED              ,//= 16, CMD_USBDM_SET_SPEED
    f_CMD_SPI_GET_SPEED              ,//= 17, CMD_USBDM_GET_SPEED
-   f_CMD_ILLEGAL                    ,//= 18, CMD_USBDM_CONTROL_INTERFACE
+   f_CMD_ILLEGAL                    ,//= 18, CMD_CUSTOM_COMMAND
    f_CMD_ILLEGAL                    ,//= 19, RESERVED
    f_CMD_ILLEGAL                    ,//= 20, CMD_USBDM_READ_STATUS_REG
    f_CMD_ILLEGAL                    ,//= 21, CMD_USBDM_WRITE_CONTROL_REG
@@ -923,7 +968,7 @@ static const FunctionPtr JTAGfunctionPtrs[] = {
    f_CMD_ILLEGAL                    ,//= 15, CMD_USBDM_CONNECT
    f_CMD_SPI_SET_SPEED              ,//= 16, CMD_USBDM_SET_SPEED
    f_CMD_SPI_GET_SPEED              ,//= 17, CMD_USBDM_GET_SPEED
-   f_CMD_ILLEGAL                    ,//= 18, CMD_USBDM_CONTROL_INTERFACE
+   f_CMD_ILLEGAL                    ,//= 18, CMD_CUSTOM_COMMAND
    f_CMD_ILLEGAL                    ,//= 19, RESERVED
    f_CMD_ILLEGAL                    ,//= 20, CMD_USBDM_READ_STATUS_REG
    f_CMD_ILLEGAL                    ,//= 21, CMD_USBDM_WRITE_CONTROL_REG
@@ -962,7 +1007,7 @@ static const FunctionPtr SWDfunctionPtrs[] = {
    f_CMD_SWD_CONNECT                ,//= 15, CMD_USBDM_CONNECT
    f_CMD_SPI_SET_SPEED              ,//= 16, CMD_USBDM_SET_SPEED
    f_CMD_SPI_GET_SPEED              ,//= 17, CMD_USBDM_GET_SPEED
-   f_CMD_ILLEGAL                    ,//= 18, CMD_USBDM_CONTROL_INTERFACE
+   f_CMD_ILLEGAL                    ,//= 18, CMD_CUSTOM_COMMAND
    f_CMD_ILLEGAL                    ,//= 19, RESERVED
    f_CMD_ILLEGAL                    ,//= 20, CMD_USBDM_READ_STATUS_REG
    f_CMD_ILLEGAL                    ,//= 21, CMD_USBDM_WRITE_CONTROL_REG
@@ -990,7 +1035,6 @@ static const FunctionPtrs SWDFunctionPointers   = {CMD_USBDM_CONNECT,
 //! Ptr to function table for current target type
 static const FunctionPtrs *currentFunctions = NULL; // default to empty
 
-#if 1
 static const FunctionPtrs *const functionsPtrs[] = {
 #if (TARGET_CAPABILITY&CAP_HCS12)
    /* T_HC12 */ &HCS12FunctionPointers,
@@ -1038,6 +1082,12 @@ static const FunctionPtrs *const functionsPtrs[] = {
 #else
    NULL,   
 #endif
+   /* T_ARM     */  NULL,   
+#if (TARGET_CAPABILITY&CAP_S12Z)
+   /* T_HC12ZVM */ &S12ZFunctionPointers,
+#else
+   NULL,   
+#endif
 };
 
 //! Set target type
@@ -1060,74 +1110,6 @@ uint8_t f_CMD_SET_TARGET(void) {
    }
    return bdm_setTarget(target);
 }
-#else
-//! Set target type
-//! Initialise interface for given target
-//! @note
-//!   commandBuffer        \n
-//!   - [2] = target type
-//!
-uint8_t f_CMD_SET_TARGET(void) {
-uint8_t target = commandBuffer[2];
-
-   switch (target) {
-#if (TARGET_CAPABILITY&CAP_HCS12)
-   case T_HC12:
-         currentFunctions = &HCS12FunctionPointers;
-         break;
-#endif
-#if (TARGET_CAPABILITY&CAP_HCS08)
-      case T_HCS08:
-         currentFunctions = &HCS08FunctionPointers;
-         break;
-#endif
-#if (TARGET_CAPABILITY & CAP_RS08)
-      case T_RS08:
-          currentFunctions = &HCS08FunctionPointers;
-          break;
-#endif
-#if (TARGET_CAPABILITY & CAP_CFV1)
-      case T_CFV1:
-         currentFunctions = &CFV1FunctionPointers;
-         break;
-#endif         
-#if (TARGET_CAPABILITY&CAP_CFVx)
-      case T_CFVx:
-         currentFunctions = &CFVxFunctionPointers;
-         break;
-#endif
-#if (TARGET_CAPABILITY&CAP_JTAG)
-      case T_JTAG:
-         currentFunctions = &JTAGFunctionPointers;
-         break;
-#endif
-#if (TARGET_CAPABILITY&CAP_DSC)
-      case T_MC56F80xx:
-         currentFunctions = &JTAGFunctionPointers;
-         break;
-#endif
-#if (TARGET_CAPABILITY&CAP_ARM_JTAG)
-      case T_ARM_JTAG:
-         currentFunctions = &JTAGFunctionPointers;
-         break;
-#endif
-#if (TARGET_CAPABILITY&CAP_ARM_SWD)
-      case T_ARM_SWD:
-         currentFunctions = &SWDFunctionPointers;
-         break;
-#endif
-      case T_OFF:
-         currentFunctions = NULL;
-         break;
-         
-      default:
-         currentFunctions = NULL;
-         (void)bdm_setTarget(T_OFF);
-         return BDM_RC_UNKNOWN_TARGET; 
-   }
-   return bdm_setTarget(target);
-}
-#endif
 
 //!  Processes all commands received over USB
 //!

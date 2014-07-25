@@ -10,8 +10,16 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern const uint32_t SystemCoreClock; // Hz
 extern const uint32_t PeripheralClock; // Hz
 void initClock(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* CLOCK_H_ */
