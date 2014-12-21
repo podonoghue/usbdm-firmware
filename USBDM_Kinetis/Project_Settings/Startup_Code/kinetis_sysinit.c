@@ -172,7 +172,7 @@ void PIT_Channel1_IRQHandler() __attribute__ ((weak, alias("Default_Handler")));
 void PIT_Channel2_IRQHandler() __attribute__ ((weak, alias("Default_Handler")));
 void PIT_Channel3_IRQHandler() __attribute__ ((weak, alias("Default_Handler")));
 void PDB0_IRQHandler() __attribute__ ((weak, alias("Default_Handler")));
-void USB0_IRQHandler() __attribute__ ((weak, alias("Default_Handler")));
+void USBOTG_IRQHandler() __attribute__ ((weak, alias("Default_Handler")));
 void USBDCD_IRQHandler() __attribute__ ((weak, alias("Default_Handler")));
 void TSI0_IRQHandler() __attribute__ ((weak, alias("Default_Handler")));
 void MCG_IRQHandler() __attribute__ ((weak, alias("Default_Handler")));
@@ -240,7 +240,7 @@ void (* const InterruptVector[256-16])() __attribute__ ((section(".vectortable")
     PIT_Channel2_IRQHandler,      /*!< PIT timer channel 2 interrupt */
     PIT_Channel3_IRQHandler,      /*!< PIT timer channel 3 interrupt */
     PDB0_IRQHandler,              /*!< PDB0 interrupt */
-    USB0_IRQHandler,              /*!< USB0 interrupt */
+    USBOTG_IRQHandler,            /*!< USB0 interrupt */
     USBDCD_IRQHandler,            /*!< USBDCD interrupt */
     TSI0_IRQHandler,              /*!< TSI0 interrupt */
     MCG_IRQHandler,               /*!< MCG interrupt */

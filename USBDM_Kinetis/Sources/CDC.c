@@ -71,12 +71,12 @@ static uint16_t noChange16(uint16_t data) {
 #define nativeToLe16(x) noChange16(x)
 #endif
 
-#define CDC_TX_BUFFER_SIZE (16)  // Should equal end-point buffer size 
+#define CDC_TX_BUFFER_SIZE (16)  // Should equal end-point buffer size
 static char txBuffer[CDC_TX_BUFFER_SIZE];
 static uint8_t txHead        = 0;
 static uint8_t txBufferCount = 0;
 static uint8_t breakCount    = 0;
-#define CDC_RX_BUFFER_SIZE (16)  // Should less than or equal to end-point buffer size 
+#define CDC_RX_BUFFER_SIZE (16)  // Should less than or equal to end-point buffer size
 static char *rxBuffer;
 static uint8_t rxBufferCount = 0;
 static uint8_t cdcStatus = SERIAL_STATE_CHANGE;
@@ -121,9 +121,9 @@ void cdc_putRxBuffer(char ch) {
 //!
 uint8_t cdc_setRxBuffer(char *buffer) {
    uint8_t temp;
-#ifdef LOG   
+#ifdef LOG
    *buffer = 'X'; // Debug - This character should never appear!
-#endif   
+#endif
    rxBuffer = buffer;
    temp = rxBufferCount;
    rxBufferCount = 0;
@@ -165,7 +165,7 @@ uint8_t cdc_putTxBuffer(char *source, uint8_t size) {
 
 //! getTx() -  Gets a character from the CDC-Tx queue.
 //!
-//! @return 
+//! @return
 //!  -  -ve => queue is empty \n
 //!  -  +ve => char from queue
 //!
@@ -199,10 +199,10 @@ uint8_t cdc_getSerialState(void) {
    static uint8_t lastSciStatus = 0x00;
 
    if (cdcStatus&UART_S1_FE_MASK) {
-      status |= 1<<4; 
+      status |= 1<<4;
    }
    if (cdcStatus&UART_S1_OR_MASK) {
-      status |= 1<<6; 
+      status |= 1<<6;
    }
    if (cdcStatus&UART_S1_PF_MASK) {
       status |= 1<<5;
@@ -241,7 +241,7 @@ int ch;
 
 //! Interrupt handler for CDC Rx \n
 //! Transfers a char from the UART_D to USB IN queue
-//! 
+//!
 //! @note Overruns are ignored
 //!
 void cdc_rxHandler(void) {
@@ -251,7 +251,7 @@ void cdc_rxHandler(void) {
 void UARTx_IRQHandler() {
    uint8_t status = UARTx_S1;
    if (status&UART_S1_RDRF_MASK) {
-      cdc_rxHandler();      
+      cdc_rxHandler();
    }
    else if (status&UART_S1_TDRE_MASK) {
       cdc_txHandler();
@@ -284,7 +284,7 @@ void cdc_setLineCoding(const LineCodingStructure *lineCodingStructure) {
 
    cdcStatus  = SERIAL_STATE_CHANGE;
    breakCount = 0; // Clear any current BREAKs
-   
+
    (void)memcpy(&lineCoding, lineCodingStructure, sizeof(LineCodingStructure));
 
    //! todo  Note - for a 48MHz bus speed the useful baud range is ~300 to ~115200 for 0.5% error
@@ -292,7 +292,7 @@ void cdc_setLineCoding(const LineCodingStructure *lineCodingStructure) {
 
    // Enable clock to PTA (for UART0 pin muxing)
    SIM_SCGC5  |= SIM_SCGC5_PORTA_MASK;
-   
+
    // Configure shared pins
 //   PORTB_PCR16  = PORT_PCR_MUX(3); // Rx (PFE?)
 //   PORTB_PCR17  = PORT_PCR_MUX(3) | PORT_PCR_DSE_MASK| PORT_PCR_SRE_MASK; // Tx
@@ -302,7 +302,7 @@ void cdc_setLineCoding(const LineCodingStructure *lineCodingStructure) {
 
    // Enable clock to UART0
    SIM_SCGC4  |= SIM_SCGC4_UARTx_MASK;
-   
+
    // Disable the transmitter and receiver while changing settings.
    UARTx_C2 &= ~(UART_C2_TE_MASK | UART_C2_RE_MASK );
 
@@ -329,7 +329,7 @@ void cdc_setLineCoding(const LineCodingStructure *lineCodingStructure) {
 //      case 1:  // 1.5 bits
 //      case 2:  // 2 bits
 //   }
-   
+
    // Available combinations
    //============================================
    // Data bits  Parity   Stop |  M   PE  PT  T8
@@ -369,11 +369,11 @@ void cdc_setLineCoding(const LineCodingStructure *lineCodingStructure) {
    UARTx_C3 = UARTC3Value;
    UARTx_C2 = UART_C2_RIE_MASK|UART_C2_RE_MASK|UART_C2_TE_MASK; // Enable Rx/Tx with interrupts
    UARTx_C3 = UART_C3_FEIE_MASK|UART_C3_NEIE_MASK|UART_C3_ORIE_MASK|UART_C3_PEIE_MASK;
-   
+
    // Discard any data in buffers
    rxBufferCount = 0;
    txBufferCount = 0;
-   
+
    enableUartIrq();
 }
 
@@ -382,7 +382,7 @@ void cdc_setLineCoding(const LineCodingStructure *lineCodingStructure) {
 //! @param lineCodingStructure - Structure describing desired settings
 //!
 const LineCodingStructure *cdc_getLineCoding(void) {
-   return &lineCoding;  
+   return &lineCoding;
 }
 
 //! Set CDC Line values
@@ -392,7 +392,7 @@ const LineCodingStructure *cdc_getLineCoding(void) {
 void cdc_setControlLineState(uint8_t value) {
 #define LINE_CONTROL_DTR (1<<0)
 #define LINE_CONTROL_RTS (1<<1) // Ignored
-   
+
    (void) value; // remove warning
    // Temp fix until I can determine why the value is incorrect
    DTR_ACTIVE();
@@ -405,7 +405,7 @@ void cdc_setControlLineState(uint8_t value) {
 }
 
 //! Send CDC break
-//! 
+//!
 //! @param length - length of break in milliseconds (see note)\n
 //!  - 0x0000 => End BREAK
 //!  - 0xFFFF => Start indefinite BREAK

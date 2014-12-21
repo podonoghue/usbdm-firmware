@@ -64,10 +64,20 @@ typedef union {
 #error "Please define __BIG_ENDIAN__ or __LITTLE_ENDIAN__"
 #endif
 
-#define disableInterrupts()   asm("nop");         //!< Disable all interrupts
-#define enableInterrupts()    asm("nop");         //!< Enable interrupts
-#define waitForInterrupts()   asm("wfi")          //!< Low power until in happens
-#define backgroundDebugMode()    asm("bkpt  0");  //!< Enter Background Debug Mode
+/** \brief  No Operation
+
+    No Operation does nothing. This instruction can be used for code alignment purposes.
+ */
+#define __NOP() asm("nop")
+
+
+/** \brief  Wait For Interrupt
+
+    Wait For Interrupt is a hint instruction that suspends execution
+    until one of a number of events occurs.
+ */
+#define __WFI() asm("wfi")
+
 
 #ifdef __HC08__
 #define wait()                asm("wait")       //!< Enter WAIT mode if enabled
