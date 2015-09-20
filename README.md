@@ -19,5 +19,5 @@ USBDM_JB16_V4_10
 
 The remaining projects are intended for Eclipse or Kinetis Design Studio with USBDM plugin
 
-USBDM_Kinetis
+USBDM_Kinetis etc
 
