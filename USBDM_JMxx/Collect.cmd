@@ -17,6 +17,7 @@ echo ***  ****************************************
 echo ***  Do Firmware files
 echo ***  ****************************************
 
+cd %~dp0
 if not exist "%FLASH_DIR%"        mkdir "%FLASH_DIR%"
 if not exist "%FLASH_DIR%\JS16"   mkdir "%FLASH_DIR%\JS16"
 if not exist "%FLASH_DIR%\JMxx"   mkdir "%FLASH_DIR%\JMxx"

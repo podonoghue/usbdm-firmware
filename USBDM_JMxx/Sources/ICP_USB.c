@@ -64,7 +64,7 @@ Change History
 
 #pragma DATA_SEG BOOT_RAM2
 //! 
-static U8 dataBuffer[ENDPT0MAXSIZE];
+static uint8_t dataBuffer[ENDPT0MAXSIZE];
 
 #pragma CONST_SEG BOOT_CONST
 #ifndef ICP_DEBUG
@@ -97,23 +97,23 @@ static U8 dataBuffer[ENDPT0MAXSIZE];
 typedef struct {
    union {
       struct {
-         U8           :2;  
-         U8 bdtkpid   :4;   //!< PID
-         U8 data0_1   :1;   //!< data 0/1 toggle
-         U8 own       :1;   //!< BDT ownership
+         uint8_t           :2;  
+         uint8_t bdtkpid   :4;   //!< PID
+         uint8_t data0_1   :1;   //!< data 0/1 toggle
+         uint8_t own       :1;   //!< BDT ownership
       } a;
       struct {
-         U8           :2;  
-         U8 bdtstall  :1;  //!< Endpoint in stalled
-         U8 dts       :1;  //!< ??
-         U8           :2;  
-         U8 data0_1   :1;  //!< data 0/1 toggle
-         U8 own       :1;  //!< BDT ownership
+         uint8_t           :2;  
+         uint8_t bdtstall  :1;  //!< Endpoint in stalled
+         uint8_t dts       :1;  //!< ??
+         uint8_t           :2;  
+         uint8_t data0_1   :1;  //!< data 0/1 toggle
+         uint8_t own       :1;  //!< BDT ownership
       } b;
-      U8 bits;
+      uint8_t bits;
    } control;      //!< Control value
-   U8 byteCount;   //!< Number of bytes in transfer
-   U8 epAddr;      //!< Address of buffer offset by two bits 
+   uint8_t byteCount;   //!< Number of bytes in transfer
+   uint8_t epAddr;      //!< Address of buffer offset by two bits 
 } BDTEntry;
 
 #define BDTEntry_OWN_MASK        (1<<7) //!< BDT Ownership
@@ -143,13 +143,13 @@ static BDTEntry bdts[10]    @USB_RAM_START;
 
 //! EP0 IN data buffer
 #define EP0InDataBufferAddress ADDRESS_ROUND16(USB_RAM_START+0x20)
-static U8 ep0InDataBuffer[ENDPT0MAXSIZE]  @EP0InDataBufferAddress;
+static uint8_t ep0InDataBuffer[ENDPT0MAXSIZE]  @EP0InDataBufferAddress;
 //! EP0 OUT data buffer
 #define EP0OutDataBufferAddress ADDRESS_ROUND16(EP0InDataBufferAddress+ENDPT0MAXSIZE)
-static U8 ep0OutDataBuffer[ENDPT0MAXSIZE] @EP0OutDataBufferAddress;
+static uint8_t ep0OutDataBuffer[ENDPT0MAXSIZE] @EP0OutDataBufferAddress;
 
 //! All of the USB 2-port RAM
-static volatile U8 usbRam[256] @USB_RAM_START;
+static volatile uint8_t usbRam[256] @USB_RAM_START;
 
 //======================================================================
 // Data packet odd/even indicator
@@ -223,16 +223,16 @@ static const MS_CompatibleIdFeatureDescriptor msCompatibleIdFeatureDescriptor = 
 #pragma MESSAGE DISABLE C3303 //  Implicit concatenation of strings
 
 static const MS_PropertiesFeatureDescriptor msPropertiesFeatureDescriptor = {
-	/* U32 lLength;         */ CONST_NATIVE_TO_LE32((uint32_t)sizeof(MS_PropertiesFeatureDescriptor)),
-	/* U16 wVersion;        */ CONST_NATIVE_TO_LE16(0x0100),
-	/* U16 wIndex;          */ CONST_NATIVE_TO_LE16(0x0005),
-	/* U16 bnumSections;    */ CONST_NATIVE_TO_LE16(0x0001),
-	/* U32 lPropertySize;   */ CONST_NATIVE_TO_LE32(132UL),
-	/* U32 ldataType;       */ CONST_NATIVE_TO_LE32(1UL),
-	/* U16 wNameLength;     */ CONST_NATIVE_TO_LE16(40),
-	/* U8  bName[40];       */ "D\0e\0v\0i\0c\0e\0I\0n\0t\0e\0r\0f\0a\0c\0e\0G\0U\0I\0D\0\0",
-	/* U32 wPropertyLength; */ CONST_NATIVE_TO_LE32(78UL),
-	/* U8  bData[78];       */ "{\000"  
+	/* uint32_t lLength;         */ CONST_NATIVE_TO_LE32((uint32_t)sizeof(MS_PropertiesFeatureDescriptor)),
+	/* uint16_t wVersion;        */ CONST_NATIVE_TO_LE16(0x0100),
+	/* uint16_t wIndex;          */ CONST_NATIVE_TO_LE16(0x0005),
+	/* uint16_t bnumSections;    */ CONST_NATIVE_TO_LE16(0x0001),
+	/* uint32_t lPropertySize;   */ CONST_NATIVE_TO_LE32(132UL),
+	/* uint32_t ldataType;       */ CONST_NATIVE_TO_LE32(1UL),
+	/* uint16_t wNameLength;     */ CONST_NATIVE_TO_LE16(40),
+	/* uint8_t  bName[40];       */ "D\0e\0v\0i\0c\0e\0I\0n\0t\0e\0r\0f\0a\0c\0e\0G\0U\0I\0D\0\0",
+	/* uint32_t wPropertyLength; */ CONST_NATIVE_TO_LE32(78UL),
+	/* uint8_t  bData[78];       */ "{\000"  
 	                           "9\0003\000F\000E\000B\000D\0005\0001\000"
 	                           "-\0006\0000\0000\0000\000"
 	                           "-\0004\000E\0007\000E\000"
@@ -243,7 +243,7 @@ static const MS_PropertiesFeatureDescriptor msPropertiesFeatureDescriptor = {
 #pragma MESSAGE DEFAULT C3303 //  Implicit concatenation of strings
 
 #define VENDOR_CODE 0x30
-static const U8 OS_StringDescriptor[] = {18, DT_STRING, 'M',0,'S',0,'F',0,'T',0,'1',0,'0',0,'0',0,VENDOR_CODE,0x00};
+static const uint8_t OS_StringDescriptor[] = {18, DT_STRING, 'M',0,'S',0,'F',0,'T',0,'1',0,'0',0,'0',0,VENDOR_CODE,0x00};
 
 #endif
 //===============================================================================
@@ -286,7 +286,7 @@ typedef enum {
 //! Endpoint information
 typedef struct {
    EPModes   state:8;           //!< State of end-point
-   U8       (*callback)(void);  //!< Call-back to execute at end of transfer 
+   uint8_t       (*callback)(void);  //!< Call-back to execute at end of transfer 
 } EPState;
 
 static const EPState initialEPState = {EPIdle, NULL};
@@ -296,12 +296,12 @@ static DeviceState deviceState;      //!< State of USB state machine
 static EPState     ep0State;         //!< State of end-point \#0
 
 // Flash Programming variables
-static U8  dataLength;      //!< Length of data portion of USB pkt (also \#of bytes to Flash)
-static U16 startAddress;    //!< Start address of area in Flash to program or verify
-static U16 sourceAddress;   //!< Address in buffer for programming/verifying
-static U8  flashCommand;    //!< Flash command code
-static U8  flashData;       //!< Byte to program to Flash
-static U8  commandStatus;   //!< Status of last command executed
+static uint8_t  dataLength;      //!< Length of data portion of USB pkt (also \#of bytes to Flash)
+static uint16_t startAddress;    //!< Start address of area in Flash to program or verify
+static uint16_t sourceAddress;   //!< Address in buffer for programming/verifying
+static uint8_t  flashCommand;    //!< Flash command code
+static uint8_t  flashData;       //!< Byte to program to Flash
+static uint8_t  commandStatus;   //!< Status of last command executed
 
 /*! Copy a range of memory
  *
@@ -309,7 +309,7 @@ static U8  commandStatus;   //!< Status of last command executed
  * @param to    destination ptr
  * @param size  number of bytes to copy
  */
-static void myMemcpy(U8 *to, const U8 *from, U8 size) {
+static void myMemcpy(uint8_t *to, const uint8_t *from, uint8_t size) {
    while (size-->0) {
       *to++ = *from++;
    }
@@ -392,7 +392,7 @@ static void initCrystalClock(const ClockFactors clockFactors) {
 }
 
 // Clock Trim values in Flash - dummy value overwritten by flash programmer
-extern const volatile U8 NV_MCGTRM_INIT @0x0000FFAF = 0x00;  // MSB
+extern const volatile uint8_t NV_MCGTRM_INIT @0x0000FFAF = 0x00;  // MSB
 
 #pragma NO_ENTRY
 #pragma NO_EXIT
@@ -471,7 +471,7 @@ static void autoInitClock( void ) {
 //! @param bufSize - Size of data to transfer
 //! @param data0_1 - DATA0/DATA1 toggle value
 //!
-static void ep0StartOutTransaction(U8 data0_1) {
+static void ep0StartOutTransaction(uint8_t data0_1) {
    ep0State.state = EPLastOut;       // Assume one and only data pkt
                                      // This may be changed by caller
    // Set up to Rx packet
@@ -499,7 +499,7 @@ static void ep0StartSetupTransaction(void) {
 //======================================================================
 //! Configure EP0 for an IN transaction (Rx, device -> host, DATA1 [assuming single DATA pkt]
 //!
-static void ep0StartInTransaction( U8 dataSize, const U8 *dataPtr ) {
+static void ep0StartInTransaction( uint8_t dataSize, const uint8_t *dataPtr ) {
    // Assumes size < 8=bits!
    if (dataSize > ep0SetupBuffer.wLength.le.lo) {// Truncate if more bytes available than asked for
 	  dataSize = ep0SetupBuffer.wLength.le.lo;
@@ -543,13 +543,13 @@ static void setUSBdefaultState( void ) {
 }
 
 #pragma INLINE
-static void setUSBaddressedState( U8 address ) {
+static void setUSBaddressedState( uint8_t address ) {
    ADDR                       = address;
    deviceState.configuration  = 0;
 }
 
 #pragma INLINE
-static void setUSBconfiguredState( U8 config ) {
+static void setUSBconfiguredState( uint8_t config ) {
    deviceState.configuration = config;
    GREEN_LED_OFF();
    if (config != 0) { 
@@ -583,17 +583,17 @@ static void handleUSBReset(void) {
 //       
 static void handleGetDescriptor( void ) {
    // Static variables used to reduce size (ZPAGE) 
-   static U8          dataSize;
+   static uint8_t          dataSize;
    static const char *dataPtr;
 
    switch (ep0SetupBuffer.wValue.le.hi) {
       case DT_DEVICE: // Get Device Desc. - 1
-         dataPtr  = (U8 *) &deviceDescriptor;
-         dataSize = (U8)deviceDescriptor.bLength;
+         dataPtr  = (uint8_t *) &deviceDescriptor;
+         dataSize = (uint8_t)deviceDescriptor.bLength;
          break;
       case DT_CONFIGURATION: // Get Configuration Desc. - 2
-         dataPtr  = (U8 *) &otherDescriptors;
-         dataSize = (U8)(otherDescriptors.configDescriptor.wTotalLength>>8);
+         dataPtr  = (uint8_t *) &otherDescriptors;
+         dataSize = (uint8_t)(otherDescriptors.configDescriptor.wTotalLength>>8);
          break;
 #ifdef BOOT_USE_WDIC
       case DT_STRING: // Get String Desc.- 3
@@ -611,7 +611,7 @@ static void handleGetDescriptor( void ) {
 //===============================================================================
 // Set device Address Callback
 //       
-static U8 setAddressCallback(void) {
+static uint8_t setAddressCallback(void) {
    setUSBaddressedState(deviceState.newUSBAddress);
    return 0;
 }
@@ -636,7 +636,7 @@ static U8 setAddressCallback(void) {
       @warning - If the size of this routine changes then the constant 
                   ONSTACK_SIZE must be corrected
 */
-static U8 onStack(void) {
+static uint8_t onStack(void) {
    asm {
    loop:
       ldhx  sourceAddress        // Get next byte to program
@@ -689,7 +689,7 @@ static U8 onStack(void) {
          - \ref ICP_RC_OK        - Success \n
          - \ref ICP_RC_FLASH_ERR - Programming or erasing failed.
 */
-static U8 doOnStack(void) {
+static uint8_t doOnStack(void) {
 #define ONSTACK_SIZE (0x2C)  // #@doOnStack-@onStack 
    asm {
       lda   #FCDIV_PRDIV8_MASK|14  // Initialise Flash clock divider
@@ -735,7 +735,7 @@ static U8 doOnStack(void) {
    @note Global parameters 
    - startAddress     Any address within Flash Page to be erased
 */
-static U8 erasePageCommand(void) {
+static uint8_t erasePageCommand(void) {
    flashCommand = mPageErase;    // Page/sector erase command
    dataLength   = 1;             // A single command
    return doOnStack();
@@ -747,7 +747,7 @@ static U8 erasePageCommand(void) {
    - startAddress      =>  Start address of area in Flash to program 
    - ep0OutDataBuffer  =>  Data to program
 */
-static U8 programRowCommand(void) {
+static uint8_t programRowCommand(void) {
    flashCommand  = mBurstProg;   // Burst program command
    return doOnStack();
 }
@@ -763,7 +763,7 @@ static U8 programRowCommand(void) {
    - startAddress      =>  Start address of area in Flash
    - ep0OutDataBuffer  =>  Data to verify against
 */
-static U8 verifyRowCommand(void) {
+static uint8_t verifyRowCommand(void) {
 //    DEBUG_PIN     = 0;
 //    debugTx('v'); // Verify complete
 
@@ -860,7 +860,7 @@ static void handleEp0OutToken(void) {
 #pragma NO_EXIT
 #pragma NO_FRAME
 #pragma NO_RETURN
-U8 icpReset(void) {
+uint8_t icpReset(void) {
 #define USBCTL0_USBRESET_NUM (7)
 #define ILLOP                (0x8D)
    asm {
@@ -887,7 +887,7 @@ U8 icpReset(void) {
 static void handleSetupToken( void ) {
    
    // Save SETUP pkt
-   myMemcpy((U8*)&ep0SetupBuffer, ep0OutDataBuffer, sizeof(ep0SetupBuffer));
+   myMemcpy((uint8_t*)&ep0SetupBuffer, ep0OutDataBuffer, sizeof(ep0SetupBuffer));
 
    ep0State.callback = NULL;
    dataLength        = ep0SetupBuffer.wLength.le.lo;
@@ -942,7 +942,7 @@ static void handleSetupToken( void ) {
          handleGetDescriptor();
       }
       else if (ep0SetupBuffer.bRequest == GET_STATUS) {
-         ep0StartInTransaction( sizeof(DeviceStatus), (U8 *) &deviceStatus );
+         ep0StartInTransaction( sizeof(DeviceStatus), (uint8_t *) &deviceStatus );
       }
       else if (ep0SetupBuffer.bRequest == SET_ADDRESS) {
          // Save address for change after status transaction

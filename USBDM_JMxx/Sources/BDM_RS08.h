@@ -7,7 +7,7 @@
 
 #if ((HW_CAPABILITY & CAP_FLASH) != 0)
 
-U8 bdmSetVpp(U8 level );
+uint8_t bdmSetVpp(uint8_t level );
 
 #endif
 

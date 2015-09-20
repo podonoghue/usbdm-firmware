@@ -75,8 +75,8 @@
 #define SPIxC1_M_ON  (SPIxC1_SPE_MASK|SPIxC1_MSTR_MASK) //!< SPI Masks - Mask to enable SPI as master Tx
 #define SPIxC2_16    (SPIxC2_SPIMODE_MASK)              //!< SPI Masks - 16-bit mode
 
-U16 bdmcf_txRx16(U16 data);
-void bdmcf_tx16(U16 data);
+uint16_t bdmcf_txRx16(uint16_t data);
+void bdmcf_tx16(uint16_t data);
 
 //! Transmits a series of 17 bit messages
 //!
@@ -85,10 +85,10 @@ void bdmcf_tx16(U16 data);
 //!
 //! @note The first byte in the buffer is the MSB of the first message
 //!
-void bdmcf_tx(U8 count, U8 *data) {
+void bdmcf_tx(uint8_t count, uint8_t *data) {
    while(count--) {
       (void)bdmcf_txrx_start();
-      bdmcf_tx16(*(U16*)data);
+      bdmcf_tx16(*(uint16_t*)data);
       data+=2;
    }
 }
@@ -105,10 +105,10 @@ void bdmcf_tx(U8 count, U8 *data) {
 //! @note The next command is sent, the return value is for the \b PREVIOUS command. \n
 //!       On error the next command, although sent, would be ignored by the target
 //!
-U8 bdmcf_complete_chk(U16 next_cmd) {
-U8 retryCount = BDMCF_RETRY;
-U8 status;
-U16 returnData;
+uint8_t bdmcf_complete_chk(uint16_t next_cmd) {
+uint8_t retryCount = BDMCF_RETRY;
+uint8_t status;
+uint16_t returnData;
 
    do {
       status     = bdmcf_txrx_start();
@@ -137,7 +137,7 @@ U16 returnData;
 //!
 //! @note Checks bus error as well as not-ready.
 //!
-U8 bdmcf_complete_chk_rx(void) {
+uint8_t bdmcf_complete_chk_rx(void) {
    return bdmcf_complete_chk(_BDMCF_CMD_NOP);
 }
 
@@ -155,10 +155,10 @@ U8 bdmcf_complete_chk_rx(void) {
 //! @note The first byte stored in the buffer is the MSB of the first message
 //! @note Transmits the next command while receiving the last message
 //!
-U8 bdmcf_rxtx(U8 count, U8 *dataPtr, U16 nextCommand) {
-U8   retryCount,status;
-U16  data;
-U16  dataOut = _BDMCF_CMD_NOP; // Dummy command to send 
+uint8_t bdmcf_rxtx(uint8_t count, uint8_t *dataPtr, uint16_t nextCommand) {
+uint8_t   retryCount,status;
+uint16_t  data;
+uint16_t  dataOut = _BDMCF_CMD_NOP; // Dummy command to send 
 
    while(count>0) {
       retryCount = BDMCF_RETRY;
@@ -183,7 +183,7 @@ U16  dataOut = _BDMCF_CMD_NOP; // Dummy command to send
             case BDMCF_RES_NOT_READY : return BDM_RC_CF_NOT_READY;
             default                  : return BDM_RC_NO_CONNECTION;
          }
-      *(U16*)dataPtr  = data;
+      *(uint16_t*)dataPtr  = data;
       dataPtr        += 2;
    }
    return(BDM_RC_OK);
@@ -200,7 +200,7 @@ U16  dataOut = _BDMCF_CMD_NOP; // Dummy command to send
 //!          \ref BDM_RC_CF_ILLEGAL_COMMAND    => Target returned Illegal Command error  \n
 //!          \ref BDM_RC_NO_CONNECTION         => No connection / unexpected response
 //!
-U8 bdmcf_rx(U8 count, U8 *dataPtr) {
+uint8_t bdmcf_rx(uint8_t count, uint8_t *dataPtr) {
    return bdmcf_rxtx(count, dataPtr, _BDMCF_CMD_NOP);
 }
 
@@ -210,8 +210,8 @@ U8 bdmcf_rx(U8 count, U8 *dataPtr) {
 //!
 //! @return status bit
 //!
-U8 bdmcf_tx_msg(U16 data) {
-U8 status;
+uint8_t bdmcf_tx_msg(uint16_t data) {
+uint8_t status;
 
    status = bdmcf_txrx_start();
    bdmcf_tx16(data);
@@ -230,8 +230,8 @@ U8 status;
 //! @note To be used for transmitting the second message in a multi-message command which can fail \n 
 //!      (e.g. because target is not halted). The correct target response in these cases is Not Ready
 //!
-U8 bdmcf_tx_msg_half_rx(U16 dataOut) {
-U16 dataIn;
+uint8_t bdmcf_tx_msg_half_rx(uint16_t dataOut) {
+uint16_t dataIn;
 
    (void)bdmcf_txrx_start();
    dataIn = bdmcf_txRx16(dataOut);
@@ -249,8 +249,8 @@ U16 dataIn;
 //!
 //! @return status bit
 //!
-U8 bdmcf_rx_msg(U16 *data) {
-U8 status;
+uint8_t bdmcf_rx_msg(uint16_t *data) {
+uint8_t status;
    status  = bdmcf_txrx_start();
    *data   = bdmcf_txRx16(_BDMCF_CMD_NOP);
    return(status);
@@ -262,10 +262,10 @@ U8 status;
 //! @return  \ref BDM_RC_OK                    => success                     \n
 //!          \ref BDM_RC_NO_CONNECTION         => no connection with target   
 //!
-U8 bdmcf_resync(void) {
-U8  bitCount;
-U16 data;
-U8 status;
+uint8_t bdmcf_resync(void) {
+uint8_t  bitCount;
+uint16_t data;
+uint8_t status;
 
    (void)bdmcf_tx_msg(_BDMCF_CMD_NOP);     // Send in 3 NOPs to clear any error
    (void)bdmcf_tx_msg(_BDMCF_CMD_NOP);
@@ -305,9 +305,9 @@ U8 status;
 	//! @return  \ref BDM_RC_OK                    => success                     \n
 	//!          \ref BDM_RC_NO_CONNECTION         => no connection with target   
 	//!
-	U8 bdmcf_resync(void) {
-	U8  bitCount;
-	U16 data;
+	uint8_t bdmcf_resync(void) {
+	uint8_t  bitCount;
+	uint16_t data;
 
 	   (void)bdmcf_tx_msg(_BDMCF_CMD_NOP);     // Send in 3 NOPs to clear any error
 	   (void)bdmcf_tx_msg(_BDMCF_CMD_NOP);
@@ -418,12 +418,12 @@ void bdmcf_init(void) {
 //! 
 //! @note Assumes DSCLK is low on entry. \n Leaves DSCLK low on exit
 //!
-U16 bdmcf_txRx16(U16 data) {
+uint16_t bdmcf_txRx16(uint16_t data) {
 #define SPIS_SPTEF_BIT (5)
 #define SPIS_SPRF_BIT  (7)
 
    asm {               
-      //  Entry: U16 parameter in H:X for HCS08
+      //  Entry: uint16_t parameter in H:X for HCS08
       
       mov    #SPIxC1_M_ON,SPIxC1            // Enable SPI
   L1: brclr  SPIS_SPTEF_BIT,SPIxS,L1        // Wait for Tx buffer free
@@ -442,7 +442,7 @@ U16 bdmcf_txRx16(U16 data) {
       
       psha                                   
       pulh
-      // Exit: U16 return value in H:X for HCS08
+      // Exit: uint16_t return value in H:X for HCS08
    }
 }
 #pragma MESSAGE DEFAULT C1404 // Restore warnings about missing return value
@@ -452,7 +452,7 @@ U16 bdmcf_txRx16(U16 data) {
 //!
 //! @param data => data to Tx
 //!
-void bdmcf_tx16(U16 data) {
+void bdmcf_tx16(uint16_t data) {
 	(void)bdmcf_txRx16(data);
 }
 
@@ -466,7 +466,7 @@ void bdmcf_tx16(U16 data) {
 //!
 //! Note - timing changed against calculations shown!!!
 //!
-U8 bdmcf_txrx_start(void) {
+uint8_t bdmcf_txrx_start(void) {
    asm {
       mov   #SPIxC1_OFF,SPIxC1                  // Disable SPI
       mov   #BDMCF_IDLE,DATA_PORT               // [4  pwpp]  DSCLK low, DSI low
@@ -493,8 +493,8 @@ U8 bdmcf_txrx_start(void) {
 //!    \ref BDM_RC_OK                 => Success           \n
 //!    \ref BDM_RC_VDD_NOT_PRESENT    => various errors
 //      
-U8 bdmCF_powerOnReset(void) {
-U8 rc = 0;
+uint8_t bdmCF_powerOnReset(void) {
+uint8_t rc = 0;
 
 #if (HW_CAPABILITY&CAP_VDDSENSE)
    bdmcf_interfaceIdle();  // Make sure BDM interface is idle

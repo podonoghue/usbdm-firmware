@@ -129,12 +129,13 @@
 // 3-state  - (BDM mode)  DSCLK/TRST* controlled by DSCLK_OUT (DSCLK)
 // low      - (JTAG mode) DSCLK/TRST* low (TRST* asserted)
 // high     - (JTAG mode) DSCLK/TRST* high (TRST* negated)
-#define TRST_OUT            
-#define TRST_OUT_DDR        
-#define TRST_OUT_PER        
+#define TRST_OUT            PTED_PTED2
+#define TRST_OUT_DDR        PTEDD_PTEDD2
+#define TRST_OUT_PER        PTEPE_PTEPE2
 
-#define TRST_LOW()          
-#define TRST_3STATE()       
+#define TRST_LOW()     (TRST_OUT = 0, TRST_OUT_DDR=1) // DSCLK/TRST* = 0
+// Can't 3-state so set high
+#define TRST_3STATE()  (TRST_OUT = 1, TRST_OUT_DDR=1) // DSCLK/TRST* = 1
 
 //! Masks to make JTAG interface idle @ref jtag_init 
 //! TDI held low, TCLK undriven with PUP
@@ -207,7 +208,7 @@
 #define DSCLK_DRV_PER        PTEPE_PTEPE2
 
 #define DSCLK_DRV_ENABLE()   (DSCLK_DRV = 0, DSCLK_DRV_DDR=0) // DSCLK/TRST*=DSCLK_OUT
-#define DSCLK_DRV_DISABLE()  (DSCLK_DRV = 0, DSCLK_DRV_DDR=0)
+#define DSCLK_DRV_DISABLE()  (DSCLK_DRV = 1, DSCLK_DRV_DDR=1) // Force DSCLK/TRST* high
 
 // BKPT out pin
 #define BKPT_OUT           PTBD_PTBD3
@@ -287,11 +288,11 @@
   // High       H        WR       Z     EN,H    Tx,H      H         H
   // 3-state    Z        RD       Z     DIS,Z   Rx,Z     Z(in)      Z
    #define BDM_LOW()    (DATA_PORT      = BDM_EN_WR_MASK|0,            \
-                         DATA_PORT_DDR  = BDM_EN_MASK   |BDM_OUT_MASK)
+                          DATA_PORT_DDR  = BDM_EN_MASK   |BDM_OUT_MASK)
    #define BDM_HIGH()   (DATA_PORT      = BDM_EN_WR_MASK|BDM_OUT_MASK, \
-                         DATA_PORT_DDR  = BDM_EN_MASK   |BDM_OUT_MASK)
+                          DATA_PORT_DDR  = BDM_EN_MASK   |BDM_OUT_MASK)
    #define BDM_3STATE() (DATA_PORT      = BDM_EN_RD_MASK|BDM_OUT_MASK,  \
-                         DATA_PORT_DDR  = BDM_EN_MASK   |0)
+                           DATA_PORT_DDR  = BDM_EN_MASK   |0)
 #endif // CAP_BDM
 //=================================================================================
 // RESET control & sensing

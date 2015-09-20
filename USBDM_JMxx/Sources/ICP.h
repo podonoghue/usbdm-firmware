@@ -34,17 +34,17 @@
  *           0 - normal boot \n
  *           1 - ICP boot
 */
-extern U8 userDetectICP(void);
+extern uint8_t userDetectICP(void);
 
 //!  Structure to contain ICP needed information
 //!
 typedef struct {
-   U8 serialNumber[39];
-   U8 terminator;
-   U8 *flashStart;
-   U8 hardwareVersion;
-   U8 softwareVersion;
-   U8 (*userDetectICP)(void);
+   uint8_t serialNumber[39];
+   uint8_t terminator;
+   uint8_t *flashStart;
+   uint8_t hardwareVersion;
+   uint8_t softwareVersion;
+   uint8_t (*userDetectICP)(void);
 } ICP_dataType;
 
 /*! Various ICP data
@@ -75,12 +75,12 @@ extern const ICP_dataType ICP_data;
 /*!  Version number of ICP boot code
  *   2 hex digits major.minor
  */
-extern const U8 ICP_Version_SW;
+extern const uint8_t ICP_Version_SW;
 /*!  Hardware Version number - see Configure.h
  *   2 hex digits
  *   JM60 has +0x80
  */
-extern const U8 ICP_Version_HW;
+extern const uint8_t ICP_Version_HW;
 
 //! Type for user vector table entry
 typedef void (* const vector)(void);

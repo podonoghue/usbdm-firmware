@@ -76,12 +76,12 @@
 //! @return
 //!   BDM_RC_OK
 //!
-U8 f_CMD_CF_WRITE_MEM(void) {
-U8  elementSize = commandBuffer[2];          // Size of the data writes
-U8  count       = commandBuffer[3];          // # of bytes
-U32 addr        = *(U32*)(commandBuffer+4);  // Address in target memory
-U8  *data_ptr   = commandBuffer+8;           // Where the data is
-U8  rc          = BDM_RC_OK;
+uint8_t f_CMD_CF_WRITE_MEM(void) {
+uint8_t  elementSize = commandBuffer[2];          // Size of the data writes
+uint8_t  count       = commandBuffer[3];          // # of bytes
+uint32_t addr        = *(uint32_t*)(commandBuffer+4);  // Address in target memory
+uint8_t  *data_ptr   = commandBuffer+8;           // Where the data is
+uint8_t  rc          = BDM_RC_OK;
 
    if (cable_status.speed == SPEED_NO_INFO) {
       return BDM_RC_NO_CONNECTION;
@@ -99,25 +99,25 @@ U8  rc          = BDM_RC_OK;
             }
             break;
          case 2:
-            rc = BDMCF_CMD_WRITE_MEM_W(addr, *(U16 *)data_ptr);
+            rc = BDMCF_CMD_WRITE_MEM_W(addr, *(uint16_t *)data_ptr);
             count >>= 1;
             count--;
             while ((count > 0) && (rc == BDM_RC_OK)) {
                data_ptr       += 2;
                addr           += 2;
                count--;
-               rc = BDMCF_CMD_FILL_MEM_W(*(U16 *)data_ptr);
+               rc = BDMCF_CMD_FILL_MEM_W(*(uint16_t *)data_ptr);
             }
             break;
          case 4:
-            rc = BDMCF_CMD_WRITE_MEM_L(addr, (U32 *)data_ptr);
+            rc = BDMCF_CMD_WRITE_MEM_L(addr, (uint32_t *)data_ptr);
             count >>= 2;
             count--;
             while ((count > 0) && (rc == BDM_RC_OK)) {
                data_ptr       += 4;
                addr           += 4;
                count--;
-               rc = BDMCF_CMD_FILL_MEM_L(*(U32 *)data_ptr);
+               rc = BDMCF_CMD_FILL_MEM_L(*(uint32_t *)data_ptr);
             }
             break;
          default:
@@ -142,12 +142,12 @@ U8  rc          = BDM_RC_OK;
 //!  commandBuffer                        \n
 //!   - [1..N]  =>  Data read
 //!
-U8 f_CMD_CF_READ_MEM(void) {
-U8  elementSize = commandBuffer[2];          // Size of the data writes
-U8  count       = commandBuffer[3];          // # of data bytes
-U32 addr        = *(U32*)(commandBuffer+4);  // Address in target memory
-U8 *data_ptr    = commandBuffer+1;            // Where in buffer to write the data
-U8 rc           = BDM_RC_OK;
+uint8_t f_CMD_CF_READ_MEM(void) {
+uint8_t  elementSize = commandBuffer[2];          // Size of the data writes
+uint8_t  count       = commandBuffer[3];          // # of data bytes
+uint32_t addr        = *(uint32_t*)(commandBuffer+4);  // Address in target memory
+uint8_t *data_ptr    = commandBuffer+1;            // Where in buffer to write the data
+uint8_t rc           = BDM_RC_OK;
 
    if (cable_status.speed == SPEED_NO_INFO)
       return BDM_RC_NO_CONNECTION;
@@ -169,25 +169,25 @@ U8 rc           = BDM_RC_OK;
             }
             break;
          case 2:
-            rc = BDMCF_CMD_READ_MEM_W(addr, (U16 *)data_ptr);
+            rc = BDMCF_CMD_READ_MEM_W(addr, (uint16_t *)data_ptr);
             count >>= 1;
             count--;
             while ((count > 0) && (rc == BDM_RC_OK)) {
                data_ptr       += 2;
                addr           += 2;
                count--;
-               rc = BDMCF_CMD_DUMP_MEM_W((U16*)data_ptr);
+               rc = BDMCF_CMD_DUMP_MEM_W((uint16_t*)data_ptr);
             }
             break;
          case 4:
-            rc = BDMCF_CMD_READ_MEM_L(addr, (U32*)data_ptr);
+            rc = BDMCF_CMD_READ_MEM_L(addr, (uint32_t*)data_ptr);
             count >>= 2;
             count--;
             while ((count > 0) && (rc == BDM_RC_OK)) {
                data_ptr       += 4;
                addr           += 4;
                count--;
-               rc = BDMCF_CMD_DUMP_MEM_L((U32*)data_ptr);
+               rc = BDMCF_CMD_DUMP_MEM_L((uint32_t*)data_ptr);
             }
             break;
          default:
@@ -209,10 +209,10 @@ U8 rc           = BDM_RC_OK;
 //!  commandBuffer                        \n
 //!   - [1..4]  =>  32-bit register value
 //!
-U8 f_CMD_CF_READ_REG(void) {
+uint8_t f_CMD_CF_READ_REG(void) {
 
    returnSize = 5;
-   return BDMCF_CMD_READ_REG(commandBuffer[3]&0x9F,(U32*)(commandBuffer+1));
+   return BDMCF_CMD_READ_REG(commandBuffer[3]&0x9F,(uint32_t*)(commandBuffer+1));
 }
 
 //! Write CFV1 core register (or DREG if MSB=1)
@@ -225,8 +225,8 @@ U8 f_CMD_CF_READ_REG(void) {
 //! @return
 //!  == \ref BDM_RC_OK => success
 //!
-U8 f_CMD_CF_WRITE_REG(void) {
-   return BDMCF_CMD_WRITE_REG(commandBuffer[3]&0x9F,(*(U32 *)(commandBuffer+4)));
+uint8_t f_CMD_CF_WRITE_REG(void) {
+   return BDMCF_CMD_WRITE_REG(commandBuffer[3]&0x9F,(*(uint32_t *)(commandBuffer+4)));
 }
 
 #endif
@@ -272,7 +272,7 @@ uint8_t f_CMD_CF_READ_ALL_CORE_REGS(void) {
    }
    while (regIndex<=endRegister) {
 	   // Write to buffer (target format - Big-endian)
-	   rc = BDMCF_CMD_READ_REG(regIndexMap[regIndex],(U32*)(outputPtr));
+	   rc = BDMCF_CMD_READ_REG(regIndexMap[regIndex],(uint32_t*)(outputPtr));
 	   if (rc != BDM_RC_OK) {
 		   return rc;
 	   }
@@ -294,8 +294,8 @@ uint8_t f_CMD_CF_READ_ALL_CORE_REGS(void) {
 //! @return
 //!  == \ref BDM_RC_OK => success
 //!
-U8 f_CMD_CF_WRITE_DREG(void) {
-U16 regNo = *(U16*)(commandBuffer+2);
+uint8_t f_CMD_CF_WRITE_DREG(void) {
+uint16_t regNo = *(uint16_t*)(commandBuffer+2);
 
    if (regNo >= CFV1_ByteRegs) {
       switch (regNo) {
@@ -311,7 +311,7 @@ U16 regNo = *(U16*)(commandBuffer+2);
       if (regNo == CFV1_DRegCSR)
          commandBuffer[5] |= (CFV1_CSR_VBD>>16); // Hack for MC51AC256
 #endif
-      return BDMCF_CMD_WRITE_DREG(commandBuffer[3]&0x1F, (*(U32 *)(commandBuffer+4)));
+      return BDMCF_CMD_WRITE_DREG(commandBuffer[3]&0x1F, (*(uint32_t *)(commandBuffer+4)));
    }
 }
 
@@ -327,9 +327,9 @@ U16 regNo = *(U16*)(commandBuffer+2);
 //!  commandBuffer                        \n
 //!   - [1..4]  =>  32-bit register value
 //!
-U8 f_CMD_CF_READ_DREG(void) {
-U16 regNo = *(U16*)(commandBuffer+2);
-U8 rc = BDM_RC_OK;
+uint8_t f_CMD_CF_READ_DREG(void) {
+uint16_t regNo = *(uint16_t*)(commandBuffer+2);
+uint8_t rc = BDM_RC_OK;
 
    returnSize = 5;
    
@@ -346,7 +346,7 @@ U8 rc = BDM_RC_OK;
       }
    }
    else {
-      rc = BDMCF_CMD_READ_DREG((U8)regNo&0x1F,(U32*)(commandBuffer+1));
+      rc = BDMCF_CMD_READ_DREG((uint8_t)regNo&0x1F,(uint32_t*)(commandBuffer+1));
 #ifdef MC51AC256_HACK
       if (regNo == CFV1_DRegCSR)
          commandBuffer[2] &= ~(CFV1_CSR_VBD>>16); // Hack for MC51AC256
@@ -365,8 +365,8 @@ U8 rc = BDM_RC_OK;
 //! @return
 //!  == \ref BDM_RC_OK => success
 //!
-U8 f_CMD_CF_WRITE_CREG(void) {
-   return BDMCF_CMD_WRITE_CREG(commandBuffer[3]&0x1F, (*(U32 *)(commandBuffer+4)));
+uint8_t f_CMD_CF_WRITE_CREG(void) {
+   return BDMCF_CMD_WRITE_CREG(commandBuffer[3]&0x1F, (*(uint32_t *)(commandBuffer+4)));
 }
 
 //! Read CFV1 control register;
@@ -381,9 +381,9 @@ U8 f_CMD_CF_WRITE_CREG(void) {
 //!  commandBuffer                        \n
 //!   - [1..4]  =>  32-bit register value
 //!
-U8 f_CMD_CF_READ_CREG(void) {
+uint8_t f_CMD_CF_READ_CREG(void) {
    returnSize = 5;
-   return BDMCF_CMD_READ_CREG(commandBuffer[3]&0x1F, (U32*)(commandBuffer+1));
+   return BDMCF_CMD_READ_CREG(commandBuffer[3]&0x1F, (uint32_t*)(commandBuffer+1));
 }
 
 
@@ -394,7 +394,7 @@ U8 f_CMD_CF_READ_CREG(void) {
 //! @return
 //!  == \ref BDM_RC_OK => success
 //!
-U8 f_CMD_CF_WRITE_CSR2(void) {
+uint8_t f_CMD_CF_WRITE_CSR2(void) {
    BDMCF_CMD_WRITE_CSR2(commandBuffer[2]);
    return BDM_RC_OK;
 }
@@ -402,7 +402,7 @@ U8 f_CMD_CF_WRITE_CSR2(void) {
 //! @return
 //!  == \ref BDM_RC_OK => success
 //!
-U8 f_CMD_CF_READ_CSR2(void) {
+uint8_t f_CMD_CF_READ_CSR2(void) {
    BDMCF_CMD_READ_CSR2(commandBuffer+1);;
    return BDM_RC_OK;
 }
@@ -410,7 +410,7 @@ U8 f_CMD_CF_READ_CSR2(void) {
 //! @return
 //!  == \ref BDM_RC_OK => success
 //!
-U8 f_CMD_CF_WRITE_CSR3(void) {
+uint8_t f_CMD_CF_WRITE_CSR3(void) {
    BDMCF_CMD_WRITE_CSR3(commandBuffer[2]);
    return BDM_RC_OK;
 }
@@ -418,7 +418,7 @@ U8 f_CMD_CF_WRITE_CSR3(void) {
 //! @return
 //!  == \ref BDM_RC_OK => success
 //!
-U8 f_CMD_CF_READ_CSR3(void) {
+uint8_t f_CMD_CF_READ_CSR3(void) {
    BDMCF_CMD_READ_CSR3(commandBuffer+1);;
    return BDM_RC_OK;
 }

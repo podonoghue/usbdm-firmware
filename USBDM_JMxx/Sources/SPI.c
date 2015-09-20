@@ -13,18 +13,18 @@
 
 #pragma DATA_SEG __SHORT_SEG Z_PAGE
 // MUST be placed into the direct segment (assumed in ASM code).
-volatile U8 bitDelay;    //!< Required software delay used with SPI base Tx/Rx
-volatile U8 rxTiming1;   //!< bdm_Rx timing scratch #1
-volatile U8 txTiming1;   //!< bdm_Tx timing scratch #1
+volatile uint8_t bitDelay;    //!< Required software delay used with SPI base Tx/Rx
+volatile uint8_t rxTiming1;   //!< bdm_Rx timing scratch #1
+volatile uint8_t txTiming1;   //!< bdm_Tx timing scratch #1
 #pragma DATA_SEG DEFAULT
 
 #if (HW_CAPABILITY&(CAP_CFVx_HW|CAP_JTAG_HW|CAP_SWD_HW))
 
 //! Structure to relate BDM Communication speed to SPI configuration value
 typedef struct {
-   U16 freq;         //!< Freq in kHz
-   U8  spiValue;     //!< SPI baud value 
-   U8  delayCount;   //!< count for start bit time
+   uint16_t freq;         //!< Freq in kHz
+   uint8_t  spiValue;     //!< SPI baud value 
+   uint8_t  delayCount;   //!< count for start bit time
 } SPISpeed;
 
 //!  Table relating BDM Communication speed to SPI configuration value
@@ -50,7 +50,7 @@ static const SPISpeed SPISpeedValues[ ] = {
 //! @return  \ref BDM_RC_OK              => Success                 \n
 //!          \ref BDM_RC_ILLEGAL_PARAMS  => Speed is not supported
 //!
-U8 spi_setSpeed(U16 freq) {
+uint8_t spi_setSpeed(uint16_t freq) {
 int sub;
 
    if (freq == 0) {

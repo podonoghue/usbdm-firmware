@@ -143,7 +143,7 @@ void debugPuts(const char * s) {
 }
 void debugSCIInit(void) {
 	
-   SCIBD = (U16)BAUDDIVIDER(115200)&0x3FFFU;
+   SCIBD = (uint16_t)BAUDDIVIDER(115200)&0x3FFFU;
    SCIC1 = 0x00;
    SCIC2 = SCIC2_RE_MASK|SCIC2_TE_MASK; // Enable Rx/Tx
    SCIC3 = SCIC3_T8_MASK; // Extra stop bit

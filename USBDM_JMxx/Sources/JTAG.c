@@ -54,7 +54,7 @@
 
 //#pragma DATA_SEG __SHORT_SEG Z_PAGE
 // MUST be placed into the direct segment (assumed in ASM code).
-//extern volatile U8 bitCount;  //!< Used as a general purpose local variable
+//extern volatile uint8_t bitCount;  //!< Used as a general purpose local variable
 //#pragma DATA_SEG DEFAULT
 
 #if !(HW_CAPABILITY&CAP_JTAG_HW)
@@ -64,15 +64,15 @@ void jtag_init(void) { }
 #define TDI_IDLE_HIGH 1
 // Fill byte used for TDI when don't care
 #ifdef TDI_IDLE_HIGH
-static U8 jtagFillByte = 0xFF;
+static uint8_t jtagFillByte = 0xFF;
 #else
-static U8 jtagFillByte = 0x00;
+static uint8_t jtagFillByte = 0x00;
 #endif
 
 //#define USE_SPI_FOR_JTAG // Define to use SPI for JTAG - broken on DSC?
 
 #ifdef USE_SPI_FOR_JTAG
-extern U8 SPIBaud;
+extern uint8_t SPIBaud;
 
 //======================================================================================================
 // JTAG support
@@ -124,7 +124,7 @@ static void jtag_interfaceIdle(void) {
 //!  The TAP controller is left in TEST-LOGIC-RESET state
 //!
 void jtag_init(void) {
-   //U32 idcode;
+   //uint32_t idcode;
 
    (void)initJTAGSequence();   
 
@@ -178,7 +178,7 @@ void jtag_init(void) {
    jtag_write(1, 4, "\x02");   // Instruction = IDCODE (0010)
    jtag_transition_shift(0);   // SHIFT-DR
    idcode = 0x00000000;
-   jtag_read(1, 32, (U8 *)&idcode); // Read IDCODE
+   jtag_read(1, 32, (uint8_t *)&idcode); // Read IDCODE
 #endif   
 }
 
@@ -205,7 +205,7 @@ void jtag_transition_reset(void) {
 //! @param mode  \ref SHIFT_DR => TAP controller is left in SHIFT-DR \n
 //!              \ref SHIFT_IR => TAP controller is left in SHIFT-IR
 //!
-void jtag_transition_shift(U8 mode) {
+void jtag_transition_shift(uint8_t mode) {
 
    while ((SPI1S_SPTEF == 0)||(SPI2S_SPTEF == 0)){  // Wait for Tx buffer empty
    }
@@ -234,8 +234,8 @@ void jtag_transition_shift(U8 mode) {
 //!        easier readability of code which uses JTAG)
 //! @note  On entry, expects to find the TAP controller in SHIFT-DR or SHIFT-IR state
 //!
-void jtag_write(U8 options, U8 bitCount, const U8 *writePtr) {
-   const static U8 FinishTMS[] = {0,0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80};
+void jtag_write(uint8_t options, uint8_t bitCount, const uint8_t *writePtr) {
+   const static uint8_t FinishTMS[] = {0,0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80};
 
    writePtr += (bitCount-1)>>3;  // Each byte has 8 bits, point to the last byte in the buffer 
 
@@ -303,10 +303,10 @@ void jtag_write(U8 options, U8 bitCount, const U8 *writePtr) {
 //!        easier readability of code which uses JTAG)
 //! @note  On entry, expects to find the TAP in SHIFT-DR or SHIFT-IR state
 //!
-void jtag_read(U8 options, U8 bitCount, U8 *readPtr) {
-   const static U8 finishTMS[] = {0,0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80};
-   const static U8 dataMasks[] = {0,0x01,0x03,0x07,0x0F,0x1F,0x3F,0x7F,0xFF};
-   U8 dataMask    = 0xFF;
+void jtag_read(uint8_t options, uint8_t bitCount, uint8_t *readPtr) {
+   const static uint8_t finishTMS[] = {0,0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80};
+   const static uint8_t dataMasks[] = {0,0x01,0x03,0x07,0x0F,0x1F,0x3F,0x7F,0xFF};
+   uint8_t dataMask    = 0xFF;
 
    jtagFillByte = (options&JTAG_WRITE_1)?0xFF:0x00;
    readPtr += (bitCount-1)>>3;  // Each byte has 8 bits, point to the last byte in the buffer 
@@ -375,10 +375,10 @@ void jtag_read(U8 options, U8 bitCount, U8 *readPtr) {
 //!        easier readability of code which uses JTAG)
 //! @note  On entry, expects to find the TAP in SHIFT-DR or SHIFT-IR state
 //!
-void jtag_read_write(U8 options, U8 bitCount, const U8 *writePtr, U8 *readPtr) {
-   const static U8 finishTMS[] = {0,0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80};
-   const static U8 dataMasks[] = {0,0x01,0x03,0x07,0x0F,0x1F,0x3F,0x7F,0xFF};
-   U8 dataMask    = 0xFF;
+void jtag_read_write(uint8_t options, uint8_t bitCount, const uint8_t *writePtr, uint8_t *readPtr) {
+   const static uint8_t finishTMS[] = {0,0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80};
+   const static uint8_t dataMasks[] = {0,0x01,0x03,0x07,0x0F,0x1F,0x3F,0x7F,0xFF};
+   uint8_t dataMask    = 0xFF;
 
    readPtr   += (bitCount-1)>>3;  // Each byte has 8 bits, point to the last byte in the buffer 
    writePtr  += (bitCount-1)>>3;  // Each byte has 8 bits, point to the last byte in the buffer 
@@ -437,17 +437,17 @@ void jtag_read_write(U8 options, U8 bitCount, const U8 *writePtr, U8 *readPtr) {
 
 #else
 
-extern U8 SPIBaud;
+extern uint8_t SPIBaud;
 
 //======================================================================================================
 // JTAG support
 //
 // Software bit-banging method
 //
-static U16 dataRegisterHeader         = 0; 
-static U16 dataRegisterTrailer        = 0; 
-static U16 instructionRegisterHeader  = 0; 
-static U16 instructionRegisterTrailer = 0; 
+static uint16_t dataRegisterHeader         = 0; 
+static uint16_t dataRegisterTrailer        = 0; 
+static uint16_t instructionRegisterHeader  = 0; 
+static uint16_t instructionRegisterTrailer = 0; 
 
 typedef enum {test_logic_reset, run_test_idle, 
    select_dr_scan, capture_dr, shift_dr, exit1_dr, pause_dr, exit2_dr, update_dr, 
@@ -456,19 +456,19 @@ typedef enum {test_logic_reset, run_test_idle,
 
 TapStates_t tapState = test_logic_reset;
 
-void jtag_set_hdr(U16 value) {
+void jtag_set_hdr(uint16_t value) {
    dataRegisterHeader = value; 
 }
 
-void jtag_set_hir(U16 value) {
+void jtag_set_hir(uint16_t value) {
    instructionRegisterHeader = value; 
 }
 
-void jtag_set_tdr(U16 value) {
+void jtag_set_tdr(uint16_t value) {
    dataRegisterTrailer = value; 
 }
 
-void jtag_set_tir(U16 value) {
+void jtag_set_tir(uint16_t value) {
    instructionRegisterTrailer = value; 
 }
 
@@ -482,7 +482,7 @@ void jtag_set_tir(U16 value) {
 //!  ----------------------------------------------------
 //!  TDI/DSI_O      output       0             0 
 //!  TDI/DSI_DDR    output       0             -
-//!  TRST*/DSCLK_O  3-state      -             - 
+//!  TRST*/DSCLK_O  3-state or   1             1 
 //!  TMS/BKPT_O*    output       0             0 
 //!  TCLK_O         output       0             1 
 //!  JTAG_DRV       output       0             -
@@ -524,7 +524,6 @@ void jtag_interfaceIdle(void) {
 //! @note - This is probably called with the target power off
 //!
 void jtag_init(void) {
-   //U32 idcode;
 
    (void)initJTAGSequence();   
 
@@ -587,7 +586,7 @@ void halfBitDelay(void) {
 //! Makes no assumptions about initial TAP state
 //!
 void jtag_transition_reset(void) {
-   U8 i;
+   uint8_t i;
    // TMS = 1,1,1,1,1,1
    if (jtagFillByte)
       TDI_HIGH();
@@ -595,7 +594,7 @@ void jtag_transition_reset(void) {
       TDI_LOW();
    TCLK_LOW();
    TMS_HIGH();
-   for (i=0; i<=6; i++) {
+   for (i=0; i<5; i++) {
       TCLK_HIGH();
       halfBitDelay();
       TCLK_LOW();
@@ -605,7 +604,7 @@ void jtag_transition_reset(void) {
 }
 
 void jtag_header_shift(void) {
-   U16 numBits = 0;
+   uint16_t numBits = 0;
    switch (tapState) {
    case shift_dr:      numBits = dataRegisterHeader; break;
    case shift_ir:      numBits = instructionRegisterHeader; break;
@@ -629,7 +628,7 @@ void jtag_header_shift(void) {
 //! @param mode  \ref JTAG_SHIFT_DR => TAP controller is moved to SHIFT-DR \n
 //!              \ref JTAG_SHIFT_IR => TAP controller is moved to SHIFT-IR
 //!
-void jtag_transition_shift(U8 mode) {
+void jtag_transition_shift(uint8_t mode) {
 
    // SHIFT-IR TMS = 0,1,1,0,0
    // SHIFT-DR TMS = 0,1,0,0
@@ -638,13 +637,13 @@ void jtag_transition_shift(U8 mode) {
    else
       TDI_LOW();
    TMS_LOW();
-   TCLK_HIGH();      // 0
+   TCLK_HIGH();      // 0 - RUN-TEST-IDLE
    halfBitDelay();
    TCLK_LOW();
    TMS_HIGH();
    halfBitDelay();
    if (mode == JTAG_SHIFT_IR) {
-      TCLK_HIGH();   // 1
+      TCLK_HIGH();   // 1 - SELECT DR-SCAN
       halfBitDelay();
       TCLK_LOW();
       halfBitDelay();
@@ -653,16 +652,16 @@ void jtag_transition_shift(U8 mode) {
    else {
       tapState = shift_dr;
    }
-   TCLK_HIGH();      // 1
+   TCLK_HIGH();      // 1 SELECT DR-SCAN or SELECT IR-SCAN
    halfBitDelay();
    TCLK_LOW();
    TMS_LOW();
    halfBitDelay();
-   TCLK_HIGH();      // 0
+   TCLK_HIGH();      // 0 CAPTURE-DR or CAPTURE-IR
    halfBitDelay();
    TCLK_LOW();
    halfBitDelay();
-   TCLK_HIGH();      // 0
+   TCLK_HIGH();      // 0 SHIFT-DR or SHIFT-IR
    halfBitDelay();
    TCLK_LOW();
    halfBitDelay();
@@ -674,7 +673,7 @@ void jtag_transition_shift(U8 mode) {
 //! Leaves last data/fill bit on TDI pin but not shifted (TCK low)
 //
 void jtag_trailer_shift(void) {
-   U16 numBits = 0;
+   uint16_t numBits = 0;
    switch (tapState) {
    case shift_dr:      numBits = dataRegisterTrailer;        break;
    case shift_ir:      numBits = instructionRegisterTrailer; break;
@@ -702,9 +701,9 @@ void jtag_trailer_shift(void) {
 //!                \ref JTAG_EXIT_SHIFT_IR => exit SHIFT-IR/DR & enter SHIFT-IR                     \n
 //!                \ref JTAG_EXIT_IDLE     => exit SHIFT-IR/DR & enter RUN-TEST/IDLE
 //
-void jtag_exit_shift(U8 options) {
-   U8 bitCount;
-   U8 writeByte;
+void jtag_exit_shift(uint8_t options) {
+   uint8_t bitCount;
+   uint8_t writeByte;
 
    if (options != JTAG_STAY_SHIFT) {
       // Shift out any TIR/TDR bits
@@ -754,9 +753,9 @@ void jtag_exit_shift(U8 options) {
 //!        easier readability of code which uses JTAG)
 //! @note  On entry, expects to find the TAP controller in SHIFT-DR or SHIFT-IR state
 //!
-void jtag_write(U8 options, U8 bitCount, const U8 *writePtr) {
-   U8 writeByte     = 0x00;
-   U8 currentBitNum = 0;
+void jtag_write(uint8_t options, uint8_t bitCount, const uint8_t *writePtr) {
+   uint8_t writeByte     = 0x00;
+   uint8_t currentBitNum = 0;
 
    writePtr += (bitCount-1)>>3;  // Each byte has 8 bits, point to the last byte in the buffer 
    jtagFillByte = (options&JTAG_WRITE_1);
@@ -804,9 +803,9 @@ void jtag_write(U8 options, U8 bitCount, const U8 *writePtr) {
 //!        easier readability of code which uses JTAG)
 //! @note  On entry, expects to find the TAP in SHIFT-DR or SHIFT-IR state
 //!
-void jtag_read(U8 options, U8 bitCount, U8 *readPtr) {
-   U8 readByte      = 0x00;
-   U8 currentBitNum = 0;
+void jtag_read(uint8_t options, uint8_t bitCount, uint8_t *readPtr) {
+   uint8_t readByte      = 0x00;
+   uint8_t currentBitNum = 0;
 
    readPtr += (bitCount-1)>>3;  // Each byte has 8 bits, point to the last byte in the buffer 
    jtagFillByte = (options&JTAG_WRITE_1);
@@ -863,10 +862,10 @@ void jtag_read(U8 options, U8 bitCount, U8 *readPtr) {
 //!        easier readability of code which uses JTAG)
 //! @note  On entry, expects to find the TAP in SHIFT-DR or SHIFT-IR state
 //!
-void jtag_read_write(U8 options, U8 bitCount, const U8 *writePtr, U8 *readPtr) {
-   U8 writeByte   = 0x00;
-   U8 readByte    = 0x00;
-   U8 currentBitNum = 0;
+void jtag_read_write(uint8_t options, uint8_t bitCount, const uint8_t *writePtr, uint8_t *readPtr) {
+   uint8_t writeByte   = 0x00;
+   uint8_t readByte    = 0x00;
+   uint8_t currentBitNum = 0;
 
    writePtr += (bitCount-1)>>3;  // Each byte has 8 bits, point to the last byte in the buffer 
    readPtr  += (bitCount-1)>>3;   

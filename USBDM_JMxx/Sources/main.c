@@ -68,7 +68,7 @@
  * @return 0 => ICP not required, \n
  *         1 => ICP required
  */
-U8 userDetectICP(void) {
+uint8_t userDetectICP(void) {
    VDD_OFF(); // Turn off Vdd as early as possible
    return 0;  // ICP not required (rely on bootstrap in ICP code)
 }
@@ -155,7 +155,7 @@ static void initCrystalClock(const ClockFactors clockFactors) {
 }
 
 // Clock Trim values in Flash
-extern const volatile U8 NV_MCGTRM_INIT;  // MSB
+extern const volatile uint8_t NV_MCGTRM_INIT;  // MSB
 
 #pragma NO_ENTRY
 #pragma NO_EXIT

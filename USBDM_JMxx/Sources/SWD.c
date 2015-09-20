@@ -486,10 +486,18 @@ static uint8_t swd_rx32(uint8_t *data) {
 #pragma MESSAGE DISABLE C5703 // Disable warnings about unused parameter
 //! Switches interface to SWD
 //!
+//! Reference ARM Debug Interface v5 Architecture Specification
+//!           ADIv5.1 Supplement - 6.2.1 JTAG to Serial Wire switching
+//!
 //! Sequence as follows:
-//!  - 64-bit sequence of 1's
-//!  - 8-bit magic number 0xE79E
-//!  - 64-bit sequence of 1's
+//!  - >=50-bit sequence of 1's
+//!  - 16-bit magic number 0xE79E
+//!  - >=50-bit sequence of 1's
+//!  - 8-bit idle
+//!
+//! @note
+//!    - ENTRY SWCLK=high                       \n
+//!    - EXIT  SWCLK=unchanged, SWDIO=enabled
 //!
 //! @note Interface is reset even if already in SWD mode so IDCODE must be read
 //!       to enable interface
@@ -547,8 +555,8 @@ static void swd_JTAGtoSWD(void) {
 //!    == \ref BDM_RC_NO_CONNECTION   => Unexpected/no response from target
 //!
 uint8_t swd_connect(void) {
-   uint8_t buff[4];	
-   
+   uint8_t buff[4];
+
    swd_JTAGtoSWD();
    swd_txIdle8();
      
@@ -632,7 +640,7 @@ uint8_t swd_writeAPReg(const uint8_t *address, const uint8_t *buff) {
    selectData[1] = 0;
    selectData[2] = 0;
    selectData[3] = address[1]&0xF0;
-   
+
    // Set up SELECT register for AP access
    rc = swd_writeReg(SWD_WR_DP_SELECT, selectData);
    if (rc != BDM_RC_OK) {
@@ -679,7 +687,7 @@ uint8_t swd_readAPReg(const uint8_t *address, uint8_t *buff) {
    // Initiate read from AP register (dummy data)
    rc = swd_readReg(regNo, buff);
    if (rc != BDM_RC_OK) {
-     return rc;	   
+      return rc;
    }
    // Read from READBUFF register
    return swd_readReg(SWD_RD_DP_RDBUFF, buff);
@@ -699,7 +707,7 @@ uint8_t swd_clearStickyError(void) {
 //! @return error code
 //!
 uint8_t swd_abortAP(void) {
-   static const uint8_t swdClearErrors[4] = 
+   static const uint8_t swdClearErrors[4] =
       {0,0,0,SWD_DP_ABORT_CLEAR_STICKY_ERRORS_B3|SWD_DP_ABORT_ABORT_AP_B3};
    return swd_writeReg(SWD_WR_DP_ABORT, swdClearErrors);
 }

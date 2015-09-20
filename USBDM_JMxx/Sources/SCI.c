@@ -114,13 +114,13 @@ Change History
 
 #define SCI_TX_BUFFER_SIZE (16)  // Should equal end-point buffer size 
 static char txBuffer[SCI_TX_BUFFER_SIZE];
-static U8 txHead        = 0;
-static U8 txBufferCount = 0;
-static U8 breakCount    = 0;
+static uint8_t txHead        = 0;
+static uint8_t txBufferCount = 0;
+static uint8_t breakCount    = 0;
 #define SCI_RX_BUFFER_SIZE (16)  // Should less than or equal to end-point buffer size 
 static char *rxBuffer;
-static U8 rxBufferCount = 0;
-static U8 sciStatus = SERIAL_STATE_CHANGE;
+static uint8_t rxBufferCount = 0;
+static uint8_t sciStatus = SERIAL_STATE_CHANGE;
 
 // The following routines are assumed to be called from interrupt code - I masked
 //
@@ -203,7 +203,7 @@ uint8_t putTxBuffer(char *source, uint8_t size) {
 //!  -  +ve => char from queue
 //!
 static int getTxBuffer(void) {
-   U8 ch;
+   uint8_t ch;
    if (txBufferCount == 0) {
 	   // Check data in USB buffer & restart USB Out if needed
 	   checkUsbCdcTxData();
@@ -223,7 +223,7 @@ static int getTxBuffer(void) {
 //! @return 0 => buffer is occupied
 //!         1 => buffer is free
 //!
-U8 sciTxBufferFree(void) {
+uint8_t sciTxBufferFree(void) {
    return (txBufferCount == 0);
 }
 
@@ -264,7 +264,7 @@ int ch;
    (void)SCIS1; // Dummy read
    ch = getTxBuffer();
    if (ch >= 0) {
-      SCID = (U8)ch; // Send the char
+      SCID = (uint8_t)ch; // Send the char
    }
    else if (breakCount > 0) {
 	  SCIC2_SBK = 1; // Send another BREAK 'char'
@@ -315,9 +315,9 @@ static LineCodingStructure lineCoding              = {CONST_NATIVE_TO_LE32(9600U
 //! It does not support many of the combinations available.
 //!
 void sciSetLineCoding(const LineCodingStructure *lineCodingStructure) {
-   U32 baudrate;
-   U8 SCIC1Value = 0x00;
-   U8 SCIC3Value = 0x00;
+   uint32_t baudrate;
+   uint8_t SCIC1Value = 0x00;
+   uint8_t SCIC3Value = 0x00;
 
    sciStatus  = SERIAL_STATE_CHANGE;
    breakCount = 0; // Clear any current BREAKs
@@ -330,7 +330,7 @@ void sciSetLineCoding(const LineCodingStructure *lineCodingStructure) {
 
    // Note - for a 24MHz bus speed the useful baud range is ~300 to ~115200 for 0.5% error
    //        230400 & 460800 have a 8.5% error
-   SCIBD = (U16)BAUDDIVIDER(baudrate)&0x3FFFU;
+   SCIBD = (uint16_t)BAUDDIVIDER(baudrate)&0x3FFFU;
 
    // Note: lineCoding.bCharFormat is ignored (always 1 stop bit)
 //   switch (lineCoding.bCharFormat) {
@@ -396,7 +396,7 @@ const LineCodingStructure *sciGetLineCoding(void) {
 //!
 //! @param value - Describing desired settings
 //!
-void sciSetControlLineState(U8 value) {
+void sciSetControlLineState(uint8_t value) {
 #define LINE_CONTROL_DTR (1<<0)
 #define LINE_CONTROL_RTS (1<<1) // Ignored
 	
@@ -421,7 +421,7 @@ void sciSetControlLineState(U8 value) {
 //! @note - only partially implemented
 //!       - breaks are sent after currently queued characters
 //!
-void sciSendBreak(U16 length) {
+void sciSendBreak(uint16_t length) {
    if (length == 0xFFFF) {
 	  // Send indefinite BREAKs
 	  breakCount = 0xFF;
@@ -438,8 +438,8 @@ void sciSendBreak(U16 length) {
 
 
 //struct {
-//	U32 baudrate;
-//	U16 baudDivider;
+//	uint32_t baudrate;
+//	uint16_t baudDivider;
 //} baudTable[] = {
 //	{921600UL, BAUDDIVIDER(921600UL)},
 //	{460800UL, BAUDDIVIDER(460800UL)},

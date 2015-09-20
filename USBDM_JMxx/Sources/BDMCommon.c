@@ -87,7 +87,7 @@ static const CableStatus_t cable_statusDefault =  {
 //!
 //!  @note Limited to 2 ms
 //!
-void fastTimerWait(U16 delay) {
+void fastTimerWait(uint16_t delay) {
    TIMEOUT_TPMxCnVALUE   = TPMCNT+delay;           // Schedule event NOW+delay
    TIMEOUT_TPMxCnSC_CHF  = 0;                      // Clear timeout flag
    while (TIMEOUT_TPMxCnSC_CHF==0) {               // Wait for timeout
@@ -98,7 +98,7 @@ void fastTimerWait(U16 delay) {
 //!
 //!  @param delay Delay time in milliseconds
 //!
-void millisecondTimerWait(U16 delay) {
+void millisecondTimerWait(uint16_t delay) {
    TIMEOUT_TPMxCnVALUE = TPMCNT+TIMER_MICROSECOND(1000); // Set initial timeout value
    while (delay-->0) {
       TIMEOUT_TPMxCnSC_CHF = 0;                    // Clear timeout flag
@@ -110,7 +110,7 @@ void millisecondTimerWait(U16 delay) {
 
 //! Initialises the timers, input captures and interrupts
 //!
-U8 initTimers(void) {
+uint8_t initTimers(void) {
 
    //====================================================================
    // Set up timers
@@ -257,7 +257,7 @@ void acmpHandler(void) {
 //!
 //!  Updates \ref cable_status
 //!
-U8 bdm_checkTargetVdd(void) {
+uint8_t bdm_checkTargetVdd(void) {
 #if (HW_CAPABILITY&CAP_VDDSENSE)
    if (bdm_targetVddMeasure() > VDD_2v) {
       RED_LED_ON();
@@ -294,8 +294,8 @@ U8 bdm_checkTargetVdd(void) {
 //!   \ref BDM_RC_OK                => Target Vdd confirmed on target \n
 //!   \ref BDM_RC_VDD_NOT_PRESENT   => Target Vdd not present
 //!
-U8 bdm_setTargetVdd( void ) {
-U8 rc = BDM_RC_OK;
+uint8_t bdm_setTargetVdd( void ) {
+uint8_t rc = BDM_RC_OK;
 
 #if (HW_CAPABILITY&CAP_VDDSENSE)
    DISABLE_VDD_SENSE_INT();
@@ -357,8 +357,8 @@ U8 rc = BDM_RC_OK;
 //!   \ref BDM_RC_RESET_TIMEOUT_RISE    => RESET signal failed to rise 		\n
 //!   \ref BDM_RC_BKGD_TIMEOUT      	=> BKGD signal failed to rise
 //!
-U8 bdm_cycleTargetVddOn(U8 mode) {
-U8 rc = BDM_RC_OK;
+uint8_t bdm_cycleTargetVddOn(uint8_t mode) {
+uint8_t rc = BDM_RC_OK;
 
    mode &= RESET_MODE_MASK;
 
@@ -483,8 +483,8 @@ cleanUp:
 //!   \ref BDM_RC_VDD_WRONG_MODE    => Target Vdd not controlled by BDM interface \n
 //!   \ref BDM_RC_VDD_NOT_REMOVED   => Target Vdd failed to fall \n
 //!
-U8 bdm_cycleTargetVddOff(void) {
-U8 rc = BDM_RC_OK;
+uint8_t bdm_cycleTargetVddOff(void) {
+uint8_t rc = BDM_RC_OK;
 
 #if (HW_CAPABILITY&CAP_VDDCONTROL)
 
@@ -557,8 +557,8 @@ U8 rc = BDM_RC_OK;
 //!   \ref BDM_RC_VDD_NOT_PRESENT    => Target Vdd failed to rise \n
 //!   \ref BDM_RC_RESET_TIMEOUT_RISE => RESET signal failed to rise \n
 //!
-U8 bdm_cycleTargetVdd(U8 mode) {
-U8 rc;
+uint8_t bdm_cycleTargetVdd(uint8_t mode) {
+uint8_t rc;
 
    // This may take a while
    setBDMBusy();
@@ -580,7 +580,7 @@ U8 rc;
 //!  JB16/UF32 doesn't have an ADC so an external comparator is used.  In this case this routine only
 //!  returns an indication if Target Vdd is present [255 => Vdd present, 0=> Vdd not present].
 //!
-U16 bdm_targetVddMeasure(void) {
+uint16_t bdm_targetVddMeasure(void) {
 
 #if ((HW_CAPABILITY&CAP_VDDSENSE) == 0)
    // No Target Vdd measurement - Assume external Vdd supplied
@@ -734,7 +734,7 @@ void bdm_off( void ) {
 }
 
 //! Clear Cable status
-U8 bdm_clearStatus(void) {
+uint8_t bdm_clearStatus(void) {
    (void)memset(&cable_status, 0, sizeof(cable_status));
    cable_status.target_type = T_OFF;
    
@@ -745,8 +745,8 @@ U8 bdm_clearStatus(void) {
 //!
 //!  @param target = Target processor (see \ref TargetType_t)
 //!
-U8 bdm_setTarget(U8 target) {
-U8 rc = BDM_RC_OK;
+uint8_t bdm_setTarget(uint8_t target) {
+uint8_t rc = BDM_RC_OK;
 
 #ifdef RESET_IN_PER
    RESET_IN_PER    = 1;     // Needed for input level translation to 5V

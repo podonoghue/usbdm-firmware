@@ -50,7 +50,7 @@
 #include "BDM_CF.h"
 #include "ARM.h"
 
-static U8 getValueByte(U8 value);
+static uint8_t getValueByte(uint8_t value);
 
 #define STOP_ON_END         (0<<0)
 #define STOP_ON_ELSE        (1<<1)
@@ -70,14 +70,14 @@ static U8 getValueByte(U8 value);
 //! @note Assumes correct nesting of loops and conditionals
 //! @note Stops unconditionally on JTAG_SUBx or JTAG_END
 //!
-static const U8 *skipSequence(const U8 *sequence, U8 sentinel) {
-   U8 temp;
-   U8 loopDepth = 0;
+static const uint8_t *skipSequence(const uint8_t *sequence, uint8_t sentinel) {
+   uint8_t temp;
+   uint8_t loopDepth = 0;
 
 //   print("skipSequence() \n");
    for(;;) {
-      U8 opcode   = *sequence;
-      U8 numBits  = (opcode&JTAG_NUM_BITS_MASK);  // In case needed
+      uint8_t opcode   = *sequence;
+      uint8_t numBits  = (opcode&JTAG_NUM_BITS_MASK);  // In case needed
       if (numBits == 0)
          numBits = 32;
 
@@ -199,7 +199,7 @@ static const U8 *skipSequence(const U8 *sequence, U8 sentinel) {
                   break;
                case JTAG_SHIFT_IN_OUT_VARA:
                case JTAG_SHIFT_IN_OUT_VARB:
-                  temp = (U8)BITS_TO_BYTES(*++sequence);
+                  temp = (uint8_t)BITS_TO_BYTES(*++sequence);
                   sequence += temp; // Skip over inline data
                   break;
                   
@@ -238,49 +238,49 @@ static const U8 *skipSequence(const U8 *sequence, U8 sentinel) {
 #define MAX_CACHE (42)
 
 #pragma DATA_SEG __SHORT_SEG Z_PAGE
-static const U8 *sequence;    // JTAG sequence to execute
-static const U8 *dataOutPtr;  // Data to send to device
+static const uint8_t *sequence;    // JTAG sequence to execute
+static const uint8_t *dataOutPtr;  // Data to send to device
 
 #pragma DATA_SEG DEFAULT
-static const U8 *subPtrs[]  = {NULL, NULL, NULL, NULL};
-static       U8 subroutineCache[MAX_CACHE];
+static const uint8_t *subPtrs[]  = {NULL, NULL, NULL, NULL};
+static       uint8_t subroutineCache[MAX_CACHE];
 
 typedef struct {
-   const U8* startOfLoop;
-   U16       iterator;
+   const uint8_t* startOfLoop;
+   uint16_t       iterator;
 } RepeatInformation;
 
 typedef struct {
-   const U8           *returnAddress;
+   const uint8_t           *returnAddress;
    RepeatInformation  *repeatTOS;
 } SubroutineInformation;
 
 
-U8 initJTAGSequence(void) {
+uint8_t initJTAGSequence(void) {
 
    (void)memset(subPtrs, (int)NULL, sizeof(subPtrs));
    return BDM_RC_OK;
 }
 
-U8                   complete          = false;
-U8                   inFill            = JTAG_WRITE_1;
-U8                   exitAction        = JTAG_EXIT_IDLE;
-U8                   rc                = BDM_RC_OK;
-U32                  variables[4]      = {0,0,0,0};
-U16                  iterator          = 0;
-const U8             *startOfIteration = NULL;
-U32                  tempValue = 0;
-U8                   *dataInPtr;
-const U8             *dscInstructionPtr;
+uint8_t                   complete          = false;
+uint8_t                   inFill            = JTAG_WRITE_1;
+uint8_t                   exitAction        = JTAG_EXIT_IDLE;
+uint8_t                   rc                = BDM_RC_OK;
+uint32_t                  variables[4]      = {0,0,0,0};
+uint16_t                  iterator          = 0;
+const uint8_t             *startOfIteration = NULL;
+uint32_t                  tempValue = 0;
+uint8_t                   *dataInPtr;
+const uint8_t             *dscInstructionPtr;
 
 RepeatInformation       repeatStack[6] = {{NULL,0}};
 RepeatInformation       *repeatTOS = repeatStack;
 
 SubroutineInformation   subroutineStack[4] = {{NULL, NULL}};
 SubroutineInformation   *subroutineTOS = subroutineStack;
-U8 opcode;
-U8 numBits;
-U8 regNo;
+uint8_t opcode;
+uint8_t numBits;
+uint8_t regNo;
 int adjustment;
 
 #define INLINE_TARGET_INSTRUCTION_EXECUTION
@@ -331,7 +331,7 @@ int adjustment;
 #define TARGET_STATUS_EX_ACCESS (0x09)
 #define TARGET_STATUS_DEBUG     (0x0D)
 
-//volatile static const U8 dummy[1024] = {0};
+//volatile static const uint8_t dummy[1024] = {0};
 
 #define MAX_DSC_RETRY (100)
 //! This routine is the hard-coding of the most time-critical JTAG subroutine
@@ -347,20 +347,20 @@ int adjustment;
 //!      // Length  Instruction data...
 //!           2,    0x87,0x44, 0xAA,0x34,
 //!           3,    0xE7,0x7F, 0xD4,0x7C, 0xFF,0xFF,
-U8 executeDSCTargetInstructionSequence(const U8 **dataOutPtr) {
-static const U8 enableONCECommand[] = {CORE_ENABLE_ONCE_COMMAND};
-static const U8 writeOpcode[]       = {OPDBR_ADDRESS|ONCE_CMD_WRITE};
-static const U8 writeOpcodeAndGo[]  = {OPDBR_ADDRESS|ONCE_CMD_WRITE|ONCE_CMD_GO};
-U8 onceStatus;
-U8 numberOfInstructions;
-U8 retry;
-const U8 *dataOutPtrX = *dataOutPtr;
+uint8_t executeDSCTargetInstructionSequence(const uint8_t **dataOutPtr) {
+static const uint8_t enableONCECommand[] = {CORE_ENABLE_ONCE_COMMAND};
+static const uint8_t writeOpcode[]       = {OPDBR_ADDRESS|ONCE_CMD_WRITE};
+static const uint8_t writeOpcodeAndGo[]  = {OPDBR_ADDRESS|ONCE_CMD_WRITE|ONCE_CMD_GO};
+uint8_t onceStatus;
+uint8_t numberOfInstructions;
+uint8_t retry;
+const uint8_t *dataOutPtrX = *dataOutPtr;
 
    USBDM_JTAG_SelectShift(JTAG_SHIFT_IR);
    numberOfInstructions = *dataOutPtrX++;
 //   numberOfInstructions = dummy[12];
    do {
-      U8 numWords = *dataOutPtrX++;
+      uint8_t numWords = *dataOutPtrX++;
       USBDM_JTAG_Write(JTAG_CORE_COMMAND_LENGTH, JTAG_EXIT_SHIFT_DR, enableONCECommand);
       do {
          if (numWords>1) {
@@ -406,9 +406,9 @@ const U8 *dataOutPtrX = *dataOutPtr;
 //!      // Length  Instruction data...
 //!           2,    0x87,0x44, 0xAA,0x34,
 //!           3,    0xE7,0x7F, 0xD4,0x7C, 0xFF,0xFF,
-void skipDSCTargetInstructionSequence(const U8 **dataOutPtr) {
-	U8 numberOfInstructions;
-	const U8 *dataOutPtrX = *dataOutPtr;
+void skipDSCTargetInstructionSequence(const uint8_t **dataOutPtr) {
+	uint8_t numberOfInstructions;
+	const uint8_t *dataOutPtrX = *dataOutPtr;
 	
 	numberOfInstructions = *dataOutPtrX++;
     do {
@@ -428,13 +428,13 @@ void skipDSCTargetInstructionSequence(const U8 **dataOutPtr) {
  *    |  Size of elements     |
  *    +-----------------------+
  */
-U8 DSC_readMemory(const U8 **dataOutPtr) {
-    U8               numberOfElements;
-    const U8        *dscInstructionPtr;
-    U8 	             memoryElementSize;
-    const U8        *dataOutPtrX = *dataOutPtr;
-    static const U8  readOnceCommand[] = {ONCE_CMD_READ|OTX_ADDRESS}; 
-    U8               buffer[4];
+uint8_t DSC_readMemory(const uint8_t **dataOutPtr) {
+    uint8_t               numberOfElements;
+    const uint8_t        *dscInstructionPtr;
+    uint8_t 	             memoryElementSize;
+    const uint8_t        *dataOutPtrX = *dataOutPtr;
+    static const uint8_t  readOnceCommand[] = {ONCE_CMD_READ|OTX_ADDRESS}; 
+    uint8_t               buffer[4];
 
 	numberOfElements   = *dataOutPtrX++;               // Number of memory elements to read
 	dscInstructionPtr  = dataOutPtrX;                  // Save pointer to DSC instruction sequence
@@ -442,7 +442,7 @@ U8 DSC_readMemory(const U8 **dataOutPtr) {
 	memoryElementSize  = *dataOutPtrX++;               // Size of each memory element
     *dataOutPtr = dataOutPtrX;
 	do {
-		const U8 *temp = dscInstructionPtr;
+		const uint8_t *temp = dscInstructionPtr;
 		rc = executeDSCTargetInstructionSequence(&temp);    // Execute DSC code (memory value now in OTX/OTX1)
 		if (rc != BDM_RC_OK) {
 			return rc;
@@ -483,7 +483,7 @@ U8 DSC_readMemory(const U8 **dataOutPtr) {
  *    |   Memory Space        |
  *    +-----------------------+
  */
-U8 DSC_fastReadMemory(const U8 **dataOutPtr) {
+uint8_t DSC_fastReadMemory(const uint8_t **dataOutPtr) {
 	static const uint8_t loadAddressSequence[] = {
 		/*  0 */      2,
 		// Point R4 at otx (otx1 requires +1 offset)
@@ -594,7 +594,7 @@ U8 DSC_fastReadMemory(const U8 **dataOutPtr) {
  *    | ..................... |
  *    +-----------------------+
  */
-U8 DSC_fastWriteMemory(const uint8_t **dataOutPtr) {
+uint8_t DSC_fastWriteMemory(const uint8_t **dataOutPtr) {
    static const uint8_t loadAddressSequence[] = {
    /*  0 */      2,
                      // Point R4 at otx (otx1 requires +1 offset)
@@ -706,7 +706,7 @@ U8 DSC_fastWriteMemory(const uint8_t **dataOutPtr) {
  *    | ..................... |
  *    +-----------------------+
  */
-U8 DSC_fastWriteMemory(const uint8_t **dataOutPtr) {
+uint8_t DSC_fastWriteMemory(const uint8_t **dataOutPtr) {
 	   static const uint8_t loadAddressSequence[] = {
 	         // Load address into R0
 	         1,
@@ -808,20 +808,20 @@ U8 DSC_fastWriteMemory(const uint8_t **dataOutPtr) {
  *    | ..................... |
  *    +-----------------------+
  */
-U8 DSC_writeMemory(const U8 **dataOutPtr) {
-    U8               numberOfElements;
-    const U8        *dscInstructionPtr;
-    U8 	             memoryElementSize;
-    const U8        *dataOutPtrX = *dataOutPtr;
-    static const U8  writeOnceCommand[] = {ONCE_CMD_WRITE|ORX_ADDRESS}; 
-    U8               buffer[4];
+uint8_t DSC_writeMemory(const uint8_t **dataOutPtr) {
+    uint8_t               numberOfElements;
+    const uint8_t        *dscInstructionPtr;
+    uint8_t 	             memoryElementSize;
+    const uint8_t        *dataOutPtrX = *dataOutPtr;
+    static const uint8_t  writeOnceCommand[] = {ONCE_CMD_WRITE|ORX_ADDRESS}; 
+    uint8_t               buffer[4];
 
 	dscInstructionPtr  = dataOutPtrX;    // Save pointer to DSC instruction sequence
 	dataOutPtrX       += 10;             // Skip over DSC code + padding
 	memoryElementSize  = *dataOutPtrX++; // Size of each memory element
 	numberOfElements   = *dataOutPtrX++; // Number of memory elements to read
 	do {
-		const U8 *temp = dscInstructionPtr;
+		const uint8_t *temp = dscInstructionPtr;
 
         // Fill relevant portion of buffer with data
         switch(memoryElementSize) {
@@ -887,21 +887,21 @@ U8 DSC_writeMemory(const U8 **dataOutPtr) {
 //!
 //! @return error code
 //!
-U8 ARM_readAP(const U8 **sequence, U8 **dataInPtr) {
+uint8_t ARM_readAP(const uint8_t **sequence, uint8_t **dataInPtr) {
 #if 1
-   const U8 writeSelect        = DP_AP_WRITE|DP_SELECT_REG;
-   const U8 readRdBuff         = DP_AP_READ|DP_RDBUFF_REG;
-   const U8 readStatus         = DP_AP_READ|DP_CTRL_STAT_REG;
-   const U8 dummyValue[4]      = {0,0,0,0};
-   const U8 dpAccSelectCommand = JTAG_DP_DPACC_SEL_COMMAND;
-   const U8 apAccSelectCommand = JTAG_DP_APACC_SEL_COMMAND;
-   U8 reg32RnW;
-   U8 selectValue[4];
-   U8 ack;
-   U8 increment;
-   U8 retry = MAX_ARM_RETRY;
+   const uint8_t writeSelect        = DP_AP_WRITE|DP_SELECT_REG;
+   const uint8_t readRdBuff         = DP_AP_READ|DP_RDBUFF_REG;
+   const uint8_t readStatus         = DP_AP_READ|DP_CTRL_STAT_REG;
+   const uint8_t dummyValue[4]      = {0,0,0,0};
+   const uint8_t dpAccSelectCommand = JTAG_DP_DPACC_SEL_COMMAND;
+   const uint8_t apAccSelectCommand = JTAG_DP_APACC_SEL_COMMAND;
+   uint8_t reg32RnW;
+   uint8_t selectValue[4];
+   uint8_t ack;
+   uint8_t increment;
+   uint8_t retry = MAX_ARM_RETRY;
 
-   U8 numWords    = *(*sequence)++;
+   uint8_t numWords    = *(*sequence)++;
    selectValue[0] = *(*sequence)++;
    selectValue[1] = 0;
    selectValue[2] = 0;
@@ -987,20 +987,20 @@ U8 ARM_readAP(const U8 **sequence, U8 **dataInPtr) {
 //!
 //! @return error code
 //!
-U8 ARM_writeAP(const U8 **sequence, U8 **dataInPtr, U8 **dataOutPtr) {
+uint8_t ARM_writeAP(const uint8_t **sequence, uint8_t **dataInPtr, uint8_t **dataOutPtr) {
 #if 1
-   const U8 writeSelect        = DP_AP_WRITE|DP_SELECT_REG;
-   const U8 readRdBuff         = DP_AP_READ|DP_RDBUFF_REG;
-   const U8 readStatus         = DP_AP_READ|DP_CTRL_STAT_REG;
-   const U8 dummyValue[4]      = {0,0,0,0};
-   const U8 dpAccSelectCommand = JTAG_DP_DPACC_SEL_COMMAND;
-   const U8 apAccSelectCommand = JTAG_DP_APACC_SEL_COMMAND;
-   U8 reg32RnW;
-   U8 selectValue[4];
-   U8 ack;
-   U8 retry = MAX_ARM_RETRY;
+   const uint8_t writeSelect        = DP_AP_WRITE|DP_SELECT_REG;
+   const uint8_t readRdBuff         = DP_AP_READ|DP_RDBUFF_REG;
+   const uint8_t readStatus         = DP_AP_READ|DP_CTRL_STAT_REG;
+   const uint8_t dummyValue[4]      = {0,0,0,0};
+   const uint8_t dpAccSelectCommand = JTAG_DP_DPACC_SEL_COMMAND;
+   const uint8_t apAccSelectCommand = JTAG_DP_APACC_SEL_COMMAND;
+   uint8_t reg32RnW;
+   uint8_t selectValue[4];
+   uint8_t ack;
+   uint8_t retry = MAX_ARM_RETRY;
 
-   U8 numWords    = *(*sequence)++;
+   uint8_t numWords    = *(*sequence)++;
    selectValue[0] = *(*sequence)++;
    selectValue[1] = 0;
    selectValue[2] = 0;
@@ -1081,11 +1081,11 @@ U8 ARM_writeAP(const U8 **sequence, U8 **dataInPtr, U8 **dataOutPtr) {
 //!
 //! @note Expects immediate ACK_OK_FAULT on AP transaction (non-memory)
 //!
-U8 ARM_writeAPI(const U8 **sequence) {
+uint8_t ARM_writeAPI(const uint8_t **sequence) {
 
 #if 1
-	const U8 *address;
-	const U8 *data;
+	const uint8_t *address;
+	const uint8_t *data;
 	
 	address = *sequence;
 	(*sequence) += 2;
@@ -1095,14 +1095,14 @@ U8 ARM_writeAPI(const U8 **sequence) {
 	return arm_writeAPReg(address, data);   
    
 #else   
-   const U8 writeSelect        = DP_AP_WRITE|DP_SELECT_REG;
-   const U8 readRdBuff         = DP_AP_READ|DP_RDBUFF_REG;
-   const U8 dummyValue[4]      = {0,0,0,0};
-   const U8 dpAccSelectCommand = JTAG_DP_DPACC_SEL_COMMAND;
-   const U8 apAccSelectCommand = JTAG_DP_APACC_SEL_COMMAND;
-   U8 reg32RnW;
-   U8 selectValue[4];
-   U8 ack;
+   const uint8_t writeSelect        = DP_AP_WRITE|DP_SELECT_REG;
+   const uint8_t readRdBuff         = DP_AP_READ|DP_RDBUFF_REG;
+   const uint8_t dummyValue[4]      = {0,0,0,0};
+   const uint8_t dpAccSelectCommand = JTAG_DP_DPACC_SEL_COMMAND;
+   const uint8_t apAccSelectCommand = JTAG_DP_APACC_SEL_COMMAND;
+   uint8_t reg32RnW;
+   uint8_t selectValue[4];
+   uint8_t ack;
 
    selectValue[0] = *(*sequence)++;
    selectValue[1] = 0;
@@ -1155,7 +1155,7 @@ U8 ARM_writeAPI(const U8 **sequence) {
 //! data stream as required.
 //! 
 #pragma INLINE
-static U8 getValueByte(U8 value) {
+static uint8_t getValueByte(uint8_t value) {
    if ((value == 0) && (dataOutPtr != NULL)) {
       // If zero get value from dataOutPtr
       value = *dataOutPtr++;
@@ -1168,8 +1168,8 @@ static U8 getValueByte(U8 value) {
 //! @param sequenceStart  - start of sequence
 //! @param dataInStart    - buffer for dataIn
 //!
-U8 processJTAGSequence(const U8 *sequenceStart, 
-                             U8 *dataInStart) {
+uint8_t processJTAGSequence(const uint8_t *sequenceStart, 
+                             uint8_t *dataInStart) {
    complete          = false;
    inFill            = JTAG_WRITE_1;
    exitAction        = JTAG_EXIT_IDLE;
@@ -1361,7 +1361,7 @@ U8 processJTAGSequence(const U8 *sequenceStart,
                }
                break;
 		   case JTAG_SHIFT_OUT_DP_VARA:
-				 USBDM_JTAG_Write((U8)tempValue, exitAction, dataOutPtr);
+				 USBDM_JTAG_Write((uint8_t)tempValue, exitAction, dataOutPtr);
 				 dataOutPtr += BITS_TO_BYTES(tempValue);
                   break;
             case JTAG_SHIFT_OUT_DP : // Shift sequence out - sequence taken from dataOutPtr
@@ -1435,7 +1435,7 @@ U8 processJTAGSequence(const U8 *sequenceStart,
                repeatTOS->iterator    = iterator;
                repeatTOS->startOfLoop = startOfIteration;
                repeatTOS++;
-               iterator               = (U16)tempValue; // Assumes value set previously (e.g. push)
+               iterator               = (uint16_t)tempValue; // Assumes value set previously (e.g. push)
                startOfIteration       = sequence;
                break;
             case JTAG_SHIFT_OUT_VARA: // Shift out VarA/B to TDI, TDO discarded
@@ -1448,10 +1448,10 @@ U8 processJTAGSequence(const U8 *sequenceStart,
 //                  }
 //                  else 
                {
-//                     U32 temp = variables[regNo];
-//                     USBDM_JTAG_Write(numBits, exitAction, ((U8*)&temp+4-BITS_TO_BYTES(numBits)));
+//                     uint32_t temp = variables[regNo];
+//                     USBDM_JTAG_Write(numBits, exitAction, ((uint8_t*)&temp+4-BITS_TO_BYTES(numBits)));
                   USBDM_JTAG_Write(numBits, exitAction, 
-                     ((U8*)(variables+regNo)+sizeof(variables[0])-BITS_TO_BYTES(numBits)));
+                     ((uint8_t*)(variables+regNo)+sizeof(variables[0])-BITS_TO_BYTES(numBits)));
                }
                break;
             case JTAG_SHIFT_IN_OUT_VARA: // Set variable from TDO with TDI values from sequence
@@ -1465,7 +1465,7 @@ U8 processJTAGSequence(const U8 *sequenceStart,
 //                  else 
                {
                   USBDM_JTAG_ReadWrite(numBits, exitAction, sequence, 
-                     ((U8*)(variables+regNo)+sizeof(variables[0])-BITS_TO_BYTES(numBits)));
+                     ((uint8_t*)(variables+regNo)+sizeof(variables[0])-BITS_TO_BYTES(numBits)));
                   sequence += BITS_TO_BYTES(numBits);
                }
                break;
@@ -1476,13 +1476,13 @@ U8 processJTAGSequence(const U8 *sequenceStart,
                tempValue = *sequence++;
                break;
             case JTAG_PUSH16:
-               tempValue  = *(U16*)sequence;
+               tempValue  = *(uint16_t*)sequence;
                sequence  += 2;
 //                  tempValue = *sequence++;
 //                  tempValue = (tempValue<<8)+*sequence++;
                break;
             case JTAG_PUSH32:
-               tempValue  = *(U32*)sequence;
+               tempValue  = *(uint32_t*)sequence;
                sequence  += 4;
 //                  tempValue = *sequence++;
 //                  tempValue = (tempValue<<8)+*sequence++;
@@ -1493,13 +1493,13 @@ U8 processJTAGSequence(const U8 *sequenceStart,
                tempValue = *dataOutPtr++;
                break;
             case JTAG_PUSH_DP_16:
-               tempValue  = *(U16*)dataOutPtr;
+               tempValue  = *(uint16_t*)dataOutPtr;
                sequence  += 2;
 //                  tempValue = *dataOutPtr++;
 //                  tempValue = (tempValue<<8)+*dataOutPtr++;
                break;
             case JTAG_PUSH_DP_32:
-               tempValue  = *(U32*)dataOutPtr;
+               tempValue  = *(uint32_t*)dataOutPtr;
                sequence  += 4;
 //                  tempValue = *dataOutPtr++;
 //                  tempValue = (tempValue<<8)+*dataOutPtr++;
@@ -1542,10 +1542,10 @@ U8 processJTAGSequence(const U8 *sequenceStart,
             	break;
 #endif
             case JTAG_SET_PADDING:// #4x16-bits - sets HDR HIR TDR TIR
-            	jtag_set_hdr(*(U16*)sequence); sequence  += 2;
-            	jtag_set_hir(*(U16*)sequence); sequence  += 2;
-            	jtag_set_tdr(*(U16*)sequence); sequence  += 2;
-            	jtag_set_tir(*(U16*)sequence); sequence  += 2;
+            	jtag_set_hdr(*(uint16_t*)sequence); sequence  += 2;
+            	jtag_set_hir(*(uint16_t*)sequence); sequence  += 2;
+            	jtag_set_tdr(*(uint16_t*)sequence); sequence  += 2;
+            	jtag_set_tir(*(uint16_t*)sequence); sequence  += 2;
             	break;
             default:
                rc = BDM_RC_JTAG_ILLEGAL_SEQUENCE;
@@ -1605,7 +1605,7 @@ U8 processJTAGSequence(const U8 *sequenceStart,
          }
    } while (!complete && (rc == BDM_RC_OK));
    
-   *dataInStart = (U8)(dataInPtr-dataInStart); // # bytes input
+   *dataInStart = (uint8_t)(dataInPtr-dataInStart); // # bytes input
    return rc;
 }
 #endif

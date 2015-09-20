@@ -13,7 +13,7 @@
 #pragma CODE_SEG BOOT_ROM
 extern void initICP_USB(void);
 extern void startICP_USB(void);
-extern U8 icpReset(void);
+extern uint8_t icpReset(void);
 #pragma CODE_SEG DEFAULT
 
 #endif /* ICP_USB_H_ */

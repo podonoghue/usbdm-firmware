@@ -135,27 +135,27 @@ void bdm_WaitForResetRise(void) {
 #if (HW_CAPABILITY&CAP_BDM)
 
 /* Function prototypes */
-       U8   bdm_syncMeasure(void);
+       uint8_t   bdm_syncMeasure(void);
        void bdmHCS_interfaceIdle(void);
-static U8   bdmHC12_alt_speed_detect(void);
+static uint8_t   bdmHC12_alt_speed_detect(void);
 
 //========================================================
 //
 #pragma DATA_SEG __SHORT_SEG Z_PAGE
 // MUST be placed into the direct segment (assumed in ASM code).
-extern volatile U8 bitDelay;  //!< Used as a general purpose variable in the bdm_Tx{} & bdm_Rx{}etc.
-extern volatile U8 rxTiming1; //!< bdm_Rx timing constant #1
-static volatile U8 rxTiming2; //!< bdm_Rx timing constant #2
-static volatile U8 rxTiming3; //!< bdm_Rx timing constant #3
-extern volatile U8 txTiming1; //!< bdm_Tx timing constant #1
-static volatile U8 txTiming2; //!< bdm_Tx timing constant #2
-static volatile U8 txTiming3; //!< bdm_Tx timing constant #3
+extern volatile uint8_t bitDelay;  //!< Used as a general purpose variable in the bdm_Tx{} & bdm_Rx{}etc.
+extern volatile uint8_t rxTiming1; //!< bdm_Rx timing constant #1
+static volatile uint8_t rxTiming2; //!< bdm_Rx timing constant #2
+static volatile uint8_t rxTiming3; //!< bdm_Rx timing constant #3
+extern volatile uint8_t txTiming1; //!< bdm_Tx timing constant #1
+static volatile uint8_t txTiming2; //!< bdm_Tx timing constant #2
+static volatile uint8_t txTiming3; //!< bdm_Tx timing constant #3
 
 #define bitCount bitDelay
 
 // pointers to current bdm_Rx & bdm_Tx routines
-U8   (*bdm_rx_ptr)(void) = bdm_rxEmpty; //!< pointers to current bdm_Rx routine
-void (*bdm_tx_ptr)(U8)   = bdm_txEmpty; //!< pointers to current bdm_Tx routine
+uint8_t   (*bdm_rx_ptr)(void) = bdm_rxEmpty; //!< pointers to current bdm_Rx routine
+void (*bdm_tx_ptr)(uint8_t)   = bdm_txEmpty; //!< pointers to current bdm_Tx routine
 
 //========================================================
 //
@@ -176,7 +176,7 @@ void (*bdm_tx_ptr)(U8)   = bdm_txEmpty; //!< pointers to current bdm_Tx routine
 //!   \ref BDM_RC_OK             => success  \n
 //!   \ref BDM_RC_UNKNOWN_TARGET => unknown target
 //!
-U8 bdm_readBDMStatus(U8 *bdm_sts) {
+uint8_t bdm_readBDMStatus(uint8_t *bdm_sts) {
 
    switch (cable_status.target_type) {
 #if TARGET_CAPABILITY & CAP_S12Z
@@ -211,7 +211,7 @@ U8 bdm_readBDMStatus(U8 *bdm_sts) {
 //!
 //!  @param value => value to write
 //!
-static void writeBDMControl(U8 value) {
+static void writeBDMControl(uint8_t value) {
 
    switch (cable_status.target_type) {
 #if TARGET_CAPABILITY & CAP_S12Z
@@ -245,10 +245,10 @@ static void writeBDMControl(U8 value) {
 //!   \ref BDM_RC_OK             => success  \n
 //!   \ref BDM_RC_UNKNOWN_TARGET => unknown target
 //!
-U8 bdm_writeBDMControl(U8 bdm_ctrl) {
-U8 statusClearMask; // Bits to clear in control value
-U8 statusSetMask;   // Bits to set in control value
-U8 statusClkMask;   // The position of the CLKSW bit in control register
+uint8_t bdm_writeBDMControl(uint8_t bdm_ctrl) {
+uint8_t statusClearMask; // Bits to clear in control value
+uint8_t statusSetMask;   // Bits to set in control value
+uint8_t statusClkMask;   // The position of the CLKSW bit in control register
 
    // Get clock select mask for this target (CLKSW bit in BDM control register)
    switch (cable_status.target_type) {
@@ -294,9 +294,9 @@ U8 statusClkMask;   // The position of the CLKSW bit in control register
 //!   \ref BDM_RC_UNKNOWN_TARGET => unknown target \n
 //!   \ref BDM_RC_BDM_EN_FAILED  => enabling BDM failed (target not connected or wrong speed ?)
 //!
-U8 bdm_enableBDM() {
-U8 bdm_sts;
-U8 rc;
+uint8_t bdm_enableBDM() {
+uint8_t bdm_sts;
+uint8_t rc;
 
    rc = bdm_readBDMStatus(&bdm_sts); // Get current status
    if (rc != BDM_RC_OK) {
@@ -343,10 +343,10 @@ U8 rc;
 //!   \ref BDM_RC_OK  => success  \n
 //!   otherwise       => various errors
 //!
-U8 bdm_makeActiveIfStopped(void) {
+uint8_t bdm_makeActiveIfStopped(void) {
 
-U8 rc = BDM_RC_OK;
-U8 bdm_sts;
+uint8_t rc = BDM_RC_OK;
+uint8_t bdm_sts;
 
    if (cable_status.target_type == T_HC12) // Not supported on HC12
       return BDM_RC_OK; // not considered an error
@@ -390,8 +390,8 @@ void bdm_clearConnection(void) {
 //!    == \ref BDM_RC_BKGD_TIMEOUT        => BKGD signal timeout - remained low  \n
 //!    != \ref BDM_RC_OK                  => other failures
 //!
-U8 bdm_physicalConnect(void) {
-U8 rc;
+uint8_t bdm_physicalConnect(void) {
+uint8_t rc;
 
    bdmHCS_interfaceIdle(); // Make sure interface is idle
    bdm_clearConnection();  // Assume we know nothing about connection technique & speed
@@ -454,8 +454,8 @@ U8 rc;
 //!    == \ref BDM_RC_BKGD_TIMEOUT     => BKGD signal timeout - remained low \n
 //!    != \ref BDM_RC_OK               => other failures \n
 //!
-U8 bdm_connect(void) {
-U8 rc;
+uint8_t bdm_connect(void) {
+uint8_t rc;
 
    if (cable_status.speed != SPEED_USER_SUPPLIED) {
       rc = bdm_physicalConnect();
@@ -487,7 +487,7 @@ U8 rc;
 //!   \ref BDM_RC_BKGD_TIMEOUT     => BKGD pin stuck low \n
 //!   \ref BDM_RC_RESET_TIMEOUT_RISE    => RESET pin stuck low \n
 //!
-U8 bdm_hardwareReset(U8 mode) {
+uint8_t bdm_hardwareReset(uint8_t mode) {
 
    if (!bdm_option.useResetSignal)
       return BDM_RC_ILLEGAL_PARAMS;
@@ -574,8 +574,8 @@ U8 bdm_hardwareReset(U8 mode) {
 //!    \ref BDM_RC_RESET_TIMEOUT_RISE     => RESET pin stuck low \n
 //!    \ref BDM_RC_UNKNOWN_TARGET         => Don't know how to reset this type of target! \n
 //!
-U8 bdm_softwareReset(U8 mode) {
-U8 rc;
+uint8_t bdm_softwareReset(uint8_t mode) {
+uint8_t rc;
 
    if (cable_status.target_type == T_HC12) { // Doesn't support s/w reset
       return BDM_RC_ILLEGAL_PARAMS; // HC12 doesn't have s/w reset
@@ -636,7 +636,8 @@ U8 rc;
    DEBUG_PIN   = 0;
 #endif
 
-   if (mode == 0) {   // Special mode - release BKGD
+   if (mode == RESET_SPECIAL) {   
+      // Special mode - release BKGD
       WAIT_US(BKGD_WAITus);      // Wait for BKGD assertion time after reset rise
       BDM_3STATE();
    }
@@ -675,8 +676,8 @@ U8 rc;
 //!    == \ref BDM_RC_OK  => Success \n
 //!    != \ref BDM_RC_OK  => various errors
 //
-U8 bdm_targetReset( U8 mode ) {
-U8 rc = BDM_RC_OK;
+uint8_t bdm_targetReset( uint8_t mode ) {
+uint8_t rc = BDM_RC_OK;
 
    // Power-cycle-reset - applies to all chips
    if (bdm_option.cycleVddOnReset)
@@ -707,8 +708,8 @@ U8 rc = BDM_RC_OK;
 //!    == \ref BDM_RC_RESET_TIMEOUT_RISE   => Reset failed to rise  \n
 //!    == \ref BDM_RC_BKGD_TIMEOUT    => BKGD failed to rise
 //!
-U8 bdmHCS_powerOnReset(void) {
-U8 rc = BDM_RC_OK;
+uint8_t bdmHCS_powerOnReset(void) {
+uint8_t rc = BDM_RC_OK;
 
 #if (HW_CAPABILITY&CAP_VDDSENSE)
 
@@ -769,7 +770,7 @@ U8 rc = BDM_RC_OK;
 //!    == \ref BDM_RC_OK     => Success \n
 //!    != \ref BDM_RC_OK     => various errors
 //
-//U8  bdm_setInterfaceLevel(U8 level) {
+//uint8_t  bdm_setInterfaceLevel(uint8_t level) {
 //
 //   switch (level&SI_BKGD) {
 //      case SI_BKGD_LOW :  // BKGD pin=L
@@ -814,8 +815,8 @@ U8 rc = BDM_RC_OK;
 //!   \ref BDM_RC_OK               => Success \n
 //!   \ref BDM_RC_BKGD_TIMEOUT     => BKGD pin stuck low or no response
 //!
-U8 bdm_syncMeasure(void) {
-U16 time;
+uint8_t bdm_syncMeasure(void) {
+uint16_t time;
 
    cable_status.speed = SPEED_NO_INFO;  // Indicate that we do not have a clue about target speed at the moment...
 
@@ -888,7 +889,7 @@ U16 time;
 //! Enables ACKN and prepares the timer for easy ACKN timeout use
 //!
 void bdm_acknInit(void) {
-U8 rc;
+uint8_t rc;
 
    // Set up Input capture & timeout timers
    BKGD_TPMxCnSC = BKGD_TPMxCnSC_RISING_EDGE_MASK;  // TPMx.CHb : Input capture, falling edge on pin
@@ -951,7 +952,7 @@ void bdm_wait150() {
 //!   \ref BDM_RC_OK           => Success \n
 //!   \ref BDM_RC_ACK_TIMEOUT  => No ACKN detected [timeout]
 //!
-U8 doACKN_WAIT64(void) {
+uint8_t doACKN_WAIT64(void) {
    if (cable_status.ackn==ACKN) {
       TIMEOUT_TPMxCnVALUE  = TPMCNT+TIMER_MICROSECOND(ACKN_TIMEOUTus);  // Set ACKN Timeout value
       TIMEOUT_TPMxCnSC_CHF = 0;                                         // TPMx.CHb : Clear timeout flag
@@ -978,7 +979,7 @@ U8 doACKN_WAIT64(void) {
 //!   \ref BDM_RC_OK           => Success \n
 //!   \ref BDM_RC_ACK_TIMEOUT  => No ACKN detected [timeout]
 //!
-U8 doACKN_WAIT150(void) {
+uint8_t doACKN_WAIT150(void) {
    if (cable_status.ackn==ACKN) {
       TIMEOUT_TPMxCnVALUE  = TPMCNT+TIMER_MICROSECOND(ACKN_TIMEOUTus);  // Set ACKN Timeout value
       TIMEOUT_TPMxCnSC_CHF = 0;                                         // TPMx.CHb : Clear timeout flag
@@ -1013,7 +1014,7 @@ U8 doACKN_WAIT150(void) {
 //!   \ref BDM_RC_ACK_TIMEOUT  => No ACKN detected [timeout]
 //!
 //! @note  Modified to extend timeout for very slow bus clocks e.g. 32kHz
-U8 doACKN_WAIT64(void) {
+uint8_t doACKN_WAIT64(void) {
    if (cable_status.ackn==ACKN) {
       // Wait for pin capture or timeout
 	  enableInterrupts();
@@ -1037,7 +1038,7 @@ U8 doACKN_WAIT64(void) {
 //!   \ref BDM_RC_OK           => Success \n
 //!   \ref BDM_RC_ACK_TIMEOUT  => No ACKN detected [timeout]
 //!
-U8 doACKN_WAIT150(void) {
+uint8_t doACKN_WAIT150(void) {
    if (cable_status.ackn==ACKN) {
       // Wait for pin capture or timeout
       enableInterrupts();
@@ -1054,7 +1055,7 @@ U8 doACKN_WAIT150(void) {
 
 //!  Halts the processor - places in background mode
 //!
-U8 bdm_halt(void) {
+uint8_t bdm_halt(void) {
 
    if ((cable_status.target_type==T_CFV1)
 #if TARGET_CAPABILITY & CAP_S12Z
@@ -1068,8 +1069,8 @@ U8 bdm_halt(void) {
 
 //! Commences full-speed execution on the target
 //!
-U8 bdm_go(void) {
-U32 csr;
+uint8_t bdm_go(void) {
+uint32_t csr;
 
    if (cable_status.target_type == T_CFV1) {
       // Clear Single-step mode
@@ -1089,8 +1090,8 @@ U32 csr;
 
 //!  Executes a single instruction on the target
 //!
-U8 bdm_step(void) {
-U32 csr;
+uint8_t bdm_step(void) {
+uint32_t csr;
 
    if (cable_status.target_type == T_CFV1) {
       // Set Single-step mode
@@ -1224,14 +1225,14 @@ void bdm_txPrepare(void) {
 #pragma MESSAGE DISABLE C5703 // Disable warnings about unused parameter
 //! Dummy BDM Tx routine
 //!
-void bdm_txEmpty(U8 data) {
+void bdm_txEmpty(uint8_t data) {
    // If BDM command is executed with this routine set command failed...
 //   commandBuffer[0] = BDM_RC_NO_CONNECTION;
 }
 
 //=========================================================================
 // 3,4,14/15
-void bdm_tx1(U8 data) {
+void bdm_tx1(uint8_t data) {
    asm {
 //      BDM_ENABLE_ASM                          // Enable BKGD (high)
       SEC                                     // Set sentinel for 1st ROLA
@@ -1263,7 +1264,7 @@ void bdm_tx1(U8 data) {
 
 //=========================================================================
 // 5,6,14/15
-void bdm_tx2(U8 data) {
+void bdm_tx2(uint8_t data) {
    asm {
 //      BDM_ENABLE_ASM                          // Enable BKGD (high)
       SEC                                     // Set sentinel for 1st ROLA
@@ -1299,7 +1300,7 @@ void bdm_tx2(U8 data) {
 
 //=========================================================================
 // 7,8,14/15
-void bdm_tx3(U8 data) {
+void bdm_tx3(uint8_t data) {
    asm {
 //    BDM_ENABLE_ASM                          // Enable BKGD (high)
       SEC                                     // Set sentinel for 1st ROLA
@@ -1334,7 +1335,7 @@ void bdm_tx3(U8 data) {
 // >=10,>=11,>=24/25
 //! Generic BDM Tx routine - used for a range of speeds
 //!
-void bdm_txGeneric(U8 data) {
+void bdm_txGeneric(uint8_t data) {
    asm {
 //   BDM_ENABLE_ASM       // Enable BKGD (high)
      SEC                  // Set sentinel for 1st ROLA
@@ -1374,7 +1375,7 @@ void bdm_txGeneric(U8 data) {
 // >=10,>=12,>=18
 //! Generic BDM Tx routine - used for a range of speeds
 //!
-void bdm_txGeneric(U8 data) {
+void bdm_txGeneric(uint8_t data) {
    asm {
       BDM_ENABLE_ASM                // Enable BKGD (high)
       MOV  #8,bitCount              // # of bits to send
@@ -1463,7 +1464,7 @@ decode:
 //! routine is selected.  This is just to make things safe and to make sure
 //! there is a place to jump to in such a case
 //!
-U8 bdm_rxEmpty( void ) {
+uint8_t bdm_rxEmpty( void ) {
    // if BDM command is executed with this routine set command failed...
 //   commandBuffer[0] = BDM_RC_NO_CONNECTION;
    return(0);
@@ -1475,7 +1476,7 @@ U8 bdm_rxEmpty( void ) {
 //=======================================================================
 // 3,5,15
 #pragma MESSAGE DISABLE C20001 // Disable warnings about different stack ptr
-U8 bdm_rx1(void) {
+uint8_t bdm_rx1(void) {
 #pragma NO_RETURN
    asm {
       SEI
@@ -1518,7 +1519,7 @@ U8 bdm_rx1(void) {
 
 //=======================================================================
 // 3,5,8
-U8 bdm_rx1(void) {
+uint8_t bdm_rx1(void) {
 #pragma NO_RETURN
    asm {
       SEI
@@ -1605,7 +1606,7 @@ U8 bdm_rx1(void) {
 //=======================================================================
 // 3,6,15
 #pragma MESSAGE DISABLE C20001 // Disable warnings about different stack ptr
-U8 bdm_rx2(void) {
+uint8_t bdm_rx2(void) {
 #pragma NO_RETURN
    asm {
       SEI
@@ -1648,7 +1649,7 @@ U8 bdm_rx2(void) {
 
 //=======================================================================
 // 3,6,8
-U8 bdm_rx2(void) {
+uint8_t bdm_rx2(void) {
 #pragma NO_RETURN
    asm {
       SEI
@@ -1741,7 +1742,7 @@ U8 bdm_rx2(void) {
 
 //=======================================================================
 // 4,6,10
-U8 bdm_rx3(void) {
+uint8_t bdm_rx3(void) {
    asm {
       SEI
       LDA   #0x01                       // Value used as sentinel
@@ -1763,7 +1764,7 @@ U8 bdm_rx3(void) {
 
 //=======================================================================
 // 5,6,10
-U8 bdm_rx4(void) {
+uint8_t bdm_rx4(void) {
    asm {
       SEI
       LDA   #0x01                        // Value used as sentinel
@@ -1786,7 +1787,7 @@ U8 bdm_rx4(void) {
 
 //=======================================================================
 // 5,8,10
-U8 bdm_rx5(void) {
+uint8_t bdm_rx5(void) {
    asm {
       SEI
       LDA   #0x01                        // Value used as sentinel
@@ -1811,7 +1812,7 @@ U8 bdm_rx5(void) {
 
 //=======================================================================
 // 6,9,10
-U8 bdm_rx6(void) {
+uint8_t bdm_rx6(void) {
    asm {
       SEI
       LDA   #0x01                        // Value used as sentinel
@@ -1838,7 +1839,7 @@ U8 bdm_rx6(void) {
 // >8,>10,>20
 //! Generic BDM Rx routine - used for a range of speeds
 //!
-U8 bdm_rxGeneric(void) {
+uint8_t bdm_rxGeneric(void) {
    asm {
       SEI
       LDA   #0x01                        // Value used as sentinel
@@ -1873,12 +1874,12 @@ U8 bdm_rxGeneric(void) {
 //
 //! Structure describing Tx configuration
 typedef struct {
-   U16   syncThreshold;       //!< Threshold to use this function
-//   void  (*txFunc)(U8 data);  //!< Ptr to selected function
-   U8    time1,time2,time3;   //!< Timing Parameters for function use
+   uint16_t   syncThreshold;       //!< Threshold to use this function
+//   void  (*txFunc)(uint8_t data);  //!< Ptr to selected function
+   uint8_t    time1,time2,time3;   //!< Timing Parameters for function use
 } TxConfiguration;
 
-typedef void (*TxConfigurationPtrs)(U8 data);     //!< Ptr to selected function
+typedef void (*TxConfigurationPtrs)(uint8_t data);     //!< Ptr to selected function
 
 const TxConfigurationPtrs txPtrs[] = {
 	bdm_txEmpty,
@@ -1919,12 +1920,12 @@ const TxConfiguration txConfiguration[] =
 
 //! Structure describing Rx configuration
 typedef struct {
-   U16   syncThreshold;       //!< Threshold to use this function
-//   U8    txFunc;              //!< Ptr to selected function
-   U8    time1,time2,time3;   //!< Timing Parameters for function use
+   uint16_t   syncThreshold;       //!< Threshold to use this function
+//   uint8_t    txFunc;              //!< Ptr to selected function
+   uint8_t    time1,time2,time3;   //!< Timing Parameters for function use
 } RxConfiguration;
 
-typedef U8    (*RxConfigurationPtrs)(void);     //!< Ptr to selected function
+typedef uint8_t    (*RxConfigurationPtrs)(void);     //!< Ptr to selected function
 
 const RxConfigurationPtrs rxPtrs[] = {
 	bdm_rxEmpty,
@@ -1983,10 +1984,10 @@ const RxConfiguration rxConfiguration[] =
 //!   \ref BDM_RC_NO_TX_ROUTINE  => No suitable Tx routine found \n
 //!   \ref BDM_RC_NO_RX_ROUTINE  => No suitable Rx routine found \n
 //!
-U8 bdm_RxTxSelect(void) {
+uint8_t bdm_RxTxSelect(void) {
    const TxConfiguration  *txConfigPtr;
    const RxConfiguration  *rxConfigPtr;
-   U8 sub;
+   uint8_t sub;
 
    bdm_clearConnection();
    
@@ -2058,8 +2059,8 @@ U8 bdm_RxTxSelect(void) {
       return(BDM_RC_NO_RX_ROUTINE);
    }
    // Calculate number of iterations for manual delay (each iteration is 8 cycles)
-   cable_status.wait64_cnt  = cable_status.sync_length/(U16)(((8*60*128UL)/(BUS_FREQ/1000000)/64));
-   cable_status.wait150_cnt = cable_status.sync_length/(U16)(((8*60*128UL)/(BUS_FREQ/1000000)/150));
+   cable_status.wait64_cnt  = cable_status.sync_length/(uint16_t)(((8*60*128UL)/(BUS_FREQ/1000000)/64));
+   cable_status.wait150_cnt = cable_status.sync_length/(uint16_t)(((8*60*128UL)/(BUS_FREQ/1000000)/150));
 
 //   // Correct for overhead in calling function etc. (JSR+RTS+JSR) = (5+4+5) ~ 2 iterations
 //   if (cable_status.wait64_cnt<=2) {
@@ -2078,7 +2079,7 @@ U8 bdm_RxTxSelect(void) {
 }
 
 // PARTID read from HCS12 - used to confirm target connection speed and avoid needless probing
-static U16 partid = 0xFA50;
+static uint16_t partid = 0xFA50;
 
 //! Confirm communication at given Sync value.
 //! Only works on HC12 (and maybe only 1 of 'em!)
@@ -2088,8 +2089,8 @@ static U16 partid = 0xFA50;
 //!   != \ref BDM_RC_OK  => Various errors
 //!
 #pragma MESSAGE DISABLE C4001 // Disable warnings about Condition always true
-U8 bdmHC12_confirmSpeed(U16 syncValue) {
-U8 rc;
+uint8_t bdmHC12_confirmSpeed(uint16_t syncValue) {
+uint8_t rc;
 
    cable_status.sync_length = syncValue;
 
@@ -2099,7 +2100,7 @@ U8 rc;
    }
    rc = BDM_RC_BDM_EN_FAILED; // Assume probing failed
    {
-      U16 probe;
+      uint16_t probe;
       
       // Check if we can read a previous PARTID, if so assume still connected 
       // and avoid further target probing
@@ -2110,7 +2111,7 @@ U8 rc;
       }
    }
    do {
-      U16 probe;
+      uint16_t probe;
       // This method works for secured or unsecured devices
       // in special mode that have a common Flash type.
       // BUT - it may upset flash programming if done at wrong time
@@ -2139,8 +2140,8 @@ U8 rc;
    } while (0);
 
    do {
-      U8 probe;
-      U8 originalValue;
+      uint8_t probe;
+      uint8_t originalValue;
       // This method works for unsecured devices
       // in special or non-special modes
       // BUT - it may upset CCR in some (unlikely?) cases
@@ -2216,8 +2217,8 @@ tidyUp:
 //! common case of alternating between two frequencies [reset & clock configured] with a minimum \n
 //! number of probes.
 //!
-static U8 bdmHC12_alt_speed_detect(void) {
-static const U16 typicalSpeeds[] = { // Table of 'nice' BDM speeds to try
+static uint8_t bdmHC12_alt_speed_detect(void) {
+static const uint16_t typicalSpeeds[] = { // Table of 'nice' BDM speeds to try
    SYNC_MULTIPLE( 4000000UL),  //  4 MHz
    SYNC_MULTIPLE( 8000000UL),  //  8 MHz
    SYNC_MULTIPLE(16000000UL),  // 16 MHz
@@ -2232,13 +2233,13 @@ static const U16 typicalSpeeds[] = { // Table of 'nice' BDM speeds to try
    0
    };
 #pragma DATA_SEG __SHORT_SEG Z_PAGE
-static U16 lastGuess1 = SYNC_MULTIPLE(8000000UL);  // Used to remember last 2 guesses
-static U16 lastGuess2 = SYNC_MULTIPLE(16000000UL); // Common situation to change between 2 speeds (reset,running)
+static uint16_t lastGuess1 = SYNC_MULTIPLE(8000000UL);  // Used to remember last 2 guesses
+static uint16_t lastGuess2 = SYNC_MULTIPLE(16000000UL); // Common situation to change between 2 speeds (reset,running)
 #pragma DATA_SEG DEFAULT
 const TxConfiguration  *txConfigPtr;
 int sub;
-U16 currentGuess;
-U8  rc;
+uint16_t currentGuess;
+uint8_t  rc;
 
    // Try last used speed #1
    if (bdmHC12_confirmSpeed(lastGuess1) == BDM_RC_OK) {
@@ -2282,7 +2283,7 @@ U8  rc;
 }
 
 #if (DEBUG&DEBUG_COMMANDS) // Debug commands enabled
-U8 bdm_testTx(U8 speedIndex) {
+uint8_t bdm_testTx(uint8_t speedIndex) {
 	const TxConfiguration  *txConfigPtr;
 
 	// Validate index
@@ -2381,7 +2382,7 @@ void bdm_checkTiming(void) {
 
 #pragma NO_RETURN
 #pragma NO_ENTRY
-void bdmTx16(U16 data) {
+void bdmTx16(uint16_t data) {
    asm {
       ; HX = 16-bit data
       pshx 			// lsb
@@ -2398,7 +2399,7 @@ void bdmTx16(U16 data) {
 
 #pragma NO_RETURN
 #pragma NO_ENTRY
-void bdmRx16(U16 *data) {
+void bdmRx16(uint16_t *data) {
    asm {
       ; HX = data ptr
       bsr   bdmRx8			// 1st byte
@@ -2417,7 +2418,7 @@ void bdmRx16(U16 *data) {
 
 #pragma NO_RETURN
 #pragma NO_ENTRY
-void bdmRx32(U32 *data) {
+void bdmRx32(uint32_t *data) {
    asm {
       ; HX = data ptr
       bsr   bdmRx16
@@ -2440,7 +2441,7 @@ void bdmRx32(U32 *data) {
 //!
 //! @note Interrupts are left disabled
 //!
-void BDM_CMD_0_0_T(U8 cmd) {
+void BDM_CMD_0_0_T(uint8_t cmd) {
    bdm_txPrepare();
    bdmTx(cmd);
 //   enableInterrupts();
@@ -2453,7 +2454,7 @@ void BDM_CMD_0_0_T(U8 cmd) {
 //!
 //! @note Interrupts are left disabled
 //!
-void BDM_CMD_1B_0_T(U8 cmd, U8 parameter) {
+void BDM_CMD_1B_0_T(uint8_t cmd, uint8_t parameter) {
    BDM_CMD_0_0_T(cmd);
    bdmTx(parameter);
 //   enableInterrupts();
@@ -2467,7 +2468,7 @@ void BDM_CMD_1B_0_T(U8 cmd, U8 parameter) {
 //!
 //! @note Interrupts are left disabled
 //!
-void BDM_CMD_1W1B_0_T(U8 cmd, U16 parameter1, U8 parameter2) {
+void BDM_CMD_1W1B_0_T(uint8_t cmd, uint16_t parameter1, uint8_t parameter2) {
    bdm_txPrepare();
    bdmTx(cmd);
    bdmTx16(parameter1);
@@ -2485,7 +2486,7 @@ void BDM_CMD_1W1B_0_T(U8 cmd, U16 parameter1, U8 parameter2) {
 //!
 //! @note No ACK is expected
 //!
-void BDM_CMD_0_0_NOACK(U8 cmd) {
+void BDM_CMD_0_0_NOACK(uint8_t cmd) {
    bdm_txPrepare();
    bdmTx(cmd);
    BDM_3STATE();
@@ -2499,7 +2500,7 @@ void BDM_CMD_0_0_NOACK(U8 cmd) {
 //!
 //! @note No ACK is expected
 //!
-void BDM_CMD_0_1B_NOACK(U8 cmd, U8 *result) {
+void BDM_CMD_0_1B_NOACK(uint8_t cmd, uint8_t *result) {
    bdm_txPrepare();
    bdmTx(cmd);
    *result = bdm_rx();
@@ -2513,7 +2514,7 @@ void BDM_CMD_0_1B_NOACK(U8 cmd, U8 *result) {
 //!
 //! @note No ACK is expected
 //!
-void BDM_CMD_1B_0_NOACK(U8 cmd, U8 parameter) {
+void BDM_CMD_1B_0_NOACK(uint8_t cmd, uint8_t parameter) {
    bdm_txPrepare();
    bdmTx(cmd);
    bdmTx(parameter);
@@ -2528,7 +2529,7 @@ void BDM_CMD_1B_0_NOACK(U8 cmd, U8 parameter) {
 //!
 //! @note No ACK is expected
 //!
-void BDM_CMD_0_1W_NOACK(U8 cmd, U16 *result) {
+void BDM_CMD_0_1W_NOACK(uint8_t cmd, uint16_t *result) {
    bdm_txPrepare();
    bdmTx(cmd);
    bdmRx16(result);
@@ -2542,7 +2543,7 @@ void BDM_CMD_0_1W_NOACK(U8 cmd, U16 *result) {
 //!
 //! @note No ACK is expected
 //!
-void BDM_CMD_1W_0_NOACK(U8 cmd, U16 parameter) {
+void BDM_CMD_1W_0_NOACK(uint8_t cmd, uint16_t parameter) {
    bdm_txPrepare();
    bdmTx(cmd);
    bdmTx16(parameter);
@@ -2558,7 +2559,7 @@ void BDM_CMD_1W_0_NOACK(U8 cmd, U16 parameter) {
 //!
 //! @note no ACK is expected
 //!
-void BDM_CMD_1W_1W_NOACK(U8 cmd, U16 parameter, U16 *result) {
+void BDM_CMD_1W_1W_NOACK(uint8_t cmd, uint16_t parameter, uint16_t *result) {
    bdm_txPrepare();
    bdmTx(cmd);
    bdmTx16(parameter);
@@ -2575,7 +2576,7 @@ void BDM_CMD_1W_1W_NOACK(U8 cmd, U16 parameter, U16 *result) {
 //!
 //! @note no ACK is expected 
 //!
-void BDM_CMD_1W1B_1B_NOACK(U8 cmd, U16 parameter, U8 value, U8 *status) {
+void BDM_CMD_1W1B_1B_NOACK(uint8_t cmd, uint16_t parameter, uint8_t value, uint8_t *status) {
    bdm_txPrepare();
    bdmTx(cmd);
    bdmTx16(parameter);
@@ -2594,8 +2595,8 @@ void BDM_CMD_1W1B_1B_NOACK(U8 cmd, U16 parameter, U8 value, U8 *status) {
 //!
 //! @note ACK is expected
 //!
-U8 BDM_CMD_0_0(U8 cmd) {
-U8 rc;
+uint8_t BDM_CMD_0_0(uint8_t cmd) {
+uint8_t rc;
     BDM_CMD_0_0_T(cmd);
 //    bdm_txPrepare();
 //    bdmTx(cmd);
@@ -2611,8 +2612,8 @@ U8 rc;
 //!
 //! @note ACK is expected
 //!
-U8 BDM_CMD_0_1B(U8 cmd, U8 *result) {
-U8 rc;
+uint8_t BDM_CMD_0_1B(uint8_t cmd, uint8_t *result) {
+uint8_t rc;
    bdm_txPrepare();
    bdmTx(cmd);
    rc = doACKN_WAIT64();
@@ -2628,8 +2629,8 @@ U8 rc;
 //!
 //! @note ACK is expected
 //!
-U8 BDM_CMD_0_1W(U8 cmd, U16 *result) {
-U8 rc;
+uint8_t BDM_CMD_0_1W(uint8_t cmd, uint16_t *result) {
+uint8_t rc;
    bdm_txPrepare();
    bdmTx(cmd);
    rc = doACKN_WAIT64();
@@ -2645,8 +2646,8 @@ U8 rc;
 //!
 //! @note ACK is expected
 //!
-U8 BDM_CMD_0_1L(U8 cmd, U32 *result) {
-U8 rc;
+uint8_t BDM_CMD_0_1L(uint8_t cmd, uint32_t *result) {
+uint8_t rc;
 //   bdm_txPrepare();
 //   bdmTx(cmd);
    BDM_CMD_0_0_T(cmd);
@@ -2662,8 +2663,8 @@ U8 rc;
 //!
 //! @note ACK is expected
 //!
-U8 BDM_CMD_1B_0(U8 cmd, U8 parameter) {
-U8 rc;
+uint8_t BDM_CMD_1B_0(uint8_t cmd, uint8_t parameter) {
+uint8_t rc;
    bdm_txPrepare();
    bdmTx(cmd);
    bdmTx(parameter);
@@ -2679,8 +2680,8 @@ U8 rc;
 //!
 //! @note ACK is expected
 //!
-U8 BDM_CMD_1W_0(U8 cmd, U16 parameter) {
-U8 rc;
+uint8_t BDM_CMD_1W_0(uint8_t cmd, uint16_t parameter) {
+uint8_t rc;
    bdm_txPrepare();
    bdmTx(cmd);
    bdmTx16(parameter);
@@ -2696,13 +2697,13 @@ U8 rc;
 //!
 //! @note ACK is expected
 //!
-U8 BDM_CMD_1L_0(U8 cmd, U32 parameter) {
-U8 rc;
+uint8_t BDM_CMD_1L_0(uint8_t cmd, uint32_t parameter) {
+uint8_t rc;
 //   bdm_txPrepare();
 //   bdmTx(cmd);
    BDM_CMD_0_0_T(cmd);
    bdmTx16(parameter>>16);
-   bdmTx16((U16)parameter);
+   bdmTx16((uint16_t)parameter);
    rc = doACKN_WAIT64();
    enableInterrupts();
    return rc;
@@ -2716,8 +2717,8 @@ U8 rc;
 //!
 //! @note ACK is expected
 //!
-U8 BDM_CMD_1W_1WB(U8 cmd, U16 parameter, U8 *result) {
-U8 rc;
+uint8_t BDM_CMD_1W_1WB(uint8_t cmd, uint16_t parameter, uint8_t *result) {
+uint8_t rc;
 //   bdm_txPrepare();
 //   bdmTx(cmd);
    BDM_CMD_0_0_T(cmd);
@@ -2742,8 +2743,8 @@ U8 rc;
 //!
 //! @note ACK is expected
 //!
-U8 BDM_CMD_2W_0(U8 cmd, U16 parameter1, U16 parameter2) {
-U8 rc;
+uint8_t BDM_CMD_2W_0(uint8_t cmd, uint16_t parameter1, uint16_t parameter2) {
+uint8_t rc;
 //   bdm_txPrepare();
 //   bdmTx(cmd);
    BDM_CMD_0_0_T(cmd);
@@ -2762,8 +2763,8 @@ U8 rc;
 //!
 //! @note ACK is expected
 //!
-U8 BDM_CMD_1W_1W(U8 cmd, U16 parameter, U16 *result) {
-U8 rc;
+uint8_t BDM_CMD_1W_1W(uint8_t cmd, uint16_t parameter, uint16_t *result) {
+uint8_t rc;
    bdm_txPrepare();
    bdmTx(cmd);
    bdmTx16(parameter);
@@ -2782,8 +2783,8 @@ U8 rc;
 //!
 //! @note ACK is expected
 //!
-U8 BDM_CMD_2WB_0(U8 cmd, U16 parameter1, U8 parameter2) {
-U8 rc;
+uint8_t BDM_CMD_2WB_0(uint8_t cmd, uint16_t parameter1, uint8_t parameter2) {
+uint8_t rc;
 //   bdm_txPrepare();
 //   bdmTx(cmd);
    BDM_CMD_0_0_T(cmd);
@@ -2803,8 +2804,8 @@ U8 rc;
 //!
 //! @note ACK is expected
 //!
-U8 BDM_CMD_1W_1B(U8 cmd, U16 parameter, U8 *result) {
-U8 rc;
+uint8_t BDM_CMD_1W_1B(uint8_t cmd, uint16_t parameter, uint8_t *result) {
+uint8_t rc;
    bdm_txPrepare();
    bdmTx(cmd);
    bdmTx16(parameter);
@@ -2822,8 +2823,8 @@ U8 rc;
 //!
 //! @note ACK is expected
 //!
-U8 BDM_CMD_1W1B_0(U8 cmd, U16 parameter1, U8 parameter2) {
-U8 rc;
+uint8_t BDM_CMD_1W1B_0(uint8_t cmd, uint16_t parameter1, uint8_t parameter2) {
+uint8_t rc;
    bdm_txPrepare();
    bdmTx(cmd);
    bdmTx16(parameter1);
@@ -2841,12 +2842,12 @@ U8 rc;
 //!
 //! @note ACK is expected
 //!
-U8 BDM_CMD_1A1B_0(U8 cmd, U32 addr, U8 value) {
-U8 rc;
+uint8_t BDM_CMD_1A1B_0(uint8_t cmd, uint32_t addr, uint8_t value) {
+uint8_t rc;
    bdm_txPrepare();
    bdmTx(cmd);
-   bdmTx((U8)(addr>>16));
-   bdmTx16((U16)addr);
+   bdmTx((uint8_t)(addr>>16));
+   bdmTx16((uint16_t)addr);
    bdmTx(value);
    rc = doACKN_WAIT150();
    enableInterrupts();
@@ -2861,12 +2862,12 @@ U8 rc;
 //!
 //! @note ACK is expected
 //!
-U8 BDM_CMD_1A1W_0(U8 cmd, U32 addr, U16 value) {
-U8 rc;
+uint8_t BDM_CMD_1A1W_0(uint8_t cmd, uint32_t addr, uint16_t value) {
+uint8_t rc;
    bdm_txPrepare();
    bdmTx(cmd);
-   bdmTx((U8)(addr>>16));
-   bdmTx16((U16)addr);
+   bdmTx((uint8_t)(addr>>16));
+   bdmTx16((uint16_t)addr);
    bdmTx16(value);
    rc = doACKN_WAIT150();
    enableInterrupts();
@@ -2881,14 +2882,14 @@ U8 rc;
 //!
 //! @note ACK is expected
 //!
-U8 BDM_CMD_1A1L_0(U8 cmd, U32 addr, U32 *value) {
-U8 rc;
+uint8_t BDM_CMD_1A1L_0(uint8_t cmd, uint32_t addr, uint32_t *value) {
+uint8_t rc;
    bdm_txPrepare();
    bdmTx(cmd);
-   bdmTx((U8)(addr>>16));
-   bdmTx16((U16)addr);
-   bdmTx16((U16)(*value>>16));
-   bdmTx16((U16)(*value));
+   bdmTx((uint8_t)(addr>>16));
+   bdmTx16((uint16_t)addr);
+   bdmTx16((uint16_t)(*value>>16));
+   bdmTx16((uint16_t)(*value));
    rc = doACKN_WAIT150();
    enableInterrupts();
    return rc;
@@ -2902,12 +2903,12 @@ U8 rc;
 //!
 //! @note ACK is expected
 //!
-U8 BDM_CMD_1A_1B(U8 cmd, U32 addr, U8 *result) {
-U8 rc;
+uint8_t BDM_CMD_1A_1B(uint8_t cmd, uint32_t addr, uint8_t *result) {
+uint8_t rc;
    bdm_txPrepare();
    bdmTx(cmd);
-   bdmTx((U8)(addr>>16)&0xFF);
-   bdmTx16((U16)addr);
+   bdmTx((uint8_t)(addr>>16)&0xFF);
+   bdmTx16((uint16_t)addr);
    rc = doACKN_WAIT150();
    *result = bdm_rx();
    enableInterrupts();
@@ -2920,7 +2921,7 @@ U8 rc;
 ////!
 ////! @return error code 
 ////!
-//U8 convertColdfireStatusByte(U8 xcsr_byte) {
+//uint8_t convertColdfireStatusByte(uint8_t xcsr_byte) {
 //	xcsr_byte &= CFV1_XCSR_CSTAT;
 //	if ((xcsr_byte & CFV1_XCSR_CSTAT_INVALID)) {
 //		return BDM_RC_CF_DATA_INVALID;
@@ -2945,12 +2946,12 @@ U8 rc;
 ////!
 ////! @return error code
 ////!
-//U8 BDM_CMD_1A_CS_1B(U8 cmd, U32 addr, U8 *result) {
-//U8 status;
+//uint8_t BDM_CMD_1A_CS_1B(uint8_t cmd, uint32_t addr, uint8_t *result) {
+//uint8_t status;
 //   bdm_txPrepare();
 //   bdmTx(cmd);
-//   bdmTx((U8)(addr>>16)&0xFF);
-//   bdmTx16((U16)addr);
+//   bdmTx((uint8_t)(addr>>16)&0xFF);
+//   bdmTx16((uint16_t)addr);
 //   status = bdm_rx();
 //   *result = bdm_rx();
 //   enableInterrupts();
@@ -2965,12 +2966,12 @@ U8 rc;
 //!
 //! @note ACK is expected
 //!
-U8 BDM_CMD_1A_1W(U8 cmd, U32 addr, U16 *result) {
-U8 rc;
+uint8_t BDM_CMD_1A_1W(uint8_t cmd, uint32_t addr, uint16_t *result) {
+uint8_t rc;
    bdm_txPrepare();
    bdmTx(cmd);
-   bdmTx((U8)(addr>>16)&0xFF);
-   bdmTx16((U16)addr);
+   bdmTx((uint8_t)(addr>>16)&0xFF);
+   bdmTx16((uint16_t)addr);
    rc = doACKN_WAIT150();
    bdmRx16(result);
    enableInterrupts();
@@ -2985,12 +2986,12 @@ U8 rc;
 //!
 //! @note ACK is expected
 //!
-U8 BDM_CMD_1A_1L(U8 cmd, U32 addr, U32 *result) {
-U8 rc;
+uint8_t BDM_CMD_1A_1L(uint8_t cmd, uint32_t addr, uint32_t *result) {
+uint8_t rc;
    bdm_txPrepare();
    bdmTx(cmd);
-   bdmTx((U8)(addr>>16)&0xFF);
-   bdmTx16((U16)addr);
+   bdmTx((uint8_t)(addr>>16)&0xFF);
+   bdmTx16((uint16_t)addr);
    rc = doACKN_WAIT150();
    bdmRx32(result);
    enableInterrupts();

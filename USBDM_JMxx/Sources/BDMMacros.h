@@ -14,8 +14,8 @@
 #pragma DATA_SEG __SHORT_SEG Z_PAGE
 #endif // __HC08__
 
-extern U8   (*bdm_rx_ptr)(void); //! Pointers to BDM Rx routines
-extern void (*bdm_tx_ptr)(U8);   //! Pointers to BDM Tx routines
+extern uint8_t   (*bdm_rx_ptr)(void); //! Pointers to BDM Rx routines
+extern void (*bdm_tx_ptr)(uint8_t);   //! Pointers to BDM Tx routines
 #pragma DATA_SEG DEFAULT
 
 //! Wrapper for current BDM rx routine
@@ -28,11 +28,11 @@ extern void (*bdm_tx_ptr)(U8);   //! Pointers to BDM Tx routines
 //! Points to the bdm_Tx routine for the current communication speed.
 #define bdmTx(data)  (*bdm_tx_ptr)(data)
 
-extern void bdmTx16(U16 data); // Tx 16-bit value
+extern void bdmTx16(uint16_t data); // Tx 16-bit value
 
 // This is a very large size improvement for no performance cost!
-extern U8   doACKN_WAIT64(void);   //! Wait for 64 bit times or ACKN
-extern U8   doACKN_WAIT150(void);  //! Wait for 150 bit times or ACKN
+extern uint8_t   doACKN_WAIT64(void);   //! Wait for 64 bit times or ACKN
+extern uint8_t   doACKN_WAIT150(void);  //! Wait for 150 bit times or ACKN
 extern void doWAIT16(void);        //! Wait fot 16 bit times
 
 // Hardware commands
@@ -189,101 +189,101 @@ extern void doWAIT16(void);        //! Wait fot 16 bit times
 //
 
 //  Write command byte, truncated sequence
-extern void BDM_CMD_0_0_T(U8 cmd);
+extern void BDM_CMD_0_0_T(uint8_t cmd);
 
 //  Special for Software Reset HCS08, truncated sequence
-extern void BDM_CMD_1W1B_0_T(U8 cmd, U16 parameter1, U8 parameter2);
+extern void BDM_CMD_1W1B_0_T(uint8_t cmd, uint16_t parameter1, uint8_t parameter2);
 
 //  Special truncated sequence
-extern void BDM_CMD_1B_0_T(U8 cmd, U8 parameter);
+extern void BDM_CMD_1B_0_T(uint8_t cmd, uint8_t parameter);
 
 //============================================================
 // The following commands DO NOT expect an ACK & do not delay
 //
 
 // Write cmd without ACK (HCS08/RS08/CFV1)
-extern void BDM_CMD_0_0_NOACK(U8 cmd);
+extern void BDM_CMD_0_0_NOACK(uint8_t cmd);
 
 // Write cmd & read byte without ACK (HCS08)
-extern void BDM_CMD_0_1B_NOACK(U8 cmd, U8 *result);
+extern void BDM_CMD_0_1B_NOACK(uint8_t cmd, uint8_t *result);
 
 // Write cmd & byte without ACK (HCS08)
-extern void BDM_CMD_1B_0_NOACK(U8 cmd, U8 parameter);
+extern void BDM_CMD_1B_0_NOACK(uint8_t cmd, uint8_t parameter);
 
 // Write cmd & read word without ACK
-extern void BDM_CMD_0_1W_NOACK(U8 cmd, U16 *parameter);
+extern void BDM_CMD_0_1W_NOACK(uint8_t cmd, uint16_t *parameter);
 
 // Write cmd & word without ACK
-extern void BDM_CMD_1W_0_NOACK(U8 cmd, U16 parameter);
+extern void BDM_CMD_1W_0_NOACK(uint8_t cmd, uint16_t parameter);
 
 //! Write cmd, word, byte & read data(status) without ACK
-extern void BDM_CMD_1W1B_1B_NOACK(U8 cmd, U16 parameter, U8 value, U8 *status);
+extern void BDM_CMD_1W1B_1B_NOACK(uint8_t cmd, uint16_t parameter, uint8_t value, uint8_t *status);
 
 //! Write cmd, word & read word (status/data) without ACK
-extern void BDM_CMD_1W_1W_NOACK(U8 cmd, U16 parameter, U16 *result);
+extern void BDM_CMD_1W_1W_NOACK(uint8_t cmd, uint16_t parameter, uint16_t *result);
 
 //====================================================================
 // The following DO expect an ACK or wait at end of the command phase
 
 // Write command - No parameter
-extern U8 BDM_CMD_0_0(U8 cmd);
+extern uint8_t BDM_CMD_0_0(uint8_t cmd);
 
 // Write command + word
-extern U8 BDM_CMD_1W_0(U8 cmd, U16 parameter);
+extern uint8_t BDM_CMD_1W_0(uint8_t cmd, uint16_t parameter);
 
 // Read word
-extern U8 BDM_CMD_0_1W(U8 cmd, U16 *parameter);
+extern uint8_t BDM_CMD_0_1W(uint8_t cmd, uint16_t *parameter);
 
 // Write longword
-extern U8 BDM_CMD_1L_0(U8 cmd, U32 parameter);
+extern uint8_t BDM_CMD_1L_0(uint8_t cmd, uint32_t parameter);
 
 // Read longword
-extern U8 BDM_CMD_0_1L(U8 cmd, U32 *parameter);
+extern uint8_t BDM_CMD_0_1L(uint8_t cmd, uint32_t *parameter);
 
 // Write word & read byte (read word but return byte - HC/S12(x)) */
-extern U8 BDM_CMD_1W_1WB(U8 cmd, U16 parameter, U8 *result);
+extern uint8_t BDM_CMD_1W_1WB(uint8_t cmd, uint16_t parameter, uint8_t *result);
 
 // Write 2 words
-extern U8 BDM_CMD_2W_0(U8 cmd, U16 parameter1, U16 parameter2);
+extern uint8_t BDM_CMD_2W_0(uint8_t cmd, uint16_t parameter1, uint16_t parameter2);
 
 // Write word and a byte (sends 2 words, the byte in both high and low byte of the 16-bit value) */
-extern U8 BDM_CMD_2WB_0(U8 cmd, U16 parameter1, U8 parameter2);
+extern uint8_t BDM_CMD_2WB_0(uint8_t cmd, uint16_t parameter1, uint8_t parameter2);
 
 // Write word & read word
-extern U8 BDM_CMD_1W_1W(U8 cmd, U16 parameter, U16 *result) ;
+extern uint8_t BDM_CMD_1W_1W(uint8_t cmd, uint16_t parameter, uint16_t *result) ;
 
 // Read word HCS08
-extern U8 BDM_CMD_0_1B(U8 cmd, U8 *result);
+extern uint8_t BDM_CMD_0_1B(uint8_t cmd, uint8_t *result);
 
 // Write byte HCS08
-extern U8 BDM_CMD_1B_0(U8 cmd, U8 parameter);
+extern uint8_t BDM_CMD_1B_0(uint8_t cmd, uint8_t parameter);
 
 // Write word & read byte (read word but return byte - HCS08
-extern U8 BDM_CMD_1W_1B(U8 cmd, U16 parameter, U8 *result);
+extern uint8_t BDM_CMD_1W_1B(uint8_t cmd, uint16_t parameter, uint8_t *result);
 
 // Write 1 word then delay then 1 byte HCS08
-extern U8 BDM_CMD_1W1B_0(U8 cmd, U16 parameter1, U8 parameter2);
+extern uint8_t BDM_CMD_1W1B_0(uint8_t cmd, uint16_t parameter1, uint8_t parameter2);
 
 // Write 1 24-bit value then 1 byte 
-extern U8 BDM_CMD_1A1B_0(U8 cmd, U32 addr, U8 value);
+extern uint8_t BDM_CMD_1A1B_0(uint8_t cmd, uint32_t addr, uint8_t value);
 
 // Write 1 24-bit value then 1 word 
-extern U8 BDM_CMD_1A1W_0(U8 cmd, U32 addr, U16 value);
+extern uint8_t BDM_CMD_1A1W_0(uint8_t cmd, uint32_t addr, uint16_t value);
 
 // Write 1 24-bit value then 1 longword 
-extern U8 BDM_CMD_1A1L_0(U8 cmd, U32 addr, U32 *value);
+extern uint8_t BDM_CMD_1A1L_0(uint8_t cmd, uint32_t addr, uint32_t *value);
 
 // Write 24-bit address & read byte
-extern U8 BDM_CMD_1A_1B(U8 cmd, U32 addr, U8 *result);
+extern uint8_t BDM_CMD_1A_1B(uint8_t cmd, uint32_t addr, uint8_t *result);
 
 // Write 24-bit address, check status & read byte
-extern U8 BDM_CMD_1A_CS_1B(U8 cmd, U32 addr, U8 *result);
+extern uint8_t BDM_CMD_1A_CS_1B(uint8_t cmd, uint32_t addr, uint8_t *result);
 
 // Write 24-bit address & read word
-extern U8 BDM_CMD_1A_1W(U8 cmd, U32 addr, U16 *result);
+extern uint8_t BDM_CMD_1A_1W(uint8_t cmd, uint32_t addr, uint16_t *result);
 
 // Write 24-bit address & read longword
-extern U8 BDM_CMD_1A_1L(U8 cmd, U32 addr, U32 *result);
+extern uint8_t BDM_CMD_1A_1L(uint8_t cmd, uint32_t addr, uint32_t *result);
 
 /* Definitions of the actual commands - these should be used in the C-code
  *

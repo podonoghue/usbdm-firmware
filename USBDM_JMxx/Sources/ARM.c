@@ -75,15 +75,15 @@
 #define STAT_STICKYORUN_B3  (1<<1)
 #define STAT_ANYERROR_B3    (STAT_STICKYERR_B3|STAT_STICKYCMP_B3|STAT_STICKYORUN_B3)
 
-U8 lastJtagIR_Value = -1;
+uint8_t lastJtagIR_Value = -1;
 
 //! Sets up JTAG IR value & transitions to shift-DR
 //!
 //! @param regNo - register number (Not the JTAG register no!)
 //!
-void arm_writeIR(U8 regNo) {
+void arm_writeIR(uint8_t regNo) {
    // JTAG IR value to use to access the register
-   static const U8 jtagIR_Values[] = {
+   static const uint8_t jtagIR_Values[] = {
 	   JTAG_ABORT_SEL_COMMAND,    JTAG_DP_DPACC_SEL_COMMAND, JTAG_DP_DPACC_SEL_COMMAND, JTAG_DP_DPACC_SEL_COMMAND,
 	   JTAG_DP_APACC_SEL_COMMAND, JTAG_DP_APACC_SEL_COMMAND, JTAG_DP_APACC_SEL_COMMAND, JTAG_DP_APACC_SEL_COMMAND};
    regNo = jtagIR_Values[regNo];
@@ -114,12 +114,12 @@ void arm_writeIR(U8 regNo) {
 //! @note - The read has not completed on return.  It is necessary to do another operation \n
 //!         to obtain the read value.
 //!
-U8 arm_readReg(U8 regNo, U8 *data) {
+uint8_t arm_readReg(uint8_t regNo, uint8_t *data) {
    // 3-bit code to access register for read
-   static const U8 apDpRegNo[] = {0, DP_AP_READ|DP_CTRL_STAT_REG, DP_AP_READ|DP_SELECT_REG, DP_AP_READ|DP_RDBUFF_REG,
+   static const uint8_t apDpRegNo[] = {0, DP_AP_READ|DP_CTRL_STAT_REG, DP_AP_READ|DP_SELECT_REG, DP_AP_READ|DP_RDBUFF_REG,
                                   DP_AP_READ|0, DP_AP_READ|2, DP_AP_READ|4, DP_AP_READ|6};
-   U8 ack;
-   U16 retry = MAX_ARM_RETRY;  
+   uint8_t ack;
+   uint16_t retry = MAX_ARM_RETRY;  
    if ((regNo == 0) || (regNo > 7)) {
       return BDM_RC_ILLEGAL_PARAMS;
    }
@@ -157,12 +157,12 @@ U8 arm_readReg(U8 regNo, U8 *data) {
 //! @note - The write has not completed on return.  It is necessary to do another operation 
 //!         to confirm the write is complete.
 //!
-U8 arm_writeReg(U8 regNo, const U8 *data) {
+uint8_t arm_writeReg(uint8_t regNo, const uint8_t *data) {
    // 3-bit code to access register for write
-   static const U8 apDpRegNo[] = {DP_AP_WRITE|0, DP_AP_WRITE|DP_CTRL_STAT_REG, DP_AP_WRITE|DP_SELECT_REG, DP_AP_WRITE|DP_RDBUFF_REG,
+   static const uint8_t apDpRegNo[] = {DP_AP_WRITE|0, DP_AP_WRITE|DP_CTRL_STAT_REG, DP_AP_WRITE|DP_SELECT_REG, DP_AP_WRITE|DP_RDBUFF_REG,
 		                          DP_AP_WRITE|0, DP_AP_WRITE|2, DP_AP_WRITE|4, DP_AP_WRITE|6};
-   U8 ack;
-   U16 retry = MAX_ARM_RETRY;  
+   uint8_t ack;
+   uint16_t retry = MAX_ARM_RETRY;  
    if (regNo > 7) {
       return BDM_RC_ILLEGAL_PARAMS;
    }
@@ -188,14 +188,14 @@ U8 arm_writeReg(U8 regNo, const U8 *data) {
    }
 }
 
-static const U8 dummyData[4] = {0,0,0,0};
+static const uint8_t dummyData[4] = {0,0,0,0};
 
 //! ARM-JTAG - abort AP transactions
 //!
 //! @return error code
 //!
-U8 arm_abortAP(void) {
-   static const U8 abortValue[] = {0x00, 0x00, 0x00, ARM_WR_ABORT_B3};
+uint8_t arm_abortAP(void) {
+   static const uint8_t abortValue[] = {0x00, 0x00, 0x00, ARM_WR_ABORT_B3};
    return arm_writeReg(ARM_WR_ABORT, abortValue);
 }
 
@@ -207,9 +207,9 @@ U8 arm_abortAP(void) {
 //! @note - It is assumed that a read status register command has been executed but 
 //!         the results are not yet read.
 //!
-U8 arm_CheckStickyPipelined(void) {
-   U8 status[4];
-   U8 rc;
+uint8_t arm_CheckStickyPipelined(void) {
+   uint8_t status[4];
+   uint8_t rc;
    
    // Read status & check
    rc = arm_readReg(ARM_RD_DP_RDBUFF, status);
@@ -229,12 +229,12 @@ U8 arm_CheckStickyPipelined(void) {
 //! @return
 //!  == \ref BDM_RC_OK => No sticky bits set
 //!
-U8 arm_CheckStickyUnpipelined(void) {
-   U8 rc;
-   static const U8 dummyData[4] = {0,0,0,0};
+uint8_t arm_CheckStickyUnpipelined(void) {
+   uint8_t rc;
+   static const uint8_t dummyData[4] = {0,0,0,0};
 
    // Initiate read status (discard data)
-   rc = arm_readReg(ARM_RD_DP_STATUS, (U8 *)dummyData);
+   rc = arm_readReg(ARM_RD_DP_STATUS, (uint8_t *)dummyData);
    if (rc != BDM_RC_OK) {
 	  return rc;
    }
@@ -256,11 +256,11 @@ U8 arm_CheckStickyUnpipelined(void) {
 //! @note - The write has not completed on return.  It is necessary to do another operation 
 //!         to confirm the write is complete.
 //!
-U8 arm_repeatWriteReg(const U8 *data) {
+uint8_t arm_repeatWriteReg(const uint8_t *data) {
    // 3-bit code to access register for write
-   static const U8 apDpRegNo = DP_AP_WRITE|6;
-   U8 ack;
-   U16 retry = MAX_ARM_RETRY;  
+   static const uint8_t apDpRegNo = DP_AP_WRITE|6;
+   uint8_t ack;
+   uint16_t retry = MAX_ARM_RETRY;  
    jtag_transition_shift(JTAG_SHIFT_DR);
    for(;;) {
       // Write write-operation/read status, stay in SHIFT-DR
@@ -299,9 +299,9 @@ U8 arm_repeatWriteReg(const U8 *data) {
 //! @note - The read has not completed on return.  It is necessary to do another operation \n
 //!         to obtain the read value.
 //!
-U8 arm_readAPReg(const U8 *address, U8 *data) {
-   U8 rc;
-   U8 selectData[4];
+uint8_t arm_readAPReg(const uint8_t *address, uint8_t *data) {
+   uint8_t rc;
+   uint8_t selectData[4];
    selectData[0] = address[0];
    selectData[1] = 0;
    selectData[2] = 0;
@@ -333,9 +333,9 @@ U8 arm_readAPReg(const U8 *address, U8 *data) {
 //! @note - The read has not completed on return.  It is necessary to do another operation 
 //!         to obtain the read value.
 //!
-U8 arm_writeAPReg(const U8 *address, const U8 *data) {   
-   U8 rc;
-   U8 selectData[4];
+uint8_t arm_writeAPReg(const uint8_t *address, const uint8_t *data) {   
+   uint8_t rc;
+   uint8_t selectData[4];
    selectData[0] = address[0];
    selectData[1] = 0;
    selectData[2] = 0;
@@ -365,12 +365,12 @@ U8 arm_writeAPReg(const U8 *address, const U8 *data) {
 //!
 //! @return error code
 //!
-U8 arm_readAP(U8 numWords, const U8 *address, U8 *data) {
-   U8 ack;
-   U8 increment;
-   U16 retry = MAX_ARM_RETRY;
-   U8 reg32RnW = DP_AP_READ|((address[1]&0x0C)>>1);
-   U8 selectData[4];
+uint8_t arm_readAP(uint8_t numWords, const uint8_t *address, uint8_t *data) {
+   uint8_t ack;
+   uint8_t increment;
+   uint16_t retry = MAX_ARM_RETRY;
+   uint8_t reg32RnW = DP_AP_READ|((address[1]&0x0C)>>1);
+   uint8_t selectData[4];
    selectData[0] = address[0];
    selectData[1] = 0;
    selectData[2] = 0;
@@ -453,11 +453,11 @@ U8 arm_readAP(U8 numWords, const U8 *address, U8 *data) {
 //!
 //! @return error code
 //!
-U8 arm_writeAP(U8 numWords, const U8 *address, U8 *dataOutPtr, U8 *status) {
-   U8 ack;
-   U16 retry = MAX_ARM_RETRY;
-   U8 reg32RnW = DP_AP_WRITE|((address[1]&0x0C)>>1);
-   U8 selectData[4];
+uint8_t arm_writeAP(uint8_t numWords, const uint8_t *address, uint8_t *dataOutPtr, uint8_t *status) {
+   uint8_t ack;
+   uint16_t retry = MAX_ARM_RETRY;
+   uint8_t reg32RnW = DP_AP_WRITE|((address[1]&0x0C)>>1);
+   uint8_t selectData[4];
    selectData[0] = address[0];
    selectData[1] = 0;
    selectData[2] = 0;
@@ -525,7 +525,7 @@ U8 arm_writeAP(U8 numWords, const U8 *address, U8 *dataOutPtr, U8 *status) {
 
 #endif
 
-U8 arm_test(void) {
+uint8_t arm_test(void) {
    return BDM_RC_OK;
 }
 #endif // HW_CAPABILITY && CAP_SWD_HW

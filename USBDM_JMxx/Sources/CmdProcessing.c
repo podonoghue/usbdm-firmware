@@ -718,12 +718,12 @@ static const FunctionPtr commonFunctionPtrs[] = {
 // f_CMD_GET_SETTINGS               ,//= 7,  CMD_USBDM_GET_SETTINGS
    f_CMD_ILLEGAL                    ,//= 7,  Reserved
    f_CMD_CONTROL_PINS               ,//= 8,  CMD_USBDM_CONTROL_PINS
-   f_CMD_ILLEGAL                    ,//= 9,  Reserved
-   f_CMD_ILLEGAL                    ,//= 10, Reserved
-   f_CMD_ILLEGAL                    ,//= 11, Reserved
-   f_CMD_ILLEGAL                    ,//= 12, CMD_USBDM_GET_VER (EP0)
-   f_CMD_ILLEGAL                    ,//= 13, Reserved
-   f_CMD_ILLEGAL                    ,//= 14, CMD_USBDM_ICP_BOOT (EP0)
+//   f_CMD_ILLEGAL                    ,//= 9,  Reserved
+//   f_CMD_ILLEGAL                    ,//= 10, Reserved
+//   f_CMD_ILLEGAL                    ,//= 11, Reserved
+//   f_CMD_ILLEGAL                    ,//= 12, CMD_USBDM_GET_VER (EP0)
+//   f_CMD_ILLEGAL                    ,//= 13, Reserved
+//   f_CMD_ILLEGAL                    ,//= 14, CMD_USBDM_ICP_BOOT (EP0)
 };
 
 #if (TARGET_CAPABILITY&CAP_HCS12)

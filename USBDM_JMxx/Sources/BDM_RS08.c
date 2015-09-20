@@ -76,9 +76,9 @@ void vppOn(void) {
 //!     BDM_RC_OK   => Success \n
 //!     else        => Error
 //!
-U8 bdmSetVpp(U8 level ) {
+uint8_t bdmSetVpp(uint8_t level ) {
 
-   U8 rc = BDM_RC_OK;
+   uint8_t rc = BDM_RC_OK;
    
    // Safety check - don't do anything other than turn off Vpp for wrong target
    if ((cable_status.target_type != T_RS08) && (commandBuffer[2] != BDM_TARGET_VPP_OFF)) {

@@ -38,7 +38,7 @@ void checkUsbCdcRxData(void);
 void sciSetLineCoding(const LineCodingStructure *lineCodingStructure);
 const LineCodingStructure *sciGetLineCoding(void);
 void sciSetControlLineState(uint8_t value);
-void sciSendBreak(U16 length);
+void sciSendBreak(uint16_t length);
 
 #define SERIAL_STATE_CHANGE (1<<7)
 uint8_t getSerialState(void);

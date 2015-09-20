@@ -4,34 +4,27 @@
 #ifndef _COMMON_H_
 #define _COMMON_H_
 
-#include "stdint.h"
+#include <stdint.h>
 
-typedef uint8_t    U8;   //!< unsigned 8-bit value
-typedef uint16_t   U16;  //!< unsigned 16-bit value
-typedef uint32_t   U32;  //!< unsigned 32-bit value
 //! 24-bit value
 typedef struct {
 	char data[3]; //!< 3 bytes representing the value
 } U24;  //!< unsigned 24-bit value
-typedef uint32_t U32;  //!< unsigned 32-bit value
-typedef int8_t   S8;   //!< signed 8-bit value
-typedef int16_t  S16;  //!< signed 16-bit value
-typedef int32_t  S32;  //!< signed 32-bit value
 
 //! Used for manipulating Little/Big-Endian longwords (32 bits)
 //!
 typedef union {
-    U32 longword;          //!< Treat as native 32-bit value
-    U8  bytes[4];          //!< Treat as array of bytes
-    } U32u;
+    uint32_t longword;          //!< Treat as native 32-bit value
+    uint8_t  bytes[4];          //!< Treat as array of bytes
+} U32u;
 
 //! Used for manipulating Little/Big-Endian words (16 bits)
 //!
 typedef union {
-    U8  bytes[2];                //!< Treat as array of bytes
-    U16 word;                    //!< Treat as native 16-bit value
-    struct {U8 lo; U8 hi;} le;   //!< Little-endian order
-    struct {U8 hi; U8 lo;} be;   //!< Big-endian order
+    uint8_t  bytes[2];                //!< Treat as array of bytes
+    uint16_t word;                    //!< Treat as native 16-bit value
+    struct {uint8_t lo; uint8_t hi;} le;   //!< Little-endian order
+    struct {uint8_t hi; uint8_t lo;} be;   //!< Big-endian order
 } U16u;
 
 // Macros only for use with literals!

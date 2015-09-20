@@ -1,6 +1,8 @@
 #ifndef _BDMCOMMON_H_
 #define _BDMCOMMON_H_
 
+#include <stdint.h>
+
 //================================================================================
 //  Timer Usage:
 //
@@ -13,7 +15,7 @@
 #define TIMER_PRESCALE_MASK      (0)
 #define TIMER_PRESCALE           (1<<TIMER_PRESCALE_MASK)
 #define TIMER_FREQ               (BUS_FREQ/TIMER_PRESCALE)
-#define TIMER_MICROSECOND(x)     ((U16)(((x)*(TIMER_FREQ/1000))/1000UL))  // Timer ticks in 1 us
+#define TIMER_MICROSECOND(x)     ((uint16_t)(((x)*(TIMER_FREQ/1000))/1000UL))  // Timer ticks in 1 us
 #define TIMER_TPMxSC_VALUE       (TPMSC_CLKSA_MASK|TIMER_PRESCALE_MASK)
 
 // General Time intervals
@@ -77,30 +79,30 @@
 
     @param  delay Time to wait in \e milliseconds.
 */
-void millisecondTimerWait(U16 delay);
+void millisecondTimerWait(uint16_t delay);
 //! Wait for given time in fast timer ticks
 //!
 //!  @param delay Delay time in fast timer ticks
 //!
 //!  @note Limited to 2 ms
 //!
-void fastTimerWait(U16 delay);
+void fastTimerWait(uint16_t delay);
 //! Initialises the timers, input captures and interrupts
 //!
-U8   initTimers(void);
+uint8_t   initTimers(void);
 
-void bdm_init(void);
-void bdm_off(void);
-U8   bdm_setTarget(U8 target);
-U8   bdm_checkTargetVdd(void);
-void bdm_suspend(void);
-U8   bdm_cycleTargetVddOn(U8 mode);
-U8   bdm_cycleTargetVdd(U8 mode);
-U16  bdm_targetVddMeasure(void);
-U8   bdm_setTargetVdd( void );  // Low-level - bdm_cycleTargetVddOn() preferred
-void bdm_interfaceOff( void );
+void      bdm_init(void);
+void      bdm_off(void);
+uint8_t   bdm_setTarget(uint8_t target);
+uint8_t   bdm_checkTargetVdd(void);
+void      bdm_suspend(void);
+uint8_t   bdm_cycleTargetVddOn(uint8_t mode);
+uint8_t   bdm_cycleTargetVdd(uint8_t mode);
+uint16_t  bdm_targetVddMeasure(void);
+uint8_t   bdm_setTargetVdd( void );  // Low-level - bdm_cycleTargetVddOn() preferred
+void      bdm_interfaceOff( void );
 
-U8   bdm_clearStatus(void);
+uint8_t   bdm_clearStatus(void);
 
 // Interrupt monitoring routines
 interrupt void timerHandler(void);

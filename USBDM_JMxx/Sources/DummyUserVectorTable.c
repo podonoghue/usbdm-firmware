@@ -56,7 +56,7 @@ Change History
 /*! Various ICP data
 **
 */
-extern U8 far __SEG_START__PRESTART[];  // located at bottom of Flash
+extern uint8_t far __SEG_START__PRESTART[];  // located at bottom of Flash
 
 //! Structure to describe ICP data
 const ICP_dataType ICP_data @ICP_DATA_LOCATION =
@@ -74,7 +74,7 @@ const ICP_dataType ICP_data @ICP_DATA_LOCATION =
  * @return 0 => ICP not required, \n
  *         1 => ICP required
  */
-U8 userDetectICP(void) {
+uint8_t userDetectICP(void) {
    return 0;  // ICP not required (rely on bootstrap in ICP code)
 }
 
@@ -143,5 +143,5 @@ const vector userVectorTable[30] @USER_VECTORTABLE_LOCATION = {
 // This offset allows the ICP information structure to be located relative to the
 // end of the User flash area.
 // Points to END of ICP structure [in case it needs to grow in future versions]
-const U8 versionOffset@(FLASH_PROTECT_START-2) = sizeof(userVectorTable)+2;
+const uint8_t versionOffset@(FLASH_PROTECT_START-2) = sizeof(userVectorTable)+2;
 

@@ -39,16 +39,16 @@
 #define ARM_WR_AHB_TAR ARM_WR_AP_REG1 // SWD command for writing AHB-TAR
 #define ARM_WR_AHB_DRW ARM_WR_AP_REG3 // SWD command for writing AHB-DRW
 
-extern U8 lastJtagIR_Value;
+extern uint8_t lastJtagIR_Value;
 
-U8 arm_test(void);
-U8 arm_readReg(U8 regNo, U8 *data);
-U8 arm_writeReg(U8 regNo, const U8 *data);
-U8 arm_readAPReg(const U8 *address, U8 *buff);
-U8 arm_writeAPReg(const U8 *address, const U8 *buff);
-U8 arm_abortAP(void);
+uint8_t arm_test(void);
+uint8_t arm_readReg(uint8_t regNo, uint8_t *data);
+uint8_t arm_writeReg(uint8_t regNo, const uint8_t *data);
+uint8_t arm_readAPReg(const uint8_t *address, uint8_t *buff);
+uint8_t arm_writeAPReg(const uint8_t *address, const uint8_t *buff);
+uint8_t arm_abortAP(void);
 
-U8 arm_CheckStickyPipelined(void);
-U8 arm_CheckStickyUnpipelined(void);
+uint8_t arm_CheckStickyPipelined(void);
+uint8_t arm_CheckStickyUnpipelined(void);
 
 #endif /* ARM_H_ */

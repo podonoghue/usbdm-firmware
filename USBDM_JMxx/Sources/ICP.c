@@ -69,13 +69,13 @@ extern char far __SEG_START_BOOT_ROM[];  // located above user flash
 
 //! Checked during reboot.
 //! If set to MAGIC_REBOOT_KEY then ICP boot will occur
-U16 icpKeyBytes;
+uint16_t icpKeyBytes;
 
 /*! Flash memory protection boundary
  * 
  *  NVPROT is copied from Flash to Register on reset
  */
-static const U8 NVPROT_INIT @0x0000FFBD = ((FLASH_PROTECT_START-1)>>8)&0xFE;
+static const uint8_t NVPROT_INIT @0x0000FFBD = ((FLASH_PROTECT_START-1)>>8)&0xFE;
 
 /*! Security options and Vector redirection
  * 
@@ -85,7 +85,7 @@ static const U8 NVPROT_INIT @0x0000FFBD = ((FLASH_PROTECT_START-1)>>8)&0xFE;
  *
  *  NVOPT is copied from Flash to Register on reset
  */
-static const U8 NVOPT_INIT  @0x0000FFBF = NVOPT_KEYEN_MASK|NVOPT_SEC01_MASK; 
+static const uint8_t NVOPT_INIT  @0x0000FFBF = NVOPT_KEYEN_MASK|NVOPT_SEC01_MASK; 
 
 /*! Bootloader Checksum Bypass
  * 
@@ -93,7 +93,7 @@ static const U8 NVOPT_INIT  @0x0000FFBF = NVOPT_KEYEN_MASK|NVOPT_SEC01_MASK;
  *    - Disables Checksum (to be compatible with JM16)
  *
  */
-static const U8 CHECKSUM_BYPASS  @0x0000FFBA = 0x00; 
+static const uint8_t CHECKSUM_BYPASS  @0x0000FFBA = 0x00; 
 
 #pragma CODE_SEG  BOOT_ROM
 //! Causes reboot to ICP mode
@@ -116,7 +116,7 @@ static void rebootToICP(void) {
 //!  - Software initiated ICP by illegal instruction reset + correct magic number.
 //!
 static char detectICP(void) {
-U8 doICP;
+uint8_t doICP;
 
    // Check for software triggered Reboot to ICP 
    // Indicated by Illegal instruction reset + correct Magic Number
@@ -167,7 +167,7 @@ U8 doICP;
 //! See PRM file for example of automatic calculation of checksum needed.
 //!
 #pragma MESSAGE DISABLE C1404 // Disable warnings about return expected
-static U8 flashInvalid(void) {
+static uint8_t flashInvalid(void) {
    asm {
       lda      #1                     // Set up for failed test
       
@@ -201,7 +201,7 @@ static U8 flashInvalid(void) {
 #pragma MESSAGE DISABLE C1404 // Disable warnings about return expected
 //!  Calls user ICP detection routine via fixed location vector
 //!
-static U8 _userDetectICP(void){
+static uint8_t _userDetectICP(void){
 
    // Jmp to userDetectICP() via user ICP data structure
    asm {
@@ -251,5 +251,5 @@ static const vector resetVector @0xFFFE = myStartup;
 
 #pragma CONST_SEG DEFAULT
 
-const U8 ICP_Version_SW @ ICP_VERSION_SW_LOCATION = ICP_VERSION_SW; 
-const U8 ICP_Version_HW @ ICP_VERSION_HW_LOCATION = VERSION_HW;     
+const uint8_t ICP_Version_SW @ ICP_VERSION_SW_LOCATION = ICP_VERSION_SW; 
+const uint8_t ICP_Version_HW @ ICP_VERSION_HW_LOCATION = VERSION_HW;     

@@ -145,9 +145,9 @@
 #define JTAG_PUSH8               (42)
 #define JTAG_PUSH_8(x)           (JTAG_PUSH8),(x)                                               // Push an 8-bit #
 #define JTAG_PUSH16              (43)
-#define JTAG_PUSH_16(x)          (JTAG_PUSH16),((U8)(x>>8)),((U8)x)                             // Push a 16-bit #
+#define JTAG_PUSH_16(x)          (JTAG_PUSH16),((uint8_t)(x>>8)),((uint8_t)x)                             // Push a 16-bit #
 #define JTAG_PUSH32              (44)
-#define JTAG_PUSH_32(x)          (JTAG_PUSH32),((U8)(x>>24)),((U8)(x>>16)),((U8)(x>>8)),((U8)x) // Push a 32-bit #
+#define JTAG_PUSH_32(x)          (JTAG_PUSH32),((uint8_t)(x>>24)),((uint8_t)(x>>16)),((uint8_t)(x>>8)),((uint8_t)x) // Push a 32-bit #
 
 //============================================================================================
 // The following have an 8/16/32-bit operands from DP
@@ -223,8 +223,8 @@
 //! Calculate number of bytes required to hold N bits
 #define BITS_TO_BYTES(N) (((N)+7)>>3)
 
-U8 processJTAGSequence(const U8 *data, U8 *dataIn);
-U8 initJTAGSequence(void);       
+uint8_t processJTAGSequence(const uint8_t *data, uint8_t *dataIn);
+uint8_t initJTAGSequence(void);       
 
 #define true TRUE
 #define false FALSE

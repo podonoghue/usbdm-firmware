@@ -1,6 +1,6 @@
 /*! \file
     \brief Simple USB Stack for JM60
-    
+
    \verbatim
    JMxx USB Code
     
@@ -31,29 +31,29 @@ I need a USB analyser to find out which!
 
 Change History
 +==============================================================================================
-| 16 Apr 2013 | Fixed buffer size in ep1SaveOutData()                             V4.10.5 - pgo 
+| 16 Apr 2013 | Fixed buffer size in ep1SaveRxData()                              V4.10.5 - pgo 
 | 26 Jul 2012 | Changed int. timing to avoid lockup on busy EP0 traffic (Win7)    V4.10   - pgo 
 | 07 Nov 2010 | EP0 was not returning STALL when requested                        V4.2    - pgo 
 | 29 Sep 2010 | Added CDC code & general cleanup                                  V4.2    - pgo 
 |  8 Aug 2010 | Improved robustness of transaction handling (added reInit flag)   V3.5    - pgo 
-| 17 Jul 2010 | Added ep1StartOutTransaction() to epClearStall(1)                       - pgo
-| 15 Jul 2010 | Fixed configuration # bounds check                                      - pgo
-| 30 Jun 2010 | Removed USB serial number (should be unit unique or not present!)       - pgo
-|  4 Feb 2010 | Changed end-point sizes to ep0In/ep0Out/ep1out/ep2In = 32/32/64/64      - pgo
-|  5 Sep 2009 | Moved SET_BOOT and GET_VERSION to USB module                            - pgo
--============================================================================================
-|    Sep 2009 | Major changes for V2                                                    - pgo
--============================================================================================
-| 30 Jul 2009 | Changed USB command/response structure - uses EP1/EP2                   - pgo
-| 17 May 2009 | Tested with USBCV13.exe from USB.ORG - now passes                       - pgo
-| 16 May 2009 | Increased validation on handleGetInterface[]                            - pgo
-| 10 May 2009 | Changed String language to EN_AUS from GREEK!                           - pgo
-|  7 May 2009 | Changed ep0ConfigureSetupTransaction[] & related                        - pgo
-| 27 Jan 2009 | Changed SETUP pkt handling (I hate little-endian!)                      - pgo
-| 27 Jan 2009 | Changed under-size IN transaction handling                              - pgo
-| 24 Sep 2008 | Fixed possible ptr error in ep0SaveOutData                              - pgo
-|  3 Mar 2008 | JM60 - USB code written from scratch                                    - pgo
-+============================================================================================
+| 17 Jul 2010 | Added ep1StartRxTransaction() to epClearStall(1)                          - pgo
+| 15 Jul 2010 | Fixed configuration # bounds check                                        - pgo
+| 30 Jun 2010 | Removed USB serial number (should be unit unique or not present!)         - pgo
+|  4 Feb 2010 | Changed end-point sizes to ep0In/ep0Out/ep1out/ep2In = 32/32/64/64        - pgo
+|  5 Sep 2009 | Moved SET_BOOT and GET_VERSION to USB module                              - pgo
+-==============================================================================================
+|    Sep 2009 | Major changes for V2                                                      - pgo
+-==============================================================================================
+| 30 Jul 2009 | Changed USB command/response structure - uses EP1/EP2                     - pgo
+| 17 May 2009 | Tested with USBCV13.exe from USB.ORG - now passes                         - pgo
+| 16 May 2009 | Increased validation on handleGetInterface[]                              - pgo
+| 10 May 2009 | Changed String language to EN_AUS from GREEK!                             - pgo
+|  7 May 2009 | Changed ep0ConfigureSetupTransaction[] & related                          - pgo
+| 27 Jan 2009 | Changed SETUP pkt handling (I hate little-endian!)                        - pgo
+| 27 Jan 2009 | Changed under-size IN transaction handling                                - pgo
+| 24 Sep 2008 | Fixed possible ptr error in ep0SaveRxData                                 - pgo
+|  3 Mar 2008 | JM60 - USB code written from scratch                                      - pgo
++==============================================================================================
    \endverbatim
 */
 #include <string.h>
@@ -102,23 +102,23 @@ enum {DATA0=0, DATA1=1};
 typedef struct {
    union {
       struct {
-         U8           :2;  
-         U8 bdtkpid   :4;
-         U8 data0_1   :1;
-         U8 own       :1;
+         uint8_t           :2;  
+         uint8_t bdtkpid   :4;
+         uint8_t data0_1   :1;
+         uint8_t own       :1;
       } a;
       struct {
-         U8           :2;  
-         U8 bdtstall  :1;  
-         U8 dts       :1;
-         U8           :2;  
-         U8 data0_1   :1;
-         U8 own       :1;
+         uint8_t           :2;  
+         uint8_t bdtstall  :1;  
+         uint8_t dts       :1;
+         uint8_t           :2;  
+         uint8_t data0_1   :1;
+         uint8_t own       :1;
       } b;
-      U8 bits;
+      uint8_t bits;
    } control; //!< 
-   U8 byteCount;
-   U8 epAddr;  // Offset by two bits 
+   uint8_t byteCount;
+   uint8_t epAddr;  // Offset by two bits 
 } BDTEntry;
 
 #pragma MESSAGE DEFAULT C1106 // Restore warnings about Non-standard bitfield types
@@ -162,44 +162,44 @@ typedef struct {
 static const DeviceDescriptor deviceDescriptor = {
    sizeof(DeviceDescriptor),               // bLength
    DT_DEVICE,                              // bDescriptorType
-   CONST_NATIVE_TO_LE16(0x0200),           // bcdUSB 			 = USB spec rel. No.      [BCD = 2.00]
+   CONST_NATIVE_TO_LE16(0x0200),           // bcdUSB              = USB spec rel. No.      [BCD = 2.00]
 #if (HW_CAPABILITY&CAP_CDC)
-   0xEF,                                   // bDeviceClass 		 = Device Class code [Miscellaneous Device Class]
-   0x02,                                   // bDeviceSubClass 	 = Sub Class code    [Common Class]
-   0x01,                                   // bDeviceProtocol 	 = Protocol          [Interface Association Descriptor]
+   0xEF,                                   // bDeviceClass        = Device Class code [Miscellaneous Device Class]
+   0x02,                                   // bDeviceSubClass     = Sub Class code    [Common Class]
+   0x01,                                   // bDeviceProtocol     = Protocol          [Interface Association Descriptor]
 #else
    0xFF,                                   // Class code             [none]
    0xFF,                                   // Sub Class code         [none]
    0xFF,                                   // Protocol               [none]
 #endif
-   ENDPT0MAXSIZE,                          // bMaxPacketSize0 	 = EndPt 0 max packet size
-   CONST_NATIVE_TO_LE16(VendorID),         // idVendor 			 = Vendor ID
-   CONST_NATIVE_TO_LE16(ProductID),        // idProduct 		 = Product ID
-   CONST_NATIVE_TO_LE16(0x0410),           // bcdDevice 		 = Device Release         [BCD = 4.10]
-   1,                                      // iManufacturer 	 = String index of Manufacturer name
-   2,                                      // iProduct 			 = String index of product desc.
-   3,                                      // iSerialNumber 	 = String index desc. serial #
+   ENDPT0MAXSIZE,                          // bMaxPacketSize0    = EndPt 0 max packet size
+   CONST_NATIVE_TO_LE16(VendorID),         // idVendor           = Vendor ID
+   CONST_NATIVE_TO_LE16(ProductID),        // idProduct          = Product ID
+   CONST_NATIVE_TO_LE16(0x0410),           // bcdDevice          = Device Release         [BCD = 4.10]
+   1,                                      // iManufacturer      = String index of Manufacturer name
+   2,                                      // iProduct           = String index of product desc.
+   3,                                      // iSerialNumber      = String index desc. serial #
    1                                       // bNumConfigurations = Number of configurations
 };
 
 static const struct {
-   ConfigurationDescriptor 					configDescriptor;
+   ConfigurationDescriptor                  configDescriptor;
    InterfaceDescriptor                      interfaceDescriptor0;
    EndpointDescriptor                       endpointDescriptor1;
    EndpointDescriptor                       endpointDescriptor2;
 #if (HW_CAPABILITY&CAP_CDC)
    InterfaceAssociationDescriptor           interfaceAssociationDescriptorCDC;
-   InterfaceDescriptor     					interfaceDescriptor1;
-   CDCHeaderFunctionalDescriptor    		headerFunctionalDescriptor;
-   CDCCallManagementFunctionalDescriptor 	callManagementDescriptor;
-   CDCAbstractControlManagementDescriptor	abstractControlManagementFunctionalDescriptor;
+   InterfaceDescriptor                      interfaceDescriptor1;
+   CDCHeaderFunctionalDescriptor            headerFunctionalDescriptor;
+   CDCCallManagementFunctionalDescriptor    callManagementDescriptor;
+   CDCAbstractControlManagementDescriptor   abstractControlManagementFunctionalDescriptor;
    CDCUnionFunctionalDescriptor             unionFunctionalDescriptor;
-   EndpointDescriptor      					endpointDescriptor3;
-   InterfaceDescriptor     					interfaceDescriptor2;
-   EndpointDescriptor      					endpointDescriptor4;
-   EndpointDescriptor      					endpointDescriptor5;
-#endif   
-} otherDescriptors =     
+   EndpointDescriptor                       endpointDescriptor3;
+   InterfaceDescriptor                      interfaceDescriptor2;
+   EndpointDescriptor                       endpointDescriptor4;
+   EndpointDescriptor                       endpointDescriptor5;
+#endif
+} otherDescriptors =
 {
    { // configDescriptor
       sizeof(ConfigurationDescriptor),                // bLength
@@ -207,7 +207,7 @@ static const struct {
       CONST_NATIVE_TO_LE16(sizeof(otherDescriptors)), // wTotalLength
 #if (HW_CAPABILITY&CAP_CDC)
       3,                                              // bNumInterfaces
-#else   
+#else
       1,                                              // bNumInterfaces
 #endif
       1,                                              // bConfigurationValue
@@ -232,7 +232,7 @@ static const struct {
      EP_OUT|1,                            // bEndpointAddress
      ATTR_BULK,                           // bmAttributes
      CONST_NATIVE_TO_LE16(ENDPT1MAXSIZE), // wMaxPacketSize
-     1                                    // bInterval         = -
+     USBMilliseconds(1)                   // bInterval         = -
    },
    { // endpointDescriptor2 - #82,IN, BULK
      sizeof(EndpointDescriptor),          // bLength
@@ -240,7 +240,7 @@ static const struct {
      EP_IN|2,                             // bEndpointAddress
      ATTR_BULK,                           // bmAttributes
      CONST_NATIVE_TO_LE16(ENDPT2MAXSIZE), // wMaxPacketSize
-     0                                    // bInterval         = -
+     USBMilliseconds(1)                   // bInterval         = -
    },
 #if (HW_CAPABILITY&CAP_CDC)
    { // interfaceAssociationDescriptorCDC
@@ -248,10 +248,10 @@ static const struct {
        DT_INTERFACEASSOCIATION,                // bDescriptorType
        1,                                      // bFirstInterface
        2,                                      // bInterfaceCount
-   	   0x02,                                   // bFunctionClass    = bInterfaceClass    = CDC Control
-   	   0x02,                                   // bFunctionSubClass = bInterfaceSubClass = Abstract Control Model
-   	   0x01,                                   // bFunctionProtocol = bDeviceProtocol    = AT CommandL V.250
-   	   6,                                      // iFunction = ""
+       0x02,                                   // bFunctionClass    = bInterfaceClass    = CDC Control
+       0x02,                                   // bFunctionSubClass = bInterfaceSubClass = Abstract Control Model
+       0x01,                                   // bFunctionProtocol = bDeviceProtocol    = AT CommandL V.250
+       6,                                      // iFunction = ""
    },
    { // interfaceDescriptor1
       sizeof(InterfaceDescriptor),  // bLength
@@ -271,24 +271,24 @@ static const struct {
       CONST_NATIVE_TO_LE16(0x0110),           // bcdCDC
    },
    { // callManagementDescriptor
-	  sizeof(CDCCallManagementFunctionalDescriptor), // bFunctionalLength
-	  CS_INTERFACE,                           		 // bDescriptorType
-	  DST_CALL_MANAGEMENT,                     		 // bDescriptorSubtype
-	  1,                                             // bmCapabilities
-	  1,                                             // bDataInterface
+      sizeof(CDCCallManagementFunctionalDescriptor), // bFunctionalLength
+      CS_INTERFACE,                                  // bDescriptorType
+      DST_CALL_MANAGEMENT,                           // bDescriptorSubtype
+      1,                                             // bmCapabilities
+      1,                                             // bDataInterface
    },
    { // abstractControlManagementFunctionalDescriptor
-	  sizeof(CDCAbstractControlManagementDescriptor), // bFunctionalLength
-	  CS_INTERFACE,                           		  // bDescriptorType
-	  DST_ABSTRACT_CONTROL_MANAGEMENT,         		  // bDescriptorSubtype
-	  0x06,                                           // bmCapabilities
+      sizeof(CDCAbstractControlManagementDescriptor), // bFunctionalLength
+      CS_INTERFACE,                                   // bDescriptorType
+      DST_ABSTRACT_CONTROL_MANAGEMENT,                // bDescriptorSubtype
+      0x06,                                           // bmCapabilities
    },
    { // unionFunctionalDescriptor
-	  sizeof(CDCUnionFunctionalDescriptor),           // bFunctionalLength
-	  CS_INTERFACE,                           		  // bDescriptorType
-	  DST_UNION_MANAGEMENT,         		          // bDescriptorSubtype
-	  1,                                              // bmControlInterface
-	  2,                                              // bSubordinateInterface0
+      sizeof(CDCUnionFunctionalDescriptor),           // bFunctionalLength
+      CS_INTERFACE,                                   // bDescriptorType
+      DST_UNION_MANAGEMENT,                           // bDescriptorSubtype
+      1,                                              // bmControlInterface
+      {2},                                            // bSubordinateInterface0
    },
    { // endpointDescriptor3 - #83,IN,interrupt
      sizeof(EndpointDescriptor),          // bLength
@@ -305,56 +305,57 @@ static const struct {
       0,                            // bAlternateSetting
       2,                            // bNumEndpoints
       0x0A,                         // bInterfaceClass      = CDC DATA
-      0x00,                         // bInterfaceSubClass   = - 
+      0x00,                         // bInterfaceSubClass   = -
       0x00,                         // bInterfaceProtocol   = -
       8                             // iInterface desc
    },
-   { // endpointDescriptor4 - #1,OUT,bulk
+   { // endpointDescriptor4 - #4,OUT,bulk
      sizeof(EndpointDescriptor),          // bLength
      DT_ENDPOINT,                         // bDescriptorType
      EP_OUT|4,                            // bEndpointAddress
      ATTR_BULK,                           // bmAttributes
      CONST_NATIVE_TO_LE16(ENDPT4MAXSIZE), // wMaxPacketSize
-     0                                    // bInterval         = -
+     USBMilliseconds(1)                   // bInterval         = -
    },
-   { // endpointDescriptor5 - #82,IN,bulk
+   { // endpointDescriptor5 - #85,IN,bulk
      sizeof(EndpointDescriptor),            // bLength
      DT_ENDPOINT,                           // bDescriptorType
      EP_IN|5,                               // bEndpointAddress
      ATTR_BULK,                             // bmAttributes
      CONST_NATIVE_TO_LE16(2*ENDPT5MAXSIZE), // wMaxPacketSize (x2 so all pkts are terminating (short))
-     0                                      // bInterval         = -
+     USBMilliseconds(1)                     // bInterval         = -
    },
-#endif   
+#endif
 };
 
 #ifdef MS_COMPATIBLE_ID_FEATURE    	  
 static const MS_CompatibleIdFeatureDescriptor msCompatibleIdFeatureDescriptor = {
-	/* lLength;             */  CONST_NATIVE_TO_LE32((uint32_t)sizeof(MS_CompatibleIdFeatureDescriptor)),
-	/* wVersion;            */  CONST_NATIVE_TO_LE16(0x0100),
-	/* wIndex;              */  CONST_NATIVE_TO_LE16(0x0004),
-	/* bnumSections;        */  1,
-	/* bReserved1[7];       */  {0},
-	/* bInterfaceNum;       */  0,
-	/* bReserved2;          */  1,
-	/* bCompatibleId[8];    */  "WINUSB\0",
-	/* bSubCompatibleId[8]; */  {0},
-	/* bReserved3[6];       */  {0}  
+    /* lLength;             */  CONST_NATIVE_TO_LE32((uint32_t)sizeof(MS_CompatibleIdFeatureDescriptor)),
+    /* wVersion;            */  CONST_NATIVE_TO_LE16(0x0100),
+    /* wIndex;              */  CONST_NATIVE_TO_LE16(0x0004),
+    /* bnumSections;        */  1,
+    /*---------------------- Section 1 -----------------------------*/
+    /* bReserved1[7];       */  {0},
+    /* bInterfaceNum;       */  0,
+    /* bReserved2;          */  1,
+    /* bCompatibleId[8];    */  "WINUSB\0",
+    /* bSubCompatibleId[8]; */  {0},
+    /* bReserved3[6];       */  {0}
 };
 #pragma MESSAGE DISABLE C3303 //  Implicit concatenation of strings
 
 static const MS_PropertiesFeatureDescriptor msPropertiesFeatureDescriptor = {
 	// DeviceGUID = "{93FEBD51-6000-4E7E-A20E-A80FC78C7EA1}"
-	/* U32 lLength;         */ CONST_NATIVE_TO_LE32((uint32_t)sizeof(MS_PropertiesFeatureDescriptor)),
-	/* U16 wVersion;        */ CONST_NATIVE_TO_LE16(0x0100),
-	/* U16 wIndex;          */ CONST_NATIVE_TO_LE16(0x0005),
-	/* U16 bnumSections;    */ CONST_NATIVE_TO_LE16(0x0001),
-	/* U32 lPropertySize;   */ CONST_NATIVE_TO_LE32(132UL),
-	/* U32 ldataType;       */ CONST_NATIVE_TO_LE32(1UL),
-	/* U16 wNameLength;     */ CONST_NATIVE_TO_LE16(40),
-	/* U8  bName[40];       */ "D\0e\0v\0i\0c\0e\0I\0n\0t\0e\0r\0f\0a\0c\0e\0G\0U\0I\0D\0\0",
-	/* U32 wPropertyLength; */ CONST_NATIVE_TO_LE32(78UL),
-	// U8  bData[78];       {93FEBD51-6000-4E7E-A20E-A80FC78C7EA1}
+	/* uint32_t lLength;         */ CONST_NATIVE_TO_LE32((uint32_t)sizeof(MS_PropertiesFeatureDescriptor)),
+	/* uint16_t wVersion;        */ CONST_NATIVE_TO_LE16(0x0100),
+	/* uint16_t wIndex;          */ CONST_NATIVE_TO_LE16(0x0005),
+	/* uint16_t bnumSections;    */ CONST_NATIVE_TO_LE16(0x0001),
+	/* uint32_t lPropertySize;   */ CONST_NATIVE_TO_LE32(132UL),
+	/* uint32_t ldataType;       */ CONST_NATIVE_TO_LE32(1UL),
+	/* uint16_t wNameLength;     */ CONST_NATIVE_TO_LE16(40),
+	/* uint8_t  bName[40];       */ "D\0e\0v\0i\0c\0e\0I\0n\0t\0e\0r\0f\0a\0c\0e\0G\0U\0I\0D\0\0",
+	/* uint32_t wPropertyLength; */ CONST_NATIVE_TO_LE32(78UL),
+	// uint8_t  bData[78];       {93FEBD51-6000-4E7E-A20E-A80FC78C7EA1}
 	                           "{\000"  
 	                           "9\0003\000F\000E\000B\000D\0005\0001\000"
 	                           "-\0006\0000\0000\0000\000"
@@ -368,30 +369,30 @@ static const MS_PropertiesFeatureDescriptor msPropertiesFeatureDescriptor = {
 #pragma MESSAGE DEFAULT C3303 //  Implicit concatenation of strings
 
 #define VENDOR_CODE 0x30
-static const U8 OS_StringDescriptor[] = {18, DT_STRING, 'M',0,'S',0,'F',0,'T',0,'1',0,'0',0,'0',0,VENDOR_CODE,0x00};
+static const uint8_t OS_StringDescriptor[] = {18, DT_STRING, 'M',0,'S',0,'F',0,'T',0,'1',0,'0',0,'0',0,VENDOR_CODE,0x00};
 
-static const U8 sd0[] = {4,  DT_STRING, 0x09, 0x0C};  // Language IDs
-static const U8 sd1[] = "pgo";                        // Manufacturer
-static const U8 sd2[] = ProductDescription;           // Product Description
-//static const U8 sd3[] = "USBDM-Serial-0001";          // Serial Number
-static const U8 sd4[] = "USBDM BDM Interface";        // Interface Association #1
-static const U8 sd5[] = "Interface 0 - USBDM";        // Interface #0
-static const U8 sd6[] = "USBDM CDC Interface";        // Interface Association #2
-static const U8 sd7[] = "Interface 1 - CDC Control";  // Interface #1
-static const U8 sd8[] = "Interface 2 - CDC Data";     // Interface #2
+static const uint8_t sd0[] = {4,  DT_STRING, 0x09, 0x0C};  // Language IDs
+static const uint8_t sd1[] = "pgo";                        // Manufacturer
+static const uint8_t sd2[] = ProductDescription;           // Product Description
+//static const uint8_t sd3[] = "USBDM-Serial-0001";          // Serial Number
+static const uint8_t sd4[] = "USBDM BDM Interface";        // Interface Association #1
+static const uint8_t sd5[] = "Interface 0 - USBDM";        // Interface #0
+static const uint8_t sd6[] = "USBDM CDC Interface";        // Interface Association #2
+static const uint8_t sd7[] = "Interface 1 - CDC Control";  // Interface #1
+static const uint8_t sd8[] = "Interface 2 - CDC Data";     // Interface #2
 
-static const U8 *const stringDescriptors[] = {sd0, sd1, sd2, ICP_data.serialNumber, sd4, sd5, sd6, sd7, sd8};
+static const uint8_t *const stringDescriptors[] = {sd0, sd1, sd2, ICP_data.serialNumber, sd4, sd5, sd6, sd7, sd8};
 
 //===============================================================================
 // Device Status
-//       
+//
 typedef struct {
    int selfPowered  : 1;    //!< Device is self-powered
    int remoteWakeup : 1;    //!< Supports remote wakeup
    int portTest     : 1;    //!< Port test
    int res1         : 5;    //!< Reserved
    int res2         : 8;    //!< Reserved
-} DeviceStatus; 
+} DeviceStatus;
 
 //! USB device states
 typedef enum { USBpowered, USBattached, USBdefault, USBaddressed,
@@ -401,25 +402,25 @@ typedef enum { USBpowered, USBattached, USBdefault, USBaddressed,
 #pragma DATA_SEG __SHORT_SEG Z_PAGE
 struct {
    USBstateType   state:8;
-   U8             configuration;
-   U8             interfaceAltSetting;
+   uint8_t        configuration;
+   uint8_t        interfaceAltSetting;
    DeviceStatus   status;
-   U8             newUSBAddress;
-} deviceState = {USBattached, 0, 0, {0,0,0,0,0}, 0};  //!< USB device state information 
+   uint8_t        newUSBAddress;
+} deviceState = {USBattached, 0, 0, {0,0,0,0,0}, 0};  //!< USB device state information
 #pragma MESSAGE DEFAULT C1106 // Disable warnings about non-standard bitfield
 #pragma DATA_SEG DEFAULT
 
 //===============================================================================
 //! Endpoint Status
-//!       
+//!
 typedef struct {
    int stall  : 1;   //!< Endpoint is stalled
    int res1   : 7;   //!< Reserved
    int res2   : 8;   //!< Reserved
-} EPStatus; //!< Endpoint status un USB format
+} EPStatus; //!< Endpoint status in USB format
 
 // Endpoint state values
-typedef enum { 
+typedef enum {
    EPIdle = 0,       //!< Idle (Tx complete)
    EPDataIn,         //!< Doing a sequence of IN packets (until data count <= EPSIZE)
    EPDataOut,        //!< Doing a sequence of OUT packets (until data count == 0)
@@ -433,9 +434,9 @@ typedef enum {
 
 //! Endpoint information
 typedef struct {
-   U8*      dataPtr;               //!< Pointer to data buffer 
-   U8       dataRemaining;         //!< Count of remaining bytes to Rx/Tx
-   U8       dataCount;             //!< Count of bytes Rx/Tx so far
+   uint8_t* dataPtr;               //!< Pointer to data buffer 
+   uint8_t  dataRemaining;         //!< Count of remaining bytes to Rx/Tx
+   uint8_t  dataCount;             //!< Count of bytes Rx/Tx so far
    int      shortInTransaction:1;  //!< Indicates that the IN transaction is under-sized 
    void     (*callback)( void );   //!< Call-back used on completion of packet reception
 } EPState;
@@ -443,14 +444,14 @@ typedef struct {
 #pragma MESSAGE DISABLE C1106 // Non-standard bit-field type
 //! Endpoint hardware state
 typedef struct {
-   int        data0_1:1;  //!< Data 0/1 toggle state
-   int        odd:1;      //!< Odd/Even buffer
+   int data0_1:1;  //!< Data 0/1 toggle state
+   int odd:1;      //!< Odd/Even buffer
    EPModes    state:5;    //!< End-point state
 } EPHardwareState;
 #pragma MESSAGE DEFAULT C1106 // Non-standard bit-field type
 
 // Used to flag USB system configuration change etc.
-static volatile U8 reInit;
+static volatile uint8_t reInit;
 
 #pragma DATA_SEG __SHORT_SEG Z_PAGE
 static volatile EPState ep0State = {NULL, 0, 0, 0, NULL};
@@ -462,12 +463,12 @@ static volatile EPHardwareState epHardwareState[NUMBER_OF_EPS] = {0};
 
 //! Structure representing USB activity
 typedef union {
-   U8  byte;  //!< Allows access as byte (zero=>no activity, non-zero=>activity)
+   uint8_t  byte;  //!< Allows access as byte (zero=>no activity, non-zero=>activity)
    struct {
-      int bdmActive:1;			//!< Any activity
-      int serialOutActive:1;	//!< Serial out active 
-      int serialInActive:1;	//!< Serial in active
-   } flags;                   //!< Overall flags
+      int bdmActive:1;            //!< Any activity
+      int serialOutActive:1;      //!< Serial out active
+      int serialInActive:1;       //!< Serial in active
+   } flags;                 //!< Overall flags
 } ActivityType ;
 static ActivityType  usbActivityFlag;
 
@@ -479,14 +480,14 @@ static ActivityType  usbActivityFlag;
 volatile SetupPacket ep0SetupBuffer; //!< EP0 contents when receiving a Setup pkt
 
 #pragma DATA_SEG DEFAULT
-//static U16 frameNum        = 0;
+//static uint16_t frameNum        = 0;
 
 //======================================================================
 // USB RAM usage
 //
 #define USB_RAM_START (0x1860U) //!< Fixed hardware address of USB interface buffer
 
-#define USB_MAP_ADDRESS(x)  ((((U16)(x) - USB_RAM_START)>>2)&0xFC) //!< Maps a linear address to USB buffer address
+#define USB_MAP_ADDRESS(x)  ((((uint16_t)(x) - USB_RAM_START)>>2)&0xFC) //!< Maps a linear address to USB buffer address
 #define ADDRESS_ROUND16(x)  ((x+0xF)&0xFFF0)			           //!< Rounds address to USB buffer alignment
 
 //======================================================================
@@ -512,16 +513,16 @@ volatile SetupPacket ep0SetupBuffer; //!< EP0 contents when receiving a Setup pk
 //
 struct {
    BDTEntry bdts[10];
-   U8 reserved[2];
-   U8 ep0InDataBuffer[ENDPT0MAXSIZE];
-   U8 ep0OutDataBuffer[ENDPT0MAXSIZE];
-   U8 ep1DataBuffer[ENDPT1MAXSIZE];
-   U8 ep2DataBuffer[ENDPT2MAXSIZE];
+   uint8_t reserved[2];
+   uint8_t ep0InDataBuffer[ENDPT0MAXSIZE];
+   uint8_t ep0OutDataBuffer[ENDPT0MAXSIZE];
+   uint8_t ep1DataBuffer[ENDPT1MAXSIZE];
+   uint8_t ep2DataBuffer[ENDPT2MAXSIZE];
 #if (HW_CAPABILITY&CAP_CDC)   
-   U8 ep3DataBuffer[ENDPT3MAXSIZE];
-   U8 ep4DataBuffer[ENDPT4MAXSIZE];
-   U8 ep5DataBuffer0[ENDPT5MAXSIZE];
-   U8 ep5DataBuffer1[ENDPT5MAXSIZE];
+   uint8_t ep3DataBuffer[ENDPT3MAXSIZE];
+   uint8_t ep4DataBuffer[ENDPT4MAXSIZE];
+   uint8_t ep5DataBuffer0[ENDPT5MAXSIZE];
+   uint8_t ep5DataBuffer1[ENDPT5MAXSIZE];
 #endif
 } usbRamArea;
 #pragma DATA_SEG DEFAULT
@@ -547,10 +548,10 @@ struct {
 #define ep5DataBuffer0     (usbRamArea.ep5DataBuffer0)
 #define ep5DataBuffer1     (usbRamArea.ep5DataBuffer1)
 #endif
-
-//======================================================================
-//! Initialise the endpoint buffer pointers once only
-//!
+/*
+ * =================================================================
+ * initialise the endpoint buffer pointers once only
+ */
 static void initEndpointBuffers(void) {
    ep0BDTIn.epAddr     = USB_MAP_ADDRESS(EP0InDataBufferAddress);
    ep0BDTOut.epAddr    = USB_MAP_ADDRESS(EP0OutDataBufferAddress);
@@ -565,12 +566,13 @@ static void initEndpointBuffers(void) {
 #endif
 }
 static uint8_t doneEp0OutInit = FALSE;
+
 //======================================================================
 //! Configure the BDT for EP0 Out [Rx, device <- host, DATA0/1]
 //!
 //! @param data0_1 - value for USB Data toggle
 //!
-static void ep0InitialiseBDTOut( U8 data0_1 ) {
+static void ep0InitialiseBdtRx( uint8_t data0_1 ) {
    // Set up to Rx packet
    ep0BDTOut.byteCount = ENDPT0MAXSIZE; // Always use ENDPT0MAXSIZE so can accept SETUP pkt
    if (data0_1) {
@@ -585,13 +587,14 @@ static void ep0InitialiseBDTOut( U8 data0_1 ) {
 //=========================================================================
 //! Save the data from an EP0 OUT pkt and advance ptrs etc.
 //!
-static U8 ep0SaveOutData( void ) {
-U8 size = ep0BDTOut.byteCount;
+static uint8_t ep0SaveRxData( void ) {
+uint8_t size = ep0BDTOut.byteCount;
 
    if (size > 0) {
-	  // Check if more data than requested - discard excess
-      if (size > ep0State.dataRemaining)
+      // Check if more data than requested - discard excess
+      if (size > ep0State.dataRemaining) {
          size = ep0State.dataRemaining;
+      }
       // Check if external buffer in use
       if (ep0State.dataPtr != NULL) {
          // Copy the data from the Rx buffer to external buffer
@@ -604,7 +607,7 @@ U8 size = ep0BDTOut.byteCount;
    return size;
 }
 
-#if (HW_CAPABILITY&CAP_CDC)		   
+#if (HW_CAPABILITY&CAP_CDC)
 //======================================================================
 /*! Configure EP0 for an OUT transaction [Rx, device <- host, DATA0/1]
  *
@@ -615,19 +618,20 @@ U8 size = ep0BDTOut.byteCount;
  *                - So no additional buffer is needed
  * @param data0_1 - Initial DATA0/DATA1 toggle value
  */
-static void ep0StartOutTransaction( U8 bufSize, U8 *bufPtr, U8 data0_1 ) {
+static void ep0StartRxTransaction( uint8_t bufSize, uint8_t *bufPtr, uint8_t data0_1 ) {
 
    ep0State.dataRemaining     = bufSize; // Total bytes for Rx
    ep0State.dataCount         = 0;       // Reset count of bytes so far
    ep0State.dataPtr           = bufPtr;  // Where to (eventually) place data
    epHardwareState[0].data0_1 = data0_1; // Initial data toggle
-   
-   if (bufSize == 0) 
-      epHardwareState[0].state = EPStatusOut;  // Assume status handshake
-   else
-      epHardwareState[0].state = EPDataOut;    // Assume first of several data pkts
 
-   ep0InitialiseBDTOut(data0_1); // Configure the BDT for transfer
+   if (bufSize == 0) {
+      epHardwareState[0].state = EPStatusOut;  // Assume status handshake
+   }
+   else {
+      epHardwareState[0].state = EPDataOut;    // Assume first of several data pkts
+   }
+   ep0InitialiseBdtRx(data0_1); // Configure the BDT for transfer
 }
 #endif
 
@@ -636,8 +640,8 @@ static void ep0StartOutTransaction( U8 bufSize, U8 *bufPtr, U8 data0_1 ) {
 // Endpoint state is changed to EPIdle
 //
 static void ep0ConfigureSetupTransaction( void ) {
-    // Set up EP0-OUT to Rx SETUP packets
-    ep0InitialiseBDTOut(DATA1);          // v4.7 changed to DATA1
+    // Set up EP0-RX to Rx SETUP packets
+    ep0InitialiseBdtRx(DATA0);
     epHardwareState[0].state = EPIdle;
 }
 
@@ -651,7 +655,7 @@ static void ep0EnsureReadyForSetupTransaction( void ) {
 	uint8_t currentEp0State = epHardwareState[0].state;
 #if 0
 	if ((ep0BDTOut.control.bits&BDTEntry_OWN_MASK)==0) {
-        ep0InitialiseBDTOut(DATA1);          // v4.9
+        ep0InitialiseBdtRx(DATA1);          // v4.9
     }
 #else
    switch (currentEp0State) {
@@ -660,7 +664,7 @@ static void ep0EnsureReadyForSetupTransaction( void ) {
          // EP0-OUT is already set up for an OUT pkt
          break;
 
-      case EPStall:	        // Stalled
+      case EPStall:          // Stalled
       case EPIdle:           // Idle
       case EPDataIn:         // Doing a sequence of IN packets
       case EPLastIn:         // Doing the last IN packet
@@ -678,58 +682,62 @@ static void ep0EnsureReadyForSetupTransaction( void ) {
 //======================================================================
 // Configure the BDT for EP0 In [Tx, device -> host]
 //
-static void ep0InitialiseBDTIn( void ) {
-   U16 size;
+static void ep0InitialiseBdtTx( void ) {
+   uint16_t size;
 
    size = ep0State.dataRemaining;
-   if (size > ENDPT0MAXSIZE)
+   if (size > ENDPT0MAXSIZE) {
       size = ENDPT0MAXSIZE;
-   
+   }
    // Copy the Tx data to EP buffer
    ( void )memcpy(ep0InDataBuffer, ep0State.dataPtr, size);
-      
+
    ep0State.dataPtr         += size;  // Ptr to _next_ data
    ep0State.dataRemaining   -= size;  // Count of remaining bytes
    ep0State.dataCount       += size;  // Count of bytes so far
-   
+
    // Set up to Tx packet
-   ep0BDTIn.byteCount     = (U8)size;
-   if (epHardwareState[0].data0_1) 
+   ep0BDTIn.byteCount     = (uint8_t)size;
+   if (epHardwareState[0].data0_1) {
       ep0BDTIn.control.bits  = BDTEntry_OWN_MASK|BDTEntry_DATA1_MASK|BDTEntry_DTS_MASK;
-   else
+   }
+   else {
       ep0BDTIn.control.bits  = BDTEntry_OWN_MASK|BDTEntry_DATA0_MASK|BDTEntry_DTS_MASK;
+   }
 }
 
 //======================================================================
 //! Configure EP0 for an IN transaction [Tx, device -> host, DATA0/1]
 //!
-static void ep0StartInTransaction( U8 bufSize, const U8 *bufPtr, U8 data0_1 ) {
+static void ep0StartTxTransaction( uint8_t bufSize, const uint8_t *bufPtr, uint8_t data0_1 ) {
 
-   if (bufSize > ep0SetupBuffer.wLength.word) // More data than requested - truncate
-      bufSize = (U8)ep0SetupBuffer.wLength.word;
-
-   ep0State.dataPtr            = (U8*)bufPtr;   // Ptr to _next_ data
-   ep0State.dataRemaining      = bufSize;       // Count of remaining bytes
-   ep0State.dataCount          = 0;             // Reset count of bytes so far
-   epHardwareState[0].data0_1  = data0_1;       // Initial data toggle
+   if (bufSize > ep0SetupBuffer.wLength.word) { // More data than requested - truncate
+      bufSize = (uint8_t)ep0SetupBuffer.wLength.word;
+   }
+   ep0State.dataPtr            = (uint8_t*)bufPtr;    // Pointer to _next_ data
+   ep0State.dataRemaining      = bufSize;             // Count of remaining bytes
+   ep0State.dataCount          = 0;                   // Reset count of bytes so far
+   epHardwareState[0].data0_1  = data0_1;             // Initial data toggle 
    ep0State.shortInTransaction = bufSize < ep0SetupBuffer.wLength.word; // Short transaction?
 
-   if (bufSize == 0)
+   if (bufSize == 0) {
       epHardwareState[0].state = EPStatusIn;   // Assume status handshake
-   else if ((bufSize < ENDPT0MAXSIZE) ||       // Undersize pkt OR
+   }
+   else if ((bufSize < ENDPT0MAXSIZE) ||       // Undersize packet OR
             ((bufSize == ENDPT0MAXSIZE) &&     // Full size AND
-             !ep0State.shortInTransaction))    //   Don't need to flag undersize transaction 
-      epHardwareState[0].state = EPLastIn;     // Sending one and only pkt
-   else 
-      epHardwareState[0].state = EPDataIn;     // Sending first of several pkts
-      
-   ep0InitialiseBDTIn(); // Configure the BDT for transfer
+             !ep0State.shortInTransaction)) {  //   Don't need to flag undersize transaction
+      epHardwareState[0].state = EPLastIn;     // Sending one and only packet
+   }
+   else {
+      epHardwareState[0].state = EPDataIn;     // Sending first of several packets
+   }
+   ep0InitialiseBdtTx(); // Configure the BDT for transfer
 }
 
 //======================================================================
 // Configure the BDT for EP1 Out [Rx, device <- host, DATA0/1]
 //
-static void ep1InitialiseBDTOut( void ) {
+static void ep1InitialiseBdtRx( void ) {
    // Set up to Rx packet
    ep1BDT.byteCount   = ENDPT1MAXSIZE;
    if (epHardwareState[1].data0_1) {
@@ -743,8 +751,8 @@ static void ep1InitialiseBDTOut( void ) {
 //=========================================================================
 // Save the data from an EP1 OUT pkt and advance ptrs etc.
 //
-static U8 ep1SaveOutData( void ) {
-U8 size = ep1BDT.byteCount;
+static uint8_t ep1SaveRxData( void ) {
+uint8_t size = ep1BDT.byteCount;
 
    if (size > 0) {
 	  // Check if more data than requested - discard excess
@@ -765,7 +773,7 @@ U8 size = ep1BDT.byteCount;
 //#pragma INLINE
 #pragma MESSAGE DISABLE C1404 // Disable warnings about no return statement
 //! Inline for setting int mask and returning current value
-U8 saveAndDisableInterrupts(void) {
+uint8_t saveAndDisableInterrupts(void) {
 	asm {
 		tpa
 		sei
@@ -778,7 +786,7 @@ U8 saveAndDisableInterrupts(void) {
 //! @param mask - interrupt mask to use
 //!
 #pragma MESSAGE DISABLE C5703 // Ignore unused parameter
-void setInterrupts(U8 mask) {
+void setInterrupts(uint8_t mask) {
    asm {
 	   sei
 	   bit #0x08 // Check if I is to be set
@@ -795,70 +803,74 @@ void setInterrupts(U8 mask) {
  * @param bufSize - Size of data to transfer
  * @param bufPtr  - Buffer for data
  */
-static void ep1StartOutTransaction( U8 bufSize, U8 *bufPtr ) {
+static void ep1StartRxTransaction( uint8_t bufSize, uint8_t *bufPtr ) {
    ep1State.dataRemaining  = bufSize; // Total bytes to Rx
    ep1State.dataCount      = 0;       // Reset count of bytes so far
    ep1State.dataPtr        = bufPtr;  // Where to (eventually) place data
-   
+
    epHardwareState[1].state = EPDataOut;    // Assume first of several data pkts
 
-   ep1InitialiseBDTOut(); // Configure the BDT for transfer
+   ep1InitialiseBdtRx(); // Configure the BDT for transfer
 }
 
 //======================================================================
 // Configure the BDT for EP2 In [Tx, device -> host]
 //
-static void ep2InitialiseBDTIn( void ) {
-U16 size;
+static void ep2InitialiseBdtTx( void ) {
+   uint16_t size;
 
    size = ep2State.dataRemaining;
    if (size > ENDPT2MAXSIZE)
       size = ENDPT2MAXSIZE;
-   
+
    // Copy the Tx data to EP buffer
    (void) memcpy(ep2DataBuffer, ep2State.dataPtr, size);
-      
+
    ep2State.dataPtr         += size;  // Ptr to _next_ data
    ep2State.dataRemaining   -= size;  // Count of remaining bytes
    ep2State.dataCount       += size;  // Count of bytes so far
-   
+
    // Set up to Tx packet
-   ep2BDT.byteCount     = (U8)size;
-   if (epHardwareState[2].data0_1) 
+   ep2BDT.byteCount     = (uint8_t)size;
+   if (epHardwareState[2].data0_1) {
       ep2BDT.control.bits  = BDTEntry_OWN_MASK|BDTEntry_DATA1_MASK|BDTEntry_DTS_MASK;
-   else
+   }
+   else {
       ep2BDT.control.bits  = BDTEntry_OWN_MASK|BDTEntry_DATA0_MASK|BDTEntry_DTS_MASK;
+   }
 }
 
-static const U8 busyResponse[] = {BDM_RC_BUSY,1,2,3};	
-static U8 commandBusyFlag = FALSE;
+static const uint8_t busyResponse[] = {BDM_RC_BUSY,1,2,3};
+static uint8_t commandBusyFlag = FALSE;
 
 //======================================================================
 // Configure EP2 for an IN transaction [Tx, device -> host, DATA0/1]
 //
-static void ep2StartInTransaction( U8 bufSize, const U8 *bufPtr ) {
+static void ep2StartTxTransaction( uint8_t bufSize, const uint8_t *bufPtr ) {
 
-   ep2State.dataPtr            = (U8*)bufPtr;   // Ptr to _next_ data
-   ep2State.dataRemaining      = bufSize;       // Count of remaining bytes
-   ep2State.dataCount          = 0;             // Reset count of bytes so far
-   
-   // Note - Always terminates transfers with a truncated/zero pkt
-   if (bufSize < ENDPT2MAXSIZE)    // Undersize pkt OR
-      epHardwareState[2].state = EPLastIn;    // Sending one and only pkt
-   else 
-      epHardwareState[2].state = EPDataIn;    // Sending first of several pkts
-      
-   ep2InitialiseBDTIn(); // Configure the BDT for transfer
+   ep2State.dataPtr            = (uint8_t*)bufPtr;    // Pointer to _next_ data
+   ep2State.dataRemaining      = bufSize;             // Count of remaining bytes
+   ep2State.dataCount          = 0;                   // Reset count of bytes so far
+
+   // Note - Always terminate transfers with a truncated/zero packet
+   if (bufSize < ENDPT2MAXSIZE) {             // Undersize packet OR
+      epHardwareState[2].state = EPLastIn;    // Sending one and only packet
+   }
+   else {
+      epHardwareState[2].state = EPDataIn;    // Sending first of several packets
+   }
+   ep2InitialiseBdtTx(); // Configure the BDT for transfer
 }
+
 
 //! Set BDM busy flag
 //!
 void setBDMBusy(void) {
 	disableInterrupts();
-	commandBusyFlag = TRUE;
-	if (epHardwareState[2].state == EPIdle) {
-        ep2StartInTransaction(sizeof(busyResponse), busyResponse);
-	}
+    commandBusyFlag = TRUE;
+    if (epHardwareState[2].state == EPIdle) {
+       ep2StartTxTransaction(sizeof(busyResponse), busyResponse);
+    }
 	enableInterrupts();
 }
 
@@ -866,51 +878,54 @@ void setBDMBusy(void) {
 //======================================================================
 // Configure EP3 for an IN transaction [Tx, device -> host, DATA0/1]
 //
-static void ep3StartInTransaction( void ) {
+static void ep3StartTxTransaction( void ) {
    const CDCNotification cdcNotification= {CDC_NOTIFICATION, SERIAL_STATE, 0, RT_INTERFACE, CONST_NATIVE_TO_LE16(2)};
    uint8_t status = getSerialState();
-   
+
    if ((status & SERIAL_STATE_CHANGE) == 0) {
       epHardwareState[3].state = EPIdle; // Not busy
       return;
    }
-
    // Copy the Tx data to Tx buffer
-   ( void )memcpy(ep3DataBuffer, &cdcNotification, sizeof(cdcNotification));
+   (void)memcpy(ep3DataBuffer, &cdcNotification, sizeof(cdcNotification));
    ep3DataBuffer[sizeof(cdcNotification)+0] = status&~SERIAL_STATE_CHANGE;
    ep3DataBuffer[sizeof(cdcNotification)+1] = 0;
-   
+
    // Set up to Tx packet
    ep3BDT.byteCount     = sizeof(cdcNotification)+2;
-   if (epHardwareState[3].data0_1) 
+   if (epHardwareState[3].data0_1) {
 	  ep3BDT.control.bits  = BDTEntry_OWN_MASK|BDTEntry_DATA1_MASK|BDTEntry_DTS_MASK;
-   else
+   }
+   else {
 	  ep3BDT.control.bits  = BDTEntry_OWN_MASK|BDTEntry_DATA0_MASK|BDTEntry_DTS_MASK;
+   }
    epHardwareState[3].state = EPLastIn;    // Sending one and only pkt
 }
 
 //======================================================================
 // Configure the BDT for EP4 Out [Rx, device <- host, DATA0/1]
 // CDC - OUT
-static void ep4InitialiseBDTOut( void ) {
+static void ep4InitialiseBdtRx( void ) {
 
    // Set up to Rx packet
-   ep4BDT.byteCount   = (U8)ENDPT4MAXSIZE;
-   if (epHardwareState[4].data0_1) 
+   ep4BDT.byteCount   = (uint8_t)ENDPT4MAXSIZE;
+   if (epHardwareState[4].data0_1) {
       ep4BDT.control.bits  = BDTEntry_OWN_MASK|BDTEntry_DATA1_MASK|BDTEntry_DTS_MASK;
-   else
+   }
+   else {
       ep4BDT.control.bits  = BDTEntry_OWN_MASK|BDTEntry_DATA0_MASK|BDTEntry_DTS_MASK;
+   }
 }
 
 //=========================================================================
 // Save the data from an EP4 OUT pkt
 // CDC - OUT
-static void ep4SaveOutData( void ) {
-U8 size; 
+static void ep4SaveRxData( void ) {
+   uint8_t size;
 
    size = ep4BDT.byteCount;
    (void)putTxBuffer((uint8_t*)ep4DataBuffer, size);
-   
+
    // Toggle on successful reception
    epHardwareState[4].data0_1 = !epHardwareState[4].data0_1;
 }
@@ -918,7 +933,7 @@ U8 size;
 //======================================================================
 // Configure the BDT for EP5 In [Tx, device -> host]
 // CDC - IN
-static void ep5InitialiseBDTIn(void) {
+static void ep5InitialiseBdtTx(void) {
 //	uint8_t controlValue;
 //	if (epHardwareState[5].data0_1 == DATA0) {
 //		controlValue = BDTEntry_OWN_MASK|BDTEntry_DATA0_MASK|BDTEntry_DTS_MASK;
@@ -927,22 +942,22 @@ static void ep5InitialiseBDTIn(void) {
 //		controlValue = BDTEntry_OWN_MASK|BDTEntry_DATA1_MASK|BDTEntry_DTS_MASK;
 //	}
    if (epHardwareState[5].odd) {
-	   // Set to write to other buffer & get count in current buffer
-	   ep5BDTOdd.byteCount     = setRxBuffer((uint8_t*)ep5DataBuffer0);
-//	   ep5DataBuffer1[0]       = '|';
-	   ep5BDTOdd.control.bits  = BDTEntry_OWN_MASK|BDTEntry_DATA1_MASK;
+      // Set to write to other buffer & get count in current buffer
+	  ep5BDTOdd.byteCount     = setRxBuffer((uint8_t*)ep5DataBuffer0);
+//	  ep5DataBuffer1[0]       = '|';
+	  ep5BDTOdd.control.bits  = BDTEntry_OWN_MASK|BDTEntry_DATA1_MASK;
    }
    else {
-	   // Set to write to other buffer & get count in current buffer
-	   ep5BDTEven.byteCount    = setRxBuffer((uint8_t*)ep5DataBuffer1);
-//	   ep5DataBuffer0[0]       = '^';
-	   ep5BDTEven.control.bits = BDTEntry_OWN_MASK|BDTEntry_DATA0_MASK;
+      // Set to write to other buffer & get count in current buffer
+	  ep5BDTEven.byteCount    = setRxBuffer((uint8_t*)ep5DataBuffer1);
+//       ep5DataBuffer0[0]       = '^';
+	  ep5BDTEven.control.bits = BDTEntry_OWN_MASK|BDTEntry_DATA0_MASK;
    }
 //   epHardwareState[5].data0_1 = !epHardwareState[5].data0_1; // Toggle data0/1
    epHardwareState[5].odd     = !epHardwareState[5].odd;
 }
 
-static U8 serialDelayCount = 0;
+static uint8_t serialDelayCount = 0;
 
 // This value controls how long the serial interface will wait before
 // sending a buffered character. (count of SOFs ~ ms)
@@ -951,32 +966,32 @@ static U8 serialDelayCount = 0;
 //======================================================================
 // Configure the BDT for EP5 In [Tx, device -> host]
 // CDC - IN
-static void ep5StartInTransactionIfIdle() {
+static void ep5StartTxTransactionIfIdle() {
 #if 0
 	if ((epHardwareState[5].state == EPIdle) && (rxBufferItems()>0)) {
-		ep5InitialiseBDTIn();
-		epHardwareState[5].state = EPLastIn;
-		serialDelayCount = 0;
-	}
+      ep5InitialiseBdtTx();
+      epHardwareState[5].state = EPLastIn;
+      serialDelayCount = 0;
+   }
 	else if ((epHardwareState[5].state == EPLastIn) && (rxBufferItems()==16)) {
-		ep5InitialiseBDTIn();
-		epHardwareState[5].state = EPDataIn;
-		serialDelayCount = 0;
-	}
+      ep5InitialiseBdtTx();
+      epHardwareState[5].state = EPDataIn;
+      serialDelayCount = 0;
+   }
 #else
 	if ((epHardwareState[5].state == EPIdle) && (rxBufferItems()>0)) {
 #if (DEBUG&USB_PING_DEBUG)
 		DEBUG_PIN = 0;
 #endif
-		ep5InitialiseBDTIn();
-		epHardwareState[5].state = EPDataIn;
-		serialDelayCount = 0;
-	}
+      ep5InitialiseBdtTx();
+      epHardwareState[5].state = EPDataIn;
+      serialDelayCount = 0;
+   }
 #endif
 }
 
 void checkUsbCdcRxData(void) {
-	ep5StartInTransactionIfIdle();
+    ep5StartTxTransactionIfIdle();
 }
 #endif
 
@@ -987,14 +1002,14 @@ void checkUsbCdcRxData(void) {
 //! @param buffer   = ptr to buffer for bytes received
 //!
 //! @note : Doesn't return until command has been received.
-//! @note : Format 
-//! 	- [0]    = size of command (N)
-//! 	- [1]    = command
-//! 	- [2..N] = parameters
+//! @note : Format
+//!     - [0]    = size of command (N)
+//!     - [1]    = command
+//!     - [2..N] = parameters
 //!
 //! =======================================================
 //! Format - a command is made up of up to 2 pkts
-//! The size of the 1st pkt indicates if subsequent pkts 
+//! The size of the 1st pkt indicates if subsequent pkts
 //! are used.
 //!
 //!  1st pkt
@@ -1009,59 +1024,59 @@ void checkUsbCdcRxData(void) {
 //! +--------------------------+
 //!  2nd pkt (optional)
 //! +--------------------------+
-//! |  0                       |  0 - Ensures pkt can't be mistaken as 1st pkt 
+//! |  0                       |  0 - Ensures pkt can't be mistaken as 1st pkt
 //! +--------------------------+
 //! |                          |  1... up to ENDPT1MAXSIZE-1
-//! | //// DATA ////////////// |  
+//! | //// DATA ////////////// |
 //! |                          |
 //! +--------------------------+
-void receiveUSBCommand(U8 maxSize, U8 *buffer) {
-U8 size;
+void receiveUSBCommand(uint8_t maxSize, uint8_t *buffer) {
+   uint8_t size;
 	enableInterrupts();
    // Size of first (command) transaction
    do {
-      size = ENDPT1MAXSIZE;   
-      if (size > maxSize)
+      size = ENDPT1MAXSIZE;
+      if (size > maxSize) {
          size = maxSize;
-	   
-	  // Get 1st/only pkt of command
+      }
+      // Get 1st/only pkt of command
       reInit = FALSE;
-	  ep1StartOutTransaction( size, buffer );
+      ep1StartRxTransaction( size, buffer );
       while ((epHardwareState[1].state != EPComplete) && !reInit) {
          wait();
       }
       if (reInit) {
          continue;
       }
-      // Size for entire command from 1st pkt 
-      size = buffer[0];  
+      // Size for entire command from 1st pkt
+      size = buffer[0];
       if (size > maxSize) {
          size = maxSize;
       }
       if (size == 0) {
-    	  // Invalid pkt - try again
-    	  // 0 indicates this is not an initial command pkt
-    	  // but part of a longer command
-    	  reInit = TRUE;
-    	  continue;
+          // Invalid pkt - try again
+          // 0 indicates this is not an initial command pkt
+          // but part of a longer command
+          reInit = TRUE;
+          continue;
       }
       // Receive rest of data if present (only possibly 2 transactions total)
       if (size > ep1State.dataCount) {
-    	 // Save last byte of 1st pkt as overwritten by
-    	 // second pkt (to save moving 2nd pkt when size is discarded)
-     	 U8 saveByteOffset = ep1State.dataCount-1;   
-    	 U8 saveByte       = buffer[saveByteOffset];
-         ep1StartOutTransaction( size-saveByteOffset, buffer+saveByteOffset );
+         // Save last byte of 1st pkt as overwritten by
+         // second pkt (to save moving 2nd pkt when size is discarded)
+         uint8_t saveByteOffset = ep1State.dataCount-1;
+         uint8_t saveByte       = buffer[saveByteOffset];
+         ep1StartRxTransaction( size-saveByteOffset, buffer+saveByteOffset );
          while ((epHardwareState[1].state != EPComplete) && !reInit) {
             wait();
          }
          // Check if second pkt has correct marker
          if (buffer[saveByteOffset] != 0) {
-        	// packet corrupt
-        	reInit = TRUE;
+            // packet corrupt
+            reInit = TRUE;
          }
          // Restore saved byte
-    	 buffer[saveByteOffset] = saveByte;
+         buffer[saveByteOffset] = saveByte;
       }
    } while (reInit);
 }
@@ -1074,18 +1089,18 @@ U8 size;
 //!
 //! @note : Returns before the command has been sent.
 //!
-//! @note : Format 
-//! 	- [0]    = response
-//! 	- [1..N] = parameters
+//! @note : Format
+//!     - [0]    = response
+//!     - [1..N] = parameters
 //!
-void sendUSBResponse( U8 size, const U8 *buffer) {
-   disableInterrupts();
+void sendUSBResponse( uint8_t size, const uint8_t *buffer) {
+//   disableInterrupts();
    commandBusyFlag = FALSE;
    while (epHardwareState[2].state != EPIdle) {
       wait();
    }
-   enableInterrupts();
-   ep2StartInTransaction(size, buffer);
+//   enableInterrupts();
+   ep2StartTxTransaction(size, buffer);
 }
 
 //======================================================================
@@ -1102,7 +1117,7 @@ EPCTL0STR EPCTL[7] @0x0000009D;
 //!
 //! @param epNum - endpoint number
 //!
-static void epStall(U8 epNum) {
+static void epStall(uint8_t epNum) {
    if (epNum == 0) {
       // EP0 just stalls the IN direction
       ep0BDTIn.control.bits  = BDTEntry_OWN_MASK|BDTEntry_BDTSTALL_MASK|BDTEntry_DTS_MASK;
@@ -1111,15 +1126,15 @@ static void epStall(U8 epNum) {
       // EPn stall entire endpoint
       EPCTL[epNum].Bits.EPSTALL         = 1;
    }
-   epHardwareState[epNum].state         = EPStall;
-   epHardwareState[epNum].data0_1       = DATA0;
+      epHardwareState[epNum].state    = EPStall;
+      epHardwareState[epNum].data0_1  = DATA0;
 }
 
 //! Clear Stall on endpoint
 //!
 //! @param epNum - endpoint number
 //!
-static void epClearStall(U8 epNum) {
+static void epClearStall(uint8_t epNum) {
    EPCTL[epNum].Bits.EPSTALL            = 0; 
    if (epNum == 0) {								// v4.7
       ep0BDTIn.control.bits  = 0;                   // v4.7
@@ -1138,67 +1153,34 @@ static void epClearStall(U8 epNum) {
 #endif
 }
 
-//========================================================================================
-//
-static void setUSBdefaultState( void ) {
-   GREEN_LED_OFF();
-   deviceState.state                = USBdefault;
-   ADDR                             = 0;
-   deviceState.configuration        = 0;
-   deviceState.interfaceAltSetting  = 0; 
-}
-
-static void setUSBaddressedState( U8 address ) {
-   if (address == 0) // Unaddress??
-      setUSBdefaultState();
-   else {
-      GREEN_LED_OFF();
-      deviceState.state                = USBaddressed;
-      ADDR                             = address;
-      deviceState.configuration        = 0;
-      deviceState.interfaceAltSetting  = 0; 
-   }
-}
-
-static void setUSBconfiguredState( U8 config ){
-   if (config == 0) // unconfigure
-      setUSBaddressedState(ADDR);
-   else {
-      GREEN_LED_ON();
-      deviceState.state                = USBconfigured;
-      deviceState.configuration        = config;
-      deviceState.interfaceAltSetting  = otherDescriptors.interfaceDescriptor0.bAlternateSetting; // ToDo check
-   }
-}
-
 //======================================================================
 // (re)Initialises end-points other than EP0
 //
 static void initialiseEndpoints(void) {
-	
+
+   //(void)memset(&EPCTL[1], 0, 20); // Disable endpoints
+
    (void)memset(&EPCTL[1], 0, sizeof(EPCTL)-sizeof(EPCTL[0])); // Disable endpoints
    (void)memset(&usbRamArea.bdts[2], 0, sizeof(usbRamArea.bdts)-2*sizeof(usbRamArea.bdts[0])); // Clear BDTS so no pkts accepted
 
    initEndpointBuffers();
    
    epClearStall(1);  reInit = TRUE;
-
    epClearStall(2);
 
 #if (HW_CAPABILITY&CAP_CDC)
    epClearStall(3);
    epClearStall(4);
-   epClearStall(5);   
+   epClearStall(5);
 #endif
 
 #if (HW_CAPABILITY&CAP_CDC)
-   //ToDo - check is sensible on re-init????
-   ep3StartInTransaction();	    // Interrupt pipe IN - status
-   ep4InitialiseBDTOut();         // Tx pipe OUT
+   ep3StartTxTransaction();       // Interrupt pipe IN - status
+   ep4InitialiseBdtRx();          // Tx pipe OUT
    CTL_ODDRST = 1;
    CTL_ODDRST = 0;
    epHardwareState[5].odd = 0;
-   ep5StartInTransactionIfIdle(); // Rx pipe IN
+   ep5StartTxTransactionIfIdle(); // Rx pipe IN
 #endif
    
    EPCTL1  = EPCTL1_EPRXEN_MASK|                   EPCTL1_EPHSHK_MASK; // OUT
@@ -1210,16 +1192,49 @@ static void initialiseEndpoints(void) {
 #endif
 }
 
+//========================================================================================
+//
+static void setUSBdefaultState( void ) {
+   GREEN_LED_OFF();
+   deviceState.state                = USBdefault;
+   ADDR                             = 0;
+   deviceState.configuration        = 0;
+   deviceState.interfaceAltSetting  = 0;
+}
+
+static void setUSBaddressedState( uint8_t address ) {
+   if (address == 0) { // Unaddress??
+      setUSBdefaultState();
+   }
+   else {
+      GREEN_LED_OFF();
+      deviceState.state                = USBaddressed;
+      ADDR                             = address;
+      deviceState.configuration        = 0;
+      deviceState.interfaceAltSetting  = 0;
+   }
+}
+
+static void setUSBconfiguredState( uint8_t config ){
+   if (config == 0) { // unconfigure
+      setUSBaddressedState(ADDR);
+   }
+   else {
+      GREEN_LED_ON();
+      deviceState.state                = USBconfigured;
+      deviceState.configuration        = config;
+      deviceState.interfaceAltSetting  = 0;
+   }
+}
+
 //==================================================================
 // Handler for USB Bus reset
-// 
-static void handleUSBReset( void ) {
+//
+static void handleUSBReset(void) {
    ERRSTAT = 0xFF;                 // Clear USB error flags
    
    // Clear all USB interrupt flags
-   INTSTAT = INTSTAT_STALLF_MASK|INTSTAT_RESUMEF_MASK|INTSTAT_SLEEPF_MASK| 
-             INTSTAT_TOKDNEF_MASK|INTSTAT_SOFTOKF_MASK|INTSTAT_ERRORF_MASK|
-             INTSTAT_USBRSTF_MASK;
+   INTSTAT = 0xFF;
 
    ERRENB  = 0x00;                 // Disable all USB error interrupt sources
 
@@ -1234,9 +1249,10 @@ static void handleUSBReset( void ) {
    ep0ConfigureSetupTransaction(); // re-initialise EP0 OUT // v4.7
 }
 
-
 //======================================================================
 //! Initialise the USB interface
+//!
+//! @note Assumes clock set up for USB operation (48MHz)
 //!
 void initUSB( void ) {
 
@@ -1282,53 +1298,55 @@ void initUSB( void ) {
 
 //===============================================================================
 // Get Status - Device Req 0x00
-//       
+//
 static void handleGetStatus( void ) {
-static const U8 zeroReturn[] = {0,0};
-static const EPStatus epStatusStalled = {1,0,0};
-static const EPStatus epStatusOK      = {0,0,0};
+   static const uint8_t zeroReturn[] = {0,0};
+   static const EPStatus epStatusStalled = {1,0,0};
+   static const EPStatus epStatusOK      = {0,0,0};
 
-const U8 *dataPtr = NULL;
-U8 size;
+   const uint8_t *dataPtr = NULL;
+   uint8_t size;
+   uint8_t epNum;
 
    //dprint("hGS()");
    switch(ep0SetupBuffer.bmRequestType) {
       case (EP_IN|RT_DEVICE) : // Device Status
-    	 dataPtr = (U8 *) &deviceState.status;
+         dataPtr = (uint8_t *) &deviceState.status;
          size    = sizeof(deviceState.status);
          break;
       case (EP_IN|RT_INTERFACE) : // Interface Status - reserved
-    	 dataPtr = zeroReturn;
+         dataPtr = zeroReturn;
          size = sizeof(zeroReturn);
          break;
-      case (EP_IN|RT_ENDPOINT) : { // Endpoint Status
-    	 U8 epNum = ep0SetupBuffer.wIndex.word&0x07;
-    	 if (epNum <= NUMBER_OF_EPS) {
-            if (EPCTL[epNum].Bits.EPSTALL)
-               dataPtr = (U8*)&epStatusStalled;
-            else
-               dataPtr = (U8*)&epStatusOK;
-//    	    dataPtr = (U8 *) &epHardwareState[epNum].status;
+      case (EP_IN|RT_ENDPOINT) : // Endpoint Status
+         epNum = ep0SetupBuffer.wIndex.word&0x07;
+         if (epNum <= NUMBER_OF_EPS) {
+            if (EPCTL[epNum].Bits.EPSTALL)  {
+               dataPtr = (uint8_t*)&epStatusStalled;
+            }
+            else {
+               dataPtr = (uint8_t*)&epStatusOK;
+            }
+//            dataPtr = (uint8_t *) &epHardwareState[epNum].status;
             size = sizeof(EPStatus);
-    	    }
          }
-    	 break;
-      }
+         break;
+   }
    if (dataPtr != NULL)
-      ep0StartInTransaction( size, dataPtr, DATA1 );
+      ep0StartTxTransaction( size, dataPtr, DATA1 );
    else
       epStall(0);
-}    
+}
 
 //===============================================================================
 // Clear Feature - Device Req 0x01
-//       
+//
 static void handleClearFeature( void ) {
-int okStatus = 0;
+   int okStatus = 0;
 
    switch(ep0SetupBuffer.bmRequestType) {
       case (RT_DEVICE) : // Device Feature
-         if ((ep0SetupBuffer.wValue.word != DEVICE_REMOTE_WAKEUP) || // Device remote wakeup
+         if ((ep0SetupBuffer.wValue.word != DEVICE_REMOTE_WAKEUP) || // Device remote wake up
              (ep0SetupBuffer.wIndex.word != 0))   {                  // Device index must be 0
             break;
             }
@@ -1340,13 +1358,11 @@ int okStatus = 0;
          break;
 
       case (RT_ENDPOINT) : { // Endpoint Feature ( Out,Standard,Endpoint )
-      	 U8 epNum = ep0SetupBuffer.wIndex.word&0x07;
+         uint8_t epNum = ep0SetupBuffer.wIndex.word&0x07;
          if ((ep0SetupBuffer.wValue.word != ENDPOINT_HALT) || // Not Endpoint Stall ?
              (epNum >= NUMBER_OF_EPS))                        // or illegal EP# (ignores direction)
             break;
          epClearStall(epNum);
-//         if (epNum == 1)
-//        	 reInit = TRUE;
          okStatus = 1;
          }
          break;
@@ -1356,14 +1372,14 @@ int okStatus = 0;
       }
 
    if (okStatus)
-      ep0StartInTransaction( 0, NULL, DATA1 ); // Tx empty Status packet
+      ep0StartTxTransaction( 0, NULL, DATA1 ); // Tx empty Status packet
    else
       epStall(0);
 }
 
 //===============================================================================
 // Set Feature - Device Req 0x03
-//       
+//
 static void handleSetFeature( void ) {
 int okStatus = 0;
 
@@ -1381,10 +1397,11 @@ int okStatus = 0;
          break;
 
       case (RT_ENDPOINT) : { // Endpoint Feature ( Out,Standard,Endpoint )
-      	 U8 epNum = ep0SetupBuffer.wIndex.word&0x07;
+         uint8_t epNum = ep0SetupBuffer.wIndex.word&0x07;
          if ((ep0SetupBuffer.wValue.word != ENDPOINT_HALT) || // Not Endpoint Stall ?
-             (epNum >= NUMBER_OF_EPS))                        // or illegal EP# (ignores direction)
+             (epNum >= NUMBER_OF_EPS))  {                     // or illegal EP# (ignores direction)
             break;
+         }
          epStall(epNum);
          okStatus = 1;
          }
@@ -1393,11 +1410,13 @@ int okStatus = 0;
       default : // Illegal
          break;
       }
-      
-   if (okStatus)
-      ep0StartInTransaction( 0, NULL, DATA1 ); // Tx empty Status packet
-   else
+
+   if (okStatus) {
+      ep0StartTxTransaction( 0, NULL, DATA1 ); // Tx empty Status packet
+   }
+   else {
       epStall(0);
+   }
 }
 
 //===============================================================================
@@ -1409,27 +1428,27 @@ int okStatus = 0;
 //!
 //! @note Only handles UTF-16 characters that fit in a single UTF-16 'character'.
 //!
-static void utf8ToStringDescriptor(const U8 *source, U8 *dest) {
-U8 *size = dest; // 1st byte is where to place descriptor size
+static void utf8ToStringDescriptor(const uint8_t *source, uint8_t *dest) {
+uint8_t *size = dest; // 1st byte is where to place descriptor size
 
     *dest++ = 2;         // 1st byte = descriptor size (2 bytes so far)
     *dest++ = DT_STRING; // 2nd byte = DT_STRING;
-    
+
     while (*source != '\0') {
-       U16 utf16Char;
+       uint16_t utf16Char;
        *size  += 2;         // Update size
        if (*source < 0x80) {  // 1-byte
           utf16Char = *source++;
        }
        else if ((*source &0xE0) == 0xC0){   // 2-byte
-          utf16Char  = (0x1F&*source++)<<6; 
+          utf16Char  = (0x1F&*source++)<<6;
           utf16Char += (0x3F&*source++);
-       } 
+       }
        else if ((*source &0xF0) == 0xE0){   // 3-byte
-          utf16Char  = (0x0F&*source++)<<12; 
-          utf16Char += (0x3F&*source++)<<6; 
+          utf16Char  = (0x0F&*source++)<<12;
+          utf16Char += (0x3F&*source++)<<6;
           utf16Char += (0x3F&*source++);
-       } 
+       }
        *dest++ = (char)utf16Char;       // Copy 16-bit UTF-16 value
        *dest++ = (char)(utf16Char>>8);  // in little-endian order
     }
@@ -1437,11 +1456,11 @@ U8 *size = dest; // 1st byte is where to place descriptor size
 
 //===============================================================================
 // Get Descriptor - Device Req 0x06
-//       
+//
 static void handleGetDescriptor( void ) {
-U8          descriptorIndex = ep0SetupBuffer.wValue.be.lo;
-int         dataSize = 0;
-const U8   *dataPtr = NULL;
+   uint8_t         descriptorIndex = ep0SetupBuffer.wValue.be.lo;
+   int             dataSize = 0;
+   const uint8_t  *dataPtr = NULL;
 
    if (ep0SetupBuffer.bmRequestType != (EP_IN|RT_DEVICE)) {// In,Standard,Device
       epStall(0);
@@ -1449,59 +1468,64 @@ const U8   *dataPtr = NULL;
    }
    switch (ep0SetupBuffer.wValue.be.hi) {
 
-      case DT_DEVICE: // Get Device Desc. - 1
-         dataPtr  = (U8 *) &deviceDescriptor;
+      case DT_DEVICE: // Get Device Descriptor - 1
+         dataPtr  = (uint8_t *) &deviceDescriptor;
          dataSize = sizeof(DeviceDescriptor);
          break;
-      case DT_CONFIGURATION: // Get Configuration Desc. - 2
+      case DT_CONFIGURATION: // Get Configuration Descriptor - 2
          //dprint("hGDconf()\r\n");
          if (ep0SetupBuffer.wValue.be.lo != 0) {
             epStall(0);
             return;
          }
-         dataPtr  = (U8 *) &otherDescriptors;
+         dataPtr  = (uint8_t *) &otherDescriptors;
          dataSize = sizeof(otherDescriptors);
          break;
-      case DT_DEVICEQUALIFIER: // Get Device Qualifier Descr.
+      case DT_DEVICEQUALIFIER: // Get Device Qualifier Descriptor
          epStall(0);
          return;
       case DT_STRING: // Get String Desc.- 3
-#ifdef MS_COMPATIBLE_ID_FEATURE    	  
-    	 if (descriptorIndex == 0xEE) {
-    		 dataPtr  = OS_StringDescriptor;
-    	 }
-    	 else
-#endif    		 
+#ifdef MS_COMPATIBLE_ID_FEATURE
+         if (descriptorIndex == 0xEE) {
+            dataPtr  = OS_StringDescriptor;
+            dataSize = *dataPtr;
+            break;
+         }
+#endif
          if (descriptorIndex >= sizeof(stringDescriptors)/sizeof(stringDescriptors[0])) {
-            epStall(0); // Illegal string index - stall
+            // Illegal string index - stall
+            epStall(0);
             return;
          }
-         if (descriptorIndex == 0) { // Language bytes
+         if (descriptorIndex == 0) {
+            // Language bytes
             dataPtr  = stringDescriptors[0];
-         } 
-         else { // Strings are stored in limited UTF-8 and need conversion
+         }
+         else {
+            // Strings are stored in limited UTF-8 and need conversion
             dataPtr = commandBuffer;
             utf8ToStringDescriptor(stringDescriptors[descriptorIndex], commandBuffer);
          }
          dataSize = *dataPtr;
          break;
-      default: // shouldn't happen
+      default:
+         // shouldn't happen
          epStall(0);
          return;
-      } // switch
-   ep0StartInTransaction( (U8)dataSize, dataPtr, DATA1 ); // Set up Tx
+   } // switch
+   ep0StartTxTransaction( (uint8_t)dataSize, dataPtr, DATA1 ); // Set up Tx
 }
 
 //===============================================================================
 // resetDevice Callback to execute after status transaction
-//       
+//
 static void resetDeviceCallback( void ) {
    forceICPReset();
 }
 
 //===============================================================================
-// SetDeviceAddress Callback to execute after status transaction
-//       
+// SetDeviceAddress Callback - executed after status transaction
+//
 static void setAddressCallback( void ) {
    //dprint("setACB()");
    if ((deviceState.state == USBdefault) && (deviceState.newUSBAddress != 0)) {
@@ -1514,7 +1538,7 @@ static void setAddressCallback( void ) {
 
 //===============================================================================
 // Set device Address - Device Req 0x05
-//       
+//
 static void handleSetAddress( void ) {
 
    if (ep0SetupBuffer.bmRequestType != (EP_OUT|RT_DEVICE)) {// Out,Standard,Device
@@ -1525,21 +1549,21 @@ static void handleSetAddress( void ) {
    // Save address for change after status transaction
    deviceState.newUSBAddress  = ep0SetupBuffer.wValue.be.lo; 
    ep0State.callback          = setAddressCallback;
-   
-   ep0StartInTransaction( 0, NULL, DATA1 ); // Tx empty Status packet
+
+   ep0StartTxTransaction( 0, NULL, DATA1 ); // Tx empty Status packet
 }
 
 //===============================================================================
 // Get Configuration - Device Req 0x08
-//       
+//
 static void handleGetConfiguration( void ) {
 
-   ep0StartInTransaction( 1, (U8 *) &deviceState.configuration, DATA1 );
+   ep0StartTxTransaction( 1, (uint8_t *) &deviceState.configuration, DATA1 );
 }
 
 //===============================================================================
 // Set Configuration - Device Req 0x09
-//       
+//
 static void handleSetConfiguration( void ) {
 
    //dprint("hSC()\r\n");
@@ -1548,40 +1572,34 @@ static void handleSetConfiguration( void ) {
         (ep0SetupBuffer.wValue.be.lo != otherDescriptors.configDescriptor.bConfigurationValue))) { 
       epStall(0);
       return;
-      }
+   }
    setUSBconfiguredState(ep0SetupBuffer.wValue.be.lo);
 
-   ep1InitialiseBDTOut();
-   initialiseEndpoints(); // ToDo Check this
+   initialiseEndpoints();
 
-   ep0StartInTransaction( 0, NULL, DATA1 ); // Tx empty Status packet
+   ep1InitialiseBdtRx();
+
+   ep0StartTxTransaction( 0, NULL, DATA1 ); // Tx empty Status packet
 }
 
 //===============================================================================
 // Get interface - Device Req 0x0A
-//       
+//
 static void handleGetInterface( void ) {
-U8 interfaceBuffer;
+   static const uint8_t interfaceAltSetting = 0;
 
    if ((ep0SetupBuffer.bmRequestType != (EP_IN|RT_INTERFACE)) || // NOT In,Standard,Interface
-       (ep0SetupBuffer.wLength.word != 1) ||                     // NOT correct length
-       (deviceState.state != USBaddressed)) {                    // NOT in addressed state
+       (ep0SetupBuffer.wLength.word != 1)) {                     // NOT correct length
       epStall(0); // Error
       return;
    }
-   // Only support one interface
-   if (ep0SetupBuffer.wValue.word != otherDescriptors.interfaceDescriptor0.bInterfaceNumber) {
-      epStall(0); // Error
-      return;
-   }
-   interfaceBuffer = (U8)deviceState.interfaceAltSetting;  // set up buffer for transfer
-   ep0StartInTransaction( sizeof(interfaceBuffer), (U8 *) &interfaceBuffer, DATA1 ); // Send packet
+   ep0StartTxTransaction( sizeof(interfaceAltSetting), (uint8_t *) &interfaceAltSetting, DATA1 ); // Send packet
 }
 
 #if (HW_CAPABILITY&CAP_CDC)
 //static void handleGetEncapsulatedCommand() {
 //   static const char dummy[] = "Hello there";
-//   
+//
 //   ep0StartInTransaction( sizeof(dummy), dummy, DATA1 ); // Send packet
 //}
 //
@@ -1592,7 +1610,7 @@ U8 interfaceBuffer;
 
 static void handleGetLineCoding() {
 
-   ep0StartInTransaction( sizeof(LineCodingStructure), (const U8*)sciGetLineCoding(), DATA1 ); // Send packet
+   ep0StartTxTransaction( sizeof(LineCodingStructure), (const uint8_t*)sciGetLineCoding(), DATA1 ); // Send packet
 }
 
 static void setLineCodingCallback( void ) {
@@ -1603,19 +1621,19 @@ static void handleSetLineCoding() {
 
    ep0State.callback          = setLineCodingCallback;
    // Don't use buffer - this requires sizeof(LineCodingStructure) < ENDPT0MAXSIZE
-   ep0StartOutTransaction(sizeof(LineCodingStructure), NULL, DATA1); 
+   ep0StartRxTransaction(sizeof(LineCodingStructure), NULL, DATA1);
 }
 
 static void handleSetControlLineState() {
 
    sciSetControlLineState(ep0SetupBuffer.wValue.le.lo);
-   ep0StartInTransaction( 0, NULL, DATA1 ); // Tx empty Status packet
+   ep0StartTxTransaction( 0, NULL, DATA1 ); // Tx empty Status packet
 }
 
 static void handleSendBreak() {
 
    sciSendBreak(ep0SetupBuffer.wValue.word);  // time in milliseconds, 0xFFFF => continuous
-   ep0StartInTransaction( 0, NULL, DATA1 );   // Tx empty Status packet
+   ep0StartTxTransaction( 0, NULL, DATA1 );   // Tx empty Status packet
 }
 #endif
 
@@ -1625,10 +1643,10 @@ static void handleSendBreak() {
 static void handleUnexpected( void ) {
    epStall(0);
 }
-  
+
 //===============================================================================
 // Handles SETUP Packet
-//       
+//
 static void handleSetupToken( void ) {
    // Save data from SETUP pkt
    ep0SetupBuffer = *(SetupPacket *)ep0OutDataBuffer;
@@ -1642,88 +1660,90 @@ static void handleSetupToken( void ) {
    SWAP16(ep0SetupBuffer.wIndex);
 
    switch(REQ_TYPE(ep0SetupBuffer.bmRequestType)) {
-	   case REQ_TYPE_STANDARD :
-		   // Standard device requests
-		   switch (ep0SetupBuffer.bRequest) {
-				case GET_STATUS :          handleGetStatus();			break;
-				case CLEAR_FEATURE :       handleClearFeature();		break;
-				case SET_FEATURE :         handleSetFeature();			break;
-				case SET_ADDRESS :         handleSetAddress();			break;
-				case GET_DESCRIPTOR :      handleGetDescriptor();		break;
-				case GET_CONFIGURATION :   handleGetConfiguration(); 	break;
-				case SET_CONFIGURATION :   handleSetConfiguration();	break;
-				case GET_INTERFACE :       handleGetInterface();		break;
-				case SET_DESCRIPTOR :
-				case SET_INTERFACE :
-				case SYNCH_FRAME :
-				default :                  handleUnexpected();			break;
-		   }
-		   break;
+   case REQ_TYPE_STANDARD :
+      // Standard device requests
+      switch (ep0SetupBuffer.bRequest) {
+      case GET_STATUS :          handleGetStatus();            break;
+      case CLEAR_FEATURE :       handleClearFeature();         break;
+      case SET_FEATURE :         handleSetFeature();           break;
+      case SET_ADDRESS :         handleSetAddress();           break;
+      case GET_DESCRIPTOR :      handleGetDescriptor();        break;
+      case GET_CONFIGURATION :   handleGetConfiguration();     break;
+      case SET_CONFIGURATION :   handleSetConfiguration();     break;
+      case GET_INTERFACE :       handleGetInterface();         break;
+      case SET_DESCRIPTOR :
+	  case SET_INTERFACE :
+      case SYNCH_FRAME :
+      default :                  handleUnexpected();           break;
+      }
+      break;
 
-	   case REQ_TYPE_CLASS :
-		   // Class requests
-		   switch (ep0SetupBuffer.bRequest) {
-#if (HW_CAPABILITY&CAP_CDC)		   
-//				case SEND_ENCAPSULATED_COMMAND : handleSendEncapsulatedCommand();	break;
-//				case GET_ENCAPSULATED_COMMAND :  handleGetEncapsulatedCommand();	break;
-				case SET_LINE_CODING :		 	 handleSetLineCoding();		      	break;
-				case GET_LINE_CODING :		 	 handleGetLineCoding();		  		break;
-				case SET_CONTROL_LINE_STATE: 	 handleSetControlLineState(); 		break;
-				case SEND_BREAK:             	 handleSendBreak();           		break;
-#endif		   
-				default :					 	 handleUnexpected();		  		break;
-		   }
-		   break;
+   case REQ_TYPE_CLASS :
+      // Class requests
+      switch (ep0SetupBuffer.bRequest) {
+#if (HW_CAPABILITY&CAP_CDC)
+//      case SEND_ENCAPSULATED_COMMAND : handleSendEncapsulatedCommand();    break;
+//      case GET_ENCAPSULATED_COMMAND :  handleGetEncapsulatedCommand();     break;
+      case SET_LINE_CODING :           handleSetLineCoding();              break;
+      case GET_LINE_CODING :           handleGetLineCoding();              break;
+      case SET_CONTROL_LINE_STATE:     handleSetControlLineState();        break;
+      case SEND_BREAK:                 handleSendBreak();                  break;
+#endif
+      default :                        handleUnexpected();              break;
+      }
+      break;
 
-	   case REQ_TYPE_VENDOR :
-		   // Handle special commands here
-		   reInit = TRUE;  // tell command handler to re-init
-		   switch (ep0SetupBuffer.bRequest) {
-	          case ICP_GET_VER : {
-			     U8 versionResponse[5];
-				 versionResponse[0] = BDM_RC_OK; 
-				 versionResponse[1] = VERSION_SW;      // BDM SW/HW version
-				 versionResponse[2] = VERSION_HW;
-				 versionResponse[3] = ICP_Version_SW;  // ICP SW/HW version
-				 versionResponse[4] = ICP_Version_HW;
-				 ep0StartInTransaction( sizeof(versionResponse),  versionResponse, DATA1 );
-				 }
-				 break;
-#ifdef MS_COMPATIBLE_ID_FEATURE    	  
-	          case VENDOR_CODE:	        	  
+   case REQ_TYPE_VENDOR :
+      // Handle special commands here
+      switch (ep0SetupBuffer.bRequest) {
+      case ICP_GET_VER : {
+         uint8_t versionResponse[5];
+         reInit = TRUE;  // tell command handler to re-init
+         versionResponse[0] = BDM_RC_OK;
+         versionResponse[1] = VERSION_SW;      // BDM SW version
+         versionResponse[2] = VERSION_HW;      // BDM HW version
+		 versionResponse[3] = ICP_Version_SW;  // ICP SW/HW version
+		 versionResponse[4] = ICP_Version_HW;
+         ep0StartTxTransaction( sizeof(versionResponse),  versionResponse, DATA1 );
+      }
+      break;
+
+#ifdef MS_COMPATIBLE_ID_FEATURE
+      case VENDOR_CODE :
                  // ToDo: The commented code should be used but seems to prevent the WCID process from completing!
                  //       Needs investigation & debugging to find reason
 //	        	 if (REQ_RECIPIENT(ep0SetupBuffer.bmRequestType) != REQ_RECIPIENT_DEVICE) {
 //		                handleUnexpected();
 //		             }
 //                 else 
-                 if ((ep0SetupBuffer.wIndex.word) == (0x0004)) { 
-					ep0StartInTransaction( sizeof(msCompatibleIdFeatureDescriptor),  (uint8_t *)&msCompatibleIdFeatureDescriptor, DATA1 );
-				 }
+         if (ep0SetupBuffer.wIndex.word == 0x0004) {
+            ep0StartTxTransaction(sizeof(msCompatibleIdFeatureDescriptor), (const uint8_t *)&msCompatibleIdFeatureDescriptor, DATA1);
+         }
 				 else {//if ((ep0SetupBuffer.wIndex.word) == (0x0005)) { 
-					ep0StartInTransaction( sizeof(msPropertiesFeatureDescriptor),  (uint8_t *)&msPropertiesFeatureDescriptor, DATA1 );
+					ep0StartTxTransaction( sizeof(msPropertiesFeatureDescriptor),  (uint8_t *)&msPropertiesFeatureDescriptor, DATA1 );
 				 }
 //	             else {
 //	                handleUnexpected();
 //	             }
-	        	 break;
+         break;
 #endif
-	          case CMD_USBDM_ICP_BOOT :
-	        	  // Reboots to ICP mode
-                  ep0State.callback = resetDeviceCallback;
-                  ep0StartInTransaction( 0, NULL, DATA1 ); // Tx empty Status packet
-	        	  break;   
-			  default :                 
-				  handleUnexpected();   
-				  break;
-		   }
-		   break;
 
-	   case REQ_TYPE_OTHER :
-		   handleUnexpected();
-		   break;
+      case CMD_USBDM_ICP_BOOT :
+         // Reboots to ICP mode
+         ep0State.callback = resetDeviceCallback;
+         ep0StartTxTransaction( 0, NULL, DATA1 ); // Tx empty Status packet
+         break;
+      default :
+         handleUnexpected();
+         break;
+      }
+      break;
+
+   case REQ_TYPE_OTHER :
+      handleUnexpected();
+      break;
    }
-   // Allow transactions post SETUP
+   // Allow transactions post SETUP pkt (clear TOKENBUSY)
    CTL = CTL_USBEN_MASK;
 }
 
@@ -1733,31 +1753,29 @@ static void handleSetupToken( void ) {
 
 //================
 // ep0 - IN
-// 
+//
 static void ep0HandleInToken( void ) {
 
    epHardwareState[0].data0_1 = !epHardwareState[0].data0_1;   // Toggle DATA0/1
-	
+
    switch (epHardwareState[0].state) {
       case EPDataIn:    // Doing a sequence of IN packets (until data count <= EPSIZE)
          if ((ep0State.dataRemaining < ENDPT0MAXSIZE) ||   // Undersize pkt OR
              ((ep0State.dataRemaining == ENDPT0MAXSIZE) && // Full size AND
-               !ep0State.shortInTransaction))              // Don't need to flag undersize transaction 
+               !ep0State.shortInTransaction))              // Don't need to flag undersize transaction
             epHardwareState[0].state = EPLastIn;    // Sending last pkt
-         else 
+         else
             epHardwareState[0].state = EPDataIn;    // Sending full pkt
-         ep0InitialiseBDTIn(); // Set up next IN pkt
+         ep0InitialiseBdtTx(); // Set up next IN pkt
          break;
-         
-      case EPLastIn:    
-	     // Just done the last IN packet
-//         ep0StartOutTransaction(0, NULL, DATA1);   // Do status Pkt reception //XXX
-//         ep0ConfigureSetupTransaction();
+
+      case EPLastIn:
+          // Just done the last IN packet
          epHardwareState[0].state = EPStatusOut;   // Receiving an OUT status pkt
          break;
-         
-      case EPStatusIn:  
-	     // Just done an IN packet as a status handshake for an OUT Data transfer
+
+      case EPStatusIn:
+         // Just done an IN packet as a status handshake for an OUT Data transfer
          epHardwareState[0].state = EPIdle;           // Now Idle
          if (ep0State.callback != NULL)
             ep0State.callback(); // Execute callback function to process OUT data
@@ -1775,23 +1793,22 @@ static void ep0HandleInToken( void ) {
 
 //================
 // ep0 - OUT
-// 
+//
 static void ep0HandleOutToken( void ) {
-U8 transferSize;
+uint8_t transferSize;
 
    epHardwareState[0].data0_1 = !epHardwareState[0].data0_1; // Toggle DATA0/1
 
    switch (epHardwareState[0].state) {
       case EPDataOut:        // Receiving a sequence of OUT packets
-         transferSize = ep0SaveOutData();          // Save the data from the Rx buffer
+         transferSize = ep0SaveRxData();          // Save the data from the Rx buffer
          // Check if completed an under-size pkt or expected number of bytes
          if ((transferSize < ENDPT0MAXSIZE) || (ep0State.dataRemaining == 0)) { // Last pkt?
-//            ep0ConfigureSetupTransaction(); //v4.10
             epHardwareState[0].state = EPIdle;
-            ep0StartInTransaction(0, NULL, DATA1); // Do status Pkt transmission
+            ep0StartTxTransaction(0, NULL, DATA1); // Do status Pkt transmission
             }
          else {
-            ep0InitialiseBDTOut(epHardwareState[0].data0_1); // Set up next OUT pkt
+            ep0InitialiseBdtRx(epHardwareState[0].data0_1); // Set up next OUT pkt
             }
          break;
 
@@ -1814,7 +1831,7 @@ U8 transferSize;
 
 //=================================================
 // ep0 - STALL completed - re-enable ep0 for SETUP
-// 
+//
 static void ep0HandleStallComplete( void ) {
    epClearStall(0);
    ep0ConfigureSetupTransaction(); // re-initialise EP0 OUT // v4.7
@@ -1822,23 +1839,24 @@ static void ep0HandleStallComplete( void ) {
 
 //===========================
 // ep1 - OUT (host->device)
-// 
+//
 static void ep1HandleOutToken( void ) {
-U8 transferSize;
+uint8_t transferSize;
 
    epHardwareState[1].data0_1 = !epHardwareState[1].data0_1;   // Toggle DATA0/1
-   
+
    switch (epHardwareState[1].state) {
       case EPDataOut:        // Doing a sequence of OUT packets making up a command
-         transferSize = ep1SaveOutData();          // Save the data from the Rx buffer
+         transferSize = ep1SaveRxData();          // Save the data from the Rx buffer
          // Completed transfer on undersize pkt or received expected number of bytes
          if ((transferSize < ENDPT1MAXSIZE) || (ep1State.dataRemaining == 0)) { // Last pkt?
             epHardwareState[1].state = EPComplete;
          }
-         else
-            ep1InitialiseBDTOut(); // Set up next OUT pkt
+         else {
+            ep1InitialiseBdtRx(); // Set up next OUT pkt
+         }
          break;
-       
+
          // We don't expect an OUT token while in the following states
       case EPIdle:           // Idle (Rx complete)
       case EPComplete:       // Command reception complete (Rx complete)
@@ -1852,27 +1870,31 @@ U8 transferSize;
 
 //================
 // ep2 - IN
-// 
+//
 static void ep2HandleInToken( void ) {
 
    epHardwareState[2].data0_1 = !epHardwareState[2].data0_1;   // Toggle DATA0/1 for next pkt
-   
+
    switch (epHardwareState[2].state) {
       case EPDataIn:    // Doing a sequence of IN packets (until data count <= EPSIZE)
-         if (ep2State.dataRemaining < ENDPT2MAXSIZE) 
+         if (ep2State.dataRemaining < ENDPT2MAXSIZE) {
             epHardwareState[2].state = EPLastIn;    // Sending last pkt (may be empty)
-         else 
+         }
+         else {
             epHardwareState[2].state = EPDataIn;    // Sending full pkt
-         ep2InitialiseBDTIn(); // Set up next IN pkt
+         }
+         ep2InitialiseBdtTx(); // Set up next IN pkt
          break;
-         
+
       case EPLastIn:    // Just done the last IN packet
-    	 if (commandBusyFlag)
-            ep2StartInTransaction(sizeof(busyResponse), busyResponse);
-    	 else
+         if (commandBusyFlag) {
+            ep2StartTxTransaction(sizeof(busyResponse), busyResponse);
+         }
+         else {
             epHardwareState[2].state = EPIdle;  // No more transactions expected
+         }
          break;
-         
+
       // We don't expect an IN token while in the following states
       case EPIdle:           // Idle (Tx complete)
       case EPDataOut:        // Doing a sequence of OUT packets (until data count <= EPSIZE)
@@ -1882,19 +1904,6 @@ static void ep2HandleInToken( void ) {
          break;
    }
 }
-
-//U8 rtcCount = 0;
-//#pragma TRAP_PROC
-//void rtcHandler(void) {
-//   RTCSC = RTCSC_RTIF_MASK|(2<<RTCSC_RTCLKS_BITNUM)|RTCSC_RTIE_MASK|(1<<RTCSC_RTCPS_BITNUM);
-//   if (rtcCount++ >1) {
-//      ep5StartInTransactionIfIdle();
-//      rtcCount = 0;
-//#if (DEBUG&USB_PING_DEBUG)
-//   DEBUG_PIN = 0;
-//#endif          
-//   }
-//}
 
 //==================================================================
 // Handler for Token Complete USB interrupt
@@ -1906,11 +1915,11 @@ static void ep2HandleInToken( void ) {
 // Handles ep4 [Out]
 // Handles ep5 [In]
 // 
-static void handleTokenComplete(U8 status) {
+static void handleTokenComplete(uint8_t status) {
    
-   U8 endPoint      = ((U8)status)>>4;             // Endpoint number
-   U8 directionIsIn = status&STAT_IN_MASK;         // Direction of T/F 0=>OUT, (!=0)=>IN
-   U8 isOddBuffer   = status&STAT_ODD_MASK;        // Odd/even buffer
+   uint8_t endPoint      = ((uint8_t)status)>>4;        // Endpoint number
+   uint8_t directionIsIn = status&STAT_IN_MASK;         // Direction of T/F 0=>OUT, (!=0)=>IN
+   uint8_t isOddBuffer   = status&STAT_ODD_MASK;        // Odd/even buffer
 
    switch (endPoint) {
 	   case 0: // Control - Accept IN, OUT or SETUP token
@@ -1926,42 +1935,42 @@ static void handleTokenComplete(U8 status) {
                 ep0HandleOutToken();
              }
              if (!doneEp0OutInit) {
-                ep0InitialiseBDTOut(DATA1);          // v4.10
+                ep0InitialiseBdtRx(DATA1);          // v4.10
              }
-		  }
-		  return;
-	   case 1: // USBDM BDM - Accept OUT token
+          }
+          return;
+       case 1: // USBDM BDM - Accept OUT token
           usbActivityFlag.flags.bdmActive = 1;
           ep1HandleOutToken();
-		  return;
-	   case 2: // USBDM BDM - Accept IN token
+          return;
+       case 2: // USBDM BDM - Accept IN token
           usbActivityFlag.flags.bdmActive = 1;
           ep2HandleInToken();
-		  return;
+          return;
 #if (HW_CAPABILITY&CAP_CDC)
-	   case 3: // USBDM CDC Control - Accept IN token
+       case 3: // USBDM CDC Control - Accept IN token
           epHardwareState[3].data0_1 = !epHardwareState[3].data0_1; // Toggle data0/1
-          ep3StartInTransaction();
-		  return;
-	   case 4: // USBDM CDC Data - Accept OUT token
-//		  usbActivityFlag.flags.serialOutActive = 1;
+          ep3StartTxTransaction();
+          return;
+       case 4: // USBDM CDC Data - Accept OUT token
+//          usbActivityFlag.flags.serialOutActive = 1;
           if (sciTxBufferFree()) {
-             ep4SaveOutData();
-             ep4InitialiseBDTOut();
+             ep4SaveRxData();
+             ep4InitialiseBdtRx();
           }
           else {
              //! Throttle endpoint - send NAKs
              epHardwareState[4].state = EPThrottle;
           }
-		  return;
-	   case 5:  // USBD CDC Data - Accept IN token		   
+          return;
+       case 5:  // USBD CDC Data - Accept IN token
 //           usbActivityFlag.flags.serialInActive = 1;
 #if 0
           if (epHardwareState[5].state == EPDataIn) {
              epHardwareState[5].state = EPLastIn;
           }
           else {
-        	  epHardwareState[5].state = EPIdle;
+              epHardwareState[5].state = EPIdle;
           }
 #else
 #if (DEBUG&USB_PING_DEBUG)
@@ -1971,7 +1980,7 @@ static void handleTokenComplete(U8 status) {
 //          RTCMOD = 0;
 //          rtcCount = 0;
 #endif
-//          ep5StartInTransactionIfIdle();
+//          ep5StartTxTransactionIfIdle();
           return;
 #endif
    }
@@ -1991,11 +2000,11 @@ static void handleSOFToken( void ) {
       switch (FRMNUMH&0x03) {
          case 0:
             if (deviceState.state == USBconfigured) {
-            	// Green LED on when USB connection established
+                // Green LED on when USB connection established
             	GREEN_LED_ON(); 
             }
             else {
-            	// Green LED off when no USB connection
+                // Green LED off when no USB connection
             	GREEN_LED_OFF(); 
             }
             break;
@@ -2004,45 +2013,46 @@ static void handleSOFToken( void ) {
             break;
          case 3:
          default :
-            if (usbActivityFlag.flags.bdmActive) { 
+            if (usbActivityFlag.flags.bdmActive) {
                // Green LED flashes on USB activity
                GREEN_LED_TOGGLE();
                usbActivityFlag.byte = 0;
             }
-            break;            
+            break;
          }
    }
 #if (HW_CAPABILITY&CAP_CDC)
    // Check if need to restart EP5 (CDC IN)
-   ep5StartInTransactionIfIdle();
+   ep5StartTxTransactionIfIdle();
 //   if (serialDelayCount++>SERIAL_THRESHOLD) {
 //     ep5StartInTransactionIfIdle();
 //   }
 #endif
 #if (HW_CAPABILITY&CAP_CDC) && 0
    // Check for need to restart idle EP3
-   ep3StartInTransactionIfIdle();
-#endif   
+   ep3StartTxTransactionIfIdle();
+#endif
 }
 #pragma MESSAGE DEFAULT C4003
 #if (HW_CAPABILITY&CAP_CDC)
 void checkUsbCdcTxData(void) {
    // Check if we need to unThrottle EP4
    if ((epHardwareState[4].state == EPThrottle) && sciTxBufferFree()) {
-	  ep4SaveOutData();        // Save data from last transfer
-	  ep4InitialiseBDTOut();   // Set up next transfer
-	  epHardwareState[4].state = EPDataOut;
+      ep4SaveRxData();        // Save data from last transfer
+      ep4InitialiseBdtRx();   // Set up next transfer
+      epHardwareState[4].state = EPDataOut;
    }
 }
 #endif
-//==================================================================
-// Handler for USB Suspend
-//
-// * Enables the USB module to wakeup the CPU 
-// * Stops the CPU
-// On wakeup
-// * Re-checks the USB after a small delay to avoid wakeups by noise
-//
+
+/*==========================================================================
+ * Handler for USB Suspend
+ *   - Enables the USB module to wake-up the CPU
+ *   - Stops the CPU
+ * On wake-up
+ *   - Re-checks the USB after a small delay to avoid wake-ups by noise
+ *   - The RESUME interrupt is left pending so the resume handler can execute
+ */
 static void handleUSBSuspend( void ) {
 
    INTSTAT_SLEEPF    = 1;   // Clear the sleep int flag                    
@@ -2076,7 +2086,7 @@ static void handleUSBSuspend( void ) {
 
 //==================================================================
 // Handler for USB Resume
-// 
+//
 // Disables further USB module wakeups
 static void handleUSBResume( void ) {
    INTENB_RESUME     = 0;              // Mask further resume ints
@@ -2084,13 +2094,13 @@ static void handleUSBResume( void ) {
    deviceState.state = USBconfigured;
 
    // Set up to receive setup packet
-   ep0ConfigureSetupTransaction(); // re-initialise EP0 OUT // v4.7
+   ep0ConfigureSetupTransaction();       // re-initialise EP0 OUT // v4.7
    // power up BDM interface?
 }
 
 //==================================================================
 // Handler for USB interrupt
-// 
+//
 // Determines source and dispatches to appropriate routine.
 //
 //interrupt //VectorNumber_Vusb 
@@ -2098,7 +2108,7 @@ static void handleUSBResume( void ) {
 //! Handler for USB interrupts
 static uint8_t stat; // Capture Token status 
 void USBInterruptHandler( void ) {
-//U8 interruptFlags;
+//uint8_t interruptFlags;
 
    while (INTSTAT != 0) {
       if ((INTSTAT&INTSTAT_TOKDNEF_MASK) != 0) { // Token complete int?
