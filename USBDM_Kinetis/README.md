@@ -1,0 +1,1 @@
+Firmware for Kinetis based BDM e.g. FRDM boards
