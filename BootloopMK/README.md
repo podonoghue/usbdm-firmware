@@ -1,0 +1,1 @@
+Simple Bootloop program to keep the target idle on a FRDM board being used as a programmer
