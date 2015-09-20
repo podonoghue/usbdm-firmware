@@ -36,37 +36,39 @@
 #define WAIT_MS(t) millisecondTimerWait((t))
 /*! \brief A Macro to wait for given time or until a condition is met
 
-    @param  t  Maximum time to wait in \e microseconds (<2700).
+    @param  t  Maximum time to wait in \e microseconds (<2700 us).
     @param  c  Condition to exit wait early
 */
 #define WAIT_WITH_TIMEOUT_US(t,c) {                         \
    TIMEOUT_TPMxCnVALUE  = TPMCNT+TIMER_MICROSECOND(t);      \
    TIMEOUT_TPMxCnSC_CHF = 0;                                \
-   while (!(c) && (TIMEOUT_TPMxCnSC_CHF==0)) {              \
+   while ((TIMEOUT_TPMxCnSC_CHF==0) && !(c)) {              \
    }                                                        \
 }
 /*! \brief A Macro to wait for given time or until a condition is met
 
-    @param  t  Maximum time to wait in \e milliseconds.
+    @param  t  Maximum time to wait in \e milliseconds (<650 ms).
     @param  c  Condition to exit wait early
+    @note  Condition is only checked every 10 microseconds
 */
 #define WAIT_WITH_TIMEOUT_MS(t,c) {                         \
-   int tt = t;                                              \
-   TIMEOUT_TPMxCnVALUE = TPMCNT+TIMER_MICROSECOND(1000);    \
+   unsigned tt = t*100;                                     \
+   TIMEOUT_TPMxCnVALUE = TPMCNT+TIMER_MICROSECOND(10);      \
    while (!(c) && (tt-->0)) {                               \
       TIMEOUT_TPMxCnSC_CHF = 0;                             \
       while (TIMEOUT_TPMxCnSC_CHF==0) {                     \
       }                                                     \
-      TIMEOUT_TPMxCnVALUE += TIMER_MICROSECOND(1000);       \
+      TIMEOUT_TPMxCnVALUE += TIMER_MICROSECOND(10);         \
    }                                                        \
 }
 /*! \brief A Macro to wait for given time or until a condition is met
 
     @param  t  Maximum time to wait in \e seconds.
-    @param  c  Condition to exit wait early (checked every ~10 ms and affects timing)
+    @param  c  Condition to exit wait early 
+    @note Condition is only checked every ~10 ms and affects timing slightly
 */
 #define WAIT_WITH_TIMEOUT_S(t,c) {       \
-    int tt = 100*(t);                    \
+    unsigned tt = 100*(t);               \
       do {                               \
          millisecondTimerWait(10);       \
       } while (!(c) & (tt-->0));         \
@@ -97,6 +99,8 @@ U8   bdm_cycleTargetVdd(U8 mode);
 U16  bdm_targetVddMeasure(void);
 U8   bdm_setTargetVdd( void );  // Low-level - bdm_cycleTargetVddOn() preferred
 void bdm_interfaceOff( void );
+
+U8   bdm_clearStatus(void);
 
 // Interrupt monitoring routines
 interrupt void timerHandler(void);

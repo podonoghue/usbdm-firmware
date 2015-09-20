@@ -9,19 +9,22 @@
          -  Choose the "Clone existing target" option and choose \e USBDM
          -  Modify the \b Compiler options for this target to define the symbol used above (change  \b -DTARGET_HARDWARE=H_USBDM appropriately)
          -  Modify the \b Linker options for this target so that the Application Filename is unique (change  \b USBDM_JB16 appropriately)
- */
 
-//==========================================================================================
-// Define the following to enable use of USBDM with MC51AC256 Colfire CPU
-// Not extensively tested - may affect other coldfire chips adversely
-// NOTE: This has been moved to Codewarrior Legacy DLLs
-//#define MC51AC256_HACK (1)
+   \verbatim
+   Change History
+   +================================================================================================
+   | 18 Jul 2014 | Added     CAP_HCSZVM                                        - pgo, ver 4.10.6.170
+   +================================================================================================
+   \endverbatim
+ */
+#ifndef _CONFIG_H
+#define _CONFIG_H
 
 //=================================================================================
 // Debugging options
 //
 #define DEBUG_COMMANDS (1<<0)                   //!< Implement debugging command interface (see \ref CMD_USBDM_DEBUG)
-#define STACK_DEBUG    (DEBUG_COMMANDS|(1<<1))  //!< Implement measurement of stack size code (see \ref BDM_DBG_STACKSIZE)
+#define STACK_DEBUG    (1<<1)                   //!< Implement measurement of stack size code (see \ref BDM_DBG_STACKSIZE)
 #define ACK_DEBUG      (1<<2)                   //!< Debug pin toggles during ACK code
 #define SYNC_DEBUG     (1<<3)                   //!< Debug pin toggles during SYNC code
 #define RESET_DEBUG    (1<<4)                   //!< Debug pin toggles during Reset sequence
@@ -35,7 +38,10 @@
 
     This is a bit mask made up of all the debugging options that are to be implemented in the code.
  */
-#define DEBUG (DEBUG_COMMANDS|STACK_DEBUG)
+#define DEBUG DEBUG_COMMANDS // (STACK_DEBUG)
+
+// Define for automatic WINUSB Driver loading 
+//#define MS_COMPATIBLE_ID_FEATURE (1)
 
 #if DEBUG&DEBUG_MESSAGES
 extern void dputs(char *msg);
@@ -55,7 +61,9 @@ extern void dputs(char *msg);
 #define CAP_CFVx_HW     (1<<4)   // Supports CFVx extensions beyond basic JTAG (TA etc)
 #define CAP_BDM         (1<<5)   // Supports 1-wire BDM interface (BKGD I/O)
 #define CAP_JTAG_HW     (1<<7)   // Supports JTAG interface (TCK/TDI/TDO/TMS/TRST?)
+#define CAP_SWD_HW      (1<<8)   // Supports SWD interface (SWD/SWCLK)
 #define CAP_CDC         (1<<12)  // Supports CDC USB interface
+#define CAP_CORE_REGS   (1<<31)  // Supports reading core regs
 
 //==========================================================================================
 // Targets and visible capabilities supported - related to above but not exactly!
@@ -82,6 +90,7 @@ extern void dputs(char *msg);
 #define CAP_PST         (1<<11)     // Supports PST signal sensing
 #define CAP_CDC         (1<<12)     // Supports CDC Serial over USB interface
 #define CAP_ARM_SWD     (1<<13)     // Supports ARM targets via SWD
+#define CAP_S12Z        (1<<14)     // Supports HCS12ZVM
 
 //===========================================================================================
 // Three types of BDM interface chips are supported
@@ -94,32 +103,40 @@ extern void dputs(char *msg);
 //=====================================================================================
 // The following lines choose a Hardware configuration
 //=====================================================================================
-#define H_USBDM                 1  //!< USBDM    - Universal TBDML/OSBDM JB16
-#define H_TBDML                 2  //!< TBDML    - Minimal JB16 version (JB16DWE,JB16JDWE)
-#define H_TBDMLSwin             3  //!< No longer used
-#define H_OSBDM                 4  //!< OSBDM    - Basic OSBDM hardware
-#define H_WTBDM                 5  //!< WTBDM08  - Wiztronics BDMS08/12
-#define H_OSBDME                6  //!< OSBDM+E  - OSBDM+Flash supply
-#define H_USBDM_JMxxCLD         7  //!< USBDM hardware using 9S08JM16/32/60CLD (44p package)
-#define H_USBDM_JMxxCLC         8  //!< USBDM hardware using 9S08JM16CLC (32p package)
-#define H_USBSPYDER             9  //!< USBSPYDER - SofTec USBSPYDER08 - not functional
-#define H_USBDM_UF32PBE        10  //!< USBDM hardware using MC9S12UF32PBE (64p package)
-#define H_USBDM_CF_JS16CWJ     11  //!< USBDM hardware CF/DSC only using MC9S08JS16CWJ (20p SOIC package)
-#define H_USBDM_CF_JMxxCLD     12  //!< Combined USBDM/TBLCF using 9S08JM16/32/60CLD (44p package)
-#define H_USBDM_JS16CWJ        13  //!< USBDM hardware using MC9S08JS16CWJ (20p SOIC package)
-#define H_USBDM_MC56F8006DEMO  14  //!< MC56F8006DEMO Board (Axiom)
-#define H_CUSTOM               15  //!< Reserved for USER created custom hardware
-#define H_USBDM_CF_SER_JS16CWJ 16  //!< USBDM hardware CF/DSC only using MC9S08JS16CWJ (20p SOIC package) with serial interface
-#define H_USBDM_SER_JS16CWJ    17  //!< USBDM hardware using MC9S08JS16CWJ (20p SOIC package) with Serial interface
-#define H_USBDM_CF_SER_JMxxCLD 18  //!< Combined USBDM/TBLCF/Serial using 9S08JM16/32/60CLD (44p package)
-#define H_USBDM_TWR_KINETIS    19  //!< TWR Kinetis boards
-#define H_USBDM_TWR_CFV1       20  //!< TWR Coldfire V1 boards
-#define H_USBDM_TWR_HCS08      21  //!< TWR HCS08 boards
-#define H_USBDM_TWR_CFVx       22  //!< TWR Coldfire Vx boards
-#define H_USBDM_ARM            23  //!< ...
+#define H_USBDM                  1  //!< USBDM    - Universal TBDML/OSBDM JB16
+#define H_TBDML                  2  //!< TBDML    - Minimal JB16 version (JB16DWE,JB16JDWE)
+#define H_TBDMLSwin              3  //!< No longer used
+#define H_OSBDM                  4  //!< OSBDM    - Basic OSBDM hardware
+#define H_WTBDM                  5  //!< WTBDM08  - Wiztronics BDMS08/12
+#define H_OSBDME                 6  //!< OSBDM+E  - OSBDM+Flash supply
+#define H_USBDM_JMxxCLD          7  //!< USBDM hardware using 9S08JM16/32/60CLD (44p package)
+#define H_USBDM_JMxxCLC          8  //!< USBDM hardware using 9S08JM16CLC (32p package)
+#define H_USBSPYDER              9  //!< USBSPYDER - SofTec USBSPYDER08 - not functional
+#define H_USBDM_UF32PBE         10  //!< USBDM hardware using MC9S12UF32PBE (64p package)
+#define H_USBDM_CF_JS16CWJ      11  //!< USBDM hardware CF/DSC only using MC9S08JS16CWJ (20p SOIC package)
+#define H_USBDM_CF_JMxxCLD      12  //!< Combined USBDM/TBLCF using 9S08JM16/32/60CLD (44p package)
+#define H_USBDM_JS16CWJ         13  //!< USBDM hardware using MC9S08JS16CWJ (20p SOIC package)
+#define H_USBDM_MC56F8006DEMO   14  //!< MC56F8006DEMO Board (Axiom)
+#define H_CUSTOM                15  //!< Reserved for USER created custom hardware
+#define H_USBDM_CF_SER_JS16CWJ  16  //!< USBDM hardware CF/DSC only using MC9S08JS16CWJ (20p SOIC package) with serial interface
+#define H_USBDM_SER_JS16CWJ     17  //!< USBDM hardware using MC9S08JS16CWJ (20p SOIC package) with Serial interface
+#define H_USBDM_CF_SER_JMxxCLD  18  //!< Combined USBDM/TBLCF/Serial using 9S08JM16/32/60CLD (44p package)
+#define H_USBDM_TWR_KINETIS     19  //!< TWR Kinetis boards
+#define H_USBDM_TWR_CFV1        20  //!< TWR Coldfire V1 boards
+#define H_USBDM_TWR_HCS08       21  //!< TWR HCS08 boards
+#define H_USBDM_TWR_CFVx        22  //!< TWR Coldfire Vx boards
+#define H_USBDM_SWD_SER_JS16CWJ 23  //!< USBDM MC9S08JS16CWJ with BDM, SWD & Serial interfaces
+#define H_USBDM_SWD_JS16CWJ     24  //!< USBDM MC9S08JS16CWJ with BDM & SWD interfaces
+#define H_USBDM_OPENSDA         25  //!< Freescale FRDM-KL25 board (MK20 chip)
+#define H_USBDM_MKL25Z          26  //!< Experimental MKL25Z
+#define H_USBDM_MK20D5          27  //!< Experimental MK20DX5
+#define H_USBDM_TWR_HCS12       28  //!< TWR HCS12 boards
 
-#if (TARGET_HARDWARE==H_USBDM_JS16CWJ)    ||(TARGET_HARDWARE==H_USBDM_CF_JS16CWJ) || \
-	(TARGET_HARDWARE==H_USBDM_SER_JS16CWJ)||(TARGET_HARDWARE==H_USBDM_CF_SER_JS16CWJ)
+#if (TARGET_HARDWARE==H_USBDM_OPENSDA) || (TARGET_HARDWARE==H_USBDM_MKL25Z) || (TARGET_HARDWARE==H_USBDM_MK20D5)
+#include "derivative.h"
+#elif (TARGET_HARDWARE==H_USBDM_JS16CWJ)||(TARGET_HARDWARE==H_USBDM_CF_JS16CWJ) || \
+	(TARGET_HARDWARE==H_USBDM_SER_JS16CWJ)||(TARGET_HARDWARE==H_USBDM_CF_SER_JS16CWJ) || \
+	(TARGET_HARDWARE==H_USBDM_SWD_SER_JS16CWJ) || (TARGET_HARDWARE==H_USBDM_SWD_JS16CWJ)
 #include <mc9s08js16.h>
 #else
 #include <mc9s08jm60.h>
@@ -128,10 +145,10 @@ extern void dputs(char *msg);
 //==========================================================================================
 //! Software Version Information
 //
-#define VERSION_MAJOR 4     // 4.9.1 - Last published -- 4.9
-#define VERSION_MINOR 9
-#define VERSION_MICRO 5
-#define VERSION_STR "4.9.5"
+#define VERSION_MAJOR 4 
+#define VERSION_MINOR 10
+#define VERSION_MICRO 6
+#define VERSION_STR "4.10.6.170"
 #define VERSION_SW  ((VERSION_MAJOR<<4)+VERSION_MINOR)
 //! Selected hardware platform
 #if TARGET_HARDWARE==H_USBDM_JMxxCLD
@@ -160,7 +177,18 @@ extern void dputs(char *msg);
 #include "USBDM_TWR_CFV1.h"
 #elif TARGET_HARDWARE==H_USBDM_TWR_CFVx
 #include "USBDM_TWR_CFVx.h"
-
+#elif TARGET_HARDWARE==H_USBDM_SWD_SER_JS16CWJ
+#include "USBDM_SWD_SER_JS16CWJ.h"
+#elif TARGET_HARDWARE==H_USBDM_SWD_JS16CWJ
+#include "USBDM_SWD_JS16CWJ.h"
+#elif TARGET_HARDWARE==H_USBDM_MKL25Z
+#include "USBDM_MKL25Z.h"
+#elif TARGET_HARDWARE==H_USBDM_MK20D5
+#include "USBDM_MK20D5.h"
+#elif TARGET_HARDWARE==H_USBDM_OPENSDA
+#include "USBDM_OpenSDA.h"
+#elif TARGET_HARDWARE==H_USBDM_TWR_HCS12
+#include "USBDM_TWR_HCS12.h"
 #else
 #error "Target Hardware not specified (see TARGET_HARDWARE)"
 // To stop lots of further errors!
@@ -191,7 +219,11 @@ extern void dputs(char *msg);
 #define HW_UF        0xC0
 #define HW_ARM       0x40
 
+#if (TARGET_HARDWARE==H_USBDM_OPENSDA) || (TARGET_HARDWARE==H_USBDM_MKL25Z) || (TARGET_HARDWARE==H_USBDM_MK20D5)
+#define VERSION_HW  (HW_ARM+TARGET_HARDWARE)
+#else
 #define VERSION_HW  (HW_JM+TARGET_HARDWARE)
+#endif
 
 //===========================================================================================
 // Platforms
@@ -209,15 +241,20 @@ extern void dputs(char *msg);
 
 #define VendorID  (0x16D0)
 #define ProductID (0x0567)
+//#define ProductID (0x9999) // Testing
+//#define ProductID (0x06A5) // Alternative number
+//#define ProductID (0x06A6) // Alternative number
 
 //==========================================================================================
 // CPUs supported (just clock frequency changes)
 //
-#define JB8  (1)      // Not supported
-#define JB16 (2)
-#define JMxx (3)
-#define UF32 (5)
-#define JS16 (6)
+#define JB8      (1)      // Not supported
+#define JB16     (2)
+#define JMxx     (3)
+#define UF32     (5)
+#define JS16     (6)
+#define MK20D5   (7)
+#define MKL25Z4  (8)
 
 #ifndef CPU
 #error "Please define CPU in Configure.h"
@@ -240,7 +277,15 @@ extern void dputs(char *msg);
 #define OSC_FREQ     (60000000UL)               // Oscillator frequency
 #define BUS_FREQ     (OSC_FREQ/2)               // Bus freq. derived from oscillator
 #error "UF32 is not supported by this version of the software"
+#elif (CPU == MK20D5)
+#define OSC_FREQ     (96000000UL)               // Oscillator frequency
+#define BUS_FREQ     (OSC_FREQ/2)               // Bus freq. derived from oscillator
+#elif (CPU == MKL25Z4)
+#define OSC_FREQ     (96000000UL)               // Oscillator frequency
+#define BUS_FREQ     (OSC_FREQ/4)               // Bus freq. derived from oscillator
 #else
 #error "Please correctly define CPU in Configure.h"
 #define CPU JM60
 #endif
+
+#endif // _CONFIG_H

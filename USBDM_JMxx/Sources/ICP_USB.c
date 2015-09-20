@@ -204,7 +204,48 @@ static const struct {
       0                             // iInterface desc
    },
 };
-   
+#ifdef BOOTLOADER
+#define BOOT_USE_WDIC
+#endif
+#ifdef BOOT_USE_WDIC
+static const MS_CompatibleIdFeatureDescriptor msCompatibleIdFeatureDescriptor = {
+	/* lLength;             */  CONST_NATIVE_TO_LE32((uint32_t)sizeof(MS_CompatibleIdFeatureDescriptor)),
+	/* wVersion;            */  CONST_NATIVE_TO_LE16(0x0100),
+	/* wIndex;              */  CONST_NATIVE_TO_LE16(0x0004),
+	/* bnumSections;        */  1,
+	/* bReserved1[7];       */  {0},
+	/* bInterfaceNum;       */  0,
+	/* bReserved2;          */  1,
+	/* bCompatibleId[8];    */  "WINUSB\0",
+	/* bSubCompatibleId[8]; */  {0},
+	/* bReserved3[6];       */  {0}  
+};
+#pragma MESSAGE DISABLE C3303 //  Implicit concatenation of strings
+
+static const MS_PropertiesFeatureDescriptor msPropertiesFeatureDescriptor = {
+	/* U32 lLength;         */ CONST_NATIVE_TO_LE32((uint32_t)sizeof(MS_PropertiesFeatureDescriptor)),
+	/* U16 wVersion;        */ CONST_NATIVE_TO_LE16(0x0100),
+	/* U16 wIndex;          */ CONST_NATIVE_TO_LE16(0x0005),
+	/* U16 bnumSections;    */ CONST_NATIVE_TO_LE16(0x0001),
+	/* U32 lPropertySize;   */ CONST_NATIVE_TO_LE32(132UL),
+	/* U32 ldataType;       */ CONST_NATIVE_TO_LE32(1UL),
+	/* U16 wNameLength;     */ CONST_NATIVE_TO_LE16(40),
+	/* U8  bName[40];       */ "D\0e\0v\0i\0c\0e\0I\0n\0t\0e\0r\0f\0a\0c\0e\0G\0U\0I\0D\0\0",
+	/* U32 wPropertyLength; */ CONST_NATIVE_TO_LE32(78UL),
+	/* U8  bData[78];       */ "{\000"  
+	                           "9\0003\000F\000E\000B\000D\0005\0001\000"
+	                           "-\0006\0000\0000\0000\000"
+	                           "-\0004\000E\0007\000E\000"
+	                           "-\000A\0002\0000\000E\000"
+	                           "-\000A\0008\0000\000F\000C\0007\0008\000C\0007\000E\000A\0001\000"
+	                           "}\000"
+};
+#pragma MESSAGE DEFAULT C3303 //  Implicit concatenation of strings
+
+#define VENDOR_CODE 0x30
+static const U8 OS_StringDescriptor[] = {18, DT_STRING, 'M',0,'S',0,'F',0,'T',0,'1',0,'0',0,'0',0,VENDOR_CODE,0x00};
+
+#endif
 //===============================================================================
 // Device Status
 //       
@@ -269,8 +310,9 @@ static U8  commandStatus;   //!< Status of last command executed
  * @param size  number of bytes to copy
  */
 static void myMemcpy(U8 *to, const U8 *from, U8 size) {
-   while (size-->0)
+   while (size-->0) {
       *to++ = *from++;
+   }
 }
 
 typedef struct {
@@ -457,12 +499,16 @@ static void ep0StartSetupTransaction(void) {
 //======================================================================
 //! Configure EP0 for an IN transaction (Rx, device -> host, DATA1 [assuming single DATA pkt]
 //!
-static void ep0StartInTransaction( U8 bufSize, const U8 *bufPtr ) {
-   myMemcpy(ep0InDataBuffer, bufPtr, bufSize);
+static void ep0StartInTransaction( U8 dataSize, const U8 *dataPtr ) {
+   // Assumes size < 8=bits!
+   if (dataSize > ep0SetupBuffer.wLength.le.lo) {// Truncate if more bytes available than asked for
+	  dataSize = ep0SetupBuffer.wLength.le.lo;
+   }
+   myMemcpy(ep0InDataBuffer, dataPtr, dataSize);
 
    // Set up to Tx packet
    ep0BDTIn.epAddr        = USB_MAP_ADDRESS(EP0InDataBufferAddress);
-   ep0BDTIn.byteCount     = bufSize;
+   ep0BDTIn.byteCount     = dataSize;
    // All IN pkts are DATA1
    ep0BDTIn.control.bits  = BDTEntry_OWN_MASK|BDTEntry_DATA1_MASK|BDTEntry_DTS_MASK;
    ep0State.state         = EPLastIn;     // The one and only data pkt
@@ -506,8 +552,10 @@ static void setUSBaddressedState( U8 address ) {
 static void setUSBconfiguredState( U8 config ) {
    deviceState.configuration = config;
    GREEN_LED_OFF();
-   if (config != 0) // Configured
+   if (config != 0) { 
+	  // Configured
       GREEN_LED_ON();
+   }
 }
 
 //==================================================================
@@ -530,72 +578,33 @@ static void handleUSBReset(void) {
    EPCTL0  = EPCTL0_EPRXEN_MASK|EPCTL0_EPTXEN_MASK|EPCTL0_EPHSHK_MASK;
 }
 
-//! Initialise the USB interface
-//!
-void initICP_USB( void ) {
-
-   autoInitClock();
-//   initCrystalClock(clockFactors[clksel_12MHz]);
-
-//   DEBUG_PIN_DDR = 1;
-
-   // Clear USB RAM (includes BDTs)
-   asm {
-      ldhx  @usbRam
-      clra  // 256 bytes
-   loop:
-      clr   ,x
-      aix   #1
-      dbnza  loop
-   }
-   // Reset USB   
-   USBCTL0_USBRESET = 1;
-   while (USBCTL0_USBRESET) {
-   }
-   
-   // Enable USB module.
-   CTL = CTL_USBEN_MASK;
-   
-   // Internal PUP, Internal 3V3 reg, Enable Txvr 
-   USBCTL0 = USBCTL0_USBPU_MASK|USBCTL0_USBVREN_MASK|USBCTL0_USBPHYEN_MASK;
-
-   // Disable error interrupts.   
-   ERRENB = 0;
-
-   // Disable all interrupts
-   INTENB  = 0;
-   
-   // Set initial USB state
-   handleUSBReset();
-}
-
 //===============================================================================
 // Get Descriptor - Device Req 0x06
 //       
 static void handleGetDescriptor( void ) {
    // Static variables used to reduce size (ZPAGE) 
-   static U16         wlength;
    static U8          dataSize;
    static const char *dataPtr;
 
-   wlength = (ep0SetupBuffer.wLength.le.hi<<8) | ep0SetupBuffer.wLength.le.lo;
    switch (ep0SetupBuffer.wValue.le.hi) {
       case DT_DEVICE: // Get Device Desc. - 1
-         dataSize = (U8)deviceDescriptor.bLength;
          dataPtr  = (U8 *) &deviceDescriptor;
+         dataSize = (U8)deviceDescriptor.bLength;
          break;
       case DT_CONFIGURATION: // Get Configuration Desc. - 2
-         dataSize = (U8)(otherDescriptors.configDescriptor.wTotalLength>>8);
          dataPtr  = (U8 *) &otherDescriptors;
+         dataSize = (U8)(otherDescriptors.configDescriptor.wTotalLength>>8);
          break;
+#ifdef BOOT_USE_WDIC
       case DT_STRING: // Get String Desc.- 3
+         dataPtr  = OS_StringDescriptor;
+         dataSize = *dataPtr;
+         break;
+#endif
       default:        // shouldn't happen
          ep0Stall();
          return;
       } // switch
-   if (dataSize > wlength) // Truncate if more bytes available than asked for
-      dataSize = (U8)wlength;
-      
    ep0StartInTransaction( dataSize, dataPtr ); // Set up Tx
 }
 
@@ -829,7 +838,7 @@ static void handleEp0OutToken(void) {
    switch (ep0State.state) {
       case EPLastOut:                   
          // Done the last OUT packet
-   	     myMemcpy(dataBuffer, ep0OutDataBuffer, dataLength); // Save data
+         myMemcpy(dataBuffer, ep0OutDataBuffer, dataLength); // Save data
          ep0StartSetupTransaction();      // Make ready for next SETUP pkt
          ep0StartStatusInTransaction();   // Do status Pkt transmission
          break;
@@ -887,33 +896,44 @@ static void handleSetupToken( void ) {
    
    if (IS_VENDOR_REQ(ep0SetupBuffer.bmRequestType)) {
       // Handle Vendor requests
+#ifdef BOOT_USE_WDIC
+      if (ep0SetupBuffer.bRequest == VENDOR_CODE) {
+         if ((ep0SetupBuffer.wIndex.le.lo) == (0x0004)) { 
+            ep0StartInTransaction( sizeof(msCompatibleIdFeatureDescriptor),  (uint8_t *)&msCompatibleIdFeatureDescriptor );
+         }
+         else if ((ep0SetupBuffer.wIndex.le.lo) == (0x0005)) { 
+            ep0StartInTransaction( sizeof(msPropertiesFeatureDescriptor),  (uint8_t *)&msPropertiesFeatureDescriptor );
+         }
+         else {
+             ep0Stall();
+         }
+      }
+      else 
+#endif
       if (ep0SetupBuffer.bRequest == ICP_PROGRAM_ROW) {
          ep0StartOutTransaction( DATA1 );         // Set up to get rest of command (data portion)
-         ep0State.callback = programRowCommand;   // Set callback to execute when data arrives
+         ep0State.callback = programRowCommand;   // Set call-back to execute when data arrives
       } 
       else if (ep0SetupBuffer.bRequest == ICP_VERIFY_ROW) {
          ep0StartOutTransaction( DATA1 );         // Set up to get rest of command (data portion)
-         ep0State.callback = verifyRowCommand;    // Set callback to execute when data arrives
-//         debugTx('V'); // Verify complete
+         ep0State.callback = verifyRowCommand;    // Set call-back to execute when data arrives
+      } 
+      else if (ep0SetupBuffer.bRequest == ICP_ERASE_PAGE) {
+         commandStatus = erasePageCommand(); // Execute the command - no response
+         ep0StartStatusInTransaction();      // Tx empty Status packet
+      } 
+      else if (ep0SetupBuffer.bRequest == ICP_GET_RESULT)  {
+         ep0StartInTransaction( sizeof(commandStatus),  &commandStatus );
+      } 
+      else if (ep0SetupBuffer.bRequest == ICP_GET_VER)  {
+         ep0StartInTransaction( sizeof(versionConstant),  versionConstant );
+      } 
+      else if (ep0SetupBuffer.bRequest == ICP_REBOOT)  {
+         ep0State.callback          = icpReset;
+         ep0StartStatusInTransaction();      // Tx empty Status packet
       } 
       else {
-    	  if (ep0SetupBuffer.bRequest == ICP_ERASE_PAGE) {
-    		 commandStatus = erasePageCommand(); // Execute the command - no response
-    		 ep0StartStatusInTransaction();      // Tx empty Status packet
-    	  } 
-    	  else if (ep0SetupBuffer.bRequest == ICP_GET_RESULT)  {
-    		 ep0StartInTransaction( sizeof(commandStatus),  &commandStatus );
-    	  } 
-    	  else if (ep0SetupBuffer.bRequest == ICP_GET_VER)  {
-    		 ep0StartInTransaction( sizeof(versionConstant),  versionConstant );
-    	  } 
-    	  else if (ep0SetupBuffer.bRequest == ICP_REBOOT)  {
-             ep0State.callback          = icpReset;
-    		 ep0StartStatusInTransaction();      // Tx empty Status packet
-    	  } 
-         else {
-            ep0Stall();
-         }
+         ep0Stall();
       }
    }
    else  {
@@ -952,34 +972,6 @@ static void handleSetupToken( void ) {
    CTL_TSUSPEND = 0;
 }
 
-//==================================================================
-// Handler for Token Complete USB interrupt
-//
-// Only handles ep0 [SETUP, IN & OUT]
-// 
-static void handleTokenComplete(void) {
-//   DEBUG_PIN = 1;
-//   DEBUG_PIN = 0;
-   if ((STAT&STAT_ENDP_MASK) == (0<<STAT_ENDP_BITNUM)) {
-	   // EP # 0
-	   if (STAT&STAT_IN_MASK) {
-		   // IN Transaction complete
-		   handleEp0InToken();
-//		   debugTx('I'); // IN Token
-	   }
-	   else if (ep0BDTOut.control.a.bdtkpid == SETUPToken) {
-		   // SETUP transaction complete
-		   handleSetupToken();
-//		   debugTx('S'); // SETUP Token
-	   }
-	   else {
-		   // OUT Transaction complete
-		   handleEp0OutToken(); 
-//		   debugTx('O'); // OUT Token
-	   }
-   }
-}
-
 #ifdef ICP_DEBUG
 static char buff[40];
 #endif
@@ -990,8 +982,42 @@ static char buff[40];
 // Determines source and dispatches to appropriate routine.
 // Never returns
 //
-void USBEventPollingLoop( void ) {
-   static uint8_t intStatus;     
+void startICP_USB( void ) {
+//   static uint8_t 0intStatus;     
+//   DEBUG_PIN_DDR = 1;
+
+   //! Initialise the USB interface
+   //!
+   autoInitClock();
+   
+   // Clear USB RAM (includes BDTs)
+   asm {
+      ldhx   @usbRam
+      clra   // 256 bytes
+      loop:
+      clr    ,x
+      aix    #1
+      dbnza  loop
+   }
+   // Reset USB   
+   USBCTL0_USBRESET = 1;
+   while (USBCTL0_USBRESET) {
+   }
+   // Enable USB module.
+   CTL = CTL_USBEN_MASK;
+   
+   // Internal PUP, Internal 3V3 reg, Enable Txvr 
+   USBCTL0 = USBCTL0_USBPU_MASK|USBCTL0_USBVREN_MASK|USBCTL0_USBPHYEN_MASK;
+   
+   // Disable error interrupts.   
+   ERRENB = 0;
+   
+   // Disable all interrupts
+   INTENB  = 0;
+   
+   // Set initial USB state
+   handleUSBReset();
+   
    for(;;) {
 #ifdef ICP_DEBUG
       int idleCount;
@@ -1002,8 +1028,8 @@ void USBEventPollingLoop( void ) {
       else {
          if (idleCount++ > 10) {
             RED_LED_ON();
-		   }
-	  }
+         }
+      }
       int idleCount;
       DEBUG_PIN = 0;
       DEBUG_PIN = 1;
@@ -1016,64 +1042,63 @@ void USBEventPollingLoop( void ) {
          if (idleCount<10) {
             debugTx('-');
             idleCount++;
-		   }
-	  }
+         }
+      }
       command = debugRx();
       if (command >= 0) {
          switch(command) {
          case 'R' :
-            CTL = 0x00;   // Disable USB
-            reset();      // Illegal opcode - causes cpu reset!
-            break;
+         	CTL = 0x00;   // Disable USB
+         	reset();      // Illegal opcode - causes cpu reset!
+         	break;
          case 's' : ep0StartSetupTransaction();                   break;
          case 'c' : CTL_TSUSPEND = 0;                             break;
          case 't' : ep0ClearStall();                              break;
          case 'a' : CTL_TSUSPEND = 0; ep0StartSetupTransaction(); break;
          case 'i' :
-        	 (void)sprintf(buff, "\rep0BDTOut=0x%02X\r", ep0BDTOut.control.bits); debugPuts(buff);
-        	 (void)sprintf(buff,   "ep0BDTIn =0x%02X\r", ep0BDTIn.control.bits);  debugPuts(buff);
-        	 break;
+         	(void)sprintf(buff, "\rep0BDTOut=0x%02X\r", ep0BDTOut.control.bits); debugPuts(buff);
+         	(void)sprintf(buff,   "ep0BDTIn =0x%02X\r", ep0BDTIn.control.bits);  debugPuts(buff);
+         	break;
          default: break;
          }
          continue;
       }
 #endif
-      intStatus = INTSTAT;
-      if ((intStatus&INTSTAT_TOKDNEF_MASK) != 0) { 
-         // Token complete int?
-         handleTokenComplete();
-//         INTSTAT = INTSTAT_TOKDNEF_MASK;
-//         continue; // polled more frequently
+      if ((INTSTAT&INTSTAT_TOKDNEF_MASK) != 0) {
+         uint8_t stat = STAT;
+    	 INTSTAT = INTSTAT_TOKDNEF_MASK;
+         if ((stat&STAT_ENDP_MASK) == (0<<STAT_ENDP_BITNUM)) {
+            // EP # 0
+            if (stat&STAT_IN_MASK) {
+               // IN Transaction complete
+               handleEp0InToken();
+               // debugTx('I'); // IN Token
+            }
+            else if (ep0BDTOut.control.a.bdtkpid == SETUPToken) {
+               // SETUP transaction complete
+               handleSetupToken();
+               //  debugTx('S'); // SETUP Token
+            }
+            else {
+               // OUT Transaction complete
+               handleEp0OutToken(); 
+               // debugTx('O'); // OUT Token
+            }
+         }
       }
-      if ((intStatus&INTSTAT_USBRSTF_MASK) != 0) { 
+      else if ((INTSTAT&INTSTAT_USBRSTF_MASK) != 0) { 
          // USB Reset
+         INTSTAT = INTSTAT_USBRSTF_MASK;
          handleUSBReset();
 //         debugTx('R'); // Token complete
 //         INTSTAT = INTSTAT_USBRSTF_MASK;
       }
-      if ((intStatus&INTSTAT_STALLF_MASK) != 0) {
+      else if ((INTSTAT&INTSTAT_STALLF_MASK) != 0) {
+         INTSTAT = INTSTAT_STALLF_MASK;
          ep0StartSetupTransaction();
 //         debugTx('s'); // Unhandled stall
 //         INTSTAT = INTSTAT_STALLF_MASK;
       }
-      INTSTAT = intStatus;
-
-//      if ((INTSTAT&INTSTAT_ERRORF_MASK) != 0) {
-////         debugTx('E'); // Unhandled error
-//         INTSTAT = INTSTAT_ERRORF_MASK;
-//      }
-//      if ((INTSTAT&INTSTAT_RESUMEF_MASK) != 0) {
-////         debugTx('r'); // Unhandled stall
-//         INTSTAT = INTSTAT_RESUMEF_MASK;
-//      }
-//      if ((INTSTAT&INTSTAT_SLEEPF_MASK) != 0) {
-////         debugTx('l'); // Unhandled stall
-//         INTSTAT = INTSTAT_SLEEPF_MASK;
-//      }
-//      if ((INTSTAT&INTSTAT_SOFTOKF_MASK) != 0) {
-//         INTSTAT = INTSTAT_SOFTOKF_MASK;
-//      }
+//      INTSTAT = intStatus;
    }
 }
-
-

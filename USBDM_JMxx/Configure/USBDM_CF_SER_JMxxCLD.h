@@ -10,20 +10,27 @@
     @note DO NOT CHANGE THIS FILE \n
     If you need to create another configuration make a copy of this file
     under a new name and change Configure.h appropriately.
+
+   \verbatim
+   Change History
+   +================================================================================================
+   | 18 Jul 2014 | Added     CAP_S12Z                                          - pgo, ver 4.10.6.170
+   +================================================================================================
+   \endverbatim
 */
 #ifndef _CONFIGURE_H_
 #define _CONFIGURE_H_
 
 //==========================================================================================
 // USB Serial Number
-#define SERIAL_NO "USBDM-JMxx-SER-CF-0001"
+#define SERIAL_NO          "USBDM-JMxx-SER-CF-0001"
 #define ProductDescription "USBDM RS08,HCS08,HCS12,DSC,Coldfire BDM"
 
 //==========================================================================================
 // Capabilities of the hardware - used to enable/disable appropriate code
 //
-#define HW_CAPABILITY     (CAP_VDDCONTROL|CAP_VDDSENSE|CAP_CDC|CAP_JTAG_HW|CAP_BDM  |CAP_FLASH|        CAP_RST_IO|CAP_CFVx)
-#define TARGET_CAPABILITY (CAP_VDDCONTROL|CAP_VDDSENSE|CAP_CDC|CAP_HCS12 |CAP_HCS08|CAP_RS08 |CAP_CFV1|CAP_RST   |CAP_CFVx|CAP_JTAG|CAP_DSC|CAP_ARM_JTAG|CAP_PST)
+#define HW_CAPABILITY     (CAP_VDDCONTROL|CAP_VDDSENSE|CAP_CDC|CAP_JTAG_HW|CAP_BDM  |CAP_FLASH|        CAP_RST_IO|CAP_CFVx|CAP_CORE_REGS)
+#define TARGET_CAPABILITY (CAP_VDDCONTROL|CAP_VDDSENSE|CAP_CDC|CAP_HCS12 |CAP_HCS08|CAP_RS08 |CAP_CFV1|CAP_RST   |CAP_CFVx|CAP_JTAG|CAP_DSC|CAP_ARM_JTAG|CAP_PST|CAP_S12Z)
 
 #ifndef PLATFORM
 #define PLATFORM USBDM   //! Choose BDM emulation
@@ -43,9 +50,9 @@
 //=================================================================================
 // ICP pin - used to force ICP in bootstrap code
 //
-#define ICP_PIN_DDR DEBUG_PIN_DDR
-#define ICP_PIN_PER DEBUG_PIN_PER
-#define ICP_PIN     DEBUG_PIN
+#define ICP_PIN_DDR PTGDD_PTGDD2
+#define ICP_PIN_PER PTGPE_PTGPE2
+#define ICP_PIN     PTGD_PTGD2
 
 //===========================================================================================
 // Type of BDM interface chips are supported
@@ -425,7 +432,7 @@
 #define BKGD_TPMxCnSC_RISING_EDGE_MASK    TPM1C0SC_ELS0A_MASK // TPMxCnSC value for rising edge
 #define BKGD_TPMxCnSC_FALLING_EDGE_MASK   TPM1C0SC_ELS0B_MASK // TPMxCnSC value for falling edge
 #define BKGD_TPMxCnVALUE                  TPM1C0V             // IC Event time
-#define BKGD_TPM_SETUP_ASM                    BCLR 7,BKGD_TPMxCnSC 
+#define BKGD_TPM_SETUP_ASM                BCLR 7,BKGD_TPMxCnSC 
 
 // Timeout TPM1.Ch1 : Output Compare (no pin)
 #define TIMEOUT_TPMxCnSC_CHF              TPM1C1SC_CH1F       // Event Flag

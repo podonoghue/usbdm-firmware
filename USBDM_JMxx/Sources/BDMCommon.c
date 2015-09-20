@@ -31,21 +31,23 @@
 
    \verbatim
    Change History
-   +================================================================================================
-   | 22 Nov 2011 | More thoroughly disabled interfaces when off                       - pgo, ver 4.8 
-   | 27 Oct 2011 | Modified timer code to avoid TSCR1 changes & TCNT resets           - pgo, ver 4.8 
-   |  8 Aug 2010 | Re-factored interrupt handling                                     - pgo 
-   | 10 Apr 2010 | Changed to accommodate changes to Vpp interface                    - pgo 
-   |  5 Feb 2010 | bdm_cycleTargetVdd() now disables Vdd monitoring                   - pgo
-   |  4 Feb 2010 | bdm_cycleTargetVdd() parametised for mode                          - pgo
-   | 19 Oct 2009 | Modified Timer code - Folder together with JS16 code               - pgo
-   | 20 Sep 2009 | Increased Reset wait                                               - pgo
-   |    Sep 2009 | Major changes for V2                                               - pgo
-   +================================================================================================
-   \endverbatim
++================================================================================================
+| 18 Jul 2014 | Added HCS12ZVM support                                             - pgo V4.10.6.170
+| 22 Nov 2011 | More thoroughly disabled interfaces when off                       - pgo, ver 4.8 
+| 27 Oct 2011 | Modified timer code to avoid TSCR1 changes & TCNT resets           - pgo, ver 4.8 
+|  8 Aug 2010 | Re-factored interrupt handling                                     - pgo 
+| 10 Apr 2010 | Changed to accommodate changes to Vpp interface                    - pgo 
+|  5 Feb 2010 | bdm_cycleTargetVdd() now disables Vdd monitoring                   - pgo
+|  4 Feb 2010 | bdm_cycleTargetVdd() parametised for mode                          - pgo
+| 19 Oct 2009 | Modified Timer code - Folder together with JS16 code               - pgo
+| 20 Sep 2009 | Increased Reset wait                                               - pgo
+|    Sep 2009 | Major changes for V2                                               - pgo
++================================================================================================
+\endverbatim
 */
 
 #include <hidef.h> /* for EnableInterrupts macro */
+#include <string.h>
 #include "Common.h"
 #include "Configure.h"
 #include "Commands.h"
@@ -53,6 +55,8 @@
 #include "BDM.h"
 #include "BDM_CF.h"
 #include "BDM_RS08.h"
+#include "SWD.h"
+#include "SPI.h"
 #include "CmdProcessing.h"
 
 //=============================================================================================================================================
@@ -128,7 +132,7 @@ U8 initTimers(void) {
    ENABLE_VDD_SENSE_INT();        // Enable Vdd IC interrupts
 #endif
 
-#if (HW_CAPABILITY&CAP_RST_IO)
+#ifdef CONFIGURE_RESET_SENSE
    //===================================================================
    // Setup RESET detection (Input Capture or keyboard interrupt)
    if (bdm_option.useResetSignal) {
@@ -152,8 +156,8 @@ U8 initTimers(void) {
 
 //! Interrupt function servicing the IC interrupt from Vdd changes
 //! This routine has several purposes:
-//!  - Triggers POR into Debug mode on HCS08/RS08 targets\n
-//!  - Turns off Target power on short circuits\n
+//!  - Triggers POR into Debug mode on RS08/HCS08/CFV1 targets\n
+//!  - Turns off Target power on overload\n
 //!  - Updates Target power status\n
 //!
 void bdm_targetVddSense(void) {
@@ -194,13 +198,14 @@ void bdm_targetVddSense(void) {
 #endif // CAP_VDDSENSE
 }
 
-#if (HW_CAPABILITY&CAP_RST_IO)
+#ifdef CLEAR_RESET_SENSE_FLAG
 //! Interrupt function servicing the IC interrupt from RESET_IN assertion
 //!
 void bdm_resetSense(void) {
-   CLEAR_RESET_SENSE_FLAG();             // Acknowledge RESET IC Event
-   if (RESET_IS_LOW)
+   CLEAR_RESET_SENSE_FLAG();                // Acknowledge RESET IC Event
+   if (RESET_IS_LOW) {
       cable_status.reset = RESET_DETECTED;  // Record that reset was asserted
+   }
 }
 #endif
 
@@ -210,7 +215,7 @@ void bdm_resetSense(void) {
 //! Target Vdd sense on 56F8006Demo(KBIP5) - incomplete
 #pragma TRAP_PROC
 void kbiHandler(void) {
-#if (HW_CAPABILITY&CAP_RST_IO)
+#ifdef CLEAR_RESET_SENSE_FLAG
 	bdm_resetSense();
 #endif	
 #if TARGET_HARDWARE==H_USBDM_MC56F8006DEMO   
@@ -224,7 +229,7 @@ void kbiHandler(void) {
 //!
 #pragma TRAP_PROC
 void timerHandler(void) {
-#if (HW_CAPABILITY&CAP_RST_IO)
+#ifdef CLEAR_RESET_SENSE_FLAG
 	bdm_resetSense();
 #endif
 }
@@ -559,8 +564,9 @@ U8 rc;
    setBDMBusy();
 
    rc = bdm_cycleTargetVddOff();
-   if (rc != BDM_RC_OK)
+   if (rc != BDM_RC_OK) {
       return rc;
+   }
    WAIT_MS(1000);
    rc = bdm_cycleTargetVddOn(mode);
    return rc;
@@ -634,9 +640,10 @@ void bdm_init(void) {
 #if (HW_CAPABILITY&CAP_FLASH)
    (void)bdmSetVpp(BDM_TARGET_VPP_OFF);
 #endif   
+   
    VDD_OFF();
-   cable_status.target_type = T_OFF;
-   (void)initTimers(); // Initialise Timer system & input monitors
+   (void)bdm_clearStatus();
+
    // Update power status
    (void)bdm_checkTargetVdd();
 }
@@ -679,8 +686,11 @@ void bdm_interfaceOff( void ) {
 #ifdef BKPT_DISABLE
    BKPT_DISABLE();
 #endif
-#ifdef RESET_3STATE
+#ifdef RESET_3STATE  // Todo - remove
    RESET_3STATE();
+#endif
+#ifdef RESET_DISABLE
+   RESET_DISABLE();
 #endif
 #ifdef CF_DRV_DISABLE
    CF_DRV_DISABLE();
@@ -703,6 +713,13 @@ void bdm_interfaceOff( void ) {
 #ifdef TCLK_CTL_DISABLE
    TCLK_CTL_DISABLE();
 #endif
+#ifdef SWD_DISABLE
+   SWD_DISABLE();
+#endif
+#ifdef SWCLK_DISABLE
+   SWCLK_DISABLE();
+#endif
+   SPIxC1 = SPIxC1_OFF; // Disable SPI (MOSI/MISO pins now GPIO)
 }
 
 //!  Turns off the BDM interface
@@ -711,8 +728,17 @@ void bdm_interfaceOff( void ) {
 //!
 void bdm_off( void ) {
    bdm_interfaceOff();
-   if (!bdm_option.leaveTargetPowered)
+   if (!bdm_option.leaveTargetPowered) {
       VDD_OFF();
+   }
+}
+
+//! Clear Cable status
+U8 bdm_clearStatus(void) {
+   (void)memset(&cable_status, 0, sizeof(cable_status));
+   cable_status.target_type = T_OFF;
+   
+   return initTimers();
 }
 
 //! Initialises BDM module for the given target type
@@ -722,9 +748,11 @@ void bdm_off( void ) {
 U8 bdm_setTarget(U8 target) {
 U8 rc = BDM_RC_OK;
 
+#ifdef RESET_IN_PER
+   RESET_IN_PER    = 1;     // Needed for input level translation to 5V
+#endif
 #ifdef RESET_OUT_PER
-   RESET_OUT_PER    = 1;    // Holds RESET_OUT inactive when unused
-   RESET_IN_PER     = 1;    // Needed for input level translation to 5V
+   RESET_OUT_PER   = 1;     // Holds RESET_OUT inactive when unused
 #endif
 
    if (target == T_OFF) {
@@ -732,19 +760,17 @@ U8 rc = BDM_RC_OK;
    }   
    bdm_interfaceOff();
 
-   cable_status             = cable_statusDefault; // Set default status/settings
+   rc = bdm_clearStatus();
+   if (rc != BDM_RC_OK) {
+      return rc;
+   }
    cable_status.target_type = target; // Assume mode is valid
 
-#if (HW_CAPABILITY&CAP_FLASH)
-   (void)bdmSetVpp(BDM_TARGET_VPP_OFF);
-#endif
-
-   rc = initTimers();         // re-init timers in case settings changed
-   if (rc != BDM_RC_OK)
-      return rc;
-
    switch (target) {
-#if (TARGET_CAPABILITY & CAP_HCS12)   
+#if TARGET_CAPABILITY & CAP_S12Z
+      case T_HCS12Z  :
+#endif
+#if (TARGET_CAPABILITY & (CAP_HCS12|CAP_S12Z))   
       case T_HC12:
          bdm_option.useResetSignal = 1; // Must use RESET signal on HC12
          bdmHCS_init();
@@ -786,8 +812,13 @@ U8 rc = BDM_RC_OK;
           jtag_init();                   // Initialise JTAG
           break;
 #endif
+#if (TARGET_CAPABILITY&CAP_ARM_SWD)
+      case T_ARM_SWD:
+          swd_init();                   // Initialise JTAG
+          break;
+#endif
       case T_OFF:
-    	  return BDM_RC_OK;
+    	  break;
     	  
       default:
          bdm_off();                        // Turn off the interface

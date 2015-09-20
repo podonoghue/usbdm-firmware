@@ -10,6 +10,13 @@
     @note DO NOT CHANGE THIS FILE \n
     If you need to create another configuration make a copy of this file
     under a new name and change Configure.h appropriately.
+
+   \verbatim
+   Change History
+   +================================================================================================
+   | 18 Jul 2014 | Added     CAP_S12Z                                          - pgo, ver 4.10.6.170
+   +================================================================================================
+   \endverbatim
 */
 #ifndef _CONFIGURE_H_
 #define _CONFIGURE_H_
@@ -22,23 +29,21 @@
 //==========================================================================================
 // Capabilities of the hardware - used to enable/disable appropriate code
 //
-#define HW_CAPABILITY     (CAP_VDDCONTROL|CAP_VDDSENSE|CAP_JTAG_HW|CAP_BDM  |CAP_FLASH|        CAP_RST_IO|CAP_CFVx)
-#define TARGET_CAPABILITY (CAP_VDDCONTROL|CAP_VDDSENSE|CAP_HCS12 |CAP_HCS08|CAP_RS08 |CAP_CFV1|CAP_RST   |CAP_CFVx|CAP_JTAG|CAP_DSC|CAP_ARM_JTAG|CAP_PST)
+#define HW_CAPABILITY     (CAP_VDDCONTROL|CAP_VDDSENSE|CAP_JTAG_HW|CAP_BDM  |CAP_FLASH|        CAP_RST_IO|CAP_CFVx|CAP_CORE_REGS)
+#define TARGET_CAPABILITY (CAP_VDDCONTROL|CAP_VDDSENSE|CAP_HCS12 |CAP_HCS08|CAP_RS08 |CAP_CFV1|CAP_RST   |CAP_CFVx|CAP_JTAG|CAP_DSC|CAP_ARM_JTAG|CAP_PST|CAP_S12Z)
 
 #ifndef PLATFORM
 #define PLATFORM USBDM   //! Choose BDM emulation
 #endif
 
-#define CPU  JMxx
+#define CPU  JMxx        //! Implementation Target
 
 //=================================================================================
 // Debug pin - used to check timing and hardware sequences etc.
 //
-#if (DEBUG != 0)
 #define DEBUG_PIN_DDR PTGDD_PTGDD2
 #define DEBUG_PIN_PER PTGPE_PTGPE2
 #define DEBUG_PIN     PTGD_PTGD2
-#endif
 
 //=================================================================================
 // ICP pin - used to force ICP in bootstrap code
@@ -443,7 +448,7 @@
 //================================================================================
 // RESET Detection - falling edge using Timer inputs
 //
-//     KBI     - RESET_IN pin, Reset detection (Falling edge detection)
+//     - RESET_IN pin, Reset detection (Falling edge detection)
 //
 #if (HW_CAPABILITY&CAP_RST_IO)
 // Configure RESET change sensing (Falling edges)

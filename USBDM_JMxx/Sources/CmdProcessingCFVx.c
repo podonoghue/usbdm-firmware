@@ -34,11 +34,12 @@
    \verbatim
    Change History
    +=======================================================================================
-   |    Sep 2009 | Major changes for V2                                               - pgo
-   -=======================================================================================
+   | 27 Jul 2013 | Added f_CMD_CFVx_READ_ALL_CORE_REGS()                    V4.10.6   - pgo
    | 20 Jan 2011 | Removed setBDMBusy() from f_CMD_JTAG_EXECUTE_SEQUENCE{}            - pgo
    |  9 Jun 2010 | Added f_CMD_JTAG_RESET{}                                           - pgo
    |  9 Jun 2010 | Added f_CMD_JTAG_EXECUTE_SEQUENCE{}                                - pgo
+   |    Sep 2009 | Major changes for V2                                               - pgo
+   -=======================================================================================
    | 25 Sep 2009 | Added f_CMD_CFVX_READ_STATUS_REG{}                                 - pgo
    | 23 Jan 2009 | Many size optimizations made                                       - pgo
    | 13 Jan 2009 | Re-organization for merge with USBDM                               - pgo
@@ -60,7 +61,7 @@
 #include "BDMCommon.h"
 #include "JTAGSequence.h"
 
-#if (HW_CAPABILITY&(CAP_CFVx_HW|CAP_JTAG_HW))
+#if (HW_CAPABILITY&(CAP_CFVx_HW|CAP_JTAG_HW|CAP_SWD_HW))
 //! Set comm speed to user supplied value
 //!
 //! @note
@@ -83,46 +84,48 @@ U8 f_CMD_SPI_GET_SPEED(void) {
    returnSize = 3;
    return BDM_RC_OK;
 }
-
-//! Assert the TA signal
-//!
-//! @note
-//!  commandBuffer                                                         \n
-//!    - [2]    => 8-bit time interval in 10us ticks                       \n
-//!    - [3..4] => interface level [ignored] see \ref InterfaceLevelMasks_t
-//!
-//! @return
-//!  == \ref BDM_RC_OK => success         \n
-//!                                       \n
-//!  commandBuffer                        \n
-//!    - [1..2] => 0
-//!
-U8 f_CMD_CFVx_CONTROL_INTERFACE(void) {
-U8  level  = commandBuffer[4];
-
-   // This may take a while
-   setBDMBusy();
-
-#if (HW_CAPABILITY&CAP_CFVx_HW)
-   TA_LOW();                       // Assert TA
-   WAIT_US(10*commandBuffer[2]);   // Wait the specified time
-   TA_3STATE();                    // Release TA
 #endif
-   
-#if (HW_CAPABILITY & CAP_RST_IO)
-   switch (level&SI_RESET) {
-      case SI_RESET_LOW : // RESET pin=L
-         RESET_LOW();
-         break;
-      default :
-         RESET_3STATE();
-         break;
-   }
-#endif
-   *(U16*)(commandBuffer+1) = 0;   // Dummy return value
-   returnSize = 3;
-   return BDM_RC_OK;
-}
+
+#if (HW_CAPABILITY&(CAP_CFVx_HW|CAP_JTAG_HW))
+////! Assert the TA signal
+////!
+////! @note
+////!  commandBuffer                                                         \n
+////!    - [2]    => 8-bit time interval in 10us ticks                       \n
+////!    - [3..4] => interface level [ignored] see \ref InterfaceLevelMasks_t
+////!
+////! @return
+////!  == \ref BDM_RC_OK => success         \n
+////!                                       \n
+////!  commandBuffer                        \n
+////!    - [1..2] => 0
+////!
+//U8 f_CMD_CFVx_CONTROL_INTERFACE(void) {
+//U8  level  = commandBuffer[4];
+//
+//   // This may take a while
+//   setBDMBusy();
+//
+//#if (HW_CAPABILITY&CAP_CFVx_HW)
+//   TA_LOW();                       // Assert TA
+//   WAIT_US(10*commandBuffer[2]);   // Wait the specified time
+//   TA_3STATE();                    // Release TA
+//#endif
+//   
+//#if (HW_CAPABILITY & CAP_RST_IO)
+//   switch (level&SI_RESET) {
+//      case SI_RESET_LOW : // RESET pin=L
+//         RESET_LOW();
+//         break;
+//      default :
+//         RESET_3STATE();
+//         break;
+//   }
+//#endif
+//   *(U16*)(commandBuffer+1) = 0;   // Dummy return value
+//   returnSize = 3;
+//   return BDM_RC_OK;
+//}
 #endif
 
 #if (HW_CAPABILITY&CAP_CFVx_HW)
@@ -194,7 +197,7 @@ static U8 cfvx_target_go(U8 mode) {
 U8 rc;
 U8 buff[6];
 
-   (void)bdmcf_tx_msg(BDMCF_CMD_RDMREG);  // Read CSR from target
+   (void)bdmcf_tx_msg(_BDMCF_CMD_RDMREG);  // Read CSR from target
    rc = bdmcf_rx(2,buff+2);
    if (rc != BDM_RC_OK)
       return rc;
@@ -205,10 +208,10 @@ U8 buff[6];
    else
       buff[5] &= ~CFVx_CSR_SSM;           // Clear the SSM bit (go)
 
-   *((U16 *)buff) = BDMCF_CMD_WDMREG;     // Write the CSR back
+   *((U16 *)buff) = _BDMCF_CMD_WDMREG;     // Write the CSR back
    bdmcf_tx(3,buff);
 
-   rc = bdmcf_complete_chk(BDMCF_CMD_GO); // GO & check rc from CSR write!
+   rc = bdmcf_complete_chk(_BDMCF_CMD_GO); // GO & check rc from CSR write!
    if (rc != BDM_RC_OK)
       return rc;
 
@@ -279,13 +282,13 @@ U8 *ptr        = commandBuffer+8;   // Start of data
    if (count>0) {
       switch (elementSize) {
          case 1 :
-            *(U16*)(commandBuffer+2) = BDMCF_CMD_WRITE8;    // Set up command
+            *(U16*)(commandBuffer+2) = _BDMCF_CMD_WRITE8;    // Set up command
             bdmcf_tx(3,commandBuffer+2);                    // Tx command & address
             (void)bdmcf_tx_msg(*ptr);                       // Tx 1st data byte
             ptr++;                                          // Start of remaining data in buffer
             count--;                                        // Count 1st byte
             while(count>0) {
-               rc = bdmcf_complete_chk(BDMCF_CMD_FILL8);    // Tx write byte command
+               rc = bdmcf_complete_chk(_BDMCF_CMD_FILL8);    // Tx write byte command
                if (rc != BDM_RC_OK)
                   return rc;
                (void)bdmcf_tx_msg(*ptr);                    // Tx the next byte of the data
@@ -294,13 +297,13 @@ U8 *ptr        = commandBuffer+8;   // Start of data
             }
             break;
          case 2 :
-            *(U16*)(commandBuffer+2) = BDMCF_CMD_WRITE16;   // Set up command
+            *(U16*)(commandBuffer+2) = _BDMCF_CMD_WRITE16;   // Set up command
             bdmcf_tx(4,commandBuffer+2);                    // Tx command, address & 1st word
             ptr   += 2;                                     // Start of remaining data in buffer
             count >>= 1;                                    // Change to count of remaining words
             count--;
             while(count>0) {
-               rc = bdmcf_complete_chk(BDMCF_CMD_FILL16);   // Tx write word command
+               rc = bdmcf_complete_chk(_BDMCF_CMD_FILL16);   // Tx write word command
                if (rc != BDM_RC_OK)
                   return rc;
                (void)bdmcf_tx_msg(*(U16 *)ptr);             // Tx next word of data
@@ -309,13 +312,13 @@ U8 *ptr        = commandBuffer+8;   // Start of data
             }
             break;
          case 4 :
-            *(U16*)(commandBuffer+2) = BDMCF_CMD_WRITE32;   // Set up command
+            *(U16*)(commandBuffer+2) = _BDMCF_CMD_WRITE32;   // Set up command
             bdmcf_tx(5,commandBuffer+2);                    // Tx command, address & 1st long word
             ptr   += 4;                                     // Start of remaining data in buffer
             count >>= 2;                                    // Change to count of remaining longwords
             count--;
             while(count>0) {
-               rc = bdmcf_complete_chk(BDMCF_CMD_FILL32);   // Tx send write dword command
+               rc = bdmcf_complete_chk(_BDMCF_CMD_FILL32);   // Tx send write dword command
                if (rc != BDM_RC_OK)
                   return rc;
                bdmcf_tx(2,ptr);                             // Tx next long word of data
@@ -360,12 +363,12 @@ U8 buff[2];
    if (count>0) {
       switch (elementSize) {
          case 1 :
-            *(U16*)(commandBuffer+2) = BDMCF_CMD_READ8;     // Set up command
+            *(U16*)(commandBuffer+2) = _BDMCF_CMD_READ8;     // Set up command
             bdmcf_tx(3,commandBuffer+2);                    // Tx command & address
             do {
                count--;                                     // decrement the number of bytes to read
                if (count>0)
-                  rc = bdmcf_rxtx(1,buff,BDMCF_CMD_DUMP8);  // get the result & send in new DUMP command
+                  rc = bdmcf_rxtx(1,buff,_BDMCF_CMD_DUMP8);  // get the result & send in new DUMP command
                else
                   rc = bdmcf_rx(1,buff);                    // read the result (and send NOP)
                if (rc != BDM_RC_OK)
@@ -374,13 +377,13 @@ U8 buff[2];
             } while (count>0);
             break;
          case 2 :
-            *(U16*)(commandBuffer+2) = BDMCF_CMD_READ16;    // Set up command
+            *(U16*)(commandBuffer+2) = _BDMCF_CMD_READ16;    // Set up command
             bdmcf_tx(3,commandBuffer+2);                    // Tx command & address
             count>>=1;
             do {
                count--;                                     // decrement the number of bytes to read
                if (count>0)
-                  rc = bdmcf_rxtx(1,ptr,BDMCF_CMD_DUMP16);  // get the result & send in new DUMP command
+                  rc = bdmcf_rxtx(1,ptr,_BDMCF_CMD_DUMP16);  // get the result & send in new DUMP command
                else
                   rc = bdmcf_rx(1,ptr);                     // read the result (and send NOP)
                if (rc != BDM_RC_OK)
@@ -389,13 +392,13 @@ U8 buff[2];
             } while(count>0);
             break;
          case 4 :
-            *(U16*)(commandBuffer+2) = BDMCF_CMD_READ32;    // Set up command
+            *(U16*)(commandBuffer+2) = _BDMCF_CMD_READ32;    // Set up command
             bdmcf_tx(3,commandBuffer+2);                    // Tx command & address
             count>>=2;
             do {
                count--;                                     // decrement the number of bytes to read
                if (count>0)
-                  rc = bdmcf_rxtx(2,ptr,BDMCF_CMD_DUMP32);  // get the result & send in new DUMP command
+                  rc = bdmcf_rxtx(2,ptr,_BDMCF_CMD_DUMP32);  // get the result & send in new DUMP command
                else
                   rc = bdmcf_rx(2,ptr);                     // read the result (and send NOP)
                if (rc != BDM_RC_OK)
@@ -414,6 +417,64 @@ U8 buff[2];
 //======================================================================
 //======================================================================
 
+#if HW_CAPABILITY&CAP_CORE_REGS
+// Insufficient memory !
+
+// Maps register index into magic number for CFVx device register number
+static const uint16_t regIndexMap[] = {
+   CFVx_RegD0, CFVx_RegD1, CFVx_RegD2, CFVx_RegD3, CFVx_RegD4, CFVx_RegD5, CFVx_RegD6, CFVx_RegD7, 
+   CFVx_RegA0, CFVx_RegA1, CFVx_RegA2, CFVx_RegA3, CFVx_RegA4, CFVx_RegA5, CFVx_RegA6, CFVx_RegA7,
+   CFVx_CRegSR, CFVx_CRegPC,
+   };
+//! Read all core registers
+//!
+//! @note
+//!  commandBuffer\n
+//!   - [2]  =>  flag - must be zero
+//!   - [3]  =>  register index to start at
+//!   - [4]  =>  register index to end at
+//!
+//! @return
+//!  == \ref BDM_RC_OK => success         \n
+//!                                       \n
+//!  commandBuffer                        \n
+//!   - [1..N]  =>  32-bit register values
+//!
+uint8_t f_CMD_CFVx_READ_ALL_CORE_REGS(void) {
+   uint8_t rc;
+   uint8_t regIndex    = commandBuffer[3];
+   uint8_t endRegister = commandBuffer[4];
+   uint8_t* outputPtr  = commandBuffer+1;
+   returnSize = 1;
+   if (commandBuffer[2] != 0) {
+	   // Check flag is zero
+	   return BDM_RC_ILLEGAL_PARAMS;
+   }
+   while (regIndex<=endRegister) {
+	   uint16_t regNo = regIndexMap[regIndex];
+	   if (regNo<=CFVx_RegA7) {
+		   // Read A/D Reg
+		   (void)bdmcf_tx_msg(_BDMCF_CMD_RAREG+regNo);    // send the command
+	   }
+	   else {
+		   // Read Control Reg
+		   (void)bdmcf_tx_msg(_BDMCF_CMD_RCREG);      // send the command
+		   (void)bdmcf_tx_msg(0);                    // and the register address (padded)
+		   (void)bdmcf_tx_msg(regNo);
+	   }
+	   // Write to buffer (target format - Big-endian)
+	   rc = bdmcf_rx(2,outputPtr);
+	   if (rc != BDM_RC_OK) {
+		   return rc;
+	   }
+	   outputPtr  += 4;
+	   returnSize += 4;
+	   regIndex++;
+   }
+   return BDM_RC_OK;
+}
+#endif
+
 //! Write CFVx address/data register
 //!
 //! @note
@@ -428,7 +489,7 @@ U8 buff[2];
 U8 f_CMD_CFVx_WRITE_REG(void) {
 U8 rc;
 
-   (void)bdmcf_tx_msg(BDMCF_CMD_WAREG+(commandBuffer[3]&0x0F));   // Send the command word
+   (void)bdmcf_tx_msg(_BDMCF_CMD_WAREG+(commandBuffer[3]&0x0F));   // Send the command word
 
    rc = bdmcf_tx_msg_half_rx(*((U16 *)(commandBuffer+4))); // Send 1st word of register value
    if (rc != BDM_RC_OK)
@@ -454,8 +515,10 @@ U8 rc;
 //!
 U8 f_CMD_CFVx_READ_REG(void) {
 
+	// Note - manual appears wrong
+	// When CPU is running the response is NOT READY (1,00000000,00000000) not bus error
    returnSize  = 5;
-   (void)bdmcf_tx_msg(BDMCF_CMD_RAREG+(commandBuffer[3]&0x0F));    /* send the command */
+   (void)bdmcf_tx_msg(_BDMCF_CMD_RAREG+(commandBuffer[3]&0x0F));    /* send the command */
    return bdmcf_rx(2,commandBuffer+1);
 }
 
@@ -473,7 +536,7 @@ U8 f_CMD_CFVx_READ_REG(void) {
 U8 f_CMD_CFVx_WRITE_DREG(void) {
 U8 rc;
 
-   (void)bdmcf_tx_msg(BDMCF_CMD_WDMREG+(commandBuffer[3]&0x1F));  // Send the command word
+   (void)bdmcf_tx_msg(_BDMCF_CMD_WDMREG+(commandBuffer[3]&0x1F));  // Send the command word
 
    rc = bdmcf_tx_msg_half_rx(*((U16 *)(commandBuffer+4))); // Send 1st word of register value
    if (rc != BDM_RC_OK)
@@ -500,7 +563,7 @@ U8 rc;
 U8 f_CMD_CFVx_READ_DREG(void) {
 
    returnSize  = 5;
-   (void)bdmcf_tx_msg(BDMCF_CMD_RDMREG+(commandBuffer[3]&0x1F));   // send the command
+   (void)bdmcf_tx_msg(_BDMCF_CMD_RDMREG+(commandBuffer[3]&0x1F));   // send the command
    return bdmcf_rx(2,commandBuffer+1);
 }
 
@@ -517,7 +580,7 @@ U8 f_CMD_CFVx_READ_DREG(void) {
 U8 f_CMD_CFVx_READ_STATUS_REG(void) {
 
    returnSize  = 5;
-   (void)bdmcf_tx_msg(BDMCF_CMD_RDMREG+0);   // send the command
+   (void)bdmcf_tx_msg(_BDMCF_CMD_RDMREG+0);   // send the command
    return bdmcf_rx(2,commandBuffer+1);
 }
 
@@ -535,7 +598,7 @@ U8 f_CMD_CFVx_READ_STATUS_REG(void) {
 //!
 U8 f_CMD_CFVx_WRITE_CREG(void) {
 
-   (void)bdmcf_tx_msg(BDMCF_CMD_WCREG);   // send the command
+   (void)bdmcf_tx_msg(_BDMCF_CMD_WCREG);   // send the command
 
    *(U16*)(commandBuffer) = 0;      // Extend address to 32-bits
    bdmcf_tx(4,commandBuffer);       // Tx address & register value
@@ -560,7 +623,7 @@ U8 f_CMD_CFVx_READ_CREG(void) {
 
    returnSize  = 5;
 
-   (void)bdmcf_tx_msg(BDMCF_CMD_RCREG);      // send the command
+   (void)bdmcf_tx_msg(_BDMCF_CMD_RCREG);      // send the command
    (void)bdmcf_tx_msg(0);                    // and the register address (padded)
    (void)bdmcf_tx_msg(*((U16 *)(commandBuffer+2)));
 

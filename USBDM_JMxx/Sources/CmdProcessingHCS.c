@@ -34,6 +34,8 @@
    \verbatim
    Change History
    +========================================================================================
+   | 27 Dec 2012 | Improved waiting for reset rise (prevent USB timeouts)              - pgo V4.10.4
+   | 26 Oct 2012 | Added HCS08 & HCS12 fast read/write                                 - pgo V4.10.4
    | 27 Jan 2012 | Added setBdmprr() & associated changes (HCS12 - Global access)      - pgo V4.9
    |  1 Oct 2011 | Improved error checking on HCS08 reads & writes                     - pgo V4.7
    | 24 Feb 2011 | Extended auto-connect options                                       - pgo V4.6
@@ -82,6 +84,21 @@
 
 #pragma MESSAGE DISABLE C4000 // Disable warnings about always true
 
+/*!
+ * Write an arbitrary command using BDM protocol
+ * 
+ * @return 
+ *     == \ref BDM_RC_OK => success        \n
+ *     != \ref BDM_RC_OK => error
+ */
+U8 f_CMD_CUSTOM_COMMAND(void) {
+	BDM_CMD_0_0_NOACK(_BDMZ12_ERASE_FLASH);
+	bdm_wait64();
+	BDM_CMD_0_0_NOACK(_BDMZ12_ERASE_FLASH);
+	bdm_wait64();
+	return BDM_RC_OK;
+}
+
 //! HCS12/HCS08/RS08/CFV1 - Try to connect to the target
 //!
 //! @return
@@ -97,15 +114,18 @@ U8 rc;
 
       // Re-write Status/control reg. since Force BDM clock is active
       rc = bdm_readBDMStatus(&bdm_sts);
-      if (rc != BDM_RC_OK)
+      if (rc != BDM_RC_OK) {
          return rc;
-      if (cable_status.target_type == T_CFV1)
-         bdm_sts &= ~(CFV1_XCSR_SEC); // Make sure we don't accidently erase the chip!      
-      rc = bdm_writeBDMControl(bdm_sts);
-      if (rc != BDM_RC_OK)
-         return rc;
-      rc = bdm_connect(); // Re-connect in case speed changed from above
       }
+      if (cable_status.target_type == T_CFV1) {
+         bdm_sts &= ~(CFV1_XCSR_SEC); // Make sure we don't accidently erase the chip!
+      }
+      rc = bdm_writeBDMControl(bdm_sts);
+      if (rc != BDM_RC_OK) {
+         return rc;
+      }
+      rc = bdm_connect(); // Re-connect in case speed changed from above
+   }
    return rc;
 }
 
@@ -130,16 +150,16 @@ U8 rc;
       // Try to connect
       return f_CMD_CONNECT();
    }
-   cable_status.speed       = SPEED_USER_SUPPLIED; // User told us (even if it doesn't work!)
    cable_status.sync_length = syncValue;
 
    rc = bdm_RxTxSelect(); // Drivers available for this frequency?
    if (rc != BDM_RC_OK) {
       cable_status.sync_length  = 1;
       cable_status.speed        = SPEED_NO_INFO; // Connection cannot be established at this speed
-      cable_status.ackn         = WAIT;    // Clear indication of ACKN feature
+      cable_status.ackn         = WAIT;          // Clear indication of ACKN feature
       return rc;
    }
+   cable_status.speed       = SPEED_USER_SUPPLIED; // User told us (even if it doesn't work!)
 
 //   if (cable_status.target_type == T_HC12) {
 //      rc = bdmHC12_confirmSpeed(sync_length); // Confirm operation at that speed
@@ -166,23 +186,23 @@ U8 f_CMD_GET_SPEED(void) {
    return BDM_RC_OK;
 }
 
-//! Directly manipulate BDM interface
-//!
-//! @note
-//!  commandBuffer                                                \n
-//!  - [2]    => 8-bit time interval in 10us ticks [ignored]      \n
-//!  - [3..4] => interface level [see \ref InterfaceLevelMasks_t]
-//!
-//! @return
-//!   BDM_RC_OK => success
-//!
-U8 f_CMD_CONTROL_INTERFACE(void) {
-U16  value  = *(U16*)(commandBuffer+3);
-
-   *(U16*)(commandBuffer+1) = bdm_setInterfaceLevel((U8)value);
-   returnSize = 3;
-   return BDM_RC_OK;
-}
+////! Directly manipulate BDM interface
+////!
+////! @note
+////!  commandBuffer                                                \n
+////!  - [2]    => 8-bit time interval in 10us ticks [ignored]      \n
+////!  - [3..4] => interface level [see \ref InterfaceLevelMasks_t]
+////!
+////! @return
+////!   BDM_RC_OK => success
+////!
+//U8 f_CMD_CONTROL_INTERFACE(void) {
+//U16  value  = *(U16*)(commandBuffer+3);
+//
+//   *(U16*)(commandBuffer+1) = bdm_setInterfaceLevel((U8)value);
+//   returnSize = 3;
+//   return BDM_RC_OK;
+//}
 
 //! CFV1 -  Used to reset the CFV1 target interface from overrun condition
 //!
@@ -241,13 +261,13 @@ U8 rc;
    commandBuffer[3] = 0;
    
    rc = optionalReconnect(AUTOCONNECT_STATUS);
-   if (rc != BDM_RC_OK)
+   if (rc != BDM_RC_OK) {
       return rc;
-
+   }
    rc = bdm_readBDMStatus(commandBuffer+4);
-   if (rc != BDM_RC_OK)
+   if (rc != BDM_RC_OK) {
       return rc;
-
+   }
    if ((cable_status.target_type == T_CFV1) &&
        ((commandBuffer[4] & CFV1_XCSR_CSTAT) == CFV1_XCSR_CSTAT_OVERRUN)) {
          // Try CFV1 recovery process
@@ -290,6 +310,10 @@ U8 rc = BDM_RC_OK;
    // This may take a while
    setBDMBusy();
    
+   rc = optionalReconnect(AUTOCONNECT_STATUS);
+   if (rc != BDM_RC_OK) {
+      return rc;
+   }
    cable_status.bdmpprValue = 0x00;
    
    // ToDo - check more
@@ -321,9 +345,9 @@ U8 rc = BDM_RC_OK;
    cable_status.ackn   = WAIT;              // ACKN feature is disabled after reset
 
 #if 0
-   if (rc != BDM_RC_OK)
+   if (rc != BDM_RC_OK) {
      return rc;
-
+   }
    if (cable_status.speed == SPEED_USER_SUPPLIED) {          // User specified speed?
       (void)bdmHC12_confirmSpeed(cable_status.sync_length);  // Confirm we can still operate at that speed
       // ToDo - check what should be done with rc
@@ -388,8 +412,10 @@ U8 f_CMD_HALT(void) {
 //!
 U8 f_CMD_WRITE_BD(void) {
    U16 addr = *(U16*)(commandBuffer+2);
-   if (addr == HC12_BDMSTS) // Access to BDMSTS is mapped to write control
+   if (addr == HC12_BDMSTS) {
+	   // Access to BDMSTS is mapped to write control
       return bdm_writeBDMControl(commandBuffer[7]);
+   }
    return BDM12_CMD_BDWRITEB(addr,commandBuffer[7]);
 }
 
@@ -532,7 +558,63 @@ U8 rc = BDM_RC_OK;
    }
    return rc;
 }
-   
+#if 1
+//! HCS12 -  Write block of bytes to memory
+//!
+//! @note
+//!  commandBuffer                                   \n
+//!  - [2]    = element size [ignored]/memory space  \n
+//!  - [3]    = # of bytes                           \n
+//!  - [4..7] = address [MSB ignored]                \n
+//!  - [8..N] = data to write
+//!
+//! @return
+//!    == \ref BDM_RC_OK => success       \n
+//!    != \ref BDM_RC_OK => error         \n
+//!
+U8 f_CMD_HCS12_WRITE_MEM(void) {
+   U8  count       = commandBuffer[3];
+   U16 addr        = *(U16*)(commandBuffer+6);
+   U8  *data_ptr   = commandBuffer+8;
+   U8  rc          = BDM_RC_OK;
+
+   rc = setBdmppr(commandBuffer[2], commandBuffer[5]); // element size & address[23:16]
+   if (rc != BDM_RC_OK) {
+      return rc;
+   }
+   if (addr&0x0001) {
+      // Address is odd
+      rc = BDM12_CMD_WRITEB(addr,*data_ptr); // write byte
+      addr     +=1;                    // increment memory address
+      data_ptr +=1;                    // increment buffer pointer
+      count    -=1;                    // decrement count of bytes
+   }
+   if (commandBuffer[2]&MS_FAST) {
+      // Fast word writes - corrupts X
+      // Write address to X
+      rc = BDM12_CMD_WRITE_X(addr-2);
+      // Exclude 0xFF00-0xFFFF as BDM code in Memory map
+      while ((count > 1) && (rc == BDM_RC_OK) && ((addr&0xFF00) != 0xFF00)) {
+         rc = BDM12_CMD_WRITE_NEXT(*((U16 *)data_ptr)); // write word
+         addr     +=2;                    // increment memory address
+         data_ptr +=2;                    // increment buffer pointer
+         count    -=2;                    // decrement count of bytes
+      }
+   }
+   while ((count > 1) && (rc == BDM_RC_OK)) {
+      // Slow Word writes
+      rc = BDM12_CMD_WRITEW(addr,*((U16 *)data_ptr));  // write a word
+      addr     +=2;                          // increment memory address
+      data_ptr +=2;                          // increment buffer pointer
+      count    -=2;                          // decrement count of bytes
+   }
+   if (count > 0) {
+      // Odd last byte
+      rc = BDM12_CMD_WRITEB(addr,*data_ptr);  // fetch a byte
+   }
+   return rc;
+}
+#else
 //! HCS12 -  Write block of bytes to memory
 //!
 //! @note
@@ -574,7 +656,71 @@ U8 f_CMD_HCS12_WRITE_MEM(void) {
    }
    return rc;
 }
+#endif
 
+#if 1
+//! HCS12 -  Read block of data from memory
+//!
+//! @note
+//!  commandBuffer                                   \n
+//!  - [2]    = element size [ignored]/memory space  \n
+//!  - [3]    = # of bytes                           \n
+//!  - [4..7] = address [MSB ignored]                \n
+//!
+//! @return
+//!    == \ref BDM_RC_OK => success       \n
+//!    != \ref BDM_RC_OK => error         \n
+//!                                       \n
+//!  commandBuffer                        \n
+//!  - [1..N] = data read
+//!
+U8 f_CMD_HCS12_READ_MEM(void) {
+U8  count       = commandBuffer[3];
+U16 addr        = *(U16*)(commandBuffer+6);
+U8  *data_ptr   = commandBuffer+1;
+U8  rc          = BDM_RC_OK;
+
+   if (count>MAX_COMMAND_SIZE-1) {
+      return BDM_RC_ILLEGAL_PARAMS;  // requested block+status is too long to fit into the buffer
+   }
+   rc = setBdmppr(commandBuffer[2], commandBuffer[5]); // element size & address[23:16]
+   if (rc != BDM_RC_OK) {
+	   return rc;
+   }
+   returnSize = count+1;
+   if (addr&0x0001) {
+      // Odd first byte
+      rc = BDM12_CMD_READB((U16)addr,data_ptr);  // fetch a byte
+      addr     +=1;                    // increment memory address
+      data_ptr +=1;                    // increment buffer pointer
+      count    -=1;                    // decrement count of bytes
+   }
+   if (commandBuffer[2]&MS_FAST) {
+      // Fast word reads - corrupts X
+      // Write address to X
+      rc = BDM12_CMD_WRITE_X(addr-2);
+      // Exclude 0xFF00-0xFFFF as BDM code in Memory map
+      while ((count > 1) && (rc == BDM_RC_OK) && ((addr&0xFF00) != 0xFF00)) {
+         rc = BDM12_CMD_READ_NEXT((U16*)data_ptr);
+         addr     +=2;                    // increment memory address
+         data_ptr +=2;                    // increment buffer pointer
+         count    -=2;                    // decrement count of bytes
+      }
+   }
+   while ((count > 1) && (rc == BDM_RC_OK)) {
+      // Slow Word reads
+      rc = BDM12_CMD_READW(addr,(U16*)data_ptr);  // fetch a word
+      addr     +=2;                          // increment memory address
+      data_ptr +=2;                          // increment buffer pointer
+      count    -=2;                          // decrement count of bytes
+   }
+   if (count > 0) {
+      // Odd last byte
+      rc = BDM12_CMD_READB((U16)addr,data_ptr);  // fetch a byte
+   }
+   return rc;
+}
+#else
 //! HCS12 -  Read block of data from memory
 //!
 //! @note
@@ -622,12 +768,13 @@ U8  rc          = BDM_RC_OK;
    }
    return rc;
 }
+#endif
 
 //! HCS08/RS08 -  Write block of bytes to memory
 //!
 //! @note
 //!  commandBuffer                           \n
-//!  - [2]    = element size [ignored]       \n
+//!  - [2]    = element size/mode            \n
 //!  - [3]    = # of bytes                   \n
 //!  - [4..7] = address [MSB ignored]        \n
 //!  - [8..N] = data to write
@@ -642,14 +789,40 @@ U8 f_CMD_HCS08_WRITE_MEM(void) {
    U8 *data_ptr   = commandBuffer+8;
    U8  rc         = BDM_RC_OK;
 
-   if (cable_status.speed == SPEED_NO_INFO)
+   if (cable_status.speed == SPEED_NO_INFO) {
       return BDM_RC_NO_CONNECTION;
-
-   while ((count > 0) && (rc == BDM_RC_OK)) {
-      rc = BDM08_CMD_WRITEB(addr,*data_ptr);
-      addr     +=1;                    // increment memory address
-      data_ptr +=1;                    // increment buffer pointer
-      count    -=1;                    // decrement count of bytes
+   }
+   if (commandBuffer[2]&MS_FAST) {
+	   // Fast write - corrupts H:X
+	   // Write address to H:X
+       rc = BDM08_CMD_WRITE_HX(addr-1);
+       while ((count > 0) && (rc == BDM_RC_OK)) {
+          rc = BDM08_CMD_WRITE_NEXT(*data_ptr);
+          data_ptr +=1;                    // increment buffer pointer
+          count    -=1;                    // decrement count of bytes
+       }
+   }
+   else {
+      while ((count > 0) && (rc == BDM_RC_OK)) {
+#if 0
+    	 U8 status;
+         BDM08_CMD_WRITEB_WS(addr,*data_ptr++,&status); // write data & receive status
+         if (status&(HC08_BDCSCR_WSF|HC08_BDCSCR_DVF)) {
+        	 // Status read may fail because of clock change! 
+        	 (void)bdm_physicalConnect();
+             BDM08_CMD_READSTATUS(&status);
+         }
+         if (status&(HC08_BDCSCR_WSF|HC08_BDCSCR_DVF)) {
+             // The only 'expected' error that should occur is because the device has entered stop or wait mode
+             // Don't try to recover as this requires changing the machine state.
+      	    rc = BDM_RC_HCS_ACCESS_ERROR;
+         }
+#else
+         rc = BDM08_CMD_WRITEB(addr,*data_ptr++); // write byte
+#endif
+         addr     +=1;                    // increment memory address
+         count    -=1;                    // decrement count of bytes
+      }
    }
    return rc;
 }
@@ -658,7 +831,7 @@ U8 f_CMD_HCS08_WRITE_MEM(void) {
 //!
 //! @note
 //!  commandBuffer                       \n
-//!  - [2]    = element size [ignored]   \n
+//!  - [2]    = element size/mode        \n
 //!  - [3]    = # of bytes               \n
 //!  - [4..7] = address [MSB ignored]
 //!
@@ -675,18 +848,44 @@ U16 addr       = *(U16*)(commandBuffer+6);
 U8  *data_ptr  = commandBuffer+1;
 U8  rc         = BDM_RC_OK;
 
-   if (cable_status.speed == SPEED_NO_INFO)
+   if (cable_status.speed == SPEED_NO_INFO) {
       return BDM_RC_NO_CONNECTION;
-
-   if (count>MAX_COMMAND_SIZE-1)
+   }
+   if (count>MAX_COMMAND_SIZE-1) {
       return BDM_RC_ILLEGAL_PARAMS;  // requested block+status is too long to fit into the buffer
-
+   }
    returnSize = count+1;
-   while ((count > 0) && (rc == BDM_RC_OK)) {
-      rc = BDM08_CMD_READB(addr,data_ptr);  // fetch a byte
-      addr     +=1;                         // increment memory address
-      data_ptr +=1;                         // increment buffer pointer
-      count    -=1;                         // decrement count of bytes
+   if (commandBuffer[2]&MS_FAST) {
+	  // Write address to H:X
+      rc = BDM08_CMD_WRITE_HX(addr-1);
+      while ((count > 0) && (rc == BDM_RC_OK)) {
+         rc = BDM08_CMD_READ_NEXT(data_ptr);
+         data_ptr +=1;                    // increment buffer pointer
+         count    -=1;                    // decrement count of bytes
+      }
+   }
+   else {
+      while ((count > 0) && (rc == BDM_RC_OK)) {
+#if 0
+    	  U8 buffer[2];
+    	  U8 retry = 10;
+          BDM08_CMD_READB_WS(addr,(U16*)buffer); // read status & data byte
+          while ((retry-->0) && (buffer[0]&(HC08_BDCSCR_DVF))) {
+        	  BDM08_CMD_READ_LAST((U16*)buffer);
+          }
+          *data_ptr++ = buffer[1];               // save data
+          if (buffer[0]&(HC08_BDCSCR_DVF|HC08_BDCSCR_WSF)) {
+             // The only 'expected' error that should occur is because the device is in stop or wait mode
+             // Don't try to recovers as this requires changing the machine state.
+         	 rc = BDM_RC_HCS_ACCESS_ERROR;
+          }
+#else
+         rc = BDM08_CMD_READB(addr,data_ptr);    // fetch a byte
+         data_ptr +=1;                           // increment buffer pointer
+#endif
+         addr     +=1;                           // increment memory address
+         count    -=1;                           // decrement count of bytes
+      }
    }
    return rc;
 }
@@ -708,34 +907,10 @@ U8  rc         = BDM_RC_OK;
 //!    != \ref BDM_RC_OK => error         \n
 //!
 U8 f_CMD_HCS12_WRITE_REG(void) {
-#if 1
-   if ((commandBuffer[3]<HCS12_RegPC) || (commandBuffer[3]>HCS12_RegSP))
+   if ((commandBuffer[3]<HCS12_RegPC) || (commandBuffer[3]>HCS12_RegSP)) {
       return BDM_RC_ILLEGAL_PARAMS;
-   return BDM12_CMD_WRITE_REG(commandBuffer[3],*(U16*)(commandBuffer+6));
-#else
-U16 value = *(U16*)(commandBuffer+6);
-
-   switch (commandBuffer[3]) {
-      case HCS12_RegPC :
-         BDM12_CMD_WRITE_PC(value);
-         break;
-      case HCS12_RegD  :
-         BDM12_CMD_WRITE_D(value);
-         break;
-      case HCS12_RegX  :
-         BDM12_CMD_WRITE_X(value);
-         break;
-      case HCS12_RegY  :
-         BDM12_CMD_WRITE_Y(value);
-         break;
-      case HCS12_RegSP :
-         BDM08_CMD_WRITE_SP(value);
-         break;
-      default:
-         return BDM_RC_ILLEGAL_PARAMS;
    }
-   return BDM_RC_OK;
-#endif
+   return BDM12_CMD_WRITE_REG(commandBuffer[3],*(U16*)(commandBuffer+6));
 }
 
 //! HCS12 Read core register
@@ -756,32 +931,10 @@ U8 f_CMD_HCS12_READ_REG(void) {
    commandBuffer[2] = 0;
    returnSize = 5;
 
-#if 1
-   if ((commandBuffer[3]<HCS12_RegPC) || (commandBuffer[3]>HCS12_RegSP))
+   if ((commandBuffer[3]<HCS12_RegPC) || (commandBuffer[3]>HCS12_RegSP)) {
       return BDM_RC_ILLEGAL_PARAMS;
-   return BDM12_CMD_READ_REG(commandBuffer[3],(U16*)(commandBuffer+3));
-#else
-   switch (commandBuffer[3]) {
-      case HCS12_RegPC :
-         BDM12_CMD_READ_PC(commandBuffer+3);
-         break;
-      case HCS12_RegD  :
-         BDM12_CMD_READ_D(commandBuffer+3);
-         break;
-      case HCS12_RegX  :
-         BDM12_CMD_READ_X(commandBuffer+3);
-         break;
-      case HCS12_RegY  :
-         BDM12_CMD_READ_Y(commandBuffer+3);
-         break;
-      case HCS12_RegSP :
-         BDM12_CMD_READ_SP(commandBuffer+3);
-         break;
-      default:
-         return BDM_RC_ILLEGAL_PARAMS;
    }
-   return BDM_RC_OK;
-#endif
+   return BDM12_CMD_READ_REG(commandBuffer[3],(U16*)(commandBuffer+3));
 }
 
 //! RS08/HCS08 Write core register

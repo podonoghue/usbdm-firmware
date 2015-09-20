@@ -34,7 +34,10 @@
    \verbatim
    Change History
    +=======================================================================================
-   | 15 Feb 2011 | Masked address value for CFV1                              V4.5    - pgo
+   | 18 Jul 2014 | Added HCS12ZVM support                                             - pgo V4.10.6.170
+   | 28 Feb 2014 | Improved error checking on memory read/write           V4.10.6.120 - pgo
+   | 27 Jul 2013 | Added f_CMD_CF_READ_ALL_CORE_REGS()                    V4.10.6     - pgo
+   | 15 Feb 2011 | Masked address value for CFV1                          V4.5        - pgo
    | 14 Apr 2010 | Fixed f_CMD_CF_READ_DREG for MC51AC256_HACK                        - pgo
    | 01 Apr 2010 | Fixed byte read/writes to CSR2 etc                                 - pgo
    |    Oct 2009 | Added byte read/writes to CSR2 etc                                 - pgo
@@ -60,7 +63,7 @@
 //======================================================================
 //======================================================================
 //======================================================================
-#if (TARGET_CAPABILITY&CAP_CFV1)
+#if (TARGET_CAPABILITY&CAP_CFV1) || (TARGET_CAPABILITY&CAP_S12Z)
 //! Write CFV1 Memory
 //!
 //! @note
@@ -78,11 +81,11 @@ U8  elementSize = commandBuffer[2];          // Size of the data writes
 U8  count       = commandBuffer[3];          // # of bytes
 U32 addr        = *(U32*)(commandBuffer+4);  // Address in target memory
 U8  *data_ptr   = commandBuffer+8;           // Where the data is
-U8  rc;
+U8  rc          = BDM_RC_OK;
 
-   if (cable_status.speed == SPEED_NO_INFO)
+   if (cable_status.speed == SPEED_NO_INFO) {
       return BDM_RC_NO_CONNECTION;
-
+   }
    if (count > 0) {
       switch (elementSize) {
          case 1:
@@ -121,7 +124,7 @@ U8  rc;
             return BDM_RC_ILLEGAL_PARAMS;
       }
    }
-   return BDM_RC_OK;
+   return rc;
 }
 
 //! Read CFV1 Memory
@@ -143,8 +146,8 @@ U8 f_CMD_CF_READ_MEM(void) {
 U8  elementSize = commandBuffer[2];          // Size of the data writes
 U8  count       = commandBuffer[3];          // # of data bytes
 U32 addr        = *(U32*)(commandBuffer+4);  // Address in target memory
-U8 *data_ptr   = commandBuffer+1;            // Where in buffer to write the data
-U8 rc;
+U8 *data_ptr    = commandBuffer+1;            // Where in buffer to write the data
+U8 rc           = BDM_RC_OK;
 
    if (cable_status.speed == SPEED_NO_INFO)
       return BDM_RC_NO_CONNECTION;
@@ -191,29 +194,10 @@ U8 rc;
             return BDM_RC_ILLEGAL_PARAMS;
       }
    }
-   return BDM_RC_OK;
+   return rc;
 }
 
-
-//======================================================================
-//======================================================================
-//======================================================================
-
-//! Write CFV1 core register
-//!
-//! @note
-//!  commandBuffer\n
-//!   - [2..3]  =>  5-bit register number [MSB ignored]
-//!   - [4..7]  =>  32-bit register value
-//!
-//! @return
-//!  == \ref BDM_RC_OK => success
-//!
-U8 f_CMD_CF_WRITE_REG(void) {
-   return BDMCF_CMD_WRITE_REG(commandBuffer[3]&0x1F,(*(U32 *)(commandBuffer+4)));
-}
-
-//! Read CFV1 core register
+//! Read CFV1 core register (or DREG if MSB=1)
 //!
 //! @note
 //!  commandBuffer\n
@@ -228,8 +212,77 @@ U8 f_CMD_CF_WRITE_REG(void) {
 U8 f_CMD_CF_READ_REG(void) {
 
    returnSize = 5;
-   return BDMCF_CMD_READ_REG(commandBuffer[3]&0x1F,(U32*)(commandBuffer+1));
+   return BDMCF_CMD_READ_REG(commandBuffer[3]&0x9F,(U32*)(commandBuffer+1));
 }
+
+//! Write CFV1 core register (or DREG if MSB=1)
+//!
+//! @note
+//!  commandBuffer\n
+//!   - [2..3]  =>  8-bit register number [MSB ignored - CRG/CRN byte]
+//!   - [4..7]  =>  32-bit register value
+//!
+//! @return
+//!  == \ref BDM_RC_OK => success
+//!
+U8 f_CMD_CF_WRITE_REG(void) {
+   return BDMCF_CMD_WRITE_REG(commandBuffer[3]&0x9F,(*(U32 *)(commandBuffer+4)));
+}
+
+#endif
+
+//======================================================================
+//======================================================================
+//======================================================================
+
+#if (TARGET_CAPABILITY&CAP_CFV1)
+
+#if HW_CAPABILITY&CAP_CORE_REGS
+// Insufficient memory !
+
+// Maps register index into magic number for ARM device register number
+static const uint8_t regIndexMap[] = {
+   CFV1_RegD0, CFV1_RegD1, CFV1_RegD2, CFV1_RegD3, CFV1_RegD4, CFV1_RegD5, CFV1_RegD6, CFV1_RegD7, 
+   CFV1_RegA0, CFV1_RegA1, CFV1_RegA2, CFV1_RegA3, CFV1_RegA4, CFV1_RegA5, CFV1_RegA6, CFV1_RegA7,
+   CFV1_RegSR, CFV1_RegPC,
+   };
+//! Read all core registers
+//!
+//! @note
+//!  commandBuffer\n
+//!   - [2]  =>  flag - must be zero
+//!   - [3]  =>  register index to start at
+//!   - [4]  =>  register index to end at
+//!
+//! @return
+//!  == \ref BDM_RC_OK => success         \n
+//!                                       \n
+//!  commandBuffer                        \n
+//!   - [1..N]  =>  32-bit register values
+//!
+uint8_t f_CMD_CF_READ_ALL_CORE_REGS(void) {
+   uint8_t rc;
+   uint8_t regIndex    = commandBuffer[3];
+   uint8_t endRegister = commandBuffer[4];
+   uint8_t* outputPtr  = commandBuffer+1;
+   returnSize = 1;
+   if (commandBuffer[2] != 0) {
+	   // Check flag is zero
+	   return BDM_RC_ILLEGAL_PARAMS;
+   }
+   while (regIndex<=endRegister) {
+	   // Write to buffer (target format - Big-endian)
+	   rc = BDMCF_CMD_READ_REG(regIndexMap[regIndex],(U32*)(outputPtr));
+	   if (rc != BDM_RC_OK) {
+		   return rc;
+	   }
+	   outputPtr  += 4;
+	   returnSize += 4;
+	   regIndex++;
+   }
+   return BDM_RC_OK;
+}
+#endif
 
 //! Write CFV1 debug register;
 //!

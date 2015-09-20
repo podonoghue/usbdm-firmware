@@ -29,6 +29,10 @@
 Change History
 
 -=======================================================================================
+| 18 Jul 2014 | Added HCS12ZVM support                                             - pgo V4.10.6.170
+| 28 Feb 2013 | Changed Timeouts for slow target clocks e.g. 32kHz                 - pgo V4.10.6.120
+| 26 Dec 2012 | Changed Reset handling to prevent USB timeouts                     - pgo V4.10.4
+| 18 Sep 2012 | Removed output glitch in bdm_rxGeneric() etc (BKGD_3STATE_MASK)    - pgo V4.10.2
 |  5 May 2011 | Modified bdm_enableBDM() to be more careful in modifying BDM reg   - pgo V4.6
 |  7 Jan 2010 | Modified bdmHC12_confirmSpeed() to reduce unnecessary probing      - pgo V4.3
 |  7 Dec 2010 | changed BDM_CMD_0_0_T() etc to leave interrupts disabled           - pgo V4.3
@@ -103,15 +107,32 @@ Change History
 #error "BDM.c requires a Compiler fix (MTWX31284) that is only available in Versions later than 5.0.29"
 #endif
 
-#if (HW_CAPABILITY&CAP_BDM)
-
 //=============================================================================================================================================
-#define BDM_SYNC_REQus          960U //!< us - length of the longest possible SYNC REQUEST pulse (128 BDM cycles @ 400kHz = 320us plus some extra time)
+#define BDM_SYNC_REQms            1U //!< ms - length of the longest possible SYNC REQUEST pulse (128 BDM cycles @ 400kHz = 320us plus some extra time)
 #define SYNC_TIMEOUTus          460U //!< us - longest time for the target to completed a SYNC pulse (16+128+margin cycles @ 400kHz = 375us)
-#define ACKN_TIMEOUTus          375U //!< us - longest time after which the target should produce ACKN pulse (150 cycles @ 400kHz = 375us)
+#define ACKN_TIMEOUTus         2500U //!< us - longest time after which the target should produce ACKN pulse (150 cycles @ 400kHz = 375us)
 #define SOFT_RESETus          10000U //!< us - longest time needed for soft reset of the BDM interface (512 BDM cycles @ 400kHz = 1280us)
 #define RESET_LENGTHms          100U //!< ms - time of RESET assertion
+#define RESET_INITIAL_WAITms     10U //!< ms - max time to wait for the RESET pin to come high after release
 #define RESET_RELEASE_WAITms    270U //!< ms - max time to wait for the RESET pin to come high after release
+
+//! Wait for reset rise with timeout
+//!
+void bdm_WaitForResetRise(void) {
+#if (HW_CAPABILITY&CAP_RST_IO)
+   if (bdm_option.useResetSignal) {
+      // Wait with timeout until RESET is high
+      WAIT_WITH_TIMEOUT_MS(RESET_INITIAL_WAITms, RESET_IS_HIGH);
+      if (RESET_IN==0) {
+         // May take a while
+         setBDMBusy();
+      }
+      WAIT_WITH_TIMEOUT_MS(RESET_RELEASE_WAITms-RESET_INITIAL_WAITms, RESET_IS_HIGH);
+   }
+#endif
+}
+
+#if (HW_CAPABILITY&CAP_BDM)
 
 /* Function prototypes */
        U8   bdm_syncMeasure(void);
@@ -122,13 +143,15 @@ static U8   bdmHC12_alt_speed_detect(void);
 //
 #pragma DATA_SEG __SHORT_SEG Z_PAGE
 // MUST be placed into the direct segment (assumed in ASM code).
-extern U8 bitCount;  //!< Used as a general purpose variable in the bdm_Tx{} & bdm_Rx{}etc.
-static U8 rxTiming1; //!< bdm_Rx timing constant #1
-static U8 rxTiming2; //!< bdm_Rx timing constant #2
-static U8 rxTiming3; //!< bdm_Rx timing constant #3
-static U8 txTiming1; //!< bdm_Tx timing constant #1
-static U8 txTiming2; //!< bdm_Tx timing constant #2
-static U8 txTiming3; //!< bdm_Tx timing constant #3
+extern volatile U8 bitDelay;  //!< Used as a general purpose variable in the bdm_Tx{} & bdm_Rx{}etc.
+extern volatile U8 rxTiming1; //!< bdm_Rx timing constant #1
+static volatile U8 rxTiming2; //!< bdm_Rx timing constant #2
+static volatile U8 rxTiming3; //!< bdm_Rx timing constant #3
+extern volatile U8 txTiming1; //!< bdm_Tx timing constant #1
+static volatile U8 txTiming2; //!< bdm_Tx timing constant #2
+static volatile U8 txTiming3; //!< bdm_Tx timing constant #3
+
+#define bitCount bitDelay
 
 // pointers to current bdm_Rx & bdm_Tx routines
 U8   (*bdm_rx_ptr)(void) = bdm_rxEmpty; //!< pointers to current bdm_Rx routine
@@ -156,6 +179,14 @@ void (*bdm_tx_ptr)(U8)   = bdm_txEmpty; //!< pointers to current bdm_Tx routine
 U8 bdm_readBDMStatus(U8 *bdm_sts) {
 
    switch (cable_status.target_type) {
+#if TARGET_CAPABILITY & CAP_S12Z
+      case T_HCS12Z  : {
+    	  uint16_t temp;
+    	  BDMZ12_CMD_READ_BDCCSR(&temp);
+    	  *bdm_sts = temp>>8;
+      	  }
+	  return BDM_RC_OK;
+#endif
       case T_HC12:
          BDM12_CMD_BDREADB(HC12_BDMSTS,bdm_sts);
          return BDM_RC_OK;
@@ -183,6 +214,11 @@ U8 bdm_readBDMStatus(U8 *bdm_sts) {
 static void writeBDMControl(U8 value) {
 
    switch (cable_status.target_type) {
+#if TARGET_CAPABILITY & CAP_S12Z
+      case T_HCS12Z  :
+    	  BDMZ12_CMD_WRITE_BDCCSR((value<<8)|0xFF);
+         break;
+#endif
       case T_HC12:
          BDM12_CMD_BDWRITEB(HC12_BDMSTS,value);
          break;
@@ -216,6 +252,9 @@ U8 statusClkMask;   // The position of the CLKSW bit in control register
 
    // Get clock select mask for this target (CLKSW bit in BDM control register)
    switch (cable_status.target_type) {
+#if TARGET_CAPABILITY & CAP_S12Z
+      case T_HCS12Z  :
+#endif
       case T_HC12:
          statusClkMask = HC12_BDMSTS_CLKSW;
          break;
@@ -260,9 +299,9 @@ U8 bdm_sts;
 U8 rc;
 
    rc = bdm_readBDMStatus(&bdm_sts); // Get current status
-   if (rc != BDM_RC_OK)
+   if (rc != BDM_RC_OK) {
       return rc;
-
+   }
    if (cable_status.target_type==T_CFV1) {
       // CFV1
       if ((bdm_sts & CFV1_XCSR_ENBDM) == 0) {
@@ -333,9 +372,16 @@ U8 bdm_sts;
 }
 #endif
 
+void bdm_clearConnection(void) {
+//   cable_status.reset = NO_RESET_ACTIVITY; // Clear the reset flag
+   cable_status.speed   = SPEED_NO_INFO;   // No connection
+   bdm_rx_ptr           = bdm_rxEmpty;     // Clear the Tx/Rx pointers
+   bdm_tx_ptr           = bdm_txEmpty;     //    i.e. no com. routines found
+}
+
 //!  Tries to connect to target - doesn't try other strategies such as reset.
-//!  This function does a basic connect sequence.  It doesn't configure the BDM
-//!  registers on the target or enable ACKN
+//!  This function does a basic connect sequence and tries to enable ACKN.
+//!  It doesn't configure the BDM registers on the target.
 //!
 //! @return
 //!    == \ref BDM_RC_OK                  => success                             \n
@@ -344,52 +390,55 @@ U8 bdm_sts;
 //!    == \ref BDM_RC_BKGD_TIMEOUT        => BKGD signal timeout - remained low  \n
 //!    != \ref BDM_RC_OK                  => other failures
 //!
-U8 bdm_physicalConnect(void){
+U8 bdm_physicalConnect(void) {
 U8 rc;
 
-//   cable_status.reset = NO_RESET_ACTIVITY; // Clear the reset flag
-   cable_status.speed   = SPEED_NO_INFO;   // No connection
-   bdm_rx_ptr           = bdm_rxEmpty;     // Clear the Tx/Rx pointers
-   bdm_tx_ptr           = bdm_txEmpty;     //    i.e. no com. routines found
-
    bdmHCS_interfaceIdle(); // Make sure interface is idle
-
+   bdm_clearConnection();  // Assume we know nothing about connection technique & speed
+   
    // Target has power?
    rc = bdm_checkTargetVdd();
-   if (rc != BDM_RC_OK)
+   if (rc != BDM_RC_OK) {
       return rc;
-
+   }
 #if (HW_CAPABILITY&CAP_RST_IO)
    // Wait with timeout until both RESET and BKGD  are high
    if (bdm_option.useResetSignal) {
-      WAIT_WITH_TIMEOUT_MS(RESET_RELEASE_WAITms,(RESET_IN!=0)&&(BDM_IN!=0));
-      if (RESET_IN==0)
+	   if (RESET_IN==0) {
+		  // May take a while
+		  setBDMBusy();
+	      WAIT_WITH_TIMEOUT_MS(RESET_RELEASE_WAITms,(RESET_IN!=0)&&(BDM_IN!=0));
+	  }
+      if (RESET_IN==0) {
          return(BDM_RC_RESET_TIMEOUT_RISE);  // RESET timeout
+      }
    }
 #else
+   // Wait with timeout until BKGD is high
    WAIT_WITH_TIMEOUT_MS(RESET_RELEASE_WAITms,(BDM_IN!=0));
 #endif
-
-   if (BDM_IN==0)
+   if (BDM_IN == 0) {
       return(BDM_RC_BKGD_TIMEOUT);  // BKGD timeout
-
+   }
+   // Try SYNC method
    rc = bdm_syncMeasure();
-   if (rc != BDM_RC_OK) // try again
+   if (rc != BDM_RC_OK) {
+      // try again
       rc = bdm_syncMeasure();
-   if ((rc != BDM_RC_OK) &&                // Trying to measure SYNC was not successful
-       (bdm_option.guessSpeed) &&          // Try alternative method if enabled
+   }
+   if (rc == BDM_RC_OK) {
+      rc = bdm_RxTxSelect();
+      if (rc == BDM_RC_OK) {
+         cable_status.speed = SPEED_SYNC;
+      }
+   }
+   else if ((bdm_option.guessSpeed) &&          // Try alternative method if enabled
        (cable_status.target_type == T_HC12)) { // and HC12 target
       rc = bdmHC12_alt_speed_detect();     // Try alternative method (guessing!)
    }
-   if (rc != BDM_RC_OK)
-      return(rc);
-
-   // If at least one of the two methods succeeded, we can select
-   //  the right Rx and Tx routines
-   rc = bdm_RxTxSelect();
-   if (rc != BDM_RC_OK) {
-      cable_status.speed = SPEED_NO_INFO;  // Indicate that we do not have a connection
-      }
+   if (rc == BDM_RC_OK) {
+      bdm_acknInit();  // Try the ACKN feature
+   }
    return(rc);
 }
 
@@ -415,11 +464,10 @@ U8 rc;
    	     (void)bdm_cycleTargetVdd(RESET_SPECIAL); // Ignore errors
    	     rc = bdm_physicalConnect(); // Try connect again
       }
-      if (rc != BDM_RC_OK)
+      if (rc != BDM_RC_OK) {
    	     return rc;
+      }
    }
-   bdm_acknInit();  // Try the ACKN feature
-
    // Try to enable BDM
    return bdm_enableBDM();
 }
@@ -445,8 +493,10 @@ U8 bdm_hardwareReset(U8 mode) {
       return BDM_RC_ILLEGAL_PARAMS;
       // Doesn't return BDM_RC_ILLEGAL_COMMAND as method is controlled by a parameter
 
+#ifdef DISABLE_RESET_SENSE_INT
    DISABLE_RESET_SENSE_INT(); // Mask RESET IC interrupts
-
+#endif
+   
    bdmHCS_interfaceIdle();  // Make sure BDM interface is idle
 
    mode &= RESET_MODE_MASK;
@@ -472,7 +522,7 @@ U8 bdm_hardwareReset(U8 mode) {
    RESET_3STATE();
 
    // Wait with timeout until RESET is high
-   WAIT_WITH_TIMEOUT_MS(RESET_RELEASE_WAITms, (RESET_IN!=0));
+   bdm_WaitForResetRise();
 
    // Assume RESET risen - check later after cleanUp
 
@@ -494,12 +544,16 @@ U8 bdm_hardwareReset(U8 mode) {
    DEBUG_PIN   = 0;
 #endif
 
-   if (RESET_IN==0)      // RESET failed to rise
+   if (RESET_IN==0) {     // RESET failed to rise
       return(BDM_RC_RESET_TIMEOUT_RISE);
-
+   }
+#ifdef CLEAR_RESET_SENSE_FLAG
    CLEAR_RESET_SENSE_FLAG(); // Clear RESET IC Event
+#endif
+#ifdef ENABLE_RESET_SENSE_INT
    ENABLE_RESET_SENSE_INT(); // Enable RESET IC interrupts
-
+#endif
+   
    return(BDM_RC_OK);
 }
 #endif //(HW_CAPABILITY&CAP_RST_IO)
@@ -557,7 +611,6 @@ U8 rc;
       default:
          return BDM_RC_UNKNOWN_TARGET; // Don't know how to reset this one!
    }
-
    if (mode == RESET_SPECIAL) {  // Special mode - need BKGD held low out of reset
       BDM_LOW(); // drive BKGD low (out of reset)
    }
@@ -573,7 +626,7 @@ U8 rc;
 #if (HW_CAPABILITY&CAP_RST_IO)
    if (bdm_option.useResetSignal) {
       // Wait with timeout until RESET is high (may be held low by processor)
-      WAIT_WITH_TIMEOUT_MS(RESET_RELEASE_WAITms, (RESET_IN!=0));
+      bdm_WaitForResetRise();
       // Assume RESET risen - check later after cleanup
    }
 #endif // (HW_CAPABILITY&CAP_RST_IO)
@@ -716,37 +769,37 @@ U8 rc = BDM_RC_OK;
 //!    == \ref BDM_RC_OK     => Success \n
 //!    != \ref BDM_RC_OK     => various errors
 //
-U8  bdm_setInterfaceLevel(U8 level) {
-
-   switch (level&SI_BKGD) {
-      case SI_BKGD_LOW :  // BKGD pin=L
-         BDM_LOW();
-         break;
-      case SI_BKGD_HIGH : // BKGD pin=H
-         BDM_HIGH();
-         break;
-      default :           // BKGD pin=3-state
-         BDM_3STATE();
-         break;
-   }
-
-#if (HW_CAPABILITY & CAP_RST_IO)
-   switch (level&SI_RESET) {
-      case SI_RESET_LOW : // RESET pin=L
-         RESET_LOW();
-         break;
-      default :
-         RESET_3STATE();
-         break;
-   }
-#endif
-
-#if (HW_CAPABILITY & CAP_RST_IO)
-   return (RESET_IN?SI_RESET_3STATE:SI_RESET_LOW)|(BDM_IN?SI_BKGD_3STATE:SI_BKGD_LOW);
-#else
-   return (BDM_IN?SI_BKGD:0);
-#endif
-}
+//U8  bdm_setInterfaceLevel(U8 level) {
+//
+//   switch (level&SI_BKGD) {
+//      case SI_BKGD_LOW :  // BKGD pin=L
+//         BDM_LOW();
+//         break;
+//      case SI_BKGD_HIGH : // BKGD pin=H
+//         BDM_HIGH();
+//         break;
+//      default :           // BKGD pin=3-state
+//         BDM_3STATE();
+//         break;
+//   }
+//
+//#if (HW_CAPABILITY & CAP_RST_IO)
+//   switch (level&SI_RESET) {
+//      case SI_RESET_LOW : // RESET pin=L
+//         RESET_LOW();
+//         break;
+//      default :
+//         RESET_3STATE();
+//         break;
+//   }
+//#endif
+//
+//#if (HW_CAPABILITY & CAP_RST_IO)
+//   return (RESET_IN?SI_RESET_3STATE:SI_RESET_LOW)|(BDM_IN?SI_BKGD_3STATE:SI_BKGD_LOW);
+//#else
+//   return (BDM_IN?SI_BKGD:0);
+//#endif
+//}
 
 //! \brief Measures the SYNC length and writes the result into cable_status structure
 //!
@@ -769,13 +822,13 @@ U16 time;
    bdmHCS_interfaceIdle();        // Make sure BDM interface is idle
 
    // Wait with timeout until BKGD is high
-   WAIT_WITH_TIMEOUT_US(BDM_SYNC_REQus, (BDM_IN!=0));
+   WAIT_WITH_TIMEOUT_MS(BDM_SYNC_REQms, (BDM_IN!=0));
 
-   if (BDM_IN==0)
+   if (BDM_IN==0) {
       return(BDM_RC_BKGD_TIMEOUT); // Timeout !
-
-   BDM_LOW();                   //ToDo - check if glitches
-   WAIT_US(BDM_SYNC_REQus);     // Wait SYNC request time
+   }
+   BDM_LOW();
+   WAIT_MS(BDM_SYNC_REQms);     // Wait SYNC request time
 
 #if (DEBUG&SYNC_DEBUG)
    DEBUG_PIN   = 0;
@@ -783,27 +836,27 @@ U16 time;
 #endif
 
    // Set up Input capture & timeout timers
-   BKGD_TPMxCnSC       = BKGD_TPMxCnSC_FALLING_EDGE_MASK;  // TPMx.CHb : Input capture, falling edge on pin
+   BKGD_TPMxCnSC        = BKGD_TPMxCnSC_FALLING_EDGE_MASK;  // TPMx.CHb : Input capture, falling edge on pin
 
    TIMEOUT_TPMxCnVALUE  = TPMCNT+TIMER_MICROSECOND(SYNC_TIMEOUTus);  // Set Timeout value
-   BKGD_TPMxCnSC_CHF    = 0;                                      // TPMx.CHa : Clear capture flag
-   TIMEOUT_TPMxCnSC_CHF = 0;                                      // TPMx.CHb : Clear timeout flag
+   BKGD_TPMxCnSC_CHF    = 0;                                         // TPMx.CHa : Clear capture flag
+   TIMEOUT_TPMxCnSC_CHF = 0;                                         // TPMx.CHb : Clear timeout flag
    asm {
       LDX   #BDM_OUT_MASK|BDM_EN_WR_MASK  // Mask to Drive BKGD high
       LDA   #BDM_OUT_MASK|BDM_EN_RD_MASK  // Mask to 3-state BKGD
-      STX   DATA_PORT                     // [3   wpp]  Drive BKGD high (for 125 ns)
-      STA   DATA_PORT                     // [3   wpp]  3-state BKGD
+      STX   DATA_PORT                     // [3 wpp]  Drive BKGD high (for 125 ns)
+      STA   DATA_PORT                     // [3 wpp]  3-state BKGD
       // It took 125 ns cycles from bringing BKGD high to 3-state (3 cycles/24 MHz)
       // Target drives BKGD line after 16 BDM clock cycles
       // Fast enough up to approx 125ns/(16 BDM cycles) = 128 MHz BDM Frequency
    }
    while ((BKGD_TPMxCnSC_CHF==0)&&(TIMEOUT_TPMxCnSC_CHF==0)) {   // Wait for capture or timeout
    }
-   time          = BKGD_TPMxCnVALUE;                 // TPM1.Ch1 : Save time of start of the SYNC interval
-   BKGD_TPMxCnSC = BKGD_TPMxCnSC_RISING_EDGE_MASK;   // TPM1.Ch1 : Clear IC flag, config for IC rising edge
+   time          = BKGD_TPMxCnVALUE;                 // TPMx.Chx : Save time of start of the SYNC interval
+   BKGD_TPMxCnSC = BKGD_TPMxCnSC_RISING_EDGE_MASK;   // TPMx.Chx : Clear IC flag, configure for IC rising edge
 
    // It takes 23 cycles to re-enable capture (worst case) which is good enough up to 128*24/23 = 130 MHz!
-   while ((BKGD_TPMxCnSC_CHF==0)&&(TIMEOUT_TPMxCnSC_CHF==0)){   // Wait for capture or timeout
+   while ((BKGD_TPMxCnSC_CHF==0)&&(TIMEOUT_TPMxCnSC_CHF==0)) {   // Wait for capture or timeout
    }
    time = BKGD_TPMxCnVALUE-time;                     // Calculate length of the SYNC pulse
 
@@ -815,7 +868,6 @@ U16 time;
    if (TIMEOUT_TPMxCnSC_CHF==1) {
       return(BDM_RC_SYNC_TIMEOUT);         // Timeout !
    }
-
 #if (TIMER_FREQ==3000000UL)
    cable_status.sync_length=(time<<2)+(time<<4);  // multiply by 20 to get the time in 60MHz ticks
 #elif (TIMER_FREQ==6000000UL)
@@ -850,16 +902,46 @@ U8 rc;
    cable_status.ackn = ACKN;              // Switch ACKN on
 
    // Send the ACK enable command to the target
-   if (cable_status.target_type==T_CFV1)
+   if ((cable_status.target_type==T_CFV1)
+#if TARGET_CAPABILITY & CAP_S12Z
+		   ||(cable_status.target_type==T_HCS12Z  )
+#endif	   
+   )
       rc = BDMCF_CMD_ACK_ENABLE();
    else
       rc = BDM_CMD_ACK_ENABLE();
 
    // If ACKN fails turn off ACKN (RS08 or early HCS12 target)
-   if (rc == BDM_RC_ACK_TIMEOUT)
+   if (rc == BDM_RC_ACK_TIMEOUT) {
       cable_status.ackn = WAIT;  // Switch the ackn feature off
+   }
 }
 
+//! Wait for 64 target clock cycles
+//!
+void bdm_wait64() {
+   asm {
+		 cli
+		 ldhx  cable_status.wait64_cnt    // Number of loop iterations to wait
+	  loop:
+		 aix   #-1      ; [2]
+		 cphx  #0       ; [3]
+		 bne   loop     ; [3] 8 cycles / iteration
+   }
+}
+//! Wait for 150 target clock cycles
+//!
+void bdm_wait150() {
+   asm {
+		 cli
+		 ldhx  cable_status.wait150_cnt    // Number of loop iterations to wait
+	  loop:
+		 aix   #-1      ; [2]
+		 cphx  #0       ; [3]
+		 bne   loop     ; [3] 8 cycles / iteration
+   }
+}
+#if 0
 //! Depending on ACKN mode this function:       \n
 //!   - Waits for ACKN pulse with timeout.
 //!      OR
@@ -881,14 +963,8 @@ U8 doACKN_WAIT64(void) {
          return BDM_RC_ACK_TIMEOUT;  //   Return timeout error
       }
    }
-   else asm {
-      // Wait for 64 target clock cycles
-         cli
-         ldhx  cable_status.wait64_cnt   // Number of loop iterations to wait
-      loop:
-         aix   #-1      ; [2]
-         cphx  #0       ; [3]
-         bne   loop     ; [3] 8 cycles / iteration
+   else {
+      bdm_wait64();
    }
    return BDM_RC_OK;
 }
@@ -925,12 +1001,66 @@ U8 doACKN_WAIT150(void) {
    }
    return BDM_RC_OK;
 }
+#endif
+
+//! Depending on ACKN mode this function:       \n
+//!   - Waits for ACKN pulse with timeout.
+//!      OR
+//!   - Busy waits for 64 target CPU clocks
+//!
+//! @return
+//!   \ref BDM_RC_OK           => Success \n
+//!   \ref BDM_RC_ACK_TIMEOUT  => No ACKN detected [timeout]
+//!
+//! @note  Modified to extend timeout for very slow bus clocks e.g. 32kHz
+U8 doACKN_WAIT64(void) {
+   if (cable_status.ackn==ACKN) {
+      // Wait for pin capture or timeout
+	  enableInterrupts();
+      WAIT_WITH_TIMEOUT_US(ACKN_TIMEOUTus, (BKGD_TPMxCnSC_CHF!=0));
+	  if (BKGD_TPMxCnSC_CHF==0) {
+		 return BDM_RC_ACK_TIMEOUT;  //   Return timeout error
+	  }
+   }
+   else {
+      bdm_wait64();
+   }
+   return BDM_RC_OK;
+}
+
+//! Depending on ACKN mode this function:       \n
+//!   - Waits for ACKN pulse with timeout.
+//!      OR
+//!   - Busy waits for 150 target CPU clocks
+//!
+//! @return
+//!   \ref BDM_RC_OK           => Success \n
+//!   \ref BDM_RC_ACK_TIMEOUT  => No ACKN detected [timeout]
+//!
+U8 doACKN_WAIT150(void) {
+   if (cable_status.ackn==ACKN) {
+      // Wait for pin capture or timeout
+      enableInterrupts();
+      WAIT_WITH_TIMEOUT_US(ACKN_TIMEOUTus, (BKGD_TPMxCnSC_CHF!=0));
+      if (BKGD_TPMxCnSC_CHF==0) {
+         return BDM_RC_ACK_TIMEOUT;  //   Return timeout error
+      }
+   }
+   else {
+      bdm_wait150();
+   }
+   return BDM_RC_OK;
+}
 
 //!  Halts the processor - places in background mode
 //!
 U8 bdm_halt(void) {
 
-   if (cable_status.target_type==T_CFV1)
+   if ((cable_status.target_type==T_CFV1)
+#if TARGET_CAPABILITY & CAP_S12Z
+	  ||(cable_status.target_type==T_HCS12Z  )
+#endif
+	  )
       return BDMCF_CMD_BACKGROUND();
    else
       return BDM_CMD_BACKGROUND();
@@ -952,8 +1082,9 @@ U32 csr;
 
       return BDMCF_CMD_GO();
       }
-   else
+   else {
       return BDM_CMD_GO();
+   }
 }
 
 //!  Executes a single instruction on the target
@@ -972,8 +1103,14 @@ U32 csr;
 
       return BDMCF_CMD_GO();
       }
-   else
+#if TARGET_CAPABILITY & CAP_S12Z
+   else if (cable_status.target_type == T_HCS12Z  ) {
+      return BDMZ12_CMD_TRACE1();
+   }
+#endif
+   else {
       return BDM_CMD_TRACE1();
+   }
 }
 
 //!  Turns off the BDM interface
@@ -984,8 +1121,9 @@ void bdmHCS_off( void ) {
 #if ((HW_CAPABILITY & CAP_FLASH) != 0)
    (void)bdmSetVpp(BDM_TARGET_VPP_OFF);
 #endif
-   if (!bdm_option.leaveTargetPowered)
+   if (!bdm_option.leaveTargetPowered) {
       VDD_OFF();
+   }
    bdmHCS_interfaceIdle();
 }
 
@@ -1036,8 +1174,10 @@ void bdmHCS_init(void) {
    // Individually controlled PUPs
    BDM_OUT_PER     = 1;     // Prevent drive
    BDM_EN_PER      = 1;     // Keep driver idle
-#if (HW_CAPABILITY&CAP_RST_IO)
+#ifdef RESET_IN_PER
    RESET_IN_PER    = 1;     // Needed for input level translation to 5V
+#endif
+#ifdef RESET_OUT_PER
    RESET_OUT_PER   = 1;     // Holds RESET_OUT inactive when unused
 #endif
 #endif
@@ -1048,7 +1188,7 @@ void bdmHCS_init(void) {
 // Masks to modify BKGD
 #define BKGD_LOW_MASK    (BDM_EN_WR_MASK|     0      )
 #define BKGD_HIGH_MASK   (BDM_EN_WR_MASK|BDM_OUT_MASK)
-#define BKGD_3STATE_MASK (BDM_EN_RD_MASK|BDM_OUT_MASK)
+#define BKGD_3STATE_MASK (BDM_EN_RD_MASK|     0      )
 
 //! Prepares for transmission of BDM data
 //!
@@ -1267,7 +1407,7 @@ void bdm_txGeneric(U8 data) {
 //  Rx Routines bdm_rx..
 //==============================================================
 //  Receive 8 bit of data, MSB first
-//  These routines assume the following call bdm_txFinish:
+//  These routines assume the following:
 //     BDM direction to be controlled by BDM_DIR_Rx in DATA_PORT
 //     BDM output value may be controlled by DATA_PORT.7 hard coded in bdm_rxN
 //     BDM input value may be read from DATA_PORT.0 hard coded in rxStackDecode
@@ -1734,85 +1874,105 @@ U8 bdm_rxGeneric(void) {
 //! Structure describing Tx configuration
 typedef struct {
    U16   syncThreshold;       //!< Threshold to use this function
-   void  (*txFunc)(U8 data);  //!< Ptr to selected function
+//   void  (*txFunc)(U8 data);  //!< Ptr to selected function
    U8    time1,time2,time3;   //!< Timing Parameters for function use
 } TxConfiguration;
 
+typedef void (*TxConfigurationPtrs)(U8 data);     //!< Ptr to selected function
+
+const TxConfigurationPtrs txPtrs[] = {
+	bdm_txEmpty,
+	bdm_tx1,
+	bdm_tx2,
+	bdm_tx3,
+};
 //! Information for each Tx configuration
 //!
 const TxConfiguration txConfiguration[] =
 {
-{ 0, bdm_txEmpty, 0, 0, 0 },//>68 MHz - Max Fequency
-{ 113, bdm_tx1, 1, 0, 0 },//37.71 - 68 MHz, (3,4,15)
-{ 196, bdm_tx2, 2, 0, 0 },//24 - 40.8 MHz, (5,6,15)
-{ 290, bdm_tx3, 3, 0, 0 },//17.6 - 29.14 MHz, (7,8,15)
-{ 405, bdm_txGeneric, 1, 1, 1 },//12.57 - 20.4 MHz, (10,11,25)
-{ 567, bdm_txGeneric, 2, 2, 1 },//9.1 - 14.57 MHz, (14,15,25)
-{ 779, bdm_txGeneric, 3, 5, 1 },//5.87 - 10.67 MHz, (18,27,25)
-{ 1216, bdm_txGeneric, 6, 7, 1 },//4.27 - 6.8 MHz, (30,35,25)
-{ 1686, bdm_txGeneric, 9, 11, 7 },//2.84 - 4.86 MHz, (42,51,49)
-{ 2344, bdm_txGeneric, 12, 12, 9 },//2.42 - 3.78 MHz, (54,55,57)
-{ 2631, bdm_txGeneric, 13, 17, 11 },//1.98 - 3.52 MHz, (58,75,65)
-{ 3285, bdm_txGeneric, 17, 22, 16 },//1.56 - 2.76 MHz, (74,95,85)
-{ 4348, bdm_txGeneric, 24, 26, 19 },//1.24 - 2 MHz, (102,111,97)
-{ 5244, bdm_txGeneric, 28, 30, 24 },//1.08 - 1.73 MHz, (118,127,117)
-{ 6337, bdm_txGeneric, 36, 40, 34 },//0.83 - 1.36 MHz, (150,167,157)
-{ 7966, bdm_txGeneric, 44, 47, 40 },//0.7 - 1.12 MHz, (182,195,181)
-{ 9418, bdm_txGeneric, 52, 55, 47 },//0.6 - 0.95 MHz, (214,227,209)
-{ 10949, bdm_txGeneric, 61, 65, 56 },//0.51 - 0.82 MHz, (250,267,245)
-{ 12854, bdm_txGeneric, 71, 78, 67 },//0.43 - 0.7 MHz, (290,319,289)
-{ 15120, bdm_txGeneric, 84, 93, 79 },//0.37 - 0.6 MHz, (342,379,337)
-{ 17680, bdm_txGeneric, 98, 105, 92 },//0.32 - 0.51 MHz, (398,427,389)
-{ 20239, bdm_txGeneric, 113, 120, 105 },//0.28 - 0.45 MHz, (458,487,441)
-{ 23241, bdm_txGeneric, 128, 140, 120 },//0.24 - 0.39 MHz, (518,567,501)
-{ 26499, bdm_txGeneric, 146, 166, 140 },//0.21 - 0.35 MHz, (590,671,581)
-{ 36571, bdm_txEmpty, 0, 0 ,0  },//<0.21 MHz - Min. Frequency
+{ 0,  0, 0, 0 },//>68 MHz - Max Fequency
+{ 113,  1, 0, 0 },//37.71 - 68 MHz, (3,4,15)
+{ 196,  2, 0, 0 },//24 - 40.8 MHz, (5,6,15)
+{ 290,  3, 0, 0 },//17.6 - 29.14 MHz, (7,8,15)
+{ 405,  1, 1, 1 },//12.57 - 20.4 MHz, (10,11,25)
+{ 567,  2, 2, 1 },//9.1 - 14.57 MHz, (14,15,25)
+{ 779,  3, 5, 1 },//5.87 - 10.67 MHz, (18,27,25)
+{ 1216,  6, 7, 1 },//4.27 - 6.8 MHz, (30,35,25)
+{ 1686,  9, 11, 7 },//2.84 - 4.86 MHz, (42,51,49)
+{ 2344,  12, 12, 9 },//2.42 - 3.78 MHz, (54,55,57)
+{ 2631,  13, 17, 11 },//1.98 - 3.52 MHz, (58,75,65)
+{ 3285,  17, 22, 16 },//1.56 - 2.76 MHz, (74,95,85)
+{ 4348,  24, 26, 19 },//1.24 - 2 MHz, (102,111,97)
+{ 5244,  28, 30, 24 },//1.08 - 1.73 MHz, (118,127,117)
+{ 6337,  36, 40, 34 },//0.83 - 1.36 MHz, (150,167,157)
+{ 7966,  44, 47, 40 },//0.7 - 1.12 MHz, (182,195,181)
+{ 9418,  52, 55, 47 },//0.6 - 0.95 MHz, (214,227,209)
+{ 10949,  61, 65, 56 },//0.51 - 0.82 MHz, (250,267,245)
+{ 12854,  71, 78, 67 },//0.43 - 0.7 MHz, (290,319,289)
+{ 15120,  84, 93, 79 },//0.37 - 0.6 MHz, (342,379,337)
+{ 17680,  98, 105, 92 },//0.32 - 0.51 MHz, (398,427,389)
+{ 20239,  113, 120, 105 },//0.28 - 0.45 MHz, (458,487,441)
+{ 23241,  128, 140, 120 },//0.24 - 0.39 MHz, (518,567,501)
+{ 26499,  146, 166, 140 },//0.21 - 0.35 MHz, (590,671,581)
+{ 36571,  0, 0 ,0  },//<0.21 MHz - Min. Frequency
 };
 
 //! Structure describing Rx configuration
 typedef struct {
    U16   syncThreshold;       //!< Threshold to use this function
-   U8    (*txFunc)(void);     //!< Ptr to selected function
+//   U8    txFunc;              //!< Ptr to selected function
    U8    time1,time2,time3;   //!< Timing Parameters for function use
 } RxConfiguration;
+
+typedef U8    (*RxConfigurationPtrs)(void);     //!< Ptr to selected function
+
+const RxConfigurationPtrs rxPtrs[] = {
+	bdm_rxEmpty,
+	bdm_rx1,
+	bdm_rx2,
+	bdm_rx3,
+	bdm_rx4,
+	bdm_rx5,
+	bdm_rx6,
+};
 
 //! Information for each Rx configuration
 //!
 const RxConfiguration rxConfiguration[] =
 {
-{ 0, bdm_rxEmpty, 0, 0, 0 },//>56 MHz - Max Fequency
-{ 137, bdm_rx1, 1, 0, 0 },//48.56 - 56 MHz, (3,5,8)
-{ 152, bdm_rx2, 2, 0, 0 },//39.65 - 52.86 MHz, (3,6,8)
-{ 188, bdm_rx3, 3, 0, 0 },//33.5 - 42 MHz, (4,6,10)
-{ 229, bdm_rx4, 4, 0, 0 },//29 - 33.6 MHz, (5,6,10)
-{ 258, bdm_rx5, 5, 0, 0 },//22.86 - 30.48 MHz, (5,8,10)
-{ 320, bdm_rx6, 6, 0, 0 },//18.87 - 25.16 MHz, (6,9,10)
-{ 396, bdm_rxGeneric, 1, 1, 1 },//14.95 - 19.93 MHz, (8,10,20)
-{ 503, bdm_rxGeneric, 1, 2, 1 },//11.71 - 15.61 MHz, (8,14,20)
-{ 627, bdm_rxGeneric, 1, 3, 1 },//9.62 - 12.83 MHz, (8,18,20)
-{ 750, bdm_rxGeneric, 2, 3, 1 },//8.17 - 10.89 MHz, (12,18,20)
-{ 874, bdm_rxGeneric, 2, 4, 2 },//7.09 - 9.46 MHz, (12,22,24)
-{ 998, bdm_rxGeneric, 3, 4, 2 },//6.27 - 8.36 MHz, (16,22,24)
-{ 1121, bdm_rxGeneric, 3, 5, 3 },//5.62 - 7.49 MHz, (16,26,28)
-{ 1301, bdm_rxGeneric, 5, 5, 5 },//4.65 - 6.2 MHz, (24,26,36)
-{ 1548, bdm_rxGeneric, 5, 7, 6 },//3.97 - 5.29 MHz, (24,34,40)
-{ 1852, bdm_rxGeneric, 6, 9, 9 },//3.25 - 4.33 MHz, (28,42,52)
-{ 2224, bdm_rxGeneric, 8, 10, 11 },//2.75 - 3.67 MHz, (36,46,60)
-{ 2652, bdm_rxGeneric, 10, 12, 14 },//2.29 - 3.05 MHz, (44,54,72)
-{ 3197, bdm_rxGeneric, 12, 15, 18 },//1.89 - 2.52 MHz, (52,66,88)
-{ 3873, bdm_rxGeneric, 15, 18, 23 },//1.56 - 2.08 MHz, (64,78,108)
-{ 4675, bdm_rxGeneric, 18, 22, 28 },//1.3 - 1.73 MHz, (76,94,128)
-{ 5594, bdm_rxGeneric, 22, 26, 34 },//1.09 - 1.45 MHz, (92,110,152)
-{ 6687, bdm_rxGeneric, 27, 31, 42 },//0.91 - 1.21 MHz, (112,130,184)
-{ 8011, bdm_rxGeneric, 32, 38, 51 },//0.75 - 1.01 MHz, (132,158,220)
-{ 9734, bdm_rxGeneric, 38, 47, 63 },//0.62 - 0.83 MHz, (156,194,268)
-{ 11742, bdm_rxGeneric, 45, 58, 77 },//0.52 - 0.69 MHz, (184,238,324)
-{ 13984, bdm_rxGeneric, 53, 70, 93 },//0.43 - 0.58 MHz, (216,286,388)
-{ 16905, bdm_rxGeneric, 61, 88, 115 },//0.36 - 0.48 MHz, (248,358,476)
-{ 20239, bdm_rxGeneric, 72, 108, 140 },//0.3 - 0.4 MHz, (292,438,576)
-{ 24409, bdm_rxGeneric, 84, 130, 165 },//0.25 - 0.33 MHz, (340,526,676)
-{ 29028, bdm_rxGeneric, 100, 160, 200 },//0.21 - 0.28 MHz, (404,646,816)
-{ 36571, bdm_rxEmpty, 0, 0 ,0  },//<0.21 MHz - Min. Frequency
+{ 0,  0, 0, 0 },//>56 MHz - Max Fequency
+{ 137,  1, 0, 0 },//48.56 - 56 MHz, (3,5,8)
+{ 152,  2, 0, 0 },//39.65 - 52.86 MHz, (3,6,8)
+{ 188,  3, 0, 0 },//33.5 - 42 MHz, (4,6,10)
+{ 229,  4, 0, 0 },//29 - 33.6 MHz, (5,6,10)
+{ 258,  5, 0, 0 },//22.86 - 30.48 MHz, (5,8,10)
+{ 320,  6, 0, 0 },//18.87 - 25.16 MHz, (6,9,10)
+{ 396,  1, 1, 1 },//14.95 - 19.93 MHz, (8,10,20)
+{ 503,  1, 2, 1 },//11.71 - 15.61 MHz, (8,14,20)
+{ 627,  1, 3, 1 },//9.62 - 12.83 MHz, (8,18,20)
+{ 750,  2, 3, 1 },//8.17 - 10.89 MHz, (12,18,20)
+{ 874,  2, 4, 2 },//7.09 - 9.46 MHz, (12,22,24)
+{ 998,  3, 4, 2 },//6.27 - 8.36 MHz, (16,22,24)
+{ 1121,  3, 5, 3 },//5.62 - 7.49 MHz, (16,26,28)
+{ 1301,  5, 5, 5 },//4.65 - 6.2 MHz, (24,26,36)
+{ 1548,  5, 7, 6 },//3.97 - 5.29 MHz, (24,34,40)
+{ 1852,  6, 9, 9 },//3.25 - 4.33 MHz, (28,42,52)
+{ 2224,  8, 10, 11 },//2.75 - 3.67 MHz, (36,46,60)
+{ 2652,  10, 12, 14 },//2.29 - 3.05 MHz, (44,54,72)
+{ 3197,  12, 15, 18 },//1.89 - 2.52 MHz, (52,66,88)
+{ 3873,  15, 18, 23 },//1.56 - 2.08 MHz, (64,78,108)
+{ 4675,  18, 22, 28 },//1.3 - 1.73 MHz, (76,94,128)
+{ 5594,  22, 26, 34 },//1.09 - 1.45 MHz, (92,110,152)
+{ 6687,  27, 31, 42 },//0.91 - 1.21 MHz, (112,130,184)
+{ 8011,  32, 38, 51 },//0.75 - 1.01 MHz, (132,158,220)
+{ 9734,  38, 47, 63 },//0.62 - 0.83 MHz, (156,194,268)
+{ 11742,  45, 58, 77 },//0.52 - 0.69 MHz, (184,238,324)
+{ 13984,  53, 70, 93 },//0.43 - 0.58 MHz, (216,286,388)
+{ 16905,  61, 88, 115 },//0.36 - 0.48 MHz, (248,358,476)
+{ 20239,  72, 108, 140 },//0.3 - 0.4 MHz, (292,438,576)
+{ 24409,  84, 130, 165 },//0.25 - 0.33 MHz, (340,526,676)
+{ 29028,  100, 160, 200 },//0.21 - 0.28 MHz, (404,646,816)
+{ 36571,  0, 0 ,0  },//<0.21 MHz - Min. Frequency
 };
 
 //! Selects Rx and Tx routine to be used according to SYNC length in \ref cable_status structure.
@@ -1824,12 +1984,44 @@ const RxConfiguration rxConfiguration[] =
 //!   \ref BDM_RC_NO_RX_ROUTINE  => No suitable Rx routine found \n
 //!
 U8 bdm_RxTxSelect(void) {
-   const TxConfiguration  * far txConfigPtr;
-   const RxConfiguration  * far rxConfigPtr;
+   const TxConfiguration  *txConfigPtr;
+   const RxConfiguration  *rxConfigPtr;
+   U8 sub;
 
-   bdm_rx_ptr = bdm_rxEmpty; // clear the Tx/Rx pointers
-   bdm_tx_ptr = bdm_txEmpty; // i.e. no routines found
+   bdm_clearConnection();
+   
+#if 1
+   for (sub=0; sub<(sizeof(txConfiguration)/sizeof(txConfiguration[0])); sub++) {
 
+	   if (cable_status.sync_length >= txConfiguration[sub].syncThreshold) { // SYNC is >=
+		 if ( sub >= (sizeof(txPtrs)/sizeof(txPtrs[0])) ) {
+			 bdm_tx_ptr = bdm_txGeneric; // Select this routine
+		 }
+		 else {
+			 bdm_tx_ptr = txPtrs[sub]; // Select this routine
+		 }
+		 txConfigPtr   = txConfiguration+sub;
+         txTiming1     = txConfigPtr->time1;  // Save timing parameters
+         txTiming2     = txConfigPtr->time2;
+         txTiming3     = txConfigPtr->time3;
+	  }
+   }
+   for (sub=0; sub<(sizeof(rxConfiguration)/sizeof(rxConfiguration[0])); sub++) {
+
+	   if (cable_status.sync_length >= rxConfiguration[sub].syncThreshold) { // SYNC is >=
+		 if ( sub >= (sizeof(rxPtrs)/sizeof(rxPtrs[0])) ) {
+			 bdm_rx_ptr = bdm_rxGeneric; // Select this routine
+		 }
+		 else {
+			 bdm_rx_ptr = rxPtrs[sub]; // Select this routine
+		 }
+		 rxConfigPtr   = rxConfiguration+sub;
+         rxTiming1     = rxConfigPtr->time1;  // Save timing parameters
+         rxTiming2     = rxConfigPtr->time2;
+         rxTiming3     = rxConfigPtr->time3;
+	  }
+   }
+#else
    for (  txConfigPtr  = txConfiguration+sizeof(txConfiguration)/sizeof(txConfiguration[0]);
         --txConfigPtr >= txConfiguration; ) { // Search the table
 
@@ -1841,40 +2033,52 @@ U8 bdm_RxTxSelect(void) {
          break;                               // Quit search
       }
    }
-   if (bdm_tx_ptr==bdm_txEmpty) // Return if no function found
+   if (bdm_tx_ptr==bdm_txEmpty) { // Return if no function found
       return(BDM_RC_NO_TX_ROUTINE);
-
+   }
    for (  rxConfigPtr  = rxConfiguration+sizeof(rxConfiguration)/sizeof(rxConfiguration[0]);
         --rxConfigPtr >= rxConfiguration; ) { // Search the table
 
       if (cable_status.sync_length >= rxConfigPtr->syncThreshold) { // SYNC is >=
-         bdm_rx_ptr    = rxConfigPtr->txFunc; // Select this routine
+    	  
+    	 if ( (rxConfigPtr-rxConfiguration) >= (sizeof(rxPtrs)/sizeof(rxPtrs[0])) ) {
+             bdm_rx_ptr = bdm_rxGeneric; // Select this routine
+    	 }
+    	 else {
+             bdm_rx_ptr = rxPtrs[rxConfigPtr-rxConfiguration]; // Select this routine
+    	 }
          rxTiming1     = rxConfigPtr->time1;  // Save timing parameters
          rxTiming2     = rxConfigPtr->time2;
          rxTiming3     = rxConfigPtr->time3;
          break;                               // Quit search
       }
    }
-   if (bdm_rx_ptr==bdm_rxEmpty) // Return if no function found
+#endif
+   if (bdm_rx_ptr==bdm_rxEmpty) { // Return if no function found
       return(BDM_RC_NO_RX_ROUTINE);
-
+   }
    // Calculate number of iterations for manual delay (each iteration is 8 cycles)
    cable_status.wait64_cnt  = cable_status.sync_length/(U16)(((8*60*128UL)/(BUS_FREQ/1000000)/64));
    cable_status.wait150_cnt = cable_status.sync_length/(U16)(((8*60*128UL)/(BUS_FREQ/1000000)/150));
-   // Correct for overhead in calling function etc. (JSR+RTS+JSR) = (5+4+5) ~ 2 iterations
-   if (cable_status.wait64_cnt<=2)
-      cable_status.wait64_cnt = 1; // minimum of 1 iteration
-   else
-      cable_status.wait64_cnt -= 2;
-   if (cable_status.wait150_cnt<=2)
-      cable_status.wait150_cnt = 1; // minimum of 1 iteration
-   else
-      cable_status.wait150_cnt -= 2;
-   return(0);
+
+//   // Correct for overhead in calling function etc. (JSR+RTS+JSR) = (5+4+5) ~ 2 iterations
+//   if (cable_status.wait64_cnt<=2) {
+//      cable_status.wait64_cnt = 1; // minimum of 1 iteration
+//   }
+//   else {
+//      cable_status.wait64_cnt -= 2;
+//   }
+//   if (cable_status.wait150_cnt<=2) {
+//      cable_status.wait150_cnt = 1; // minimum of 1 iteration
+//   }
+//   else {
+//      cable_status.wait150_cnt -= 2;
+//   }
+   return(BDM_RC_OK);
 }
 
 // PARTID read from HCS12 - used to confirm target connection speed and avoid needless probing
-static U16 partid = 0x00;
+static U16 partid = 0xFA50;
 
 //! Confirm communication at given Sync value.
 //! Only works on HC12 (and maybe only 1 of 'em!)
@@ -1890,9 +2094,9 @@ U8 rc;
    cable_status.sync_length = syncValue;
 
    rc = bdm_RxTxSelect(); // Drivers available for this frequency?
-   if (rc != BDM_RC_OK)
+   if (rc != BDM_RC_OK) {
       goto tidyUp;
-
+   }
    rc = BDM_RC_BDM_EN_FAILED; // Assume probing failed
    {
       U16 probe;
@@ -1997,7 +2201,6 @@ U8 rc;
 
 tidyUp:
    cable_status.sync_length  = 1;
-   cable_status.speed        = SPEED_NO_INFO; // Connection cannot be established at this speed
    cable_status.ackn         = WAIT;    // Clear indication of ACKN feature
    return rc;
 }
@@ -2032,7 +2235,7 @@ static const U16 typicalSpeeds[] = { // Table of 'nice' BDM speeds to try
 static U16 lastGuess1 = SYNC_MULTIPLE(8000000UL);  // Used to remember last 2 guesses
 static U16 lastGuess2 = SYNC_MULTIPLE(16000000UL); // Common situation to change between 2 speeds (reset,running)
 #pragma DATA_SEG DEFAULT
-const TxConfiguration  * far txConfigPtr;
+const TxConfiguration  *txConfigPtr;
 int sub;
 U16 currentGuess;
 U8  rc;
@@ -2042,20 +2245,18 @@ U8  rc;
       cable_status.speed = SPEED_GUESSED;  // Speed found by trial and error
       return BDM_RC_OK;
    }
-
    // Try last used speed #2
    currentGuess = lastGuess2;
    rc = bdmHC12_confirmSpeed(lastGuess2);
-
    if (rc != BDM_RC_OK) {
       // This may take a while
       setBDMBusy();
    }
-   
    // Try some likely numbers!
    for (sub=0; typicalSpeeds[sub]>0; sub++) {
-      if (rc == BDM_RC_OK)
+      if (rc == BDM_RC_OK) {
          break;
+      }
       currentGuess = typicalSpeeds[sub];
       rc           = bdmHC12_confirmSpeed(currentGuess);
       }
@@ -2063,8 +2264,9 @@ U8  rc;
    // Try each Tx driver BDM frequency
    for (  txConfigPtr  = txConfiguration+(sizeof(txConfiguration)/sizeof(txConfiguration[0])-1);
         --txConfigPtr >= txConfiguration; ) { // Search the table
-      if (rc == BDM_RC_OK)
+      if (rc == BDM_RC_OK) {
          break;
+      }
       currentGuess = (txConfigPtr->syncThreshold+(txConfigPtr+1)->syncThreshold)/2;
       rc           = bdmHC12_confirmSpeed(currentGuess);
       }
@@ -2076,37 +2278,40 @@ U8  rc;
       cable_status.speed = SPEED_GUESSED;  // Speed found by trial and error
       return BDM_RC_OK;
    }
-
-   cable_status.speed = SPEED_NO_INFO;  // Speed not found
    return rc;
 }
 
 #if (DEBUG&DEBUG_COMMANDS) // Debug commands enabled
 U8 bdm_testTx(U8 speedIndex) {
-const TxConfiguration  * far txConfigPtr;
+	const TxConfiguration  *txConfigPtr;
 
-    // Validate index
-   if (speedIndex > (sizeof(txConfiguration)/sizeof(txConfiguration[0])))
-      return BDM_RC_ILLEGAL_PARAMS;
-         
-   txConfigPtr = &txConfiguration[speedIndex]; // selected routine
+	// Validate index
+	if (speedIndex > (sizeof(txConfiguration)/sizeof(txConfiguration[0]))) {
+		return BDM_RC_ILLEGAL_PARAMS;
+	}
+	txConfigPtr = &txConfiguration[speedIndex]; // selected routine
 
-   bdm_tx_ptr    = txConfigPtr->txFunc; // Select this routine
-   txTiming1     = txConfigPtr->time1;  // Save timing parameters
-   txTiming2     = txConfigPtr->time2;
-   txTiming3     = txConfigPtr->time3;
-   
-   bdm_txPrepare();
-   bdmTx(0xF0);
-   WAIT_MS(1);
-   bdmTx(0x0F);
-   WAIT_MS(1);
-   bdmTx(0xAA);
-   WAIT_MS(1);
-   bdmTx(0x55);
-   WAIT_MS(1);
-   bdmHCS_interfaceIdle();
-   return BDM_RC_OK;
+	if ( speedIndex >= (sizeof(txPtrs)/sizeof(txPtrs[0])) ) {
+		bdm_tx_ptr = bdm_txGeneric; // Select this routine
+	}
+	else {
+		bdm_tx_ptr = txPtrs[speedIndex]; // Select this routine
+	}
+	txTiming1     = txConfigPtr->time1;  // Save timing parameters
+	txTiming2     = txConfigPtr->time2;
+	txTiming3     = txConfigPtr->time3;
+
+	bdm_txPrepare();
+	bdmTx(0xF0);
+	WAIT_MS(1);
+	bdmTx(0x0F);
+	WAIT_MS(1);
+	bdmTx(0xAA);
+	WAIT_MS(1);
+	bdmTx(0x55);
+	WAIT_MS(1);
+	bdmHCS_interfaceIdle();
+	return BDM_RC_OK;
 }
 #endif
 
@@ -2226,7 +2431,6 @@ void bdmRx32(U32 *data) {
 
 //============================================================
 // The following commands DO NOT expect an ACK & do not delay
-// They leave the interface in the Tx condition (ready to drive )
 // Interrupts are left disabled!
 //
 
@@ -2234,31 +2438,11 @@ void bdmRx32(U32 *data) {
 //!
 //! @param cmd command byte to write
 //!
-//! @note The interface is left in the Tx condition (ready to drive )
 //! @note Interrupts are left disabled
 //!
 void BDM_CMD_0_0_T(U8 cmd) {
    bdm_txPrepare();
    bdmTx(cmd);
-// NO bdm_txFinish()
-//   enableInterrupts();
-}
-
-//!  Special for Software Reset HCS08, truncated sequence
-//!
-//! @param cmd         command byte to write
-//! @param parameter1  word parameter to write
-//! @param parameter2  byte parameter to write
-//!
-//! @note The interface is left in the Tx condition (ready to drive )
-//! @note Interrupts are left disabled
-//!
-void BDM_CMD_1W1B_0_T(U8 cmd, U16 parameter1, U8 parameter2) {
-   bdm_txPrepare();
-   bdmTx(cmd);
-   bdmTx16(parameter1);
-   bdmTx(parameter2);
-// NO bdm_txFinish()
 //   enableInterrupts();
 }
 
@@ -2267,17 +2451,30 @@ void BDM_CMD_1W1B_0_T(U8 cmd, U16 parameter1, U8 parameter2) {
 //! @param cmd         command byte to write
 //! @param parameter   byte parameter to write
 //!
-//! @note The interface is left in the Tx condition (ready to drive )
 //! @note Interrupts are left disabled
 //!
 void BDM_CMD_1B_0_T(U8 cmd, U8 parameter) {
-   bdm_txPrepare();
-   bdmTx(cmd);
+   BDM_CMD_0_0_T(cmd);
    bdmTx(parameter);
-// NO bdm_txFinish()
 //   enableInterrupts();
 }
    
+//!  Special for Software Reset HCS08, truncated sequence
+//!
+//! @param cmd         command byte to write
+//! @param parameter1  word parameter to write
+//! @param parameter2  byte parameter to write
+//!
+//! @note Interrupts are left disabled
+//!
+void BDM_CMD_1W1B_0_T(U8 cmd, U16 parameter1, U8 parameter2) {
+   bdm_txPrepare();
+   bdmTx(cmd);
+   bdmTx16(parameter1);
+   bdmTx(parameter2);
+//   enableInterrupts();
+}
+
 //============================================================
 // The following commands DO NOT expect an ACK & do not delay
 //
@@ -2291,7 +2488,6 @@ void BDM_CMD_1B_0_T(U8 cmd, U8 parameter) {
 void BDM_CMD_0_0_NOACK(U8 cmd) {
    bdm_txPrepare();
    bdmTx(cmd);
-//   bdm_txFinish();
    BDM_3STATE();
    enableInterrupts();
 }
@@ -2306,7 +2502,6 @@ void BDM_CMD_0_0_NOACK(U8 cmd) {
 void BDM_CMD_0_1B_NOACK(U8 cmd, U8 *result) {
    bdm_txPrepare();
    bdmTx(cmd);
-//   bdm_txFinish();
    *result = bdm_rx();
    enableInterrupts();
 }
@@ -2322,7 +2517,6 @@ void BDM_CMD_1B_0_NOACK(U8 cmd, U8 parameter) {
    bdm_txPrepare();
    bdmTx(cmd);
    bdmTx(parameter);
-//   bdm_txFinish();
    BDM_3STATE();
    enableInterrupts();
 }
@@ -2337,7 +2531,6 @@ void BDM_CMD_1B_0_NOACK(U8 cmd, U8 parameter) {
 void BDM_CMD_0_1W_NOACK(U8 cmd, U16 *result) {
    bdm_txPrepare();
    bdmTx(cmd);
-//   bdm_txFinish();
    bdmRx16(result);
    enableInterrupts();
 }
@@ -2353,11 +2546,45 @@ void BDM_CMD_1W_0_NOACK(U8 cmd, U16 parameter) {
    bdm_txPrepare();
    bdmTx(cmd);
    bdmTx16(parameter);
-//   bdm_txFinish();
    BDM_3STATE();
    enableInterrupts();
 }
 
+//! Write cmd, word & read word without ACK
+//!
+//! @param cmd        command byte to write
+//! @param parameter  word to write
+//! @param result     word ptr for read (status+data byte)
+//!
+//! @note no ACK is expected
+//!
+void BDM_CMD_1W_1W_NOACK(U8 cmd, U16 parameter, U16 *result) {
+   bdm_txPrepare();
+   bdmTx(cmd);
+   bdmTx16(parameter);
+   bdmRx16(result);
+   enableInterrupts();
+}
+
+//! Write cmd, word, byte & read byte without ACK
+//!
+//! @param cmd        command byte to write
+//! @param parameter  word to write
+//! @param value      byte to write
+//! @param status     byte ptr for read
+//!
+//! @note no ACK is expected 
+//!
+void BDM_CMD_1W1B_1B_NOACK(U8 cmd, U16 parameter, U8 value, U8 *status) {
+   bdm_txPrepare();
+   bdmTx(cmd);
+   bdmTx16(parameter);
+   bdmTx(value);
+//   bdm_wait64();
+   *status = bdm_rx();
+   enableInterrupts();
+}
+                                                         
 //====================================================================
 // The following DO expect an ACK or wait at end of the command phase
 
@@ -2369,11 +2596,80 @@ void BDM_CMD_1W_0_NOACK(U8 cmd, U16 parameter) {
 //!
 U8 BDM_CMD_0_0(U8 cmd) {
 U8 rc;
-    bdm_txPrepare();
-    bdmTx(cmd);
+    BDM_CMD_0_0_T(cmd);
+//    bdm_txPrepare();
+//    bdmTx(cmd);
     rc = doACKN_WAIT64();
     enableInterrupts();
     return rc;
+}
+
+//! Write cmd, read byte
+//!
+//! @param cmd        command byte to write
+//! @param result     byte read
+//!
+//! @note ACK is expected
+//!
+U8 BDM_CMD_0_1B(U8 cmd, U8 *result) {
+U8 rc;
+   bdm_txPrepare();
+   bdmTx(cmd);
+   rc = doACKN_WAIT64();
+   *result = bdm_rx();
+   enableInterrupts();
+   return rc;
+}
+
+//! Write cmd & read word
+//!
+//! @param cmd    command byte to write
+//! @param result word read
+//!
+//! @note ACK is expected
+//!
+U8 BDM_CMD_0_1W(U8 cmd, U16 *result) {
+U8 rc;
+   bdm_txPrepare();
+   bdmTx(cmd);
+   rc = doACKN_WAIT64();
+   bdmRx16(result);
+   enableInterrupts();
+   return rc;
+}
+
+//! Write cmd & read longword
+//!
+//! @param cmd    command byte to write
+//! @param result longword read
+//!
+//! @note ACK is expected
+//!
+U8 BDM_CMD_0_1L(U8 cmd, U32 *result) {
+U8 rc;
+//   bdm_txPrepare();
+//   bdmTx(cmd);
+   BDM_CMD_0_0_T(cmd);
+   rc = doACKN_WAIT64();
+   bdmRx32(result);
+   return rc;
+}
+
+//! Write cmd & byte
+//!
+//! @param cmd        command byte to write
+//! @param parameter  byte to write
+//!
+//! @note ACK is expected
+//!
+U8 BDM_CMD_1B_0(U8 cmd, U8 parameter) {
+U8 rc;
+   bdm_txPrepare();
+   bdmTx(cmd);
+   bdmTx(parameter);
+   rc = doACKN_WAIT64();
+   enableInterrupts();
+   return rc;
 }
 
 //! Write cmd & word
@@ -2393,23 +2689,6 @@ U8 rc;
    return rc;
 }
    
-//! Write cmd & read word
-//!
-//! @param cmd    command byte to write
-//! @param result word read
-//!
-//! @note ACK is expected
-//!
-U8 BDM_CMD_0_1W(U8 cmd, U16 *result) {
-U8 rc;
-   bdm_txPrepare();
-   bdmTx(cmd);
-   rc = doACKN_WAIT64();
-   bdmRx16(result);
-   enableInterrupts();
-   return rc;
-}
-
 //! Write cmd & longword
 //!
 //! @param cmd       command byte to write
@@ -2419,8 +2698,9 @@ U8 rc;
 //!
 U8 BDM_CMD_1L_0(U8 cmd, U32 parameter) {
 U8 rc;
-   bdm_txPrepare();
-   bdmTx(cmd);
+//   bdm_txPrepare();
+//   bdmTx(cmd);
+   BDM_CMD_0_0_T(cmd);
    bdmTx16(parameter>>16);
    bdmTx16((U16)parameter);
    rc = doACKN_WAIT64();
@@ -2428,22 +2708,6 @@ U8 rc;
    return rc;
 }
    
-//! Write cmd & read longword
-//!
-//! @param cmd    command byte to write
-//! @param result longword read
-//!
-//! @note ACK is expected
-//!
-U8 BDM_CMD_0_1L(U8 cmd, U32 *result) {
-U8 rc;
-   bdm_txPrepare();
-   bdmTx(cmd);
-   rc = doACKN_WAIT64();
-   bdmRx32(result);
-   return rc;
-}
-
 //! Write cmd, word & read byte (read word but return byte - HC/S12(x))
 //!
 //! @param cmd       command byte to write
@@ -2454,8 +2718,9 @@ U8 rc;
 //!
 U8 BDM_CMD_1W_1WB(U8 cmd, U16 parameter, U8 *result) {
 U8 rc;
-   bdm_txPrepare();
-   bdmTx(cmd);
+//   bdm_txPrepare();
+//   bdmTx(cmd);
+   BDM_CMD_0_0_T(cmd);
    bdmTx16(parameter);
    rc = doACKN_WAIT150();
    if ((parameter)&0x0001) {
@@ -2479,8 +2744,9 @@ U8 rc;
 //!
 U8 BDM_CMD_2W_0(U8 cmd, U16 parameter1, U16 parameter2) {
 U8 rc;
-   bdm_txPrepare();
-   bdmTx(cmd);
+//   bdm_txPrepare();
+//   bdmTx(cmd);
+   BDM_CMD_0_0_T(cmd);
    bdmTx16(parameter1);
    bdmTx16(parameter2);
    rc = doACKN_WAIT150();
@@ -2518,46 +2784,13 @@ U8 rc;
 //!
 U8 BDM_CMD_2WB_0(U8 cmd, U16 parameter1, U8 parameter2) {
 U8 rc;
-   bdm_txPrepare();
-   bdmTx(cmd);
+//   bdm_txPrepare();
+//   bdmTx(cmd);
+   BDM_CMD_0_0_T(cmd);
    bdmTx16(parameter1);
    bdmTx(parameter2);
    bdmTx(parameter2);
    rc = doACKN_WAIT150();
-   enableInterrupts();
-   return rc;
-}
-
-//! Write cmd, read byte
-//!
-//! @param cmd        command byte to write
-//! @param result     byte read
-//!
-//! @note ACK is expected
-//!
-U8 BDM_CMD_0_1B(U8 cmd, U8 *result) {
-U8 rc;
-   bdm_txPrepare();
-   bdmTx(cmd);
-   rc = doACKN_WAIT64();
-   *result = bdm_rx();
-   enableInterrupts();
-   return rc;
-}
-
-//! Write cmd & byte
-//!
-//! @param cmd        command byte to write
-//! @param parameter  byte to write
-//!
-//! @note ACK is expected
-//!
-U8 BDM_CMD_1B_0(U8 cmd, U8 parameter) {
-U8 rc;
-   bdm_txPrepare();
-   bdmTx(cmd);
-   bdmTx(parameter);
-   rc = doACKN_WAIT64();
    enableInterrupts();
    return rc;
 }
@@ -2680,6 +2913,49 @@ U8 rc;
    enableInterrupts();
    return rc;
 }
+
+////! Converts the Coldfire CFV1_XCSR_CSTAT status to an error code
+////!
+////! @param xcsr_byte byte read from CFV1 XCSR
+////!
+////! @return error code 
+////!
+//U8 convertColdfireStatusByte(U8 xcsr_byte) {
+//	xcsr_byte &= CFV1_XCSR_CSTAT;
+//	if ((xcsr_byte & CFV1_XCSR_CSTAT_INVALID)) {
+//		return BDM_RC_CF_DATA_INVALID;
+//	}
+//	if ((xcsr_byte & CFV1_XCSR_CSTAT_ILLEGAL)) {
+//		return BDM_RC_CF_ILLEGAL_COMMAND;
+//	}
+//	if ((xcsr_byte & CFV1_XCSR_CSTAT_OVERRUN)) {
+//		return BDM_RC_TARGET_BUSY;
+//	}
+//	return BDM_RC_OK;
+//}
+
+////! Write cmd, 24-bit value, check status & read byte
+////!
+////! @param cmd     command byte to write
+////! @param addr    24-bit value to write
+////! @param status  ptr to status byte to read
+////! @param result  ptr to byte to read
+////!
+////! @note ACK is expected
+////!
+////! @return error code
+////!
+//U8 BDM_CMD_1A_CS_1B(U8 cmd, U32 addr, U8 *result) {
+//U8 status;
+//   bdm_txPrepare();
+//   bdmTx(cmd);
+//   bdmTx((U8)(addr>>16)&0xFF);
+//   bdmTx16((U16)addr);
+//   status = bdm_rx();
+//   *result = bdm_rx();
+//   enableInterrupts();
+//   return convertColdfireStatusByte(status);
+//}
 
 //! Write cmd, 24-bit value & read word
 //!

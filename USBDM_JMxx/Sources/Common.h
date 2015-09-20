@@ -36,7 +36,7 @@ typedef union {
 
 // Macros only for use with literals!
 //! Convert Native constant to 32-bit Little-Endian
-#define CONST_NATIVE_TO_LE32(x) ((((x)<<24)&0xFF000000)+(((x)<<8)&0xFF0000)+(((x)>>8)&0xFF00)+(((x)>>24)&0xFF))
+#define CONST_NATIVE_TO_LE32(x) ((((x)<<24UL)&0xFF000000UL)+(((x)<<8UL)&0xFF0000UL)+(((x)>>8UL)&0xFF00UL)+(((x)>>24UL)&0xFFUL))
 //! Convert Native constant to 32-bit Big-Endian
 #define CONST_NATIVE_TO_BE32(x) (x)
 //! Convert Native constant to 16-bit Little-Endian

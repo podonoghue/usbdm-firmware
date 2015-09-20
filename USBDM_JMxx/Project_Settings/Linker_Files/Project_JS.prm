@@ -9,6 +9,7 @@ SEGMENTS /* Here all RAM/ROM areas of the device are listed. Used in PLACEMENT b
     RAM                      =  READ_WRITE   0x00D0 TO 0x027F;             // JS16
 // ROM area is reduced for ICP boot code and relocated vector table
 // Warning - the following must not overlap any absolute sections otherwise it silently overwrites them!!!
+//    ROM                      =  READ_ONLY    0xC000 TO 0xFB93 FILL 0xFF;   // JM16, JS16
     ROM                      =  READ_ONLY    0xC000 TO 0xFB93 FILL 0xFF;   // JM16, JS16
 
     USB_RAM_REGION           =  READ_WRITE   0x1860 TO 0x195F;
@@ -65,11 +66,13 @@ CHECKSUM
   END
 END
 
-STACKSIZE 90 // Measured as 73 bytes 
+STACKSIZE 100 
+// Measured JS16_SWD_SER V4.10.4 = 79 bytes
 
 ENTRIES 
    _Startup
    ICP_data
+   myStartup
 END
 
 //CHECKSUM

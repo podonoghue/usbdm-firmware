@@ -60,8 +60,8 @@
 //
 #if (HW_CAPABILITY&CAP_CDC)
 #define CTS_IN             // Not used
-#define DTR_OUT            PTGD_PTGD2   // Not connected
-#define DTR_OUT_DDR        PTGDD_PTGDD2 // Not connected
+#define DTR_OUT            PTGD_PTGD2   
+#define DTR_OUT_DDR        PTGDD_PTGDD2
 
 #define CTS_IS_HIGH()      (CTS_IN!=0)
 #define DTR_INACTIVE()     (DTR_OUT_DDR = 1, DTR_OUT=0)
@@ -124,6 +124,11 @@
 #define TMS_LOW()           (TMS_OUT = 0)//, TMS_OUT_DDR = 1)
 
 // TRST* out pin
+// Signal used to control TDSCLK/TRST* (force high/low) otherwise
+// when 3-state TDSCLK/TRST* is driven from DSCLK_OUT
+// 3-state  - (BDM mode)  DSCLK/TRST* controlled by DSCLK_OUT (DSCLK)
+// low      - (JTAG mode) DSCLK/TRST* low (TRST* asserted)
+// high     - (JTAG mode) DSCLK/TRST* high (TRST* negated)
 #define TRST_OUT            
 #define TRST_OUT_DDR        
 #define TRST_OUT_PER        
@@ -146,7 +151,7 @@
 #endif
 
 // Individual 3-state control for buffer driving TCLK/PSTCLK (CFVx boards only)
-// Otherwise buffer is controlled by OUT_EN and enabled with other JTAG signals
+// Otherwise buffer is controlled by OUT_EN and enabled with other CFVx BDM signals
 #define TCLK_CTL            PTBD_PTBD2
 #define TCLK_CTL_DDR        PTBDD_PTBDD2
 
@@ -190,11 +195,18 @@
 
 // DSCLK 3-state control
 // Actually a connection overriding CLK_OUT - not used in CFVx mode
+
+// Signal used to disable TDSCLK (force high/low) otherwise
+// when 3-state TDSCLK is driven from DSCLK_OUT
+// Doubles as TRST control
+// 3-state  - (BDM mode)  DSCLK/TRST* controlled by DSCLK_OUT (DSCLK)
+// low      - (JTAG mode) DSCLK/TRST* low (TRST* asserted)
+// high     - (JTAG mode) DSCLK/TRST* high (TRST* negated)
 #define DSCLK_DRV            PTED_PTED2
 #define DSCLK_DRV_DDR        PTEDD_PTEDD2
 #define DSCLK_DRV_PER        PTEPE_PTEPE2
 
-#define DSCLK_DRV_ENABLE()   (DSCLK_DRV = 0, DSCLK_DRV_DDR=0)
+#define DSCLK_DRV_ENABLE()   (DSCLK_DRV = 0, DSCLK_DRV_DDR=0) // DSCLK/TRST*=DSCLK_OUT
 #define DSCLK_DRV_DISABLE()  (DSCLK_DRV = 0, DSCLK_DRV_DDR=0)
 
 // BKPT out pin
@@ -257,29 +269,29 @@
 
 // Polarity of BDM buffer enable/direction varies with driver IC
 #if (DRIVER == LVC125)
-	#define BDM_EN_RD_MASK  BDM_EN_MASK
-	#define BDM_EN_WR_MASK  0
+   #define BDM_EN_RD_MASK  BDM_EN_MASK
+   #define BDM_EN_WR_MASK  0
     // These two ASM macros assume port pin direction is already correct
-	#define BDM_ENABLE_ASM  BCLR BDM_EN_BIT,DATA_PORT
-	#define BDM_3STATE_ASM  BSET BDM_EN_BIT,DATA_PORT
+   #define BDM_ENABLE_ASM  BCLR BDM_EN_BIT,DATA_PORT
+   #define BDM_3STATE_ASM  BSET BDM_EN_BIT,DATA_PORT
 #elif (DRIVER == LVC45)
-	#define BDM_EN_RD_MASK  0
-	#define BDM_EN_WR_MASK  BDM_EN_MASK
+   #define BDM_EN_RD_MASK  0
+   #define BDM_EN_WR_MASK  BDM_EN_MASK
     // These two ASM macros assume port pin direction is already correct
-	#define BDM_ENABLE_ASM  BSET BDM_EN_BIT,DATA_PORT
-	#define BDM_3STATE_ASM  BCLR BDM_EN_BIT,DATA_PORT
+   #define BDM_ENABLE_ASM  BSET BDM_EN_BIT,DATA_PORT
+   #define BDM_3STATE_ASM  BCLR BDM_EN_BIT,DATA_PORT
 #endif
   //======================================================================
   // State     BDM_O   BDM_EN   BDM_I  LVC125  LVC45   Bare Pin  BKGD_PIN
   // Low        L        WR       Z     EN,L    Tx,L      L         L
   // High       H        WR       Z     EN,H    Tx,H      H         H
   // 3-state    Z        RD       Z     DIS,Z   Rx,Z     Z(in)      Z
-	#define BDM_LOW()    (DATA_PORT      = BDM_EN_WR_MASK|0,            \
-                          DATA_PORT_DDR  = BDM_EN_MASK   |BDM_OUT_MASK)
-	#define BDM_HIGH()   (DATA_PORT      = BDM_EN_WR_MASK|BDM_OUT_MASK, \
-                          DATA_PORT_DDR  = BDM_EN_MASK   |BDM_OUT_MASK)
-	#define BDM_3STATE() (DATA_PORT      = BDM_EN_RD_MASK|BDM_OUT_MASK,  \
-			              DATA_PORT_DDR  = BDM_EN_MASK   |0)
+   #define BDM_LOW()    (DATA_PORT      = BDM_EN_WR_MASK|0,            \
+                         DATA_PORT_DDR  = BDM_EN_MASK   |BDM_OUT_MASK)
+   #define BDM_HIGH()   (DATA_PORT      = BDM_EN_WR_MASK|BDM_OUT_MASK, \
+                         DATA_PORT_DDR  = BDM_EN_MASK   |BDM_OUT_MASK)
+   #define BDM_3STATE() (DATA_PORT      = BDM_EN_RD_MASK|BDM_OUT_MASK,  \
+                         DATA_PORT_DDR  = BDM_EN_MASK   |0)
 #endif // CAP_BDM
 //=================================================================================
 // RESET control & sensing
@@ -424,7 +436,7 @@
 #define BKGD_TPMxCnSC_RISING_EDGE_MASK    TPM1C3SC_ELS3A_MASK // TPMxCnSC value for rising edge
 #define BKGD_TPMxCnSC_FALLING_EDGE_MASK   TPM1C3SC_ELS3B_MASK // TPMxCnSC value for falling edge
 #define BKGD_TPMxCnVALUE                  TPM1C3V             // IC Event time
-#define BKGD_TPM_SETUP_ASM                    BCLR 7,BKGD_TPMxCnSC 
+#define BKGD_TPM_SETUP_ASM                BCLR 7,BKGD_TPMxCnSC 
 
 // Timeout TPM1.Ch1 : Output Compare (no pin)
 #define TIMEOUT_TPMxCnSC_CHF              TPM1C1SC_CH1F       // Event Flag

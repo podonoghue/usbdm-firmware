@@ -1,14 +1,21 @@
 /*! @file
-    @brief This file contains hardware specific information and configuration.
-    
-    USBDM - Universal BDM, JS16 Version \n
-    Combined TBDML/OSBDM + extensions, see 
-    @htmlonly <a href="USBDM_SER_JS16CWJ.pdf">schematic</a> @endhtmlonly \n
-    Supports HC12, HCS08, RS08 and Coldfire V1 targets \n
+ @brief This file contains hardware specific information and configuration.
+ 
+ USBDM - Universal BDM, JS16 Version \n
+ Combined TBDML/OSBDM + extensions, see 
+ @htmlonly <a href="USBDM_SER_JS16CWJ.pdf">schematic</a> @endhtmlonly \n
+ Supports HC12, HCS08, RS08 and Coldfire V1 targets \n
 
-    @note DO NOT CHANGE THIS FILE \n
-    If you need to create another configuration make a copy of this file
-    under a new name and change Configure.h appropriately.
+ @note DO NOT CHANGE THIS FILE \n
+ If you need to create another configuration make a copy of this file
+ under a new name and change Configure.h appropriately.
+ 
+   \verbatim
+   Change History
+   +================================================================================================
+   | 18 Jul 2014 | Added     CAP_S12Z                                          - pgo, ver 4.10.6.170
+   +================================================================================================
+   \endverbatim
 */
 #ifndef _CONFIGURE_H_
 #define _CONFIGURE_H_
@@ -21,8 +28,8 @@
 //==========================================================================================
 // Capabilities of the hardware - used to enable/disable appropriate code
 //
-#define HW_CAPABILITY     (CAP_RST_IO|CAP_CDC|CAP_BDM)
-#define TARGET_CAPABILITY (CAP_HCS12 |CAP_CDC|CAP_HCS08|CAP_CFV1)
+#define HW_CAPABILITY     (CAP_RST_IO|CAP_CDC|CAP_BDM|CAP_CORE_REGS)
+#define TARGET_CAPABILITY (CAP_HCS12 |CAP_CDC|CAP_HCS08|CAP_CFV1|CAP_S12Z)
 
 #ifndef PLATFORM
 #define PLATFORM USBDM   //! Choose BDM emulation
@@ -61,7 +68,6 @@
 #define DRIVER LVC125 //! Choose driver IC being used
 #endif
 
-
 //=================================================================================
 // Port Pin assignments
 // Please note: some pin assignments cannot be changed freely
@@ -75,7 +81,6 @@
 #define CTS_IN             PTBD_PTBD1
 #define DTR_OUT            PTBD_PTBD2
 #define DTR_OUT_DDR        // PTB.2 is output only no DDR
-
 #define CTS_IS_HIGH()      (CTS_IN!=0)
 #define DTR_INACTIVE()          DTR_OUT = 0
 #define DTR_ACTIVE()         DTR_OUT = 1
@@ -101,35 +106,28 @@
 #define BDM_IN_MASK       (1<<BDM_IN_BIT)
 
 // BDM data direction pin - controls buffer enable/direction
-#define BDM_EN        PTAD_PTAD1
-#define BDM_EN_BIT    (1)  // Bit number!
-#define BDM_EN_MASK   (1<<BDM_EN_BIT)
-#define BDM_EN_PER    PTAPE_PTAPE1
+#define BDM_EN            PTAD_PTAD1
+#define BDM_EN_BIT        (1)  // Bit number!
+#define BDM_EN_MASK       (1<<BDM_EN_BIT)
+#define BDM_EN_PER        PTAPE_PTAPE1
 
-// Polarity of BDM buffer enable/direction varies with driver IC
-#if (DRIVER == LVC125)
-	#define BDM_EN_RD_MASK  BDM_EN_MASK
-	#define BDM_EN_WR_MASK  0
-    // These two ASM macros assume port pin direction is already correct
-	#define BDM_ENABLE_ASM  BCLR BDM_EN_BIT,DATA_PORT
-	#define BDM_3STATE_ASM  BSET BDM_EN_BIT,DATA_PORT
-#elif (DRIVER == LVC45)
-	#define BDM_EN_RD_MASK  0
-	#define BDM_EN_WR_MASK  BDM_EN_MASK
-    // These two ASM macros assume port pin direction is already correct
-	#define BDM_ENABLE_ASM  BSET BDM_EN_BIT,DATA_PORT
-	#define BDM_3STATE_ASM  BCLR BDM_EN_BIT,DATA_PORT
-#endif
-  //======================================================================
-  // State     BDM_O   BDM_EN   BDM_I  LVC125  LVC45   Bare Pin  BKGD_PIN
-  // Low        L        WR       Z     EN,L    Tx,L      L         L
-  // High       H        WR       Z     EN,H    Tx,H      H         H
-  // 3-state    Z        RD       Z     DIS,Z   Rx,Z     Z(in)      Z
-	#define BDM_LOW()    (DATA_PORT      = BDM_EN_WR_MASK|0,            \
+#define BDM_EN_RD_MASK    BDM_EN_MASK
+#define BDM_EN_WR_MASK    0
+
+// These two ASM macros assume port pin direction is already correct
+#define BDM_ENABLE_ASM    BCLR BDM_EN_BIT,DATA_PORT
+#define BDM_3STATE_ASM    BSET BDM_EN_BIT,DATA_PORT
+
+//======================================================================
+// State     BDM_O   BDM_EN   BDM_I  LVC125  LVC45   Bare Pin  BKGD_PIN
+// Low        L        WR       Z     EN,L    Tx,L      L         L
+// High       H        WR       Z     EN,H    Tx,H      H         H
+// 3-state    Z        RD       Z     DIS,Z   Rx,Z     Z(in)      Z
+#define BDM_LOW()    (DATA_PORT      = BDM_EN_WR_MASK|0,            \
                           DATA_PORT_DDR  = BDM_EN_MASK   |BDM_OUT_MASK)
-	#define BDM_HIGH()   (DATA_PORT      = BDM_EN_WR_MASK|BDM_OUT_MASK, \
+#define BDM_HIGH()   (DATA_PORT      = BDM_EN_WR_MASK|BDM_OUT_MASK, \
                           DATA_PORT_DDR  = BDM_EN_MASK   |BDM_OUT_MASK)
-	#define BDM_3STATE() (DATA_PORT      = BDM_EN_RD_MASK|BDM_OUT_MASK,  \
+#define BDM_3STATE() (DATA_PORT      = BDM_EN_RD_MASK|BDM_OUT_MASK,  \
 			              DATA_PORT_DDR  = BDM_EN_MASK   |0)
 #endif // CAP_BDM
 //=================================================================================
@@ -143,6 +141,7 @@
 #define RESET_OUT_PER       PTAPE_PTAPE4
 #define RESET_LOW()         (RESET_OUT=0,RESET_OUT_DDR=1)
 #define RESET_3STATE()      (RESET_OUT=1,RESET_OUT_DDR=0) // Pull-up on pin
+#define RESET_DISABLE()     (RESET_OUT=1,RESET_OUT_DDR=0) // No separate 3-state control
 
 // RESET input pin
 #define RESET_IN            PTAD_PTAD3
@@ -159,26 +158,27 @@
 //=================================================================================
 // LED Port bit masks
 //
-#define GREEN_LED_MASK  (PTBD_PTBD3_MASK)
-#define RED_LED_MASK    (0) // No red LED!
-#define LED_PORT_DATA   (PTBD)
-#define LED_PORT_DDR    (PTBDD)
+#define GREEN_LED_MASK      (PTBD_PTBD3_MASK)
+#define RED_LED_MASK        (0) // No red LED!
+#define LED_PORT_DATA       (PTBD)
+#define LED_PORT_DDR        (PTBDD)
 
 // LEDs off, LED pins are outputs 
-#define LED_INIT()         ((LED_PORT_DATA |= RED_LED_MASK|GREEN_LED_MASK), \
-                            (LED_PORT_DDR  |= RED_LED_MASK|GREEN_LED_MASK))
-#define GREEN_LED_ON()     (LED_PORT_DATA &= (GREEN_LED_MASK^0xFF))			//!
-#define GREEN_LED_OFF()    (LED_PORT_DATA |= GREEN_LED_MASK)				//!
-#define GREEN_LED_TOGGLE() (LED_PORT_DATA ^= GREEN_LED_MASK)				//!
+#define LED_INIT()          ((LED_PORT_DATA |= RED_LED_MASK|GREEN_LED_MASK), \
+                             (LED_PORT_DDR  |= RED_LED_MASK|GREEN_LED_MASK))
+#define GREEN_LED_ON()      (LED_PORT_DATA &= (GREEN_LED_MASK^0xFF))
+#define GREEN_LED_OFF()     (LED_PORT_DATA |= GREEN_LED_MASK)
+#define GREEN_LED_TOGGLE()  (LED_PORT_DATA ^= GREEN_LED_MASK)
 #if RED_LED_MASK == 0
-#define RED_LED_ON()       ; //!
-#define RED_LED_OFF()      ; //!
-#define RED_LED_TOGGLE()   ; //!
+#define RED_LED_ON()        ; //!
+#define RED_LED_OFF()       ; //!
+#define RED_LED_TOGGLE()    ; //!
 #else
-#define RED_LED_ON()       (LED_PORT_DATA &= (RED_LED_MASK^0xFF))
-#define RED_LED_OFF()      (LED_PORT_DATA |= RED_LED_MASK)
-#define RED_LED_TOGGLE()   (LED_PORT_DATA ^= RED_LED_MASK)
+#define RED_LED_ON()        (LED_PORT_DATA &= (RED_LED_MASK^0xFF))
+#define RED_LED_OFF()       (LED_PORT_DATA |= RED_LED_MASK)
+#define RED_LED_TOGGLE()    (LED_PORT_DATA ^= RED_LED_MASK)
 #endif
+
 //=================================================================================
 // Flash programming control
 //
@@ -188,12 +188,9 @@
 // No Flash programming supply
 #define FLASH12V_ON()   ; //!
 #define FLASH12V_OFF()  ; //!
-
 #define VPP_ON()        ; //!
 #define VPP_OFF()       ; //!
-
 #endif //CAP_FLASH
-
 //=================================================================================
 // Target Vdd control
 
@@ -204,9 +201,7 @@
 #define VDD_OFF()       ; // Vdd Off
 #define VDD3_ON()       ; // Vdd = 3.3V
 #define VDD5_ON()       ; // Vdd = 5V
-
 #endif // CAP_VDDCONTROL
-
 //=================================================================================
 // Use of 1k5 resistor on USB D+ line
 //
@@ -214,9 +209,7 @@
 //
 #define USBPUP_ON    (0) // Turn on internal PUP
 #define USBPUP_OFF   (1) // Turn off internal PUP
-
 #define USBPUP USBPUP_ON // Internal 1k5 PUP present on D+
-
 #ifndef USBPUP
 #error "Please define USBPUP in Configure.h"
 #define USBPUP USBPUP_OFF
@@ -225,7 +218,6 @@
 #if ((USBPUP != USBPUP_ON) && (USBPUP != USBPUP_OFF))
 #error "Please correctly define USBPUP in Configure.h"
 #endif
-
 
 //================================================================================
 // Timer Channel use
@@ -240,7 +232,7 @@
 #define BKGD_TPMxCnSC_RISING_EDGE_MASK    TPMC0SC_ELS0A_MASK // TPMxCnSC value for rising edge
 #define BKGD_TPMxCnSC_FALLING_EDGE_MASK   TPMC0SC_ELS0B_MASK // TPMxCnSC value for falling edge
 #define BKGD_TPMxCnVALUE                  TPMC0V             // IC Event time
-#define BKGD_TPM_SETUP_ASM                    BCLR 7,BKGD_TPMxCnSC 
+#define BKGD_TPM_SETUP_ASM                BCLR 7,BKGD_TPMxCnSC 
 
 // Timeout TPM.Ch1 : Output Compare (no pin)
 #define TIMEOUT_TPMxCnSC_CHF              TPMC1SC_CH1F       // Event Flag
@@ -269,11 +261,8 @@
 //===================================================================================
 // Target Vdd sensing
 #if (HW_CAPABILITY&CAP_VDDSENSE)
-// Target Vdd Present
-
 
 #else // !CAP_VDDSENSE
-
 #define VDD_SENSE                 (1) // Assume VDD present
 #endif
 

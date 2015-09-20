@@ -10,6 +10,13 @@
     @note DO NOT CHANGE THIS FILE \n
     If you need to create another configuration make a copy of this file
     under a new name and change Configure.h appropriately.
+
+   \verbatim
+   Change History
+   +================================================================================================
+   | 18 Jul 2014 | Added     CAP_S12Z                                          - pgo, ver 4.10.6.170
+   +================================================================================================
+   \endverbatim
 */
 #ifndef _CONFIGURE_H_
 #define _CONFIGURE_H_
@@ -22,8 +29,8 @@
 //==========================================================================================
 // Capabilities of the hardware - used to enable/disable appropriate code
 //
-#define HW_CAPABILITY     (CAP_VDDCONTROL|CAP_VDDSENSE|CAP_RST_IO|CAP_BDM  |CAP_FLASH)
-#define TARGET_CAPABILITY (CAP_VDDCONTROL|CAP_VDDSENSE|CAP_HCS12 |CAP_HCS08|CAP_RS08|CAP_CFV1)
+#define HW_CAPABILITY     (CAP_VDDCONTROL|CAP_VDDSENSE|CAP_RST_IO|CAP_BDM  |CAP_FLASH|CAP_CORE_REGS)
+#define TARGET_CAPABILITY (CAP_VDDCONTROL|CAP_VDDSENSE|CAP_HCS12 |CAP_HCS08|CAP_RS08|CAP_CFV1|CAP_S12Z)
 
 #ifndef PLATFORM
 #define PLATFORM USBDM   //! Choose BDM emulation
@@ -43,9 +50,9 @@
 //=================================================================================
 // ICP pin - used to force ICP in bootstrap code
 //
-#define ICP_PIN_DDR DEBUG_PIN_DDR
-#define ICP_PIN_PER DEBUG_PIN_PER
-#define ICP_PIN     DEBUG_PIN
+#define ICP_PIN_DDR PTGDD_PTGDD2
+#define ICP_PIN_PER PTGPE_PTGPE2
+#define ICP_PIN     PTGD_PTGD2
 
 //===========================================================================================
 // Type of BDM interface chips are supported

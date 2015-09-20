@@ -5,6 +5,9 @@
 #ifndef _BDM_H_
 #define _BDM_H_
 
+#include "Common.h"
+#include "Commands.h"
+
 //===================================================================================
 // Shared interface
 void  bdmHCS_init(void);
@@ -17,10 +20,10 @@ U8    bdmHCS_powerOnReset(void);
 // BDM mode interface
 U8    bdm_RxTxSelect(void);
 void  bdm_txPrepare(void);
-void  bdm_txFinish(void);
+//void  bdm_txFinish(void);
 void  bdm_ackn(void);
-U8    bdm_wait64(void);
-U8    bdm_wait150(void);
+void  bdm_wait64(void);
+//void  bdm_wait150(void);
 void  bdm_acknInit(void);
 U8    bdm_hardwareReset(U8 mode); 
 U8    bdm_targetReset( U8 mode);
@@ -41,6 +44,10 @@ U8    bdm_go(void);
 U8    bdm_step(void);
 U8    bdm_testTx(U8);
 U8    bdm_setInterfaceLevel(U8 level);
+
+void  bdm_WaitForResetRise(void);
+
+U8    convertColdfireStatusByte(U8 bdmStatus);
 
 //! MACRO to calculate a SYNC value from a given frequency in Hz
 #define SYNC_MULTIPLE(x)  (U16)((2*128*(60000000UL/10))/(x/10))

@@ -2,7 +2,7 @@
 #define _ICP_H_
 
 //! ICP version (2 hex digits, major.minor)
-#define ICP_VERSION_SW (2<<4|5) // 2.5
+#define ICP_VERSION_SW (2<<4|6) // 2.6
 
 /*! Flash Protection boundary
  *
@@ -11,7 +11,11 @@
 
 
  */ 
+#ifdef BOOTLOADER
+#define FLASH_PROTECT_START (0xFA00)
+#else
 #define FLASH_PROTECT_START (0xFC00)
+#endif
 
 #if (FLASH_PROTECT_START&0x1FF)
 #error "Illegal Flash protection boundary - must be multiple of 512"

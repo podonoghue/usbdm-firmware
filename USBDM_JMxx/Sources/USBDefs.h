@@ -3,9 +3,7 @@
 
 #include "Common.h"
 
-/*----------------------------------------------------------------------------
-** device descriptor
-*/
+//! Device Descriptor 
 typedef struct {
    U8           bLength;             //!<  Size of this Descriptor in Bytes
    U8           bDescriptorType;     //!<  Descriptor Type (=1)
@@ -23,9 +21,7 @@ typedef struct {
    U8           bNumConfigurations;  //!<  Number of possible Configurations
 } DeviceDescriptor;                
 
-/*----------------------------------------------------------------------------
-** Standard Configuration Descriptor
-*/
+//! USB Configuration Descriptor
 typedef struct {
    U8           bLength;             //!<  Size of this Descriptor in Bytes
    U8           bDescriptorType;     //!<  Descriptor Type (=2)
@@ -37,9 +33,7 @@ typedef struct {
    U8           bMaxPower;           //!<  Max. Power Consumption in this Configuration (in 2mA steps)
 } ConfigurationDescriptor;
 
-/*----------------------------------------------------------------------------
-** Standard Interface Descriptor
-*/
+//! USB Interface Descriptor
 typedef struct {
    U8           bLength;             //!<  Size of this Descriptor in Bytes
    U8           bDescriptorType;     //!<  Descriptor Type (=4)            
@@ -52,9 +46,7 @@ typedef struct {
    U8           iInterface;          //!<  Index of String Desc for this Interface
 } InterfaceDescriptor;
 
-/*----------------------------------------------------------------------------
-** Standard Endpoint Descriptor
-*/
+//! Endpoint Descriptor
 typedef struct {
    U8           bLength;             //!<  Size of this Descriptor in Bytes
    U8           bDescriptorType;     //!<  Descriptor Type (=5)
@@ -64,9 +56,8 @@ typedef struct {
    U8           bInterval;           //!<  Polling Interval (Interrupt) in ms
 } EndpointDescriptor;
 
-/*--------------------------------------------------------------------------------
-** Structure of Setup Packet sent during SETUP Stage of Standard Device Requests
-*/
+//! Structure of Setup Packet sent during SETUP Stage of Standard Device Requests
+//! @note Shuffled fields for MCFJM128 
 typedef struct {
    U8           bmRequestType;       //!<  Characteristics (Direction,Type,Recipient)
    U8           bRequest;            //!<  Standard Request Code
@@ -75,9 +66,7 @@ typedef struct {
    U16u         wLength;             //!<  Number of Bytes to transfer (Data Stage)
 } SetupPacket;
 
-/*--------------------------------------------------------------------------------
-** Structure of Device Qualifier Descriptor
-*/
+//! Structure of Device Qualifier Descriptor
 typedef struct {
    U8           bLength;             //!<  Size of this Descriptor in Bytes
    U8           bDescriptorType;     //!<  Descriptor Type (=6)
@@ -90,9 +79,7 @@ typedef struct {
    U8           bReserved;           //!<  Reserved
 } DeviceQualifierDescriptor;
 
-/*----------------------------------------------------------------------------
-** Endpoint direction
-*/
+//! Endpoint direction masks
 enum {EP_OUT=0x00, //!< Endpoint is OUT (host -> node)
 	  EP_IN=0x80   //!< Endpoint is IN (node -> host)
 	  };
@@ -116,6 +103,15 @@ enum {EP_OUT=0x00, //!< Endpoint is OUT (host -> node)
 #define REQ_TYPE_VENDOR        (2<<5)
 #define REQ_TYPE_OTHER         (3<<5)
 #define IS_VENDOR_REQ(x)       (REQ_TYPE(x) == REQ_TYPE_VENDOR)
+
+/*----------------------------------------------------------------------------
+** USB Request Type (bmRequestType)
+*/
+#define REQ_RECIPIENT(x)  	      ((0x1F<<0) & (x))
+#define REQ_RECIPIENT_DEVICE      (0<<0)
+#define REQ_RECIPIENT_INTERFACE   (1<<0)
+#define REQ_RECIPIENT_ENDPOINT    (2<<0)
+#define REQ_RECIPIENT_OTHER       (3<<0)
 
 /*----------------------------------------------------------------------------
 ** USB Standard Device Request Codes (bRequest)
@@ -191,14 +187,14 @@ enum {EP_OUT=0x00, //!< Endpoint is OUT (host -> node)
 // IAD Stuff (Composite devices)
 //============================================================================
 typedef struct {
-    U8 bLength;                //!< Size of this Descriptor in Bytes
-    U8 bDescriptorType;        //!< Descriptor Type (=0B)
-    U8 bFirstInterface;        //!< First interface #
-    U8 bInterfaceCount;		   //!< Number of interfaces
+   U8 bLength;                //!< Size of this Descriptor in Bytes
+   U8 bDescriptorType;        //!< Descriptor Type (=0B)
+   U8 bFirstInterface;        //!< First interface #
+   U8 bInterfaceCount;		   //!< Number of interfaces
 	U8 bFunctionClass;         //!< bInterfaceClass;
 	U8 bFunctionSubClass;      //!< bInterfaceSubClass;
 	U8 bFunctionProtocol;      //!< Protocol
-	U8 iFunction;			   //!< Function
+	U8 iFunction;     		   //!< Function
 } InterfaceAssociationDescriptor;
 
 //============================================================================
@@ -279,5 +275,34 @@ typedef struct {
 // Bit masks for SetControlLineState value
 #define DTR_MASK (1<<0)
 #define RTS_MASK (1<<1)
+
+typedef struct {
+   U32 lLength;                //!< Size of this Descriptor in Bytes
+   U16 wVersion;               //!< Version
+   U16 wIndex;                 //!< Index (must be 4)
+   U8  bnumSections;           //!< Number of sections
+   U8  bReserved1[7];	        //!< 
+   //------------- Section ----------//
+	U8  bInterfaceNum;           //!< 
+	U8  bReserved2;              //!<
+	U8  bCompatibleId[8];        //!<
+	U8  bSubCompatibleId[8];	 //!<
+	U8  bReserved3[6];
+	
+} MS_CompatibleIdFeatureDescriptor;
+
+typedef struct {
+   U32 lLength;                //!< Size of this Descriptor in Bytes
+   U16 wVersion;               //!< Version
+   U16 wIndex;                 //!< Index (must be 5)
+   U16 bnumSections;           //!< Number of property sections
+   //-------------------- Section --------------//
+   U32 lPropertySize;          //!< Size of property section
+   U32 ldataType;              //!< Data type (1 = Unicode REG_SZ etc
+   U16 wNameLength;            //!< Length of property name
+   U8  bName[40];
+   U32 wPropertyLength;        //!< Length of property data
+   U8  bData[78];
+} MS_PropertiesFeatureDescriptor;
 
 #endif /* _USBDefs_H_  */

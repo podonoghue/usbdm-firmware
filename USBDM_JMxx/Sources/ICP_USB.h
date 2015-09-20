@@ -12,7 +12,7 @@
 
 #pragma CODE_SEG BOOT_ROM
 extern void initICP_USB(void);
-extern void USBEventPollingLoop(void);
+extern void startICP_USB(void);
 extern U8 icpReset(void);
 #pragma CODE_SEG DEFAULT
 

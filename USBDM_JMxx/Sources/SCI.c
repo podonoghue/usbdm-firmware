@@ -300,7 +300,8 @@ void sciRxHandler(void) {
    asm (stx  value:2);   \
    asm (sta  value:1);   \
    }
-#define BAUDDIVIDER(x)  ((BUS_FREQ/16)/(x))
+#define BAUDDIVIDER(x)  (((BUS_FREQ/16))/(x))
+//#define BAUDDIVIDER(x)  (((unsigned)(BUS_FREQ/16)>>8)/(unsigned)(x>>8))
 
 //static const LineCodingStructure defaultLineCoding = {CONST_NATIVE_TO_LE32(9600UL),0,1,8};
 static LineCodingStructure lineCoding              = {CONST_NATIVE_TO_LE32(9600UL),0,1,8};

@@ -22,7 +22,7 @@
 //==========================================================================================
 // Capabilities of the hardware - used to enable/disable appropriate code
 //
-#define HW_CAPABILITY     (CAP_CFVx_HW|CAP_JTAG_HW|CAP_RST_IO|CAP_CDC)
+#define HW_CAPABILITY     (CAP_CFVx_HW|CAP_JTAG_HW|CAP_RST_IO|CAP_CDC|CAP_CORE_REGS)
 #define TARGET_CAPABILITY (CAP_CFVx   |CAP_JTAG   |CAP_RST   |CAP_DSC|CAP_ARM_JTAG|CAP_CDC)
 
 #ifndef PLATFORM
@@ -30,6 +30,7 @@
 #endif
 
 #define CPU  JS16
+#define MINIMAL_MEMORY_USE // Very pressed for space on this version - omit old ARM-JTAG code
 
 //=================================================================================
 // Debug pin - used to check timing and hardware sequences etc.
