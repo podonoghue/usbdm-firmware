@@ -1,0 +1,1 @@
+Program for FRDM board to attempt mass erasing of target during power-on
