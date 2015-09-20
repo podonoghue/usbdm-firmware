@@ -13,10 +13,11 @@ The following project is a Codewarrior Eclipse project and should be imported in
 
 USBDM_JMxx
 
-The following project is a KDS project and should be imported into Kinetis Design Studio
+The project in the following directory is for Codewarrior for HC08 (non-eclipse version).
+
+USBDM_JB16_V4_10
+
+The remaining projects are intended for Eclipse or Kinetis Design Studio with USBDM plugin
 
 USBDM_Kinetis
 
-The project in the following directory are Codewarrior for HC08 (non-eclipse version).
-
-USBDM_JB16_V4_10
