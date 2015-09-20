@@ -575,7 +575,7 @@ static const uint8_t DCRDR_ADDR[] = {0xE0, 0x00, 0xED, 0xF8}; // RW Debug Core D
 //!
 //! @note DCRSRvalue is used as scratch buffer so must be ram
 //!
-uint8_t swd_coreRegisterOperation(uint8_t *DCRSRvalue) {
+static uint8_t swd_coreRegisterOperation(uint8_t *DCRSRvalue) {
    uint8_t retryCount = 40U;
    uint8_t rc;
 

@@ -1,7 +1,7 @@
 /*! @file
     @brief This file contains hardware specific information and configuration.
     
-    USBDM_OpenSDA - USBDM-SWD for OpenSDA on FRDM-KL25Z board (MK20 chip)
+    USBDM_OpenSDA - USBDM-SWD for OpenSDA on FRDM-KL25Z, K20 etc board (MK20 chip)
              
     Supports Kinetis targets \n
 
@@ -14,19 +14,7 @@
 
 #define __LITTLE_ENDIAN__
 
-// Used to create port register names
-//--------------------------------------------------------
-#define CONCAT2_(x,y) x ## y
-#define CONCAT3_(x,y,z) x ## y ## z
-#define CONCAT4_(w,x,y,z) w ## x ## y ## z
-
-#define PCR(reg,num)   CONCAT4_(PORT,reg,_PCR,num)
-#define PDOR(reg)      CONCAT3_(GPIO,reg,_PDOR)
-#define PSOR(reg)      CONCAT3_(GPIO,reg,_PSOR)
-#define PCOR(reg)      CONCAT3_(GPIO,reg,_PCOR)
-#define PTOR(reg)      CONCAT3_(GPIO,reg,_PTOR)
-#define PDIR(reg)      CONCAT3_(GPIO,reg,_PDIR)
-#define PDDR(reg)      CONCAT3_(GPIO,reg,_PDDR)
+#include "utilities.h"
 
 //==========================================================================================
 // USB Serial Number
@@ -258,7 +246,7 @@
 #define SPI_NUM 0 // Modify to change which SPI is used
 
 #if (SPI_NUM==0)
-   #define SPI_CLK_ENABLE()   (SIM_SCGC6 |= SIM_SCGC6_SPI0_MASK)
+   #define SPI_CLK_ENABLE()   (SIM->SCGC6 |= SIM_SCGC6_SPI0_MASK)
 #else
    #error "Unknown SPI number"
 #endif

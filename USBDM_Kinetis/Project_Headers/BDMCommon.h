@@ -39,12 +39,12 @@
     @param  c  Condition to exit wait early
 */
 #define WAIT_WITH_TIMEOUT_US(t,c) {                         \
-   PIT_LDVAL0 = TIMER_MICROSECOND(t);                       \
-   PIT_TFLG0  = PIT_TFLG_TIF_MASK;                          \
-   PIT_TCTRL0 = PIT_TCTRL_TEN_MASK;                         \
-   while (!(c) && ((PIT_TFLG0&PIT_TFLG_TIF_MASK)==0)) {     \
+   PIT->CHANNEL[0].LDVAL = TIMER_MICROSECOND(t);                       \
+   PIT->CHANNEL[0].TFLG  = PIT_TFLG_TIF_MASK;                          \
+   PIT->CHANNEL[0].TCTRL = PIT_TCTRL_TEN_MASK;                         \
+   while (!(c) && ((PIT->CHANNEL[0].TFLG&PIT_TFLG_TIF_MASK)==0)) {     \
    }                                                        \
-   PIT_TCTRL0 = 0;                                          \
+   PIT->CHANNEL[0].TCTRL = 0;                                          \
 }
 /*! \brief A Macro to wait for given time or until a condition is met
 
@@ -53,22 +53,23 @@
 */
 #define WAIT_WITH_TIMEOUT_MS(t,c) {                         \
    int tt = t;                                              \
-   PIT_LDVAL0 = TIMER_MICROSECOND(1000);                    \
-   PIT_TCTRL0 = PIT_TCTRL_TEN_MASK;                         \
+   PIT->CHANNEL[0].LDVAL = TIMER_MICROSECOND(1000);                    \
+   PIT->CHANNEL[0].TCTRL = PIT_TCTRL_TEN_MASK;                         \
    while (!(c) && (tt-->0)) {                               \
-      PIT_TFLG0  = PIT_TFLG_TIF_MASK;                       \
-      while ((PIT_TFLG0&PIT_TFLG_TIF_MASK)==0) {            \
+      PIT->CHANNEL[0].TFLG  = PIT_TFLG_TIF_MASK;                       \
+      while ((PIT->CHANNEL[0].TFLG&PIT_TFLG_TIF_MASK)==0) {            \
       }                                                     \
    }                                                        \
-   PIT_TCTRL0 = 0;                                          \
+   PIT->CHANNEL[0].TCTRL = 0;                                          \
 }
 /*! \brief A Macro to wait for given time or until a condition is met
 
     @param  t  Maximum time to wait in \e seconds.
-    @param  c  Condition to exit wait early (checked every ~10 ms and affects timing)
+    @param  c  Condition to exit wait early 
+    @note Condition is only checked every ~10 ms and affects timing slightly
 */
 #define WAIT_WITH_TIMEOUT_S(t,c) {       \
-    int tt = 100*(t);                    \
+    unsigned tt = 100*(t);               \
       do {                               \
          millisecondTimerWait(10);       \
       } while (!(c) & (tt-->0));         \
@@ -102,7 +103,7 @@ void      bdm_interfaceOff( void );
 
 uint8_t   bdm_clearStatus(void);
 
-//// Interrupt monitoring routines
+// Interrupt monitoring routines
 //interrupt void timerHandler(void);
 //interrupt void kbiHandler(void);
 //interrupt void acmpHandler(void);

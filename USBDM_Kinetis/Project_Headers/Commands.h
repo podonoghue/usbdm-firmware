@@ -1,5 +1,11 @@
 /*! \file
     \brief Command and Error codes for BDM communication over USB
+
+   Change History
++================================================================================================
+| 18 Jul 2014 | Added HCS12ZVM support                                             - pgo V4.10.6.170
++================================================================================================
+\endverbatim
 */
 #ifndef _COMMANDS_H_
 #define _COMMANDS_H_
@@ -51,7 +57,7 @@ typedef enum {
                                           //!    to enable ackn feature, @param [2..3] 16-bit tick count
    CMD_USBDM_GET_SPEED             = 17,  //!< Read speed of the target: @return [1..2] 16-bit tick coun
 
-   CMD_USBDM_CONTROL_INTERFACE     = 18,  //!< Directly control BDM interface levels
+   CMD_CUSTOM_COMMAND              = 18,  //!< Directly control BDM interface levels
    // Reserved 19
 
    CMD_USBDM_READ_STATUS_REG       = 20,  //!< Get BDM status
@@ -102,7 +108,7 @@ typedef enum  {
  BDM_RC_OK                                     = 0,     //!< No error
  BDM_RC_ILLEGAL_PARAMS                         = 1,     //!< Illegal parameters to command
  BDM_RC_FAIL                                   = 2,     //!< General Fail
- BDM_RC_BUSY                                   = 3,     //!< BDM Busy with last command - try again - don't change
+ BDM_RC_BUSY                                   = 3,     //!< Busy with last command - try again - don't change
  BDM_RC_ILLEGAL_COMMAND                        = 4,     //!< Illegal (unknown) command (may be in wrong target mode)
  BDM_RC_NO_CONNECTION                          = 5,     //!< No connection to target
  BDM_RC_OVERRUN                                = 6,     //!< New command before previous command completed
@@ -113,7 +119,7 @@ typedef enum  {
  BDM_RC_USB_DEVICE_REMOVED                     = 11,    //!< BDM Open Failed - LIBUSB_ERROR_NO_DEVICE - enumerated device has been removed
  BDM_RC_USB_RETRY_OK                           = 12,    //!< USB Debug use only
  BDM_RC_UNEXPECTED_RESET                       = 13,    //!< Target reset was detected
- //
+ BDM_RC_CF_NOT_READY                           = 14,    //!< Coldfire 2,3,4 Not ready response
  BDM_RC_UNKNOWN_TARGET                         = 15,    //!< Target unknown or not supported by this BDM
  BDM_RC_NO_TX_ROUTINE                          = 16,    //!< No Tx routine available at measured BDM communication speed
  BDM_RC_NO_RX_ROUTINE                          = 17,    //!< No Rx routine available at measured BDM communication speed
@@ -137,7 +143,7 @@ typedef enum  {
  // Used by USBDM DLL
  BDM_RC_WRONG_BDM_REVISION                     = 34,    //!< BDM Hardware is incompatible with driver/program
  BDM_RC_WRONG_DLL_REVISION                     = 35,    //!< Program is incompatible with DLL
- BDM_RC_NO_USBDM_DEVICE                        = 36,    //!< No usbdm device was located
+ BDM_RC_NO_USBDM_DEVICE                        = 36,    //!< No USBDM device was located
 
  BDM_RC_JTAG_UNMATCHED_REPEAT                  = 37,    //!< Unmatched REPEAT-END_REPEAT
  BDM_RC_JTAG_UNMATCHED_RETURN                  = 38,    //!< Unmatched CALL-RETURN
@@ -159,18 +165,33 @@ typedef enum  {
  BDM_RC_ARM_PARITY_ERROR                       = 51,    //!< ARM PARITY error
  BDM_RC_ARM_FAULT_ERROR                        = 52,    //!< ARM FAULT response error
  BDM_RC_UNEXPECTED_RESPONSE                    = 53,    //!< Unexpected/inconsistent response from BDM
- BDM_RC_HCS_ACCESS_ERROR                       = 54,    //!< - Memory access failed due to target in stop or wait state
+ BDM_RC_HCS_ACCESS_ERROR                       = 54,    //!< Memory access failed due to target in stop or wait state
+ BDM_RC_CF_DATA_INVALID                        = 55,    //!< CF target returned data invalid response (whatever that means!)
+ BDM_RC_CF_OVERRUN                             = 56,    //!< CF target returned overrun response
+ BDM_RC_MASS_ERASE_DISABLED                    = 57,    //!< ARM Device has mass erase disabled
+ BDM_RC_FLASH_NOT_READY                        = 58,    //!< ARM - Flash failed to become ready
 } USBDM_ErrorCode;
 
 //! Capabilities of the hardware
 //!
 typedef enum  {
-   BDM_CAP_NONE             = (0),
-   BDM_CAP_RESET            = (1<<0),   //!< - RESET can be driven/sensed (HC12 support)
-   BDM_CAP_FLASH            = (1<<1),   //!< - 12 V Flash programming supply available (RS08 support)
-   BDM_CAP_VDDCONTROL       = (1<<2),   //!< - Control over target Vdd
-   BDM_CAP_VDDSENSE         = (1<<3),   //!< - Sensing of target Vdd
-   BDM_CAP_CFVx             = (1<<4),   //!< - Support for CFV 1,2 & 3
+	   BDM_CAP_NONE         = (0),
+	   BDM_CAP_ALL          = (0xFFFF),
+	   BDM_CAP_HCS12        = (1<<0),   //!< Supports HCS12
+	   BDM_CAP_RS08         = (1<<1),   //!< 12 V Flash programming supply available (RS08 support)
+	   BDM_CAP_VDDCONTROL   = (1<<2),   //!< Control over target Vdd
+	   BDM_CAP_VDDSENSE     = (1<<3),   //!< Sensing of target Vdd
+	   BDM_CAP_CFVx         = (1<<4),   //!< Support for CFV 1,2 & 3
+	   BDM_CAP_HCS08        = (1<<5),   //!< Supports HCS08 targets - inverted when queried
+	   BDM_CAP_CFV1         = (1<<6),   //!< Supports CFV1 targets  - inverted when queried
+	   BDM_CAP_JTAG         = (1<<7),   //!< Supports JTAG targets
+	   BDM_CAP_DSC          = (1<<8),   //!< Supports DSC targets
+	   BDM_CAP_ARM_JTAG     = (1<<9),   //!< Supports ARM targets via JTAG
+	   BDM_CAP_RST          = (1<<10),  //!< Control & sensing of RESET
+	   BDM_CAP_PST          = (1<<11),  //!< Supports PST signal sensing
+	   BDM_CAP_CDC          = (1<<12),  //!< Supports CDC Serial over USB interface
+	   BDM_CAP_ARM_SWD      = (1<<13),  //!< Supports ARM targets via SWD
+	   BDM_CAP_HCS12Z       = (1<<14),  //!< Supports HCS12Z targets via SWD
 } HardwareCapabilities_t;
 
 //===================================================================================
@@ -189,7 +210,8 @@ typedef enum {
    T_ARM_JTAG  = 8,       //!< ARM target using JTAG
    T_ARM_SWD   = 9,       //!< ARM target using SWD
    T_ARM       = 10,      //!< ARM target using either SWD (preferred) or JTAG as supported
-   T_LAST      = T_ARM,
+   T_HCS12Z    = 11,      //!< MC9S12ZVM target
+   T_LAST      = T_HCS12Z,
    T_ILLEGAL   = 0xFE,  //!< - Used to indicate error in selecting target
    T_OFF       = 0xFF,    //!< Turn off interface (no target)
 } TargetType_t;
@@ -376,6 +398,11 @@ typedef enum {
    CFV1_RegA6     = 14, //!< A6
    CFV1_RegA7     = 15, //!< A7
    CFV1_PSTBASE   = 16, //!< Start of PST registers, access as CFV1_PSTBASE+n
+   CFV1_RegOTHER_A7  = 0xC0|0,  //!< Other A7 (not active in target)
+   CFV1_RegVBR       = 0xC0|1,  //!< Vector Base register
+   CFV1_RegCPUCR     = 0xC0|2,  //!< CPUCR
+   CFV1_RegSR        = 0xC0|14, //!< Status register
+   CFV1_RegPC        = 0xC0|15, //!< Program Counter
 } CFV1_Registers_t;
 
 //! regNo Parameter for USBDM_ReadReg() with CFVx target
@@ -444,23 +471,23 @@ typedef enum {
 } CFV1_CRegisters_t;
 
 //! regNo Parameter for USBDM_ReadCReg() with CFVx target
-//!
+//! Note - These values vary with processor
 typedef enum {
-   CFVx_CRegD0        = 0x80, //!< D0-D7
-   CFVx_CRegD1,
-   CFVx_CRegD2,
-   CFVx_CRegD3,
-   CFVx_CRegD4,
-   CFVx_CRegD5,
-   CFVx_CRegD6,
-   CFVx_CRegD7,
-   CFVx_CRegA0,               //!< A0-A7
-   CFVx_CRegA1,
-   CFVx_CRegA2,
-   CFVx_CRegA3,
-   CFVx_CRegA4,
-   CFVx_CRegA5,
-   CFVx_CRegA6,
+//   CFVx_CRegD0        = 0x80, //!< D0-D7 not available on all targets
+//   CFVx_CRegD1,
+//   CFVx_CRegD2,
+//   CFVx_CRegD3,
+//   CFVx_CRegD4,
+//   CFVx_CRegD5,
+//   CFVx_CRegD6,
+//   CFVx_CRegD7,
+//   CFVx_CRegA0,               //!< A0-A7
+//   CFVx_CRegA1,
+//   CFVx_CRegA2,
+//   CFVx_CRegA3,
+//   CFVx_CRegA4,
+//   CFVx_CRegA5,
+//   CFVx_CRegA6,
    CFVx_CRegUSER_SP,
    CFVx_CRegOTHER_SP  = 0x800, //!< Other A7 (not active in target)
    CFVx_CRegVBR       = 0x801, //!< Vector Base register
@@ -599,25 +626,25 @@ typedef enum {
 //! \endverbatim
 typedef enum  {
    S_ACKN            = (1<<0),  //!< - Target supports BDM ACK (HCS08/12/CFV1)
-
+   
    S_RESET_DETECT    = (1<<1),  //!< - Target has been reset since status last polled
-
+   
    S_RESET_STATE     = (1<<2),  //!< - Current state of target reset pin (RESET or RSTO) (active low!)
-
+   
    S_NOT_CONNECTED   = (0<<3),  //!< - No connection with target
    S_SYNC_DONE       = (1<<3),  //!< - Target communication speed determined by BDM SYNC
    S_GUESS_DONE      = (2<<3),  //!< - Target communication speed guessed
    S_USER_DONE       = (3<<3),  //!< - Target communication speed specified by user
    S_COMM_MASK       = (3<<3),  //!< - Mask for communication state
-
+   
    S_HALT            = (1<<5),  //!< - Indicates target is halted (CF V2, V3 & V4)
-
+   
    S_POWER_NONE      = (0<<6),  //!< - Target power not present
    S_POWER_EXT       = (1<<6),  //!< - External target power present
    S_POWER_INT       = (2<<6),  //!< - Internal target power on
    S_POWER_ERR       = (3<<6),  //!< - Internal target power error - overcurrent or similar
    S_POWER_MASK      = (3<<6),  //!< - Mask for Power
-
+   
    S_VPP_OFF         = (0<<8),  //!< - Vpp Off
    S_VPP_STANDBY     = (1<<8),  //!< - Vpp Standby (Inverter on)
    S_VPP_ON          = (2<<8),  //!< - Vpp On

@@ -38,7 +38,7 @@ void checkUsbCdcRxData(void);
 void cdc_setLineCoding(const LineCodingStructure *lineCodingStructure);
 const LineCodingStructure *cdc_getLineCoding(void);
 void cdc_setControlLineState(uint8_t value);
-void cdc_sendBreak(U16 length);
+void cdc_sendBreak(uint16_t length);
 
 #define SERIAL_STATE_CHANGE (1<<7)
 uint8_t cdc_getSerialState(void);

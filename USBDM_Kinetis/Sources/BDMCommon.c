@@ -31,18 +31,18 @@
 
    \verbatim
    Change History
-   +================================================================================================
-   | 22 Nov 2011 | More thoroughly disabled interfaces when off                       - pgo, ver 4.8 
-   | 27 Oct 2011 | Modified timer code to avoid TSCR1 changes & TCNT resets           - pgo, ver 4.8 
-   |  8 Aug 2010 | Re-factored interrupt handling                                     - pgo 
-   | 10 Apr 2010 | Changed to accommodate changes to Vpp interface                    - pgo 
-   |  5 Feb 2010 | bdm_cycleTargetVdd() now disables Vdd monitoring                   - pgo
-   |  4 Feb 2010 | bdm_cycleTargetVdd() parametised for mode                          - pgo
-   | 19 Oct 2009 | Modified Timer code - Folder together with JS16 code               - pgo
-   | 20 Sep 2009 | Increased Reset wait                                               - pgo
-   |    Sep 2009 | Major changes for V2                                               - pgo
-   +================================================================================================
-   \endverbatim
++================================================================================================
+| 22 Nov 2011 | More thoroughly disabled interfaces when off                       - pgo, ver 4.8 
+| 27 Oct 2011 | Modified timer code to avoid TSCR1 changes & TCNT resets           - pgo, ver 4.8 
+|  8 Aug 2010 | Re-factored interrupt handling                                     - pgo 
+| 10 Apr 2010 | Changed to accommodate changes to Vpp interface                    - pgo 
+|  5 Feb 2010 | bdm_cycleTargetVdd() now disables Vdd monitoring                   - pgo
+|  4 Feb 2010 | bdm_cycleTargetVdd() parametised for mode                          - pgo
+| 19 Oct 2009 | Modified Timer code - Folder together with JS16 code               - pgo
+| 20 Sep 2009 | Increased Reset wait                                               - pgo
+|    Sep 2009 | Major changes for V2                                               - pgo
++================================================================================================
+\endverbatim
 */
 
 #include <string.h>
@@ -72,12 +72,12 @@
 //!  @note Limited to ?? ms
 //!
 void fastTimerWait(uint32_t delay) {
-   PIT_LDVAL0 = delay;                  // Set up delay
-   PIT_TFLG0  = PIT_TFLG_TIF_MASK;      // Clear timer flag
-   PIT_TCTRL0 = PIT_TCTRL_TEN_MASK;     // Enable (and reset) timer
-   while ((PIT_TFLG0&PIT_TFLG_TIF_MASK) == 0) { // Wait for timeout
+   PIT->CHANNEL[0].LDVAL = delay;                  // Set up delay
+   PIT->CHANNEL[0].TFLG  = PIT_TFLG_TIF_MASK;      // Clear timer flag
+   PIT->CHANNEL[0].TCTRL = PIT_TCTRL_TEN_MASK;     // Enable (and reset) timer
+   while ((PIT->CHANNEL[0].TFLG&PIT_TFLG_TIF_MASK) == 0) { // Wait for timeout
    }
-   PIT_TCTRL0 = 0;                      // Disable timer
+   PIT->CHANNEL[0].TCTRL = 0;                      // Disable timer
 }
 
 //! Wait for given time in milliseconds
@@ -85,23 +85,23 @@ void fastTimerWait(uint32_t delay) {
 //!  @param delay Delay time in milliseconds
 //!
 void millisecondTimerWait(uint16_t delay) {
-   PIT_LDVAL0 = TIMER_MICROSECOND(1000); // Set up delay
-   PIT_TCTRL0 = PIT_TCTRL_TEN_MASK;      // Enable (and reset) timer
+   PIT->CHANNEL[0].LDVAL = TIMER_MICROSECOND(1000); // Set up delay
+   PIT->CHANNEL[0].TCTRL = PIT_TCTRL_TEN_MASK;      // Enable (and reset) timer
    while (delay-->0) {
-      PIT_TFLG0  = PIT_TFLG_TIF_MASK;              // Clear timer flag
-      while ((PIT_TFLG0&PIT_TFLG_TIF_MASK) == 0) { // Wait for timeout
+      PIT->CHANNEL[0].TFLG  = PIT_TFLG_TIF_MASK;              // Clear timer flag
+      while ((PIT->CHANNEL[0].TFLG&PIT_TFLG_TIF_MASK) == 0) { // Wait for timeout
       }
    }
-   PIT_TCTRL0 = 0;                       // Disable timer
+   PIT->CHANNEL[0].TCTRL = 0;                       // Disable timer
 }
 
 //! Initialises the timers, input captures and interrupts
 //!
-U8 initTimers(void) {
+uint8_t initTimers(void) {
 	
-	SIM_SCGC6 |= SIM_SCGC6_PIT_MASK;
-	PIT_MCR    = PIT_MCR_FRZ_MASK; // Enable timers
-	return BDM_RC_OK;
+	SIM->SCGC6 |= SIM_SCGC6_PIT_MASK;
+	PIT->MCR    = PIT_MCR_FRZ_MASK; // Enable timers
+   return BDM_RC_OK;
 }
 
 //=========================================================================
@@ -210,7 +210,7 @@ void FTM0_IRQHandler(void) {
 //!
 //!  Updates \ref cable_status
 //!
-U8 bdm_checkTargetVdd(void) {
+uint8_t bdm_checkTargetVdd(void) {
 #if (HW_CAPABILITY&CAP_VDDSENSE)
    if (bdm_targetVddMeasure() > VDD_2v) {
       redLedOn();
@@ -247,8 +247,8 @@ U8 bdm_checkTargetVdd(void) {
 //!   \ref BDM_RC_OK                => Target Vdd confirmed on target \n
 //!   \ref BDM_RC_VDD_NOT_PRESENT   => Target Vdd not present
 //!
-U8 bdm_setTargetVdd( void ) {
-U8 rc = BDM_RC_OK;
+uint8_t bdm_setTargetVdd( void ) {
+uint8_t rc = BDM_RC_OK;
 
 #if (HW_CAPABILITY&CAP_VDDSENSE)
    DISABLE_VDD_SENSE_INT();
@@ -310,8 +310,8 @@ U8 rc = BDM_RC_OK;
 //!   \ref BDM_RC_RESET_TIMEOUT_RISE    => RESET signal failed to rise 		\n
 //!   \ref BDM_RC_BKGD_TIMEOUT      	=> BKGD signal failed to rise
 //!
-U8 bdm_cycleTargetVddOn(U8 mode) {
-U8 rc = BDM_RC_OK;
+uint8_t bdm_cycleTargetVddOn(uint8_t mode) {
+uint8_t rc = BDM_RC_OK;
 
    mode &= RESET_MODE_MASK;
 
@@ -439,8 +439,8 @@ cleanUp:
 //!   \ref BDM_RC_VDD_WRONG_MODE    => Target Vdd not controlled by BDM interface \n
 //!   \ref BDM_RC_VDD_NOT_REMOVED   => Target Vdd failed to fall \n
 //!
-U8 bdm_cycleTargetVddOff(void) {
-U8 rc = BDM_RC_OK;
+uint8_t bdm_cycleTargetVddOff(void) {
+uint8_t rc = BDM_RC_OK;
 
 #if (HW_CAPABILITY&CAP_VDDCONTROL)
 
@@ -513,8 +513,8 @@ U8 rc = BDM_RC_OK;
 //!   \ref BDM_RC_VDD_NOT_PRESENT    => Target Vdd failed to rise \n
 //!   \ref BDM_RC_RESET_TIMEOUT_RISE => RESET signal failed to rise \n
 //!
-U8 bdm_cycleTargetVdd(U8 mode) {
-U8 rc;
+uint8_t bdm_cycleTargetVdd(uint8_t mode) {
+uint8_t rc;
 
    // This may take a while
    setBDMBusy();
@@ -536,7 +536,7 @@ U8 rc;
 //!  JB16/UF32 doesn't have an ADC so an external comparator is used.  In this case this routine only
 //!  returns an indication if Target Vdd is present [255 => Vdd present, 0=> Vdd not present].
 //!
-U16 bdm_targetVddMeasure(void) {
+uint16_t bdm_targetVddMeasure(void) {
 
 #if ((HW_CAPABILITY&CAP_VDDSENSE) == 0)
    // No Target Vdd measurement - Assume external Vdd supplied
@@ -687,7 +687,7 @@ void bdm_off( void ) {
 }
 
 //! Clear Cable status
-U8 bdm_clearStatus(void) {
+uint8_t bdm_clearStatus(void) {
    (void)memset(&cable_status, 0, sizeof(cable_status));
    cable_status.target_type = T_OFF;
    
@@ -698,8 +698,8 @@ U8 bdm_clearStatus(void) {
 //!
 //!  @param target = Target processor (see \ref TargetType_t)
 //!
-U8 bdm_setTarget(U8 target) {
-U8 rc = BDM_RC_OK;
+uint8_t bdm_setTarget(uint8_t target) {
+uint8_t rc = BDM_RC_OK;
 
 #ifdef RESET_IN_PER
    RESET_IN_PER    = 1;     // Needed for input level translation to 5V
@@ -720,7 +720,10 @@ U8 rc = BDM_RC_OK;
    cable_status.target_type = target; // Assume mode is valid
 
    switch (target) {
-#if (TARGET_CAPABILITY & CAP_HCS12)   
+#if TARGET_CAPABILITY & CAP_S12Z
+      case T_HCS12Z  :
+#endif
+#if (TARGET_CAPABILITY & (CAP_HCS12|CAP_S12Z))   
       case T_HC12:
          bdm_option.useResetSignal = 1; // Must use RESET signal on HC12
          bdmHCS_init();
@@ -772,7 +775,7 @@ U8 rc = BDM_RC_OK;
     	  
       default:
          bdm_off();          // Turn off the interface
-         bdm_clearStatus();  // Safe mode!
+         (void)bdm_clearStatus();  // Safe mode!
          return BDM_RC_UNKNOWN_TARGET;
    }
    return rc;

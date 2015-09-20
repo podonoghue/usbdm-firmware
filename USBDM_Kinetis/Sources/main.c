@@ -3,13 +3,15 @@
 #include "derivative.h" /* include peripheral declarations */
 #include "Configure.h"
 #include "USB.h"
-#include "Clock.h"
+#include "System.h"
 #include "CmdProcessing.h"
 #include "BDMCommon.h"
 
+#include "uart.h"
+
 void initPorts(void) {
    // Enable all port clocks
-   SIM_SCGC5 |=   SIM_SCGC5_PORTA_MASK
+   SIM->SCGC5 |=   SIM_SCGC5_PORTA_MASK
                 | SIM_SCGC5_PORTB_MASK
                 | SIM_SCGC5_PORTC_MASK
                 | SIM_SCGC5_PORTD_MASK
@@ -144,43 +146,45 @@ static void testMode() {
    }
 }
 
-static void testResetToggle() {
-   RESET_OUT_INIT();
-//   initUSB();
-//   initTimers();
-   greenLedEnable();
-   for(;;) {
-      greenLedToggle();
-      RESET_LOW();
-      RESET_3STATE();
-      delay();
-   }
-}
+//static void testResetToggle() {
+//   RESET_OUT_INIT();
+////   initUSB();
+////   initTimers();
+//   greenLedEnable();
+//   for(;;) {
+//      greenLedToggle();
+//      RESET_LOW();
+//      RESET_3STATE();
+//      delay();
+//   }
+//}
 
-static void testSWDToggle() {
-   SWD_OUT_ENABLE();
-   for(;;) {
-      SWD_OUT_HIGH();
-      WAIT_WITH_TIMEOUT_MS(100,0);
-      WAIT_WITH_TIMEOUT_US(100,0);
-      WAIT_US(100);
-      WAIT_MS(10);
-      millisecondTimerWait(10);
-      fastTimerWait(TIMER_MICROSECOND(1000));
-      SWD_OUT_LOW();
-      WAIT_WITH_TIMEOUT_MS(100,0);
-      WAIT_WITH_TIMEOUT_US(100,0);
-      WAIT_US(100);
-      WAIT_MS(10);
-      millisecondTimerWait(10);
-      fastTimerWait(TIMER_MICROSECOND(1000));
-   }
-}
+//static void testSWDToggle() {
+//   SWD_OUT_ENABLE();
+//   for(;;) {
+//      SWD_OUT_HIGH();
+//      WAIT_WITH_TIMEOUT_MS(100,0);
+//      WAIT_WITH_TIMEOUT_US(100,0);
+//      WAIT_US(100);
+//      WAIT_MS(10);
+//      millisecondTimerWait(10);
+//      fastTimerWait(TIMER_MICROSECOND(1000));
+//      SWD_OUT_LOW();
+//      WAIT_WITH_TIMEOUT_MS(100,0);
+//      WAIT_WITH_TIMEOUT_US(100,0);
+//      WAIT_US(100);
+//      WAIT_MS(10);
+//      millisecondTimerWait(10);
+//      fastTimerWait(TIMER_MICROSECOND(1000));
+//   }
+//}
 
 #endif
 
 void init() {
-   initClock();
+   // In case disabled by boot-loader
+   __enable_irq();
+
    initPorts();
    initTimers();
    bdm_interfaceOff();
@@ -205,11 +209,12 @@ void init() {
 
 int main(void) {
 
+   uart_initialise(115200);
+   puts("Starting\n");
+   
 #ifdef DEBUG_TEST_LOOP
    testMode();
 #endif
    init();
    commandLoop();
-   
-   return 0;
 }

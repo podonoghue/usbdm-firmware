@@ -42,6 +42,8 @@
 #include "TargetDefines.h"
 #include "SWD.h"
 
+#include <stdio.h>
+
 //#define SLOWER_METHOD
 
 #if TARGET_CAPABILITY & CAP_ARM_SWD
@@ -155,11 +157,11 @@ static const int ctas_Xbit  = 1;
 __forceinline
 static inline void spi_tx8(uint8_t data) {
    SWD_ENABLE();
-   SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_8bit)|SPI_PUSHR_EOQ_MASK|SWD_PUSHR_TX|SPI_PUSHR_TXDATA(data);
-   while ((SPI0_SR & SPI_SR_EOQF_MASK) == 0) {
+   SPI0->PUSHR = SPI_PUSHR_CTAS(ctas_8bit)|SPI_PUSHR_EOQ_MASK|SWD_PUSHR_TX|SPI_PUSHR_TXDATA(data);
+   while ((SPI0->SR & SPI_SR_EOQF_MASK) == 0) {
    }
-   (void)SPI0_POPR;              // Discard read data
-   SPI0_SR = SPI_SR_RFDF_MASK|SPI_SR_EOQF_MASK;
+   (void)SPI0->POPR;              // Discard read data
+   SPI0->SR = SPI_SR_RFDF_MASK|SPI_SR_EOQF_MASK;
    SWD_3STATE();
 }
 
@@ -173,11 +175,11 @@ __forceinline
 static inline void spi_mark_tx8(uint8_t data) {
    SWD_ENABLE();
    spi_setCTAR1(SPI_CTAR_MASK|SPI_CTAR_FMSZ(9-1));
-   SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_Xbit)|SPI_PUSHR_EOQ_MASK|SWD_PUSHR_TX|SPI_PUSHR_TXDATA((data<<1)|1);
-   while ((SPI0_SR & SPI_SR_EOQF_MASK) == 0) {
+   SPI0->PUSHR = SPI_PUSHR_CTAS(ctas_Xbit)|SPI_PUSHR_EOQ_MASK|SWD_PUSHR_TX|SPI_PUSHR_TXDATA((data<<1)|1);
+   while ((SPI0->SR & SPI_SR_EOQF_MASK) == 0) {
    }
-   (void)SPI0_POPR;              // Discard read data
-   SPI0_SR = SPI_SR_RFDF_MASK|SPI_SR_EOQF_MASK;
+   (void)SPI0->POPR;              // Discard read data
+   SPI0->SR = SPI_SR_RFDF_MASK|SPI_SR_EOQF_MASK;
    SWD_3STATE();
 }
 
@@ -193,17 +195,17 @@ static inline void spi_mark_tx32_parity(const uint8_t *data) {
    uint8_t parity = calcParity(data);
    spi_setCTAR1(SPI_CTAR_MASK|SPI_CTAR_FMSZ(9-1));
 
-   SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_Xbit)|SWD_PUSHR_TX|SPI_PUSHR_CONT_MASK|SPI_PUSHR_TXDATA((data[3]<<1)|1);
-   SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_8bit)|SWD_PUSHR_TX|SPI_PUSHR_CONT_MASK|SPI_PUSHR_TXDATA(data[2]);
-   SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_8bit)|SWD_PUSHR_TX|SPI_PUSHR_CONT_MASK|SPI_PUSHR_TXDATA(data[1]);
-   SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_Xbit)|SWD_PUSHR_TX|                    SPI_PUSHR_TXDATA(data[0]|(parity<<8))|SPI_PUSHR_EOQ_MASK;
-   while ((SPI0_SR & SPI_SR_EOQF_MASK) == 0) {
+   SPI0->PUSHR = SPI_PUSHR_CTAS(ctas_Xbit)|SWD_PUSHR_TX|SPI_PUSHR_CONT_MASK|SPI_PUSHR_TXDATA((data[3]<<1)|1);
+   SPI0->PUSHR = SPI_PUSHR_CTAS(ctas_8bit)|SWD_PUSHR_TX|SPI_PUSHR_CONT_MASK|SPI_PUSHR_TXDATA(data[2]);
+   SPI0->PUSHR = SPI_PUSHR_CTAS(ctas_8bit)|SWD_PUSHR_TX|SPI_PUSHR_CONT_MASK|SPI_PUSHR_TXDATA(data[1]);
+   SPI0->PUSHR = SPI_PUSHR_CTAS(ctas_Xbit)|SWD_PUSHR_TX|                    SPI_PUSHR_TXDATA(data[0]|(parity<<8))|SPI_PUSHR_EOQ_MASK;
+   while ((SPI0->SR & SPI_SR_EOQF_MASK) == 0) {
    }
-   (void)SPI0_POPR;              // Discard read data
-   (void)SPI0_POPR;
-   (void)SPI0_POPR;
-   (void)SPI0_POPR;
-   SPI0_SR = SPI_SR_RFDF_MASK|SPI_SR_EOQF_MASK;
+   (void)SPI0->POPR;              // Discard read data
+   (void)SPI0->POPR;
+   (void)SPI0->POPR;
+   (void)SPI0->POPR;
+   SPI0->SR = SPI_SR_RFDF_MASK|SPI_SR_EOQF_MASK;
    SWD_3STATE();
 }
 
@@ -216,18 +218,18 @@ static inline void spi_mark_tx32_parity(const uint8_t *data) {
 __forceinline
 static inline void spi_tx32(const uint8_t *data) {
    SWD_ENABLE();
-   SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_8bit)|SWD_PUSHR_TX|SPI_PUSHR_CONT_MASK|SPI_PUSHR_TXDATA(data[3]);
-   SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_8bit)|SWD_PUSHR_TX|SPI_PUSHR_CONT_MASK|SPI_PUSHR_TXDATA(data[2]);
-   SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_8bit)|SWD_PUSHR_TX|SPI_PUSHR_CONT_MASK|SPI_PUSHR_TXDATA(data[1]);
-   SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_8bit)|SWD_PUSHR_TX|                    SPI_PUSHR_TXDATA(data[0])|SPI_PUSHR_EOQ_MASK;
-   while ((SPI0_SR & SPI_SR_EOQF_MASK) == 0) {
+   SPI0->PUSHR = SPI_PUSHR_CTAS(ctas_8bit)|SWD_PUSHR_TX|SPI_PUSHR_CONT_MASK|SPI_PUSHR_TXDATA(data[3]);
+   SPI0->PUSHR = SPI_PUSHR_CTAS(ctas_8bit)|SWD_PUSHR_TX|SPI_PUSHR_CONT_MASK|SPI_PUSHR_TXDATA(data[2]);
+   SPI0->PUSHR = SPI_PUSHR_CTAS(ctas_8bit)|SWD_PUSHR_TX|SPI_PUSHR_CONT_MASK|SPI_PUSHR_TXDATA(data[1]);
+   SPI0->PUSHR = SPI_PUSHR_CTAS(ctas_8bit)|SWD_PUSHR_TX|                    SPI_PUSHR_TXDATA(data[0])|SPI_PUSHR_EOQ_MASK;
+   while ((SPI0->SR & SPI_SR_EOQF_MASK) == 0) {
    }
    SWD_3STATE();
-   (void)SPI0_POPR;              // Discard read data
-   (void)SPI0_POPR;
-   (void)SPI0_POPR;
-   (void)SPI0_POPR;
-   SPI0_SR = SPI_SR_RFDF_MASK|SPI_SR_EOQF_MASK;
+   (void)SPI0->POPR;              // Discard read data
+   (void)SPI0->POPR;
+   (void)SPI0->POPR;
+   (void)SPI0->POPR;
+   SPI0->SR = SPI_SR_RFDF_MASK|SPI_SR_EOQF_MASK;
 }
 
 //! Receive a 32-bit word + parity from the target
@@ -240,17 +242,17 @@ __forceinline
 static inline uint8_t spi_rx32_parity(uint8_t *receive) {
    uint16_t dummy;
    spi_setCTAR1(SPI_CTAR_MASK|SPI_CTAR_FMSZ(9-1));
-   SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_8bit)|SWD_PUSHR_RX|SPI_PUSHR_CONT_MASK|SPI_PUSHR_TXDATA(0);
-   SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_8bit)|SWD_PUSHR_RX|SPI_PUSHR_CONT_MASK|SPI_PUSHR_TXDATA(0);
-   SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_8bit)|SWD_PUSHR_RX|SPI_PUSHR_CONT_MASK|SPI_PUSHR_TXDATA(0);
-   SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_Xbit)|SWD_PUSHR_RX|                    SPI_PUSHR_TXDATA(0)|SPI_PUSHR_EOQ_MASK;
-   while ((SPI0_SR & SPI_SR_EOQF_MASK) == 0) {
+   SPI0->PUSHR = SPI_PUSHR_CTAS(ctas_8bit)|SWD_PUSHR_RX|SPI_PUSHR_CONT_MASK|SPI_PUSHR_TXDATA(0);
+   SPI0->PUSHR = SPI_PUSHR_CTAS(ctas_8bit)|SWD_PUSHR_RX|SPI_PUSHR_CONT_MASK|SPI_PUSHR_TXDATA(0);
+   SPI0->PUSHR = SPI_PUSHR_CTAS(ctas_8bit)|SWD_PUSHR_RX|SPI_PUSHR_CONT_MASK|SPI_PUSHR_TXDATA(0);
+   SPI0->PUSHR = SPI_PUSHR_CTAS(ctas_Xbit)|SWD_PUSHR_RX|                    SPI_PUSHR_TXDATA(0)|SPI_PUSHR_EOQ_MASK;
+   while ((SPI0->SR & SPI_SR_EOQF_MASK) == 0) {
    }
-   SPI0_SR = SPI_SR_EOQF_MASK;
-   receive[3]  = SPI0_POPR;
-   receive[2]  = SPI0_POPR;
-   receive[1]  = SPI0_POPR;
-   dummy       = SPI0_POPR;
+   SPI0->SR = SPI_SR_EOQF_MASK;
+   receive[3]  = SPI0->POPR;
+   receive[2]  = SPI0->POPR;
+   receive[1]  = SPI0->POPR;
+   dummy       = SPI0->POPR;
    receive[0]  = dummy;
    return ((dummy>>8)!=calcParity(receive))?BDM_RC_ARM_PARITY_ERROR:BDM_RC_OK;
 }
@@ -264,17 +266,17 @@ static inline uint8_t spi_rx32_parity(uint8_t *receive) {
 //!
 __forceinline
 static inline void spi_rx32(uint8_t *receive) {
-   SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_8bit)|SWD_PUSHR_RX|SPI_PUSHR_CONT_MASK|SPI_PUSHR_TXDATA(0);
-   SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_8bit)|SWD_PUSHR_RX|SPI_PUSHR_CONT_MASK|SPI_PUSHR_TXDATA(0);
-   SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_8bit)|SWD_PUSHR_RX|SPI_PUSHR_CONT_MASK|SPI_PUSHR_TXDATA(0);
-   SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_8bit)|SWD_PUSHR_RX|                    SPI_PUSHR_TXDATA(0)|SPI_PUSHR_EOQ_MASK;
-   while ((SPI0_SR & SPI_SR_EOQF_MASK) == 0) {
+   SPI0->PUSHR = SPI_PUSHR_CTAS(ctas_8bit)|SWD_PUSHR_RX|SPI_PUSHR_CONT_MASK|SPI_PUSHR_TXDATA(0);
+   SPI0->PUSHR = SPI_PUSHR_CTAS(ctas_8bit)|SWD_PUSHR_RX|SPI_PUSHR_CONT_MASK|SPI_PUSHR_TXDATA(0);
+   SPI0->PUSHR = SPI_PUSHR_CTAS(ctas_8bit)|SWD_PUSHR_RX|SPI_PUSHR_CONT_MASK|SPI_PUSHR_TXDATA(0);
+   SPI0->PUSHR = SPI_PUSHR_CTAS(ctas_8bit)|SWD_PUSHR_RX|                    SPI_PUSHR_TXDATA(0)|SPI_PUSHR_EOQ_MASK;
+   while ((SPI0->SR & SPI_SR_EOQF_MASK) == 0) {
    }
-   SPI0_SR = SPI_SR_EOQF_MASK;
-   receive[3]  = SPI0_POPR;
-   receive[2]  = SPI0_POPR;
-   receive[1]  = SPI0_POPR;
-   receive[0]  = SPI0_POPR;
+   SPI0->SR = SPI_SR_EOQF_MASK;
+   receive[3]  = SPI0->POPR;
+   receive[2]  = SPI0->POPR;
+   receive[1]  = SPI0->POPR;
+   receive[0]  = SPI0->POPR;
 }
 #endif
 
@@ -285,11 +287,11 @@ static inline void spi_rx32(uint8_t *receive) {
 __forceinline
 static inline uint8_t spi_rx4(void) {
    spi_setCTAR1(SPI_CTAR_MASK|SPI_CTAR_FMSZ(4-1));
-   SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_Xbit)|SWD_PUSHR_RX|SPI_PUSHR_TXDATA(0)|SPI_PUSHR_EOQ_MASK;
-   while ((SPI0_SR & SPI_SR_EOQF_MASK) == 0) {
+   SPI0->PUSHR = SPI_PUSHR_CTAS(ctas_Xbit)|SWD_PUSHR_RX|SPI_PUSHR_TXDATA(0)|SPI_PUSHR_EOQ_MASK;
+   while ((SPI0->SR & SPI_SR_EOQF_MASK) == 0) {
    }
-   SPI0_SR = SPI_SR_EOQF_MASK;
-   return SPI0_POPR;
+   SPI0->SR = SPI_SR_EOQF_MASK;
+   return SPI0->POPR;
 }
 
 #if 1
@@ -309,15 +311,15 @@ static inline uint8_t spi_tx8_rx4(uint8_t command) {
 //!
 __forceinline
 static inline uint8_t spi_tx8_rx4(uint8_t command) {
-   SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_8bit)|SWD_PUSHR_TX|SPI_PUSHR_TXDATA(command);
+   SPI0->PUSHR = SPI_PUSHR_CTAS(ctas_8bit)|SWD_PUSHR_TX|SPI_PUSHR_TXDATA(command);
    spi_setCTAR1(SPI_CTAR_MASK|SPI_CTAR_FMSZ(4-1));
-   SPI0_SR = SPI_SR_RFDF_MASK|SPI_SR_EOQF_MASK;
-   SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_Xbit)|SWD_PUSHR_RX|SPI_PUSHR_TXDATA(0)|SPI_PUSHR_EOQ_MASK;
-   while ((SPI0_SR & SPI_SR_EOQF_MASK) == 0) {
+   SPI0->SR = SPI_SR_RFDF_MASK|SPI_SR_EOQF_MASK;
+   SPI0->PUSHR = SPI_PUSHR_CTAS(ctas_Xbit)|SWD_PUSHR_RX|SPI_PUSHR_TXDATA(0)|SPI_PUSHR_EOQ_MASK;
+   while ((SPI0->SR & SPI_SR_EOQF_MASK) == 0) {
    }
-   (void)SPI0_POPR;              // Discard byte read data
-   SPI0_SR = SPI_SR_RFDF_MASK|SPI_SR_EOQF_MASK;
-   return SPI0_POPR;             // Save 4-bit data
+   (void)SPI0->POPR;              // Discard byte read data
+   SPI0->SR = SPI_SR_RFDF_MASK|SPI_SR_EOQF_MASK;
+   return SPI0->POPR;             // Save 4-bit data
 }
 #endif
 
@@ -451,6 +453,7 @@ uint8_t swd_connect(void) {
 
    swd_JTAGtoSWD();
 
+     
    // Target must respond to read IDCODE immediately
    return swd_readReg(SWD_READ_IDCODE, buff);
 }
@@ -668,7 +671,7 @@ uint8_t swd_readAPReg(const uint8_t *address, uint8_t *buff) {
    // Initiate read from AP register (dummy data)
    rc = swd_readReg(regNo, buff);
    if (rc != BDM_RC_OK) {
-     return rc;
+      return rc;
    }
    // Read from READBUFF register
    return swd_readReg(SWD_RD_DP_RDBUFF, buff);
@@ -693,8 +696,8 @@ uint8_t swd_abortAP(void) {
    return swd_writeReg(SWD_WR_DP_ABORT, swdClearErrors);
 }
 
-#define MDM_AP_CONTROL 0x01000004
 #define MDM_AP_STATUS  0x01000000
+#define MDM_AP_CONTROL 0x01000004
 #define MDM_AP_IDR     0x0100003F
 
 #define MDM_AP_CONTROL_MASS_ERASE_REQUEST (1<<0)
@@ -707,29 +710,34 @@ uint8_t swd_abortAP(void) {
 #define MDM_AP_STATUS_FLASH_READY         (1<<1)
 #define MDM_AP_STATUS_MASS_ERASE_ENABLE   (1<<5)
 
-#define MDM_AP_CONTROL_HALT_VALUE      (MDM_AP_CONTROL_RESET_REQUEST)
-#define MDM_AP_CONTROL_ERASE_VALUE     (MDM_AP_CONTROL_HALT_VALUE|MDM_AP_CONTROL_MASS_ERASE_REQUEST)
+#define MDM_AP_CONTROL_RESET_VALUE     (MDM_AP_CONTROL_RESET_REQUEST)
+#define MDM_AP_CONTROL_ERASE_VALUE     (MDM_AP_CONTROL_RESET_VALUE|MDM_AP_CONTROL_MASS_ERASE_REQUEST)
 
 #define DP_CONTROL_CSYSPWRUPREG  (1<<30)
 #define DP_CONTROL_CDBGPWRUPREG  (1<<28)
 
 #define DP_CONTROL_VALUE (DP_CONTROL_CSYSPWRUPREG|DP_CONTROL_CDBGPWRUPREG)
 
-#define SETTLE_COUNT (1000)  // How long to wait for Power-on bounces
+#define SETTLE_COUNT (100)  // How long to wait for Power-on bounces
+
+// Compressed address for MDM-AP.Status register
+static const uint8_t statusRegAddress[2]   = { (MDM_AP_STATUS>>24)&0xFF, MDM_AP_STATUS&0xFF };
+// Compressed address for MDM-AP.Control register
+static const uint8_t controlRegAddress[2]  = { (MDM_AP_CONTROL>>24)&0xFF, MDM_AP_CONTROL&0xFF };
+// Compressed address for MDM-AP.IDR register
+static const uint8_t idrRegAddress[2]      = { (MDM_AP_IDR>>24)&0xFF, MDM_AP_IDR&0xFF };
+
+static const uint8_t eraseValueWrite[4]    = { (MDM_AP_CONTROL_ERASE_VALUE>>24)&0xFF, (MDM_AP_CONTROL_ERASE_VALUE>>16)&0xFF,
+                                               (MDM_AP_CONTROL_ERASE_VALUE>>8)&0xFF,  (MDM_AP_CONTROL_ERASE_VALUE>>0)&0xFF };
+static const uint8_t controlResetValue[4]  = { (MDM_AP_CONTROL_RESET_VALUE>>24)&0xFF, (MDM_AP_CONTROL_RESET_VALUE>>16)&0xFF,
+                                               (MDM_AP_CONTROL_RESET_VALUE>>8)&0xFF,  (MDM_AP_CONTROL_RESET_VALUE>>0)&0xFF };
 
 uint8_t massErase(void) {
-   // Compressed address for MDM-AP.Status register
-   static const uint8_t statusRegAddress[2]   = { (MDM_AP_STATUS>>24)&0xFF, MDM_AP_STATUS&0xFF };
-   // Compressed address for MDM-AP.Control register
-   static const uint8_t controlRegAddress[2]   = { (MDM_AP_CONTROL>>24)&0xFF, MDM_AP_CONTROL&0xFF };
-   static const uint8_t controlValueWrite[4]   = { (MDM_AP_CONTROL_ERASE_VALUE>>24)&0xFF, (MDM_AP_CONTROL_ERASE_VALUE>>16)&0xFF,
-                                                   (MDM_AP_CONTROL_ERASE_VALUE>>8)&0xFF,  (MDM_AP_CONTROL_ERASE_VALUE>>0)&0xFF };
    uint8_t valueRead[4];
-   int eraseWait;
    uint8_t rc;
 
    // Wait for flash ready
-   for (eraseWait=0; eraseWait<10000; eraseWait++) {
+   for (int readyWait=0; readyWait<10000; readyWait++) {
       rc = swd_readAPReg(statusRegAddress, valueRead);
       if (rc != BDM_RC_OK) {
          continue;
@@ -738,27 +746,39 @@ uint8_t massErase(void) {
          break;
       }
    }
-   // Device Secured - Flash angrily
-   while ((valueRead[3]&MDM_AP_STATUS_MASS_ERASE_ENABLE) == 0) {
-      greenLedToggle();
-      WAIT_MS(100);
-   }
-
-   // Write erase command
-   rc = swd_writeAPReg(controlRegAddress, controlValueWrite);
+   // Check if we have status
    if (rc != BDM_RC_OK) {
       return rc;
    }
-
+   if ((valueRead[3]&MDM_AP_STATUS_FLASH_READY) != 0) {
+      return BDM_RC_FLASH_NOT_READY;
+   }
+   // Device Permanently Secured
+   while ((valueRead[3]&MDM_AP_STATUS_MASS_ERASE_ENABLE) == 0) {
+      return BDM_RC_MASS_ERASE_DISABLED;
+   }
+   // Write erase command
+   rc = swd_writeAPReg(controlRegAddress, eraseValueWrite);
+   if (rc != BDM_RC_OK) {
+      return rc;
+   }
+   // Check that Mass erase started
+   rc = swd_readAPReg(controlRegAddress, valueRead);
+   if (rc != BDM_RC_OK) {
+      return rc;
+   }
+   if ((valueRead[3]&MDM_AP_CONTROL_MASS_ERASE_REQUEST) == 0) {
+      return BDM_RC_UNEXPECTED_RESPONSE;
+   }
    WAIT_MS(100);
-   // Wait until complete
-   for (eraseWait=0; eraseWait<10000; eraseWait++) {
+   // Wait until complete (MDM-AP-Control.MassErase clears)
+   for (int eraseWait=0; eraseWait<10000; eraseWait++) {
       greenLedOn();
       rc = swd_readAPReg(controlRegAddress, valueRead);
       if (rc != BDM_RC_OK) {
          continue;
       }
-      rc = (((valueRead[3]&MDM_AP_CONTROL_ERASE_VALUE)&0xFF) == (MDM_AP_CONTROL_HALT_VALUE&0xFF))?BDM_RC_OK:BDM_RC_FAIL;
+      rc = ((valueRead[3]&MDM_AP_CONTROL_MASS_ERASE_REQUEST) == 0)?BDM_RC_OK:BDM_RC_FAIL;
       if (rc == BDM_RC_OK) {
          break;
       }
@@ -768,94 +788,59 @@ uint8_t massErase(void) {
 
 uint8_t swd_reset_capture_mass_erase(uint8_t *returnSize, uint8_t *buff) {
 
-   static const uint8_t dpControlValueWrite[4] = { (DP_CONTROL_VALUE>>24)&0xFF, (DP_CONTROL_VALUE>>16)&0xFF,
-                                                   (DP_CONTROL_VALUE>>8)&0xFF,  (DP_CONTROL_VALUE>>0)&0xFF };
-   // Compressed address for MDM-AP.Control register
-   static const uint8_t controlRegAddress[2]   = { (MDM_AP_CONTROL>>24)&0xFF, MDM_AP_CONTROL&0xFF };
-   static const uint8_t controlValueWrite[4]   = { (MDM_AP_CONTROL_HALT_VALUE>>24)&0xFF, (MDM_AP_CONTROL_HALT_VALUE>>16)&0xFF,
-                                                   (MDM_AP_CONTROL_HALT_VALUE>>8)&0xFF,  (MDM_AP_CONTROL_HALT_VALUE>>0)&0xFF };
-   unsigned successCount = 0;
    uint8_t rc;
    unsigned attemptCount = 0;
+   unsigned connectionCount = 0;
 
-   resetLow();
+//   resetLow();
    for (;;) {
       attemptCount++;
+      // Toggle LED to indicate activity
       if ((attemptCount&0xFFF)==0) {
          greenLedToggle();
       }
       // Do connect sequence
       rc = swd_connect();
       if (rc != BDM_RC_OK) {
-         successCount = 0;
+         connectionCount = 0;
          continue;
       }
-      // Power up Debug interface
-      rc = swd_writeReg(SWD_WR_DP_CONTROL, dpControlValueWrite);
+      // Apply MDM-AP reset (in case reset pin is disabled)
+      // Unavailable if device is secured - pretty stupid really!
+      rc = swd_writeAPReg(controlRegAddress, controlResetValue);
       if (rc != BDM_RC_OK) {
-         successCount = 0;
+         connectionCount = 0;
          continue;
       }
-      // Hold processor in reset
-      rc = swd_writeAPReg(controlRegAddress, controlValueWrite);
+      // Read processor id register to confirm connection
+      rc = swd_readAPReg(idrRegAddress, buff);
       if (rc != BDM_RC_OK) {
-         successCount = 0;
+         connectionCount = 0;
          continue;
       }
-      // Check processor status
+      // Read processor status (secure etc)
       rc = swd_readAPReg(controlRegAddress, buff);
       if (rc != BDM_RC_OK) {
-         successCount = 0;
+         connectionCount = 0;
          continue;
       }
-      rc = ((buff[3]&controlValueWrite[3]) == controlValueWrite[3])?BDM_RC_OK:BDM_RC_FAIL;
-      if (rc != BDM_RC_OK) {
-         successCount = 0;
-         continue;
-      }
-      successCount++;
-      // Only consider successful if done SETTLE_COUNT times in a row
+      connectionCount++;
+      // Only consider successful connection if done SETTLE_COUNT times in a row
       // This prevents mass-erase attempts during power-on bounces etc.
-      rc = (successCount>SETTLE_COUNT)?BDM_RC_OK:BDM_RC_FAIL;
-      if (rc == BDM_RC_OK) {
-         successCount = 0;
+      if (connectionCount>SETTLE_COUNT) {
+         connectionCount = 0;
          rc = massErase();
       }
       if (rc == BDM_RC_OK) {
          break;
       }
    }
+   // Read processor status (secure etc)
+   rc = swd_readAPReg(controlRegAddress, buff);
    reset3State();
    *returnSize = 4;
    return rc;
 }
-
-//#define DCRSR_READ_B1          (0<<(16-16))
-//static const uint8_t DCRDR_ADDR[] = {0xE0, 0x00, 0xED, 0xF8}; // RW Debug Core Data Register
-
-//uint8_t swd_coreRegisterOperation(uint8_t *DCRSRvalue);
-//uint8_t swd_readMemoryWord(const uint8_t *address, uint8_t *data);
-//
-///*!
-// *  Read target register
-// *
-// *  @param regNo    Number of register to read
-// *  @param outptr   Where to place data read (in big-endian order)
-// *
-// *  @return error code
-// */
-//static uint8_t readCoreRegister(uint8_t regNo, uint8_t *outptr) {
-//   uint8_t rc;
-//   // Set up command
-//   uint8_t command[4] = {0, DCRSR_READ_B1, 0, regNo};
-//   // Execute register transfer command
-//   rc = swd_coreRegisterOperation(command);
-//   if (rc != BDM_RC_OK) {
-//     return rc;
-//   }
-//   // Read register value from DCRDR holding register (Big-endian) (command is used as buffer)
-//   return swd_readMemoryWord(DCRDR_ADDR, outptr);
-//}
 
 uint8_t swd_test(uint8_t *returnSize, uint8_t *buff) {
    (void)returnSize;

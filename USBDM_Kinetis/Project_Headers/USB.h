@@ -5,8 +5,8 @@
 
 extern void initUSB(void);
 
-extern void receiveUSBCommand( U8 size, U8 *buffer);
-extern void sendUSBResponse( U8 size, const U8 *buffer);
+extern void receiveUSBCommand( uint8_t size, uint8_t *buffer);
+extern void sendUSBResponse( uint8_t size, const uint8_t *buffer);
 
 void usbPutChar(char ch);
 void setBDMBusy(void);

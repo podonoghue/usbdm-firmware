@@ -14,8 +14,8 @@
 
 // HCS08 Registers addresses
 //===============================
-#define HCS08_SRS          (0x1800) //!< HCS08 SRS address
-#define HCS08_SBDFR        (0x1801) //!< HCS08 SBDFR address
+//#define HCS08_SRS            (0x1800) //!< HCS08 SRS address
+#define HCS08_SBDFR_DEFAULT  (0x1801) //!< Default HCS08 SBDFR address
 
 // HCS08 Register bit masks
 //===============================

@@ -1,6 +1,8 @@
 #ifndef _USBDefs_H_
 #define _USBDefs_H_
 
+#include <stdint.h>
+
 #pragma pack(push)
 #pragma pack(1)
 //! Device Descriptor 
@@ -65,15 +67,7 @@ typedef struct {
    U16u         wIndex;              //!<  Index or Offset Field
    U16u         wLength;             //!<  Number of Bytes to transfer (Data Stage)
 } SetupPacket;
-//
-//typedef struct {
-//   uint16_t     wValue;              //!<  Value Field
-//   uint8_t      bRequest;            //!<  Standard Request Code
-//   uint8_t      bmRequestType;       //!<  Characteristics (Direction,Type,Recipient)
-//   uint16_t     wLength;             //!<  Number of Bytes to transfer (Data Stage)
-//   U16u         wIndex;              //!<  Index or Offset Field
-//} SetupPacket;
-//
+
 //! Structure of Device Qualifier Descriptor
 typedef struct {
    uint8_t           bLength;             //!<  Size of this Descriptor in Bytes
@@ -101,6 +95,13 @@ enum {EP_OUT=0x00, //!< Endpoint is OUT (host -> node)
 #define US_ADDRESSED            0x03
 #define US_CONFIGURED           0x04
 #define US_SUSPENDED            0x80
+
+/*----------------------------------------------------------------------------
+** USB Request Type (bmRequestType)
+*/
+#define REQ_DIRECTION         (1<<7)
+#define REQ_OUT               (0<<7)
+#define REQ_IN                (1<<7)
 
 /*----------------------------------------------------------------------------
 ** USB Request Type (bmRequestType)

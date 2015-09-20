@@ -14,85 +14,77 @@ void  bdmHCS_init(void);
 void  bdmHCS_interfaceIdle(void);
 void  bdmHCS_suspend(void);
 void  bdmHCS_off( void );
-U8    bdmHCS_powerOnReset(void);
+uint8_t    bdmHCS_powerOnReset(void);
 
 //=============================================================
 // BDM mode interface
-U8    bdm_RxTxSelect(void);
+uint8_t    bdm_RxTxSelect(void);
 void  bdm_txPrepare(void);
 //void  bdm_txFinish(void);
 void  bdm_ackn(void);
 void  bdm_wait64(void);
 //void  bdm_wait150(void);
 void  bdm_acknInit(void);
-U8    bdm_hardwareReset(U8 mode); 
-U8    bdm_targetReset( U8 mode);
-U8    bdm_syncMeasure(void);
-U8    bdm_softwareReset(U8 mode);
-U8    bdm_connect(void);
-U8    bdm_physicalConnect(void);
-U8    bdm_enableBDM(void);
-U8    bdm_readBDMStatus(U8 *status);
-U8    bdm_writeBDMControl(U8 bdm_sts);
+uint8_t    bdm_hardwareReset(uint8_t mode);
+uint8_t    bdm_targetReset( uint8_t mode);
+uint8_t    bdm_syncMeasure(void);
+uint8_t    bdm_softwareReset(uint8_t mode);
+uint8_t    bdm_connect(void);
+uint8_t    bdm_physicalConnect(void);
+uint8_t    bdm_enableBDM(void);
+uint8_t    bdm_readBDMStatus(uint8_t *status);
+uint8_t    bdm_writeBDMControl(uint8_t bdm_sts);
 void  bdm_checkTiming(void);
 void  bdm_checkWaitTiming(void);
 
-U8    bdmHC12_confirmSpeed(U16 syncValue);
-U8    bdm_makeActiveIfStopped(void);
-U8    bdm_halt(void);
-U8    bdm_go(void);
-U8    bdm_step(void);
-U8    bdm_testTx(U8);
-U8    bdm_setInterfaceLevel(U8 level);
+uint8_t    bdmHC12_confirmSpeed(uint16_t syncValue);
+uint8_t    bdm_makeActiveIfStopped(void);
+uint8_t    bdm_halt(void);
+uint8_t    bdm_go(void);
+uint8_t    bdm_step(void);
+uint8_t    bdm_testTx(uint8_t);
+uint8_t    bdm_setInterfaceLevel(uint8_t level);
 
 //! MACRO to calculate a SYNC value from a given frequency in Hz
-#define SYNC_MULTIPLE(x)  (U16)((2*128*(60000000UL/10))/(x/10))
+#define SYNC_MULTIPLE(x)  (uint16_t)((2*128*(60000000UL/10))/(x/10))
 
 //! Target status
 typedef struct {
-   TargetType_t      target_type:8;  //!< Target type \ref TargetType_t
-   AcknMode_t        ackn:8;         //!< Target supports ACKN see \ref AcknMode_t
-   ResetMode_t       reset:8;        //!< Target has been reset, see \ref ResetMode_T
-   SpeedMode_t       speed:8;        //!< Target speed determination method, see \ref SpeedMode_t
-   TargetVddState_t  power:8;        //!< Target Vdd state
-   TargetVppSelect_t flashState:8;   //!< State of RS08 Flash programming,  see \ref FlashState_t
-   U16               sync_length;    //!< Length of the target SYNC pulse in 60MHz ticks
-   U16               wait150_cnt;    //!< Time for 150 BDM cycles in bus cycles of the MCU divided by N
-   U16               wait64_cnt;     //!< Time for 64 BDM cycles in bus cycles of the MCU divided by N
-   U8                bdmpprValue;    //!< BDMPPR value for HCS12
+   TargetType_t        target_type:8;  //!< Target type \ref TargetType_t
+   AcknMode_t          ackn:8;         //!< Target supports ACKN see \ref AcknMode_t
+   ResetMode_t         reset:8;        //!< Target has been reset, see \ref ResetMode_T
+   SpeedMode_t         speed:8;        //!< Target speed determination method, see \ref SpeedMode_t
+   TargetVddState_t    power:8;        //!< Target Vdd state
+   TargetVppSelect_t   flashState:8;   //!< State of RS08 Flash programming,  see \ref FlashState_t
+   uint16_t            sync_length;    //!< Length of the target SYNC pulse in 60MHz ticks
+   uint16_t            wait150_cnt;    //!< Time for 150 BDM cycles in bus cycles of the MCU divided by N
+   uint16_t            wait64_cnt;     //!< Time for 64 BDM cycles in bus cycles of the MCU divided by N
+   uint8_t             bdmpprValue;    //!< BDMPPR value for HCS12
 } CableStatus_t;
 
 //! Target interface options
 typedef struct {
-   U8  targetVdd;                //!< Target Vdd (off, 3.3V or 5V)
-   U8  cycleVddOnReset;          //!< Cycle target Power  when resetting
-   U8  cycleVddOnConnect;        //!< Cycle target Power if connection problems (when resetting?)
-   U8  leaveTargetPowered;       //!< Leave target power on exit
-   U8  autoReconnect;            //!< Automatically re-connect to target (for speed change)
-   U8  guessSpeed;               //!< Guess speed for target w/o ACKN
-   U8  useAltBDMClock;           //!< Use alternative BDM clock source in target (HCS08)
-   U8  useResetSignal;           //!< Use RESET signal on BDM interface
-   U8  reserved[3];
+   uint8_t  cycleVddOnReset:1;     //!< Cycle target Power  when resetting
+   uint8_t  cycleVddOnConnect:1;   //!< Cycle target Power if connection problems (when resetting?)
+   uint8_t  leaveTargetPowered:1;  //!< Leave target power on exit
+   uint8_t  guessSpeed:1;          //!< Guess speed for target w/o ACKN
+   uint8_t  useResetSignal:1;      //!< Use RESET signal on BDM interface
+   uint8_t  targetVdd;             //!< Target Vdd (off, 3.3V or 5V)
+   uint8_t  useAltBDMClock;        //!< Use alternative BDM clock source in target (HCS08)
+   uint8_t  autoReconnect;         //!< Automatically re-connect method (for speed change)
+   uint16_t SBDFRaddress;          //!< Address of HCS08_SBDFR register
+   uint8_t  reserved[3];
 } BDM_Option_t;
 
-#ifdef __HC08__
-#pragma DATA_SEG __SHORT_SEG Z_PAGE
-#endif // __HC08__
-extern U8               returnSize;       // Size of command return result
-extern BDM_Option_t     bdm_option;       // Options for cable operation
-extern CableStatus_t    cable_status;     // Status of the BDM interface
-#ifdef __HC08__
-#pragma DATA_SEG DEFAULT
-#endif
 
-extern void bdm_txEmpty(U8 data);
-extern U8   bdm_rxEmpty(void);
+extern void bdm_txEmpty(uint8_t data);
+extern uint8_t   bdm_rxEmpty(void);
 
 #ifdef __HC08__
 #pragma DATA_SEG __SHORT_SEG Z_PAGE
 #endif // __HC08__
-extern U8   (*bdm_rx_ptr)(void); // Pointer to BDM Rx routines
-extern void (*bdm_tx_ptr)(U8);   // Pointer to BDM Tx routines
+extern uint8_t   (*bdm_rx_ptr)(void); // Pointer to BDM Rx routines
+extern void (*bdm_tx_ptr)(uint8_t);   // Pointer to BDM Tx routines
 
 //! Returns true if BDM Rx & Tx routines have been set for the current communication speed
 #define BDM_TXRX_SET ((bdm_rx_ptr != bdm_rxEmpty) && (bdm_tx_ptr != bdm_txEmpty))
