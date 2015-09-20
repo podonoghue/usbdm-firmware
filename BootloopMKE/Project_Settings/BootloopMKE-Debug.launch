@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="net.sourceforge.usbdm.gdb.launchConfigurationType">
+<stringAttribute key="net.sourceforge.usbdm.gdb.autoReconnect" value="AUTOCONNECT_ALWAYS"/>
+<stringAttribute key="net.sourceforge.usbdm.gdb.bdmSerialNumber" value="[Any connected USBDM]"/>
+<booleanAttribute key="net.sourceforge.usbdm.gdb.bdmSerialNumberMatchRequired" value="false"/>
+<stringAttribute key="net.sourceforge.usbdm.gdb.buildToolId" value="net.sourceforge.usbdm.cdt.toolchain.processor.usbdmConfigure.armLtdGnuToolsForARM"/>
+<intAttribute key="net.sourceforge.usbdm.gdb.clockTrimFrequency" value="0"/>
+<stringAttribute key="net.sourceforge.usbdm.gdb.deviceName" value="MKE02Z64M4"/>
+<booleanAttribute key="net.sourceforge.usbdm.gdb.driveReset" value="false"/>
+<stringAttribute key="net.sourceforge.usbdm.gdb.eraseMethod" value="ERASE_MASS"/>
+<booleanAttribute key="net.sourceforge.usbdm.gdb.exitOnClose" value="false"/>
+<stringAttribute key="net.sourceforge.usbdm.gdb.gdbBinPath" value="${usbdm_armLtd_arm_path}"/>
+<stringAttribute key="net.sourceforge.usbdm.gdb.gdbCommand" value="${usbdm_armLtd_arm_prefix}gdb"/>
+<intAttribute key="net.sourceforge.usbdm.gdb.interfaceFrequency" value="12000000"/>
+<stringAttribute key="net.sourceforge.usbdm.gdb.interfaceType" value="T_ARM"/>
+<intAttribute key="net.sourceforge.usbdm.gdb.nvmClockTrimLocation" value="0"/>
+<intAttribute key="net.sourceforge.usbdm.gdb.port" value="1234"/>
+<stringAttribute key="net.sourceforge.usbdm.gdb.restartPC" value="__HardReset"/>
+<booleanAttribute key="net.sourceforge.usbdm.gdb.restartSetPC" value="false"/>
+<booleanAttribute key="net.sourceforge.usbdm.gdb.restartSetResume" value="true"/>
+<booleanAttribute key="net.sourceforge.usbdm.gdb.restartSetStopAt" value="true"/>
+<stringAttribute key="net.sourceforge.usbdm.gdb.restartStopAt" value="main"/>
+<booleanAttribute key="net.sourceforge.usbdm.gdb.restartUsesStartup" value="true"/>
+<stringAttribute key="net.sourceforge.usbdm.gdb.securityOption" value="SECURITY_SMART"/>
+<stringAttribute key="net.sourceforge.usbdm.gdb.serverType" value="SERVER_SOCKET"/>
+<stringAttribute key="net.sourceforge.usbdm.gdb.targetVdd" value="BDM_TARGET_VDD_OFF"/>
+<booleanAttribute key="net.sourceforge.usbdm.gdb.trimClock" value="false"/>
+<booleanAttribute key="net.sourceforge.usbdm.gdb.useDebugVersion" value="false"/>
+<booleanAttribute key="net.sourceforge.usbdm.gdb.usePstSignals" value="false"/>
+<stringAttribute key="org.eclipse.cdt.debug.gdbjtag.core.connection" value="gdb:usbdm-arm-gdbPipeServer%20MKE02Z64M4#"/>
+<intAttribute key="org.eclipse.cdt.debug.gdbjtag.core.delay" value="0"/>
+<booleanAttribute key="org.eclipse.cdt.debug.gdbjtag.core.doHalt" value="false"/>
+<booleanAttribute key="org.eclipse.cdt.debug.gdbjtag.core.doReset" value="false"/>
+<stringAttribute key="org.eclipse.cdt.debug.gdbjtag.core.imageFileName" value=""/>
+<stringAttribute key="org.eclipse.cdt.debug.gdbjtag.core.imageOffset" value=""/>
+<stringAttribute key="org.eclipse.cdt.debug.gdbjtag.core.initCommands" value=""/>
+<stringAttribute key="org.eclipse.cdt.debug.gdbjtag.core.jtagDevice" value="USBDM Interface"/>
+<booleanAttribute key="org.eclipse.cdt.debug.gdbjtag.core.loadImage" value="true"/>
+<booleanAttribute key="org.eclipse.cdt.debug.gdbjtag.core.loadSymbols" value="true"/>
+<stringAttribute key="org.eclipse.cdt.debug.gdbjtag.core.pcRegister" value="__HardReset"/>
+<stringAttribute key="org.eclipse.cdt.debug.gdbjtag.core.runCommands" value=""/>
+<booleanAttribute key="org.eclipse.cdt.debug.gdbjtag.core.setPcRegister" value="false"/>
+<booleanAttribute key="org.eclipse.cdt.debug.gdbjtag.core.setResume" value="true"/>
+<booleanAttribute key="org.eclipse.cdt.debug.gdbjtag.core.setStopAt" value="true"/>
+<stringAttribute key="org.eclipse.cdt.debug.gdbjtag.core.stopAt" value="main"/>
+<stringAttribute key="org.eclipse.cdt.debug.gdbjtag.core.symbolsFileName" value=""/>
+<stringAttribute key="org.eclipse.cdt.debug.gdbjtag.core.symbolsOffset" value=""/>
+<booleanAttribute key="org.eclipse.cdt.debug.gdbjtag.core.useFileForImage" value="false"/>
+<booleanAttribute key="org.eclipse.cdt.debug.gdbjtag.core.useFileForSymbols" value="false"/>
+<booleanAttribute key="org.eclipse.cdt.debug.gdbjtag.core.useProjBinaryForImage" value="true"/>
+<booleanAttribute key="org.eclipse.cdt.debug.gdbjtag.core.useProjBinaryForSymbols" value="true"/>
+<booleanAttribute key="org.eclipse.cdt.debug.gdbjtag.core.useRemoteTarget" value="true"/>
+<stringAttribute key="org.eclipse.cdt.debug.mi.core.DEBUG_NAME" value="${usbdm_armLtd_arm_path}\${usbdm_armLtd_arm_prefix}gdb"/>
+<stringAttribute key="org.eclipse.cdt.debug.mi.core.commandFactory" value="Standard"/>
+<stringAttribute key="org.eclipse.cdt.debug.mi.core.protocol" value="mi"/>
+<booleanAttribute key="org.eclipse.cdt.debug.mi.core.verboseMode" value="false"/>
+<stringAttribute key="org.eclipse.cdt.dsf.gdb.DEBUG_NAME" value="${usbdm_armLtd_arm_path}\${usbdm_armLtd_arm_prefix}gdb"/>
+<intAttribute key="org.eclipse.cdt.launch.ATTR_BUILD_BEFORE_LAUNCH_ATTR" value="2"/>
+<stringAttribute key="org.eclipse.cdt.launch.COREFILE_PATH" value=""/>
+<stringAttribute key="org.eclipse.cdt.launch.PROGRAM_NAME" value="Debug/BootloopMKE.elf"/>
+<stringAttribute key="org.eclipse.cdt.launch.PROJECT_ATTR" value="BootloopMKE"/>
+<booleanAttribute key="org.eclipse.cdt.launch.PROJECT_BUILD_CONFIG_AUTO_ATTR" value="true"/>
+<stringAttribute key="org.eclipse.cdt.launch.PROJECT_BUILD_CONFIG_ID_ATTR" value=""/>
+<booleanAttribute key="org.eclipse.cdt.launch.use_terminal" value="true"/>
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
+<listEntry value="/BootloopMKE"/>
+</listAttribute>
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
+<listEntry value="4"/>
+</listAttribute>
+<mapAttribute key="org.eclipse.debug.core.preferred_launchers">
+<mapEntry key="[debug]" value="net.sourceforge.usbdm.gdb.dsfLaunchDelegate"/>
+<mapEntry key="[run]" value="net.sourceforge.usbdm.gdb.dsfRunLaunchDelegate"/>
+</mapAttribute>
+</launchConfiguration>
