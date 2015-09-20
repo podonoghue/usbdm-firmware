@@ -761,14 +761,14 @@ U8 rc = BDM_RC_OK;
    return(rc);
 }
 
-////!  Directly set the interface levels
-////!
-////! @param level see \ref InterfaceLevelMasks_t
-////!
-////! @return
-////!    == \ref BDM_RC_OK     => Success \n
-////!    != \ref BDM_RC_OK     => various errors
-////
+//!  Directly set the interface levels
+//!
+//! @param level see \ref InterfaceLevelMasks_t
+//!
+//! @return
+//!    == \ref BDM_RC_OK     => Success \n
+//!    != \ref BDM_RC_OK     => various errors
+//
 //U8  bdm_setInterfaceLevel(U8 level) {
 //
 //   switch (level&SI_BKGD) {

@@ -81,7 +81,7 @@ typedef enum {
    CMD_USBDM_WRITE_MEM             = 32,  //!< Write to target memory
    CMD_USBDM_READ_MEM              = 33,  //!< Read from target memory
    CMD_USBDM_READ_ALL_REGS         = 34,  //!< Read all target core registers
-   
+
    //CMD_USBDM_TRIM_CLOCK            = 34,  //!< Trim target clock - deleted in V3.2
    //CMD_USBDM_RS08_FLASH_ENABLE     = 35,  //!< Enable target flash programming (Vpp on)
    //CMD_USBDM_RS08_FLASH_STATUS     = 36,  //!< Status of target flash programming
@@ -102,7 +102,7 @@ typedef enum  {
  BDM_RC_OK                                     = 0,     //!< No error
  BDM_RC_ILLEGAL_PARAMS                         = 1,     //!< Illegal parameters to command
  BDM_RC_FAIL                                   = 2,     //!< General Fail
- BDM_RC_BUSY                                   = 3,     //!< Busy with last command - try again - don't change
+ BDM_RC_BUSY                                   = 3,     //!< BDM Busy with last command - try again - don't change
  BDM_RC_ILLEGAL_COMMAND                        = 4,     //!< Illegal (unknown) command (may be in wrong target mode)
  BDM_RC_NO_CONNECTION                          = 5,     //!< No connection to target
  BDM_RC_OVERRUN                                = 6,     //!< New command before previous command completed
@@ -599,25 +599,25 @@ typedef enum {
 //! \endverbatim
 typedef enum  {
    S_ACKN            = (1<<0),  //!< - Target supports BDM ACK (HCS08/12/CFV1)
-   
+
    S_RESET_DETECT    = (1<<1),  //!< - Target has been reset since status last polled
-   
+
    S_RESET_STATE     = (1<<2),  //!< - Current state of target reset pin (RESET or RSTO) (active low!)
-   
+
    S_NOT_CONNECTED   = (0<<3),  //!< - No connection with target
    S_SYNC_DONE       = (1<<3),  //!< - Target communication speed determined by BDM SYNC
    S_GUESS_DONE      = (2<<3),  //!< - Target communication speed guessed
    S_USER_DONE       = (3<<3),  //!< - Target communication speed specified by user
    S_COMM_MASK       = (3<<3),  //!< - Mask for communication state
-   
+
    S_HALT            = (1<<5),  //!< - Indicates target is halted (CF V2, V3 & V4)
-   
+
    S_POWER_NONE      = (0<<6),  //!< - Target power not present
    S_POWER_EXT       = (1<<6),  //!< - External target power present
    S_POWER_INT       = (2<<6),  //!< - Internal target power on
    S_POWER_ERR       = (3<<6),  //!< - Internal target power error - overcurrent or similar
    S_POWER_MASK      = (3<<6),  //!< - Mask for Power
-   
+
    S_VPP_OFF         = (0<<8),  //!< - Vpp Off
    S_VPP_STANDBY     = (1<<8),  //!< - Vpp Standby (Inverter on)
    S_VPP_ON          = (2<<8),  //!< - Vpp On
@@ -708,7 +708,7 @@ typedef enum  {
   BDM_DBG_SWD              = 18, //!< - Test SWD
   BDM_DBG_ARM              = 19, //!< - Test ARM
   BDM_DBG_SWD_ERASE_LOOP   = 20, //!< - Power on polling to capture difficult chips
-  
+
 } DebugSubCommands;
 
 //! Commands for BDM when in ICP mode

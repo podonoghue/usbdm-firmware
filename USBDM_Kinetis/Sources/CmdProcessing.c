@@ -740,7 +740,7 @@ static const FunctionPtr HCS12functionPtrs[] = {
    f_CMD_SET_SPEED                  ,//= 16, CMD_USBDM_SET_SPEED
    f_CMD_GET_SPEED                  ,//= 17, CMD_USBDM_GET_SPEED
 
-   f_CMD_ILLEGAL                    ,//= 18, CMD_USBDM_CONTROL_INTERFACE
+   f_CMD_ILLEGAL                    ,//= 18, CMD_CUSTOM_COMMAND
    f_CMD_ILLEGAL                    ,//= 19, RESERVED
 
    f_CMD_READ_STATUS_REG            ,//= 20, CMD_USBDM_READ_STATUS_REG
@@ -775,7 +775,7 @@ static const FunctionPtr HCS08functionPtrs[] = {
    f_CMD_SET_SPEED                  ,//= 16, CMD_USBDM_SET_SPEED
    f_CMD_GET_SPEED                  ,//= 17, CMD_USBDM_GET_SPEED
 
-   f_CMD_ILLEGAL                    ,//= 18, CMD_USBDM_CONTROL_INTERFACE
+   f_CMD_ILLEGAL                    ,//= 18, CMD_CUSTOM_COMMAND
    f_CMD_ILLEGAL                    ,//= 19, RESERVED
 
    f_CMD_READ_STATUS_REG            ,//= 20, CMD_USBDM_READ_STATUS_REG
@@ -822,7 +822,7 @@ static const FunctionPtr CFV1functionPtrs[] = {
    f_CMD_SET_SPEED                  ,//= 16, CMD_USBDM_SET_SPEED
    f_CMD_GET_SPEED                  ,//= 17, CMD_USBDM_GET_SPEED
 
-   f_CMD_ILLEGAL                    ,//= 18, CMD_USBDM_CONTROL_INTERFACE
+   f_CMD_ILLEGAL                    ,//= 18, CMD_CUSTOM_COMMAND
    f_CMD_ILLEGAL                    ,//= 19, RESERVED
 
    f_CMD_READ_STATUS_REG            ,//= 20, CMD_USBDM_READ_STATUS_REG
@@ -862,7 +862,7 @@ static const FunctionPtr CFVxfunctionPtrs[] = {
    f_CMD_SPI_SET_SPEED              ,//= 16, CMD_USBDM_SET_SPEED
    f_CMD_SPI_GET_SPEED              ,//= 17, CMD_USBDM_GET_SPEED
 
-   f_CMD_ILLEGAL                    ,//= 18, CMD_USBDM_CONTROL_INTERFACE
+   f_CMD_ILLEGAL                    ,//= 18, CMD_CUSTOM_COMMAND
    f_CMD_ILLEGAL                    ,//= 19, RESERVED
 
    f_CMD_CFVx_READ_STATUS_REG       ,//= 20, CMD_USBDM_READ_STATUS_REG
@@ -901,7 +901,7 @@ static const FunctionPtr JTAGfunctionPtrs[] = {
    f_CMD_ARM_CONNECT                ,//= 15, CMD_USBDM_CONNECT
    f_CMD_SPI_SET_SPEED              ,//= 16, CMD_USBDM_SET_SPEED
    f_CMD_SPI_GET_SPEED              ,//= 17, CMD_USBDM_GET_SPEED
-   f_CMD_ILLEGAL                    ,//= 18, CMD_USBDM_CONTROL_INTERFACE
+   f_CMD_ILLEGAL                    ,//= 18, CMD_CUSTOM_COMMAND
    f_CMD_ILLEGAL                    ,//= 19, RESERVED
    f_CMD_ILLEGAL                    ,//= 20, CMD_USBDM_READ_STATUS_REG
    f_CMD_ILLEGAL                    ,//= 21, CMD_USBDM_WRITE_CONTROL_REG
@@ -943,7 +943,7 @@ static const FunctionPtr JTAGfunctionPtrs[] = {
    f_CMD_ILLEGAL                    ,//= 15, CMD_USBDM_CONNECT
    f_CMD_SPI_SET_SPEED              ,//= 16, CMD_USBDM_SET_SPEED
    f_CMD_SPI_GET_SPEED              ,//= 17, CMD_USBDM_GET_SPEED
-   f_CMD_ILLEGAL                    ,//= 18, CMD_USBDM_CONTROL_INTERFACE
+   f_CMD_ILLEGAL                    ,//= 18, CMD_CUSTOM_COMMAND
    f_CMD_ILLEGAL                    ,//= 19, RESERVED
    f_CMD_ILLEGAL                    ,//= 20, CMD_USBDM_READ_STATUS_REG
    f_CMD_ILLEGAL                    ,//= 21, CMD_USBDM_WRITE_CONTROL_REG
@@ -982,7 +982,7 @@ static const FunctionPtr SWDfunctionPtrs[] = {
    f_CMD_SWD_CONNECT                ,//= 15, CMD_USBDM_CONNECT
    f_CMD_SPI_SET_SPEED              ,//= 16, CMD_USBDM_SET_SPEED
    f_CMD_SPI_GET_SPEED              ,//= 17, CMD_USBDM_GET_SPEED
-   f_CMD_ILLEGAL                    ,//= 18, CMD_USBDM_CONTROL_INTERFACE
+   f_CMD_ILLEGAL                    ,//= 18, CMD_CUSTOM_COMMAND
    f_CMD_ILLEGAL                    ,//= 19, RESERVED
    f_CMD_ILLEGAL                    ,//= 20, CMD_USBDM_READ_STATUS_REG
    f_CMD_ILLEGAL                    ,//= 21, CMD_USBDM_WRITE_CONTROL_REG

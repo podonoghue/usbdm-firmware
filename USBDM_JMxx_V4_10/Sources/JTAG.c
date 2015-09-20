@@ -503,7 +503,9 @@ void jtag_interfaceIdle(void) {
    TA_3STATE();  
 #endif   
    RESET_3STATE();  
+#ifdef TRST_3STATE
    TRST_3STATE();
+#endif
    TDO_IN_DDR  = 0;  // TDO_IN input
    TDI_OUT_DDR = 1;  // TDI_OUT low
    if (jtagFillByte)

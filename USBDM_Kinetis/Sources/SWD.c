@@ -50,10 +50,10 @@
 //#define SPI_CTAR_MASK  (SPI_CTAR_CPOL_MASK|SPI_CTAR_CPHA_MASK|SPI_CTAR_LSBFE_MASK|SPI_CTAR_PASC(1)|SPI_CTAR_ASC(0))
 #define SPI_CTAR_MASK  (SPI_CTAR_LSBFE_MASK|SPI_CTAR_PASC(1)|SPI_CTAR_ASC(0))
 
-// SPI_PUSHR_PCS for Tx operations 
-#define SWD_PUSHR_TX  SPI_PUSHR_PCS((1<<0)|(1<<1)) // PCS0=SWDIO_O_En, PCS1=SWDCLK_En 
+// SPI_PUSHR_PCS for Tx operations
+#define SWD_PUSHR_TX  SPI_PUSHR_PCS((1<<0)|(1<<1)) // PCS0=SWDIO_O_En, PCS1=SWDCLK_En
 
-// SPI_PUSHR_PCS for Rx operations 
+// SPI_PUSHR_PCS for Rx operations
 #define SWD_PUSHR_RX  SPI_PUSHR_PCS((1<<1))        // PCS1=SWDCLK_En
 
 #define SWD_READ_IDCODE 0xA5 // (Park,Stop,Parity,A[32],R/W,AP/DP,Start) = 10100101
@@ -88,13 +88,13 @@ static inline uint8_t calcParity(const uint8_t dataptr[]) {
 void swd_interfaceIdle(void) {
 #ifdef RESET_3STATE
    RESET_3STATE();
-#endif   
+#endif
 }
 
 //! Initialise the SWD interface and sets it to an idle state
 //! RESET=3-state, SWCLK=High, SWDIO=3-state, SPI initialised
 //!
-//! @note This includes once-off initialisation such as PUPs etc 
+//! @note This includes once-off initialisation such as PUPs etc
 //!
 void swd_init(void) {
    swd_interfaceIdle();
@@ -113,7 +113,7 @@ void swd_init(void) {
    SWD_3STATE();
 #endif
    spi_init(SPI_CTAR_MASK|SPI_CTAR_FMSZ(8-1),      // 8-bit transfer
-            SPI_CTAR_MASK|SPI_CTAR_FMSZ(4-1));     // 4-bit transfer 
+            SPI_CTAR_MASK|SPI_CTAR_FMSZ(4-1));     // 4-bit transfer
 }
 
 //!  Turns off the SWD interface
@@ -146,7 +146,7 @@ void swd_off( void ) {
 static const int ctas_8bit  = 0;
 static const int ctas_Xbit  = 1;
 
-//! Transmit a 8-bit word to the target 
+//! Transmit a 8-bit word to the target
 //!
 //! @param send    - data to send
 //!
@@ -155,7 +155,7 @@ static const int ctas_Xbit  = 1;
 __forceinline
 static inline void spi_tx8(uint8_t data) {
    SWD_ENABLE();
-   SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_8bit)|SPI_PUSHR_EOQ_MASK|SWD_PUSHR_TX|SPI_PUSHR_TXDATA(data); 
+   SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_8bit)|SPI_PUSHR_EOQ_MASK|SWD_PUSHR_TX|SPI_PUSHR_TXDATA(data);
    while ((SPI0_SR & SPI_SR_EOQF_MASK) == 0) {
    }
    (void)SPI0_POPR;              // Discard read data
@@ -163,7 +163,7 @@ static inline void spi_tx8(uint8_t data) {
    SWD_3STATE();
 }
 
-//! Transmit a [mark, 8-bit word] to the target 
+//! Transmit a [mark, 8-bit word] to the target
 //!
 //! @param send    - data to send
 //!
@@ -173,7 +173,7 @@ __forceinline
 static inline void spi_mark_tx8(uint8_t data) {
    SWD_ENABLE();
    spi_setCTAR1(SPI_CTAR_MASK|SPI_CTAR_FMSZ(9-1));
-   SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_Xbit)|SPI_PUSHR_EOQ_MASK|SWD_PUSHR_TX|SPI_PUSHR_TXDATA((data<<1)|1); 
+   SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_Xbit)|SPI_PUSHR_EOQ_MASK|SWD_PUSHR_TX|SPI_PUSHR_TXDATA((data<<1)|1);
    while ((SPI0_SR & SPI_SR_EOQF_MASK) == 0) {
    }
    (void)SPI0_POPR;              // Discard read data
@@ -181,7 +181,7 @@ static inline void spi_mark_tx8(uint8_t data) {
    SWD_3STATE();
 }
 
-//! Transmit a [mark, 32-bit word, parity] to the target 
+//! Transmit a [mark, 32-bit word, parity] to the target
 //!
 //! @param send    - data to send
 //!
@@ -196,7 +196,7 @@ static inline void spi_mark_tx32_parity(const uint8_t *data) {
    SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_Xbit)|SWD_PUSHR_TX|SPI_PUSHR_CONT_MASK|SPI_PUSHR_TXDATA((data[3]<<1)|1);
    SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_8bit)|SWD_PUSHR_TX|SPI_PUSHR_CONT_MASK|SPI_PUSHR_TXDATA(data[2]);
    SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_8bit)|SWD_PUSHR_TX|SPI_PUSHR_CONT_MASK|SPI_PUSHR_TXDATA(data[1]);
-   SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_Xbit)|SWD_PUSHR_TX|                    SPI_PUSHR_TXDATA(data[0]|(parity<<8))|SPI_PUSHR_EOQ_MASK; 
+   SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_Xbit)|SWD_PUSHR_TX|                    SPI_PUSHR_TXDATA(data[0]|(parity<<8))|SPI_PUSHR_EOQ_MASK;
    while ((SPI0_SR & SPI_SR_EOQF_MASK) == 0) {
    }
    (void)SPI0_POPR;              // Discard read data
@@ -207,7 +207,7 @@ static inline void spi_mark_tx32_parity(const uint8_t *data) {
    SWD_3STATE();
 }
 
-//! Transmit a [32-bit word] to the target 
+//! Transmit a [32-bit word] to the target
 //!
 //! @param send    - data to send
 //!
@@ -219,7 +219,7 @@ static inline void spi_tx32(const uint8_t *data) {
    SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_8bit)|SWD_PUSHR_TX|SPI_PUSHR_CONT_MASK|SPI_PUSHR_TXDATA(data[3]);
    SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_8bit)|SWD_PUSHR_TX|SPI_PUSHR_CONT_MASK|SPI_PUSHR_TXDATA(data[2]);
    SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_8bit)|SWD_PUSHR_TX|SPI_PUSHR_CONT_MASK|SPI_PUSHR_TXDATA(data[1]);
-   SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_8bit)|SWD_PUSHR_TX|                    SPI_PUSHR_TXDATA(data[0])|SPI_PUSHR_EOQ_MASK; 
+   SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_8bit)|SWD_PUSHR_TX|                    SPI_PUSHR_TXDATA(data[0])|SPI_PUSHR_EOQ_MASK;
    while ((SPI0_SR & SPI_SR_EOQF_MASK) == 0) {
    }
    SWD_3STATE();
@@ -230,7 +230,7 @@ static inline void spi_tx32(const uint8_t *data) {
    SPI0_SR = SPI_SR_RFDF_MASK|SPI_SR_EOQF_MASK;
 }
 
-//! Receive a 32-bit word + parity from the target 
+//! Receive a 32-bit word + parity from the target
 //!
 //! @param receive - data received
 //!
@@ -243,7 +243,7 @@ static inline uint8_t spi_rx32_parity(uint8_t *receive) {
    SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_8bit)|SWD_PUSHR_RX|SPI_PUSHR_CONT_MASK|SPI_PUSHR_TXDATA(0);
    SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_8bit)|SWD_PUSHR_RX|SPI_PUSHR_CONT_MASK|SPI_PUSHR_TXDATA(0);
    SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_8bit)|SWD_PUSHR_RX|SPI_PUSHR_CONT_MASK|SPI_PUSHR_TXDATA(0);
-   SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_Xbit)|SWD_PUSHR_RX|                    SPI_PUSHR_TXDATA(0)|SPI_PUSHR_EOQ_MASK; 
+   SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_Xbit)|SWD_PUSHR_RX|                    SPI_PUSHR_TXDATA(0)|SPI_PUSHR_EOQ_MASK;
    while ((SPI0_SR & SPI_SR_EOQF_MASK) == 0) {
    }
    SPI0_SR = SPI_SR_EOQF_MASK;
@@ -256,7 +256,7 @@ static inline uint8_t spi_rx32_parity(uint8_t *receive) {
 }
 
 #if 0
-//! Receive a 32-bit word from the target 
+//! Receive a 32-bit word from the target
 //!
 //! @param receive - data received
 //!
@@ -267,7 +267,7 @@ static inline void spi_rx32(uint8_t *receive) {
    SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_8bit)|SWD_PUSHR_RX|SPI_PUSHR_CONT_MASK|SPI_PUSHR_TXDATA(0);
    SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_8bit)|SWD_PUSHR_RX|SPI_PUSHR_CONT_MASK|SPI_PUSHR_TXDATA(0);
    SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_8bit)|SWD_PUSHR_RX|SPI_PUSHR_CONT_MASK|SPI_PUSHR_TXDATA(0);
-   SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_8bit)|SWD_PUSHR_RX|                    SPI_PUSHR_TXDATA(0)|SPI_PUSHR_EOQ_MASK; 
+   SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_8bit)|SWD_PUSHR_RX|                    SPI_PUSHR_TXDATA(0)|SPI_PUSHR_EOQ_MASK;
    while ((SPI0_SR & SPI_SR_EOQF_MASK) == 0) {
    }
    SPI0_SR = SPI_SR_EOQF_MASK;
@@ -278,14 +278,14 @@ static inline void spi_rx32(uint8_t *receive) {
 }
 #endif
 
-//! Receive a 4-bit word from the target 
+//! Receive a 4-bit word from the target
 //!
 //! @return data received
 //!
 __forceinline
 static inline uint8_t spi_rx4(void) {
    spi_setCTAR1(SPI_CTAR_MASK|SPI_CTAR_FMSZ(4-1));
-   SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_Xbit)|SWD_PUSHR_RX|SPI_PUSHR_TXDATA(0)|SPI_PUSHR_EOQ_MASK; 
+   SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_Xbit)|SWD_PUSHR_RX|SPI_PUSHR_TXDATA(0)|SPI_PUSHR_EOQ_MASK;
    while ((SPI0_SR & SPI_SR_EOQF_MASK) == 0) {
    }
    SPI0_SR = SPI_SR_EOQF_MASK;
@@ -293,7 +293,7 @@ static inline uint8_t spi_rx4(void) {
 }
 
 #if 1
-//! Transmit 8-bit command and receive a 4-bit word from the target 
+//! Transmit 8-bit command and receive a 4-bit word from the target
 //!
 //! @return data received
 //!
@@ -303,16 +303,16 @@ static inline uint8_t spi_tx8_rx4(uint8_t command) {
    return spi_rx4();
 }
 #else
-//! Transmit 8-bit command and receive a 4-bit word from the target 
+//! Transmit 8-bit command and receive a 4-bit word from the target
 //!
 //! @return data received
 //!
 __forceinline
 static inline uint8_t spi_tx8_rx4(uint8_t command) {
-   SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_8bit)|SWD_PUSHR_TX|SPI_PUSHR_TXDATA(command); 
+   SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_8bit)|SWD_PUSHR_TX|SPI_PUSHR_TXDATA(command);
    spi_setCTAR1(SPI_CTAR_MASK|SPI_CTAR_FMSZ(4-1));
    SPI0_SR = SPI_SR_RFDF_MASK|SPI_SR_EOQF_MASK;
-   SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_Xbit)|SWD_PUSHR_RX|SPI_PUSHR_TXDATA(0)|SPI_PUSHR_EOQ_MASK; 
+   SPI0_PUSHR = SPI_PUSHR_CTAS(ctas_Xbit)|SWD_PUSHR_RX|SPI_PUSHR_TXDATA(0)|SPI_PUSHR_EOQ_MASK;
    while ((SPI0_SR & SPI_SR_EOQF_MASK) == 0) {
    }
    (void)SPI0_POPR;              // Discard byte read data
@@ -323,7 +323,7 @@ static inline uint8_t spi_tx8_rx4(uint8_t command) {
 
 //! Transmits 8-bits of idle (SWDIO=0)
 //!
-//! @note 
+//! @note
 //!    - ENTRY SWCLK=high \n
 //!    - EXIT  SWCLK=unchanged(high), SWDIO=3-state
 //!
@@ -340,7 +340,7 @@ inline void swd_txIdle8(void) {
 //!
 //! @param command - 8-bit command to write to SWD (including parity!)
 //!
-//! @note 
+//! @note
 //!    - ENTRY SWCLK=high, SWD_IN=pin \n
 //!    - EXIT  SWCLK=high, SWD_IN=pin & SWDIO=3state
 //!
@@ -348,7 +348,7 @@ inline void swd_txIdle8(void) {
 //!   8-bit command
 //!   1-bit turn-around
 //!   3-bit acknowledge
-//!   
+//!
 //! @note A 1-bit turn-around will be appended on error responses
 //!
 //! @return \n
@@ -389,17 +389,17 @@ uint8_t swd_sendCommandWithWait(uint8_t command) {
 //! Transmits 32-bit value
 //!
 //! Sequence as follows:
-//!   - 1-clock turn-around 
+//!   - 1-clock turn-around
 //!   - 32-bit data value
 //!   - 1-bit parity
 //!   - 8-bit idle
 //!
 //! @param data - ptr to 32-bit data to Tx
 //!
-//! @note 
+//! @note
 //!    - ENTRY SWCLK=high \n
 //!    - EXIT  SWCLK=high, SWDIO=3state
-//! 
+//!
 static void swd_tx32(const uint8_t *data) {
    spi_mark_tx32_parity(data);
    swd_txIdle8();
@@ -416,10 +416,10 @@ static void swd_tx32(const uint8_t *data) {
 //!  - >=50-bit sequence of 1's
 //!  - 8-bit idle
 //!
-//! @note 
+//! @note
 //!    - ENTRY SWCLK=high                       \n
 //!    - EXIT  SWCLK=unchanged, SWDIO=enabled
-//! 
+//!
 //! @note Interface is reset even if already in SWD mode so IDCODE must be read
 //!       to enable interface
 //!
@@ -429,10 +429,10 @@ static inline void swd_JTAGtoSWD(void) {
    uint8_t magic1[]   = {0x79,0xEF,0xFF,0xFF};
    uint8_t magic2[]   = {0xFF,0xFF,0xFF,0xFE};
    uint8_t trailing[] = {0x00,0xFF,0xFF,0xFF,};
-      
+
    spi_tx32(allOnes);  // 32 1's
-   spi_tx32(magic1);   // 20 1's + 0x79E 
-   spi_tx32(magic2);   // 0xE + 28 1's 
+   spi_tx32(magic1);   // 20 1's + 0x79E
+   spi_tx32(magic2);   // 0xE + 28 1's
    spi_tx32(trailing); // 24 1's + 8 0's
 }
 
@@ -447,8 +447,8 @@ static inline void swd_JTAGtoSWD(void) {
 //!    == \ref BDM_RC_NO_CONNECTION   => Unexpected/no response from target
 //!
 uint8_t swd_connect(void) {
-   uint8_t buff[4];	
-   
+   uint8_t buff[4];
+
    swd_JTAGtoSWD();
 
    // Target must respond to read IDCODE immediately
@@ -473,7 +473,7 @@ uint8_t swd_connect(void) {
 //!   SWD_RD_DP_STATUS - Value from STATUS reg \n
 //!   SWD_RD_DP_RESEND - LAST value read (AP read or DP-RDBUFF), FAULT on sticky error    \n
 //!   SWD_RD_DP_RDBUFF - Value from last AP read and clear READOK flag in STRL/STAT, FAULT on sticky error \n
-//!   SWD_RD_AP_REGx   - Value from last AP read, clear READOK flag in STRL/STAT and INITIATE next AP read, FAULT on sticky error 
+//!   SWD_RD_AP_REGx   - Value from last AP read, clear READOK flag in STRL/STAT and INITIATE next AP read, FAULT on sticky error
 //!
 uint8_t swd_readReg(uint8_t command, uint8_t *data) {
    int retry  = 2000;            // Set up retry count
@@ -517,7 +517,7 @@ uint8_t swd_readReg(uint8_t command, uint8_t *data) {
 //!   SWD_RD_DP_STATUS - Value from STATUS reg \n
 //!   SWD_RD_DP_RESEND - LAST value read (AP read or DP-RDBUFF), FAULT on sticky error    \n
 //!   SWD_RD_DP_RDBUFF - Value from last AP read and clear READOK flag in STRL/STAT, FAULT on sticky error \n
-//!   SWD_RD_AP_REGx   - Value from last AP read, clear READOK flag in STRL/STAT and INITIATE next AP read, FAULT on sticky error 
+//!   SWD_RD_AP_REGx   - Value from last AP read, clear READOK flag in STRL/STAT and INITIATE next AP read, FAULT on sticky error
 //!
 uint8_t swd_readReg(uint8_t command, uint8_t *data) {
    uint8_t rc = swd_sendCommandWithWait(command);
@@ -526,8 +526,8 @@ uint8_t swd_readReg(uint8_t command, uint8_t *data) {
    }
    rc = spi_rx32_parity(data);
    swd_txIdle8();
-   
-   return rc;   
+
+   return rc;
 }
 #endif
 
@@ -621,7 +621,7 @@ uint8_t swd_writeAPReg(const uint8_t *address, const uint8_t *buff) {
    selectData[1] = 0;
    selectData[2] = 0;
    selectData[3] = address[1]&0xF0;
-   
+
    // Set up SELECT register for AP access
    rc = swd_writeReg(SWD_WR_DP_SELECT, selectData);
    if (rc != BDM_RC_OK) {
@@ -668,7 +668,7 @@ uint8_t swd_readAPReg(const uint8_t *address, uint8_t *buff) {
    // Initiate read from AP register (dummy data)
    rc = swd_readReg(regNo, buff);
    if (rc != BDM_RC_OK) {
-     return rc;	   
+     return rc;
    }
    // Read from READBUFF register
    return swd_readReg(SWD_RD_DP_RDBUFF, buff);
@@ -688,7 +688,7 @@ uint8_t swd_clearStickyError(void) {
 //! @return error code
 //!
 uint8_t swd_abortAP(void) {
-   static const uint8_t swdClearErrors[4] = 
+   static const uint8_t swdClearErrors[4] =
       {0,0,0,SWD_DP_ABORT_CLEAR_STICKY_ERRORS_B3|SWD_DP_ABORT_ABORT_AP_B3};
    return swd_writeReg(SWD_WR_DP_ABORT, swdClearErrors);
 }
@@ -722,7 +722,7 @@ uint8_t massErase(void) {
    static const uint8_t statusRegAddress[2]   = { (MDM_AP_STATUS>>24)&0xFF, MDM_AP_STATUS&0xFF };
    // Compressed address for MDM-AP.Control register
    static const uint8_t controlRegAddress[2]   = { (MDM_AP_CONTROL>>24)&0xFF, MDM_AP_CONTROL&0xFF };
-   static const uint8_t controlValueWrite[4]   = { (MDM_AP_CONTROL_ERASE_VALUE>>24)&0xFF, (MDM_AP_CONTROL_ERASE_VALUE>>16)&0xFF, 
+   static const uint8_t controlValueWrite[4]   = { (MDM_AP_CONTROL_ERASE_VALUE>>24)&0xFF, (MDM_AP_CONTROL_ERASE_VALUE>>16)&0xFF,
                                                    (MDM_AP_CONTROL_ERASE_VALUE>>8)&0xFF,  (MDM_AP_CONTROL_ERASE_VALUE>>0)&0xFF };
    uint8_t valueRead[4];
    int eraseWait;
@@ -730,10 +730,10 @@ uint8_t massErase(void) {
 
    // Wait for flash ready
    for (eraseWait=0; eraseWait<10000; eraseWait++) {
-      rc = swd_readAPReg(statusRegAddress, valueRead);      
+      rc = swd_readAPReg(statusRegAddress, valueRead);
       if (rc != BDM_RC_OK) {
          continue;
-      }  
+      }
       if ((valueRead[3]&MDM_AP_STATUS_FLASH_READY) != 0) {
          break;
       }
@@ -745,7 +745,7 @@ uint8_t massErase(void) {
    }
 
    // Write erase command
-   rc = swd_writeAPReg(controlRegAddress, controlValueWrite);      
+   rc = swd_writeAPReg(controlRegAddress, controlValueWrite);
    if (rc != BDM_RC_OK) {
       return rc;
    }
@@ -754,7 +754,7 @@ uint8_t massErase(void) {
    // Wait until complete
    for (eraseWait=0; eraseWait<10000; eraseWait++) {
       greenLedOn();
-      rc = swd_readAPReg(controlRegAddress, valueRead);      
+      rc = swd_readAPReg(controlRegAddress, valueRead);
       if (rc != BDM_RC_OK) {
          continue;
       }
@@ -767,17 +767,17 @@ uint8_t massErase(void) {
 }
 
 uint8_t swd_reset_capture_mass_erase(uint8_t *returnSize, uint8_t *buff) {
-   
-   static const uint8_t dpControlValueWrite[4] = { (DP_CONTROL_VALUE>>24)&0xFF, (DP_CONTROL_VALUE>>16)&0xFF, 
+
+   static const uint8_t dpControlValueWrite[4] = { (DP_CONTROL_VALUE>>24)&0xFF, (DP_CONTROL_VALUE>>16)&0xFF,
                                                    (DP_CONTROL_VALUE>>8)&0xFF,  (DP_CONTROL_VALUE>>0)&0xFF };
    // Compressed address for MDM-AP.Control register
    static const uint8_t controlRegAddress[2]   = { (MDM_AP_CONTROL>>24)&0xFF, MDM_AP_CONTROL&0xFF };
-   static const uint8_t controlValueWrite[4]   = { (MDM_AP_CONTROL_HALT_VALUE>>24)&0xFF, (MDM_AP_CONTROL_HALT_VALUE>>16)&0xFF, 
+   static const uint8_t controlValueWrite[4]   = { (MDM_AP_CONTROL_HALT_VALUE>>24)&0xFF, (MDM_AP_CONTROL_HALT_VALUE>>16)&0xFF,
                                                    (MDM_AP_CONTROL_HALT_VALUE>>8)&0xFF,  (MDM_AP_CONTROL_HALT_VALUE>>0)&0xFF };
    unsigned successCount = 0;
    uint8_t rc;
    unsigned attemptCount = 0;
-   
+
    resetLow();
    for (;;) {
       attemptCount++;
@@ -797,13 +797,13 @@ uint8_t swd_reset_capture_mass_erase(uint8_t *returnSize, uint8_t *buff) {
          continue;
       }
       // Hold processor in reset
-      rc = swd_writeAPReg(controlRegAddress, controlValueWrite);      
+      rc = swd_writeAPReg(controlRegAddress, controlValueWrite);
       if (rc != BDM_RC_OK) {
          successCount = 0;
          continue;
       }
       // Check processor status
-      rc = swd_readAPReg(controlRegAddress, buff);      
+      rc = swd_readAPReg(controlRegAddress, buff);
       if (rc != BDM_RC_OK) {
          successCount = 0;
          continue;
@@ -830,9 +830,41 @@ uint8_t swd_reset_capture_mass_erase(uint8_t *returnSize, uint8_t *buff) {
    return rc;
 }
 
+//#define DCRSR_READ_B1          (0<<(16-16))
+//static const uint8_t DCRDR_ADDR[] = {0xE0, 0x00, 0xED, 0xF8}; // RW Debug Core Data Register
+
+//uint8_t swd_coreRegisterOperation(uint8_t *DCRSRvalue);
+//uint8_t swd_readMemoryWord(const uint8_t *address, uint8_t *data);
+//
+///*!
+// *  Read target register
+// *
+// *  @param regNo    Number of register to read
+// *  @param outptr   Where to place data read (in big-endian order)
+// *
+// *  @return error code
+// */
+//static uint8_t readCoreRegister(uint8_t regNo, uint8_t *outptr) {
+//   uint8_t rc;
+//   // Set up command
+//   uint8_t command[4] = {0, DCRSR_READ_B1, 0, regNo};
+//   // Execute register transfer command
+//   rc = swd_coreRegisterOperation(command);
+//   if (rc != BDM_RC_OK) {
+//     return rc;
+//   }
+//   // Read register value from DCRDR holding register (Big-endian) (command is used as buffer)
+//   return swd_readMemoryWord(DCRDR_ADDR, outptr);
+//}
+
 uint8_t swd_test(uint8_t *returnSize, uint8_t *buff) {
    (void)returnSize;
    (void)buff;
+//   uint8_t rc = readCoreRegister(buff[0], buff);
+//   if (rc == BDM_RC_OK) {
+//      *returnSize = 4;
+//   }
+//   return rc;
    return swd_connect();
 }
 #endif // HW_CAPABILITY && CAP_SWD_HW

@@ -541,7 +541,9 @@ void bdmCF_suspend(void) {
 //!
 void bdmCF_off( void ) {
    bdmcf_interfaceIdle();
+#ifdef TRST_3STATE
    TRST_3STATE();
+#endif
 }
 
 #endif // (HW_CAPABILITY&CAP_CFVx)

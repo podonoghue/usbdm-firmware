@@ -37,7 +37,7 @@
  */
 #define DEBUG (DEBUG_COMMANDS|USB_PING_DEBUG)
 
-// Define for automatic WINUSB Driver loading 
+// Define for automatic WINUSB Driver loading
 //#define MS_COMPATIBLE_ID_FEATURE (1)
 
 #if DEBUG&DEBUG_MESSAGES
@@ -147,6 +147,7 @@ extern void dputs(char *msg);
 #define VERSION_MICRO 6
 #define VERSION_STR "4.10.6.170"
 #define VERSION_SW  ((VERSION_MAJOR<<4)+VERSION_MINOR)
+
 //! Selected hardware platform
 #if TARGET_HARDWARE==H_USBDM_JMxxCLD
 #include "USBDM_JMxxCLD.h" // Deluxe USBDM - see schematic
@@ -182,7 +183,7 @@ extern void dputs(char *msg);
 #include "USBDM_MKL25Z.h"
 #elif TARGET_HARDWARE==H_USBDM_MK20D5
 #include "USBDM_MK20D5.h"
-#elif (TARGET_HARDWARE==H_USBDM_OPENSDA) && defined(OPEN_SDA_V2) 
+#elif (TARGET_HARDWARE==H_USBDM_OPENSDA) && defined(OPEN_SDA_V2)
 #include "USBDM_OpenSDAV2.h"
 #elif TARGET_HARDWARE==H_USBDM_OPENSDA
 #include "USBDM_OpenSDA.h"
@@ -199,7 +200,7 @@ extern void dputs(char *msg);
 // USB Serial number as UTF-16-LE
 #define SERIAL_NO "USBDM-0000"
 //#define SERIAL_NO "Leovenaðes"
-//#define SERIAL_NO "\xC2\xA9\xE2\x89\xA0" 
+//#define SERIAL_NO "\xC2\xA9\xE2\x89\xA0"
 #endif
 
 #ifndef ProductDescription

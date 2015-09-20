@@ -24,10 +24,10 @@ void delay(void) {
    }
 }
 
-#define DEBUG_TEST_LOOP
+//#define DEBUG_TEST_LOOP
 #ifdef DEBUG_TEST_LOOP
-#define LED_NUM           3
-#define LED_REG           C
+#define LED_NUM           4
+#define LED_REG           D
 #define LED_MASK          (1<<LED_NUM)
 #define LED_PCR           PCR(LED_REG,LED_NUM)
 #define LED_PDOR          PDOR(LED_REG)
@@ -124,9 +124,9 @@ void reboot() {
 }
 
 static void testMode() {
-//   __enable_irq();
-//   SystemInitLowLevel();
-//   SystemInit();
+   // In case disabled by boot-loader
+   __enable_irq();
+
    initPorts();
    initTimers();
    bdm_interfaceOff();
@@ -204,6 +204,7 @@ void init() {
 }
 
 int main(void) {
+
 #ifdef DEBUG_TEST_LOOP
    testMode();
 #endif

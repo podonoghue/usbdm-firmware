@@ -34,7 +34,7 @@
    \verbatim
    Change History
    +===============================================================================================
-   | 18 Jul 2014 | Addes HCS12ZVM support                                             - pgo V4.10.6.170
+   | 18 Jul 2014 | Added HCS12ZVM support                                             - pgo V4.10.6.170
    | 24 Jul 2013 | Changed guard on common error recovery                             - pgo V4.10.4
    |    Jul 2013 | Added Read all registers                                                 V4.10.6
    | 26 Dec 2012 | Changed Reset handling to prevent USB timeouts                     - pgo V4.10.4
@@ -601,6 +601,7 @@ uint8_t f_CMD_CONTROL_PINS(void) {
        break;
    }
 #endif
+
 #if (HW_CAPABILITY & CAP_RST_IO)
    switch (control & PIN_RESET) {
    case PIN_RESET_3STATE : 
@@ -619,7 +620,9 @@ uint8_t f_CMD_CONTROL_PINS(void) {
 #if (HW_CAPABILITY&CAP_JTAG_HW)
    switch(control&PIN_TRST) {
    case PIN_TRST_3STATE:
+#ifdef TRST_3STATE
 	   TRST_3STATE();
+#endif
 	   break;
    case PIN_TRST_LOW:
 	   TRST_LOW();
@@ -692,9 +695,9 @@ typedef uint8_t (*FunctionPtr)(void);
 
 //! Structure representing a set of function ptrs 
 typedef struct {
-   uint8_t firstCommand;					//!< First command value accepted
-   uint8_t size;             			//!< Size of command structure
-   const FunctionPtr *functions; 	//!< Ptr to commands
+   uint8_t firstCommand;         //!< First command value accepted
+   uint8_t size;                 //!< Size of command structure
+   const FunctionPtr *functions; //!< Ptr to commands
 } FunctionPtrs;
 
 extern uint8_t f_CMD_SET_TARGET(void);
