@@ -9,10 +9,12 @@ Release files: http://sourceforge.net/projects/usbdm/files/
 
 Documentation: http://usbdm.sourceforge.net/
 
-The projects in the following directories are Codewarrior Eclipse projects and should be imported into Codewarrior to build.
+The following project is a Codewarrior Eclipse project and should be imported into Codewarrior 10.6.4.
 
-USBDM_JMxx_V4_9
-USBDM_JMxx_V4_10
+USBDM_JMxx
+
+The following project is a KDS project and should be imported into Kinetis Design Studio
+
 USBDM_Kinetis
 
 The project in the following directory are Codewarrior for HC08 (non-eclipse version).
