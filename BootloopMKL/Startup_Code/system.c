@@ -10,7 +10,7 @@
 #include <stdint.h>
 #include "derivative.h"
 
-#define DEVICE_SUBFAMILY_CortexM0
+#define MKL25Z4
 
 
 
@@ -19,18 +19,27 @@ __attribute__((__weak__))
 void SystemCoreClockUpdate(void) {
 }
 
+/* This is overridden if actual clock code is provided */
+__attribute__((__weak__))
+uint32_t SystemBusClock = 8000000;
+
 /* Actual Vector table */
 extern int const __vector_table[];
 
-#ifndef SCB_VTOR
-#define SCB_VTOR (*(uint32_t *)0xE000ED08)
+#ifndef SCB
+   #define SCB_VTOR                 (*(uint32_t *)0xE000ED08)
+   #define SCB_CCR                  (*(uint32_t *)0xE000ED14)
+   #define SCB_CCR_DIV_0_TRP_MASK   (1<<4)
+   #define SCB_CCR_UNALIGN_TRP_MASK (1<<3)
+#else
+   #define SCB_VTOR  (SCB->VTOR)
+   #define SCB_CCR   (SCB->CCR)
 #endif
 
-#if !defined(SIM_COPC)
-   /* Defaults for MKL devices */
-
-   /* COP timer register */
+#if !defined(SIM)
    #define SIM_COPC (*(uint32_t *)0x40048100)
+#else
+   #define SIM_COPC (SIM->COPC)
 #endif
 
 
@@ -50,9 +59,13 @@ void rtc_initialise(void) {
 }
 
 // Dummy hook routine for when CMSIS is not used.
-__attribute__((weak)) 
+__attribute__((weak))
 void software_init_hook (void) {
 }
+
+#ifdef __NO_STARTFILES__
+#warning Due to limited RAM the C library standard initialisation is not called - BSS and DATA are still initialised
+#endif
 
 /*!
  *  @brief Low-level initialize the system
@@ -65,8 +78,10 @@ void SystemInitLowLevel(void) {
    /* This is generic initialization code */
    /* It may not be correct for a specific target */
 
+#ifdef __VTOR_PRESENT
    /* Set the interrupt vector table position */
    SCB_VTOR = (uint32_t)__vector_table;
+#endif
 
    // Disable watch-dog
    SIM_COPC = 0x00;
@@ -85,7 +100,7 @@ void SystemInit(void) {
    clock_initialise();
 
    /* Use UART initialisation - if present */
-   uart_initialise(19200);
+   uart_initialise(DEFAULT_BAUD_RATE);
 
    /* Use RTC initialisation - if present */
    rtc_initialise();

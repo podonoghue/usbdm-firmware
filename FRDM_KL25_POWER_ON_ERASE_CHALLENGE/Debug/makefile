@@ -57,7 +57,7 @@ all: FRDM_KL25_POWER_ON_ERASE_CHALLENGE.elf secondary-outputs
 FRDM_KL25_POWER_ON_ERASE_CHALLENGE.elf: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: ARM C++ Linker'
-	arm-none-eabi-g++ -mcpu=cortex-m0plus -mthumb -g3 -O0 -Wl,--gc-sections -L"C:/Users/Peter/Documents/Development/USBDM/usbdm-eclipse-makefiles-build/FRDM_KL25_POWER_ON_ERASE_CHALLENGE/Project_Settings/Linker_Files" --specs=nano.specs -T ""Linker-rom.ld"" -Xlinker -Map="FRDM_KL25_POWER_ON_ERASE_CHALLENGE.map"  -o "FRDM_KL25_POWER_ON_ERASE_CHALLENGE.elf" $(OBJS) $(USER_OBJS) $(LIBS)
+	arm-none-eabi-g++ -mcpu=cortex-m0plus -mthumb -g3 -O0 -Wl,--gc-sections -L"C:/Users/Peter/Documents/Development/Git/usbdm-firmware/FRDM_KL25_POWER_ON_ERASE_CHALLENGE/Project_Settings/Linker_Files" --specs=nano.specs -T ""Linker-rom.ld"" -Xlinker -Map="FRDM_KL25_POWER_ON_ERASE_CHALLENGE.map"  -o "FRDM_KL25_POWER_ON_ERASE_CHALLENGE.elf" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 

@@ -17,7 +17,7 @@ OBJS += \
 Sources/%.o: ../Sources/%.c
 	@echo 'Building file: $<'
 	@echo 'Invoking: ARM C Compiler'
-	arm-none-eabi-gcc -mcpu=cortex-m0plus -mthumb -g3 -O0 -ffunction-sections -fdata-sections -I"C:/Users/Peter/Documents/Development/USBDM/usbdm-eclipse-makefiles-build/FRDM_KL25_POWER_ON_ERASE_CHALLENGE/Project_Headers" -Wall -std=c99 -c -fmessage-length=0 -MT"$@" -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)"  -o "$@" $<
+	arm-none-eabi-gcc -mcpu=cortex-m0plus -mthumb -g3 -O0 -ffunction-sections -fdata-sections -I"C:/Users/Peter/Documents/Development/Git/usbdm-firmware/FRDM_KL25_POWER_ON_ERASE_CHALLENGE/Project_Headers" -Wall -std=c99 -c -fmessage-length=0 -MT"$@" -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)"  -o "$@" $<
 	@echo 'Finished building: $<'
 	@echo ' '
 

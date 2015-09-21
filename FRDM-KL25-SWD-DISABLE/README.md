@@ -1,1 +1,0 @@
-Program for testing unsecuring of a Kinetis device

@@ -24,7 +24,7 @@ void delay(void) {
 
 int main(void)  {
    // Just in case while testing
-//   delay();
+   //   delay();
 
    SIM->SCGC5  |= SIM_SCGC5_PORTA_MASK;
    PORTA->PCR[0]  = PORT_PCR_MUX(1);  // Disable SWD-CLK
@@ -42,19 +42,19 @@ int main(void)  {
    GPIOB->PDDR  &= ~RESCUE;
 
 
-	for(;;) {
-	   if ((PORTA->PCR[0]&PORT_PCR_MUX(7)) != PORT_PCR_MUX(7)) {
+   for(;;) {
+      if ((PORTA->PCR[0]&PORT_PCR_MUX(7)) != PORT_PCR_MUX(7)) {
          GPIOB->PTOR   = RED_LED;
-	      GPIOB->PSOR   = GREEN_LED;
-	   }
-	   else {
+         GPIOB->PSOR   = GREEN_LED;
+      }
+      else {
          GPIOB->PTOR   = GREEN_LED;
          GPIOB->PSOR   = RED_LED;
-	   }
-	   delay();
-	   if ((GPIOB->PDIR&RESCUE) == 0) {
-	      recover();
-	   }
-	}
-	return 0;
+      }
+      delay();
+      if ((GPIOB->PDIR&RESCUE) == 0) {
+         recover();
+      }
+   }
+   return 0;
 }

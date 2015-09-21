@@ -599,12 +599,12 @@ OUTPUT(FRDM_MK20_POWER_ON_ERASE_CHALLENGE.elf elf32-littlearm)
  .comment       0x00000000       0x71 ./Startup_Code/vectors.o
  .comment       0x00000000       0x71 ./Sources/main.o
 
-.debug_info     0x00000000     0x1275
+.debug_info     0x00000000     0x1264
  .debug_info    0x00000000      0x6c1 ./Startup_Code/newlib_stubs.o
- .debug_info    0x000006c1       0xbe ./Startup_Code/startup_ARMLtdGCC.o
- .debug_info    0x0000077f      0x451 ./Startup_Code/system.o
- .debug_info    0x00000bd0      0x2b4 ./Startup_Code/vectors.o
- .debug_info    0x00000e84      0x3f1 ./Sources/main.o
+ .debug_info    0x000006c1       0xad ./Startup_Code/startup_ARMLtdGCC.o
+ .debug_info    0x0000076e      0x451 ./Startup_Code/system.o
+ .debug_info    0x00000bbf      0x2b4 ./Startup_Code/vectors.o
+ .debug_info    0x00000e73      0x3f1 ./Sources/main.o
 
 .debug_abbrev   0x00000000      0x58f
  .debug_abbrev  0x00000000      0x1ce ./Startup_Code/newlib_stubs.o
@@ -674,22 +674,22 @@ OUTPUT(FRDM_MK20_POWER_ON_ERASE_CHALLENGE.elf elf32-littlearm)
  .debug_macro   0x00008e1f       0xa4 ./Sources/main.o
  .debug_macro   0x00008ec3       0x27 ./Sources/main.o
 
-.debug_line     0x00000000      0xd9c
+.debug_line     0x00000000      0xd69
  .debug_line    0x00000000      0x3ec ./Startup_Code/newlib_stubs.o
  .debug_line    0x000003ec       0x73 ./Startup_Code/startup_ARMLtdGCC.o
- .debug_line    0x0000045f      0x2e9 ./Startup_Code/system.o
- .debug_line    0x00000748      0x398 ./Startup_Code/vectors.o
- .debug_line    0x00000ae0      0x2bc ./Sources/main.o
+ .debug_line    0x0000045f      0x2d8 ./Startup_Code/system.o
+ .debug_line    0x00000737      0x387 ./Startup_Code/vectors.o
+ .debug_line    0x00000abe      0x2ab ./Sources/main.o
 
-.debug_str      0x00000000    0x34bca
- .debug_str     0x00000000     0x6036 ./Startup_Code/newlib_stubs.o
-                               0x622f (size before relaxing)
- .debug_str     0x00006036    0x2d9e3 ./Startup_Code/system.o
-                              0x3091b (size before relaxing)
- .debug_str     0x00033a19     0x1065 ./Startup_Code/vectors.o
-                              0x32d16 (size before relaxing)
- .debug_str     0x00034a7e      0x14c ./Sources/main.o
-                              0x3080e (size before relaxing)
+.debug_str      0x00000000    0x34bb9
+ .debug_str     0x00000000     0x6025 ./Startup_Code/newlib_stubs.o
+                               0x621e (size before relaxing)
+ .debug_str     0x00006025    0x2d9e3 ./Startup_Code/system.o
+                              0x3090a (size before relaxing)
+ .debug_str     0x00033a08     0x1065 ./Startup_Code/vectors.o
+                              0x32d05 (size before relaxing)
+ .debug_str     0x00034a6d      0x14c ./Sources/main.o
+                              0x307fd (size before relaxing)
 
 .debug_frame    0x00000000      0x424
  .debug_frame   0x00000000      0x23c ./Startup_Code/newlib_stubs.o

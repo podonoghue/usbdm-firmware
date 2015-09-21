@@ -10,14 +10,14 @@ section             size        addr
 .bitband          262144   570425344
 .ARM.attributes       42           0
 .comment             112           0
-.debug_info         4725           0
+.debug_info         4708           0
 .debug_abbrev       1423           0
 .debug_aranges       392           0
 .debug_ranges        296           0
 .debug_macro       36586           0
-.debug_line         3484           0
-.debug_str        216010           0
+.debug_line         3433           0
+.debug_str        215993           0
 .debug_frame        1060           0
-Total             544722
+Total             544637
 
 

@@ -47,19 +47,19 @@ int main(void)  {
 
    GPIOA->PDDR  &= ~RESCUE;   // A.12
 
-	for(;;) {
-	   if ((PORTA->PCR[0]&PORT_PCR_MUX(7)) != PORT_PCR_MUX(7)) {
+   for(;;) {
+      if ((PORTA->PCR[0]&PORT_PCR_MUX(7)) != PORT_PCR_MUX(7)) {
          GPIOC->PTOR   = RED_LED;
-	      GPIOA->PSOR   = BLUE_LED;
-	   }
-	   else {
+         GPIOA->PSOR   = BLUE_LED;
+      }
+      else {
          GPIOA->PTOR   = BLUE_LED;
          GPIOC->PSOR   = RED_LED;
-	   }
-	   delay();
-	   if ((GPIOA->PDIR&RESCUE) == 0) {
-	      recover();
-	   }
-	}
-	return 0;
+      }
+      delay();
+      if ((GPIOA->PDIR&RESCUE) == 0) {
+         recover();
+      }
+   }
+   return 0;
 }
