@@ -3,24 +3,27 @@
 ################################################################################
 
 # Add inputs and outputs from these tool invocations to the build variables 
+S_UPPER_SRCS += \
+../Startup_Code/startup_ARMLtdGCC.S 
+
 C_SRCS += \
+../Startup_Code/clock.c \
 ../Startup_Code/newlib_stubs.c \
 ../Startup_Code/system.c \
 ../Startup_Code/vectors.c 
 
-S_UPPER_SRCS += \
-../Startup_Code/startup_ARMLtdGCC.S 
+C_DEPS += \
+./Startup_Code/clock.d \
+./Startup_Code/newlib_stubs.d \
+./Startup_Code/system.d \
+./Startup_Code/vectors.d 
 
 OBJS += \
+./Startup_Code/clock.o \
 ./Startup_Code/newlib_stubs.o \
 ./Startup_Code/startup_ARMLtdGCC.o \
 ./Startup_Code/system.o \
 ./Startup_Code/vectors.o 
-
-C_DEPS += \
-./Startup_Code/newlib_stubs.d \
-./Startup_Code/system.d \
-./Startup_Code/vectors.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes

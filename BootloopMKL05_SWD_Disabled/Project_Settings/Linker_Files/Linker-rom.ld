@@ -36,7 +36,7 @@ OUTPUT_FORMAT ("elf32-littlearm", "elf32-bigarm", "elf32-littlearm")
 SEARCH_DIR(.)
 
 /* Include external memory map defining ram and Flash memory etc */
-INCLUDE "MemoryMap-mk20dn32m5.ld"
+INCLUDE "MemoryMap-frdm_kl05z.ld"
 
 ENTRY(Reset_Handler)
 
@@ -165,6 +165,17 @@ M_VECTOR_RAM_SIZE = DEFINED(__ram_vector_table__) ? (__VECTOR_TABLE_END - __VECT
     __interrupts_ram_end__ = .; 
   } > ram
 
+  .ram_code :
+  {
+    . = ALIGN(4);
+    __VECTOR_RAM__ = .;
+    __interrupts_ram_start__ = .;
+    *(.m_interrupts_ram)     
+    . += M_VECTOR_RAM_SIZE;
+    . = ALIGN(4);
+    __interrupts_ram_end__ = .; 
+  } > ram
+
   __VECTOR_RAM = DEFINED(__ram_vector_table__) ? __VECTOR_RAM__ : __VECTOR_TABLE;
   __RAM_VECTOR_TABLE_SIZE_BYTES = __interrupts_ram_end__ - __interrupts_ram_start__;
   
@@ -221,31 +232,6 @@ M_VECTOR_RAM_SIZE = DEFINED(__ram_vector_table__) ? (__VECTOR_TABLE_END - __VECT
       __StackTop = .;
    } > ram
 
-   /* 
-    * SRAM_U region
-    *
-    * This area is partitioned from the top of SRAM
-    *
-    * Each bit in this region maps to a word in the .bitband region (if present)
-    * This region is also accessible to BME (if present and supports RAM access) 
-    */
-   .sram_u (NOLOAD) :
-   {
-      *(.sram_u)
-   } > ram
-
-   /*
-    * Bitband region
-    *
-    * Each word in this region maps to a bit in the .bitband_byte region 
-    */
-   .bitband (NOLOAD) :
-   {
-      /* Allocate variables from top of region */
-      . = ORIGIN(bitband) + ((ORIGIN(ram) + LENGTH(ram) - __sram_u_size) & 0xFFFFFF) * 32;
-      *(.bitband)
-   } > bitband
-    
   PROVIDE(__stack = __StackTop);
   PROVIDE(__cs3_stack = __StackTop);
   
@@ -279,9 +265,6 @@ M_VECTOR_RAM_SIZE = DEFINED(__ram_vector_table__) ? (__VECTOR_TABLE_END - __VECT
   | Stack                |
   | (__stack_size__)     |                                   (size=0x100)
   +----------------------+ __StackTop                        0x200002ff
-  | Bitband/BME (sram_u) |
-  | (__sram_u_size)      |                                   (size=1)
-  +----------------------+                                   0x20000300
   
   */
 }
