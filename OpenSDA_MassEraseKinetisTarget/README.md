@@ -38,13 +38,13 @@ Prerequisites
    The reqired modifications are: 
    - Cutting a link on the FRDM board and replacing with a manual jumper.
    - Removing associated resistors in some cases (0R & 10R)  
-    `Board type  | Jumper to cut  
-    ......................................  
-	 FRDM-KE02Z |   J3 also remove R11,R12  
-     FRDM-KL02Z |   J4 also remove R27  
-     FRDM-KL05Z |   J4 also remove R27  
-     FRDM-KL25Z |   J4  
-     FRDM-KL46Z |   J17 also remove R1,R2`  
+`    Board type  | Jumper to cut`  
+`    ......................................`  
+`    FRDM-KE02Z |   J3 also remove R11,R12`  
+`    FRDM-KL02Z |   J4 also remove R27`  
+`    FRDM-KL05Z |   J4 also remove R27`  
+`    FRDM-KL25Z |   J4`  
+`    FRDM-KL46Z |   J17 also remove R1,R2`  
  
    The manual jumper can be used to power the target in normal use.
 
