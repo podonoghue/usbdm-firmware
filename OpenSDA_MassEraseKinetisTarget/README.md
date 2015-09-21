@@ -1,4 +1,4 @@
-==== What is it =====
+What is it?
 ---------------------
 This is a utility to mass erase the TARGET chip on a FRDM Kinetis board.  It is intended
 to be quite aggressive in attempting to do this and may be useful for erasing targets that have
@@ -17,7 +17,7 @@ It can also be used with external chips if the 20-pin SWD connector is populated
 NOTE:
 This does not allow permanently secured chips to be unsecured.  Once you've done that it's all over :)
 
-===== How it works =====
+How it works
 ------------------------
 Once the firmware is programmed to the debugger chip and the board rebooted the debugger will sit in a tight 
 loop attempting to use software reset commands to force the target chip into a reset state. This is a bit of 
@@ -32,14 +32,14 @@ After successfully connecting the debugger will then mass erase the target.
 
 The debugger firmware is based on a stripped down version of USBDM.
   
-===== PREREQUISITES =====
+Prerequisites
 -------------------------
 ** A lightly modified FRDM board.
    The reqired modifications are: 
    - Cutting a link on the FRDM board and replacing with a manual jumper.
    - Removing associated resistors in some cases (0R & 10R)
     Board type  | Jumper to cut
-    ----------------------------
+    ......................................
      FRDM-KE02Z |   J3 also remove R11,R12
      FRDM-KL02Z |   J4 also remove R27
      FRDM-KL05Z |   J4 also remove R27
@@ -49,8 +49,8 @@ The debugger firmware is based on a stripped down version of USBDM.
    The manual jumper can be used to power the target in normal use.
 
 ** A wire jumper lead for use when erasing the board - for some reason using a jumper is unreliable.
-   
-=====  METHOD =====
+
+METHOD
 -------------------
 The attached SREC file is intended to be programmed to the MK20 debugger chip on a FRDM board (Not
 the target chip!)  This can be done in the following manner:
@@ -59,7 +59,7 @@ the target chip!)  This can be done in the following manner:
 * The FRDM board will then appear as a USB drive.
 * Drag the .sx file to the drive to program it to the debugger processor (small MKL20DX128 chip)
 
-===== Doing a Mass erase ====
+Doing a Mass erase
 -----------------------------
 The following sequence should result in the target chip being mass erased:
 
