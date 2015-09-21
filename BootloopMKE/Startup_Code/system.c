@@ -10,7 +10,7 @@
 #include <stdint.h>
 #include "derivative.h"
 
-#define DEVICE_SUBFAMILY_CortexM0
+#define MKE02Z4
 
 
 
@@ -19,22 +19,32 @@ __attribute__((__weak__))
 void SystemCoreClockUpdate(void) {
 }
 
+/* This is overridden if actual clock code is provided */
+__attribute__((__weak__))
+uint32_t SystemBusClock = 8000000;
+
 /* Actual Vector table */
 extern int const __vector_table[];
 
-#ifndef SCB_VTOR
-#define SCB_VTOR (*(uint32_t *)0xE000ED08)
+#ifndef SCB
+   #define SCB_VTOR                 (*(uint32_t *)0xE000ED08)
+   #define SCB_CCR                  (*(uint32_t *)0xE000ED14)
+   #define SCB_CCR_DIV_0_TRP_MASK   (1<<4)
+   #define SCB_CCR_UNALIGN_TRP_MASK (1<<3)
+#else
+   #define SCB_VTOR  (SCB->VTOR)
+   #define SCB_CCR   (SCB->CCR)
 #endif
 
-#if !defined(WDOG_CS1)
+#if !defined(WDOG)
 
 /* WDOG timer register */
 typedef struct {
-   volatile uint8_t cs1;
-   volatile uint8_t cs2;
-   volatile uint16_t cnt;
-   volatile uint16_t toval;
-   volatile uint16_t win;
+   volatile uint8_t  CS1;
+   volatile uint8_t  CS2;
+   volatile uint16_t CNT;
+   volatile uint16_t TOVAL;
+   volatile uint16_t WIN;
 } WatchDog;
 
 #define WDOG (*(volatile WatchDog*) 0x40052000)
@@ -48,10 +58,10 @@ typedef struct {
 
 #define WDOG_CS2_CLK(x)  ((x)<<0)
 
-#define WDOG_CS1     WDOG.cs1
-#define WDOG_CS2     WDOG.cs2
-#define WDOG_CNT     WDOG.cnt
-#define WDOG_TOVAL   WDOG.toval
+#define WDOG_CS1     WDOG.CS1
+#define WDOG_CS2     WDOG.CS2
+#define WDOG_CNT     WDOG.CNT
+#define WDOG_TOVAL   WDOG.TOVAL
 
 #endif
 
@@ -74,9 +84,13 @@ void rtc_initialise(void) {
 }
 
 // Dummy hook routine for when CMSIS is not used.
-__attribute__((weak)) 
+__attribute__((weak))
 void software_init_hook (void) {
 }
+
+#ifdef __NO_STARTFILES__
+#warning Due to limited RAM the C library standard initialisation is not called - BSS and DATA are still initialised
+#endif
 
 /*!
  *  @brief Low-level initialize the system
@@ -89,15 +103,17 @@ void SystemInitLowLevel(void) {
    /* This is generic initialization code */
    /* It may not be correct for a specific target */
 
+#ifdef __VTOR_PRESENT
    /* Set the interrupt vector table position */
    SCB_VTOR = (uint32_t)__vector_table;
+#endif
 
    // Disable watch-dog
-   WDOG_CNT    = WDOG_KEY1;               // Write the 1st unlock word
-   WDOG_CNT    = WDOG_KEY2;               // Write the 2nd unlock word
-   WDOG_TOVAL  = 1010;                    // Setting time-out value
-   WDOG_CS2    = WDOG_CS2_CLK(1);         // Setting 1-kHz clock source
-   WDOG_CS1    = WDOG_CS1_UPDATE_MASK;    // Disable watchdog
+   WDOG->CNT    = WDOG_KEY1;               // Write the 1st unlock word
+   WDOG->CNT    = WDOG_KEY2;               // Write the 2nd unlock word
+   WDOG->TOVAL  = 1010;                    // Setting time-out value
+   WDOG->CS2    = WDOG_CS2_CLK(1);         // Setting 1-kHz clock source
+   WDOG->CS1    = WDOG_CS1_UPDATE_MASK;    // Disable watchdog
 }
 
 /**
@@ -113,10 +129,11 @@ void SystemInit(void) {
    clock_initialise();
 
    /* Use UART initialisation - if present */
-   uart_initialise(19200);
+   uart_initialise(DEFAULT_BAUD_RATE);
 
    /* Use RTC initialisation - if present */
    rtc_initialise();
+
 
 }
 

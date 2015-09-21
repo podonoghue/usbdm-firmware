@@ -10,7 +10,7 @@
 #include <string.h>
 #include "derivative.h"
 
-#define DEVICE_SUBFAMILY_CortexM0
+#define MKE02Z4
 
 /*
  * Security information
@@ -24,14 +24,43 @@ typedef struct {
    uint8_t  fopt;
 } SecurityInfo;
 
+//-------- <<< Use Configuration Wizard in Context Menu >>> -----------------
+
+/*
+<h> Flash security value (NV_FTFA_FSEC)
+   <o0> Backdoor Key Security Access Enable (FSEC.KEYEN)
+      <i> Controls use of Backdoor Key access to unsecure device
+      <0=> 0: Access disabled
+      <1=> 1: Access disabled (preferred disabled value)
+      <2=> 2: Access enabled
+      <3=> 3: Access disabled
+   <o1> Flash Security (FSEC.SEC)
+      <i> Defines the security state of the MCU. 
+      <i> In the secure state, the MCU limits access to flash memory module resources. 
+      <i> If the flash memory module is unsecured using backdoor key access, SEC is forced to 10b.
+      <0=> 0: Secured
+      <1=> 1: Secured
+      <2=> 2: Unsecured
+      <3=> 3: Secured
+</h>
+*/
+#define FSEC_VALUE ((3<<NV_FSEC_KEYEN_SHIFT)|(2<<NV_FSEC_SEC_SHIFT)|0x3C)
+
+/*
+<h> Flash option Value (NV_FTFA_FOPT)
+   <o> The FOPT value is copied from Flash to FTMRH_FOPT on reset  <0-255>
+</h>
+*/
+#define FOPT_VALUE (0xFF)
+
 __attribute__ ((section(".security_information")))
 const SecurityInfo securityInfo = {
     /* backdoor */ {0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF},
     /* reseved  */ 0xFFFFFFFF,
     /* eeprot   */ 0xFF,
     /* fprot    */ 0xFF,
-    /* fsec     */ 0xFE,
-    /* fopt     */ 0xFF,
+    /* fsec     */ FSEC_VALUE,
+    /* fopt     */ FOPT_VALUE,
 };
 
 /*
@@ -143,11 +172,7 @@ extern uint32_t __StackTop;
  * the weak default.
  */
 void NMI_Handler(void)                        WEAK_DEFAULT_HANDLER;
-void MemManage_Handler(void)                  WEAK_DEFAULT_HANDLER;
-void BusFault_Handler(void)                   WEAK_DEFAULT_HANDLER;
-void UsageFault_Handler(void)                 WEAK_DEFAULT_HANDLER;
 void SVC_Handler(void)                        WEAK_DEFAULT_HANDLER;
-void DebugMon_Handler(void)                   WEAK_DEFAULT_HANDLER;
 void PendSV_Handler(void)                     WEAK_DEFAULT_HANDLER;
 void SysTick_Handler(void)                    WEAK_DEFAULT_HANDLER;
 void FTMRH_IRQHandler(void)                   WEAK_DEFAULT_HANDLER;
@@ -166,8 +191,8 @@ void FTM1_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void FTM2_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void RTC_IRQHandler(void)                     WEAK_DEFAULT_HANDLER;
 void ACMP1_IRQHandler(void)                   WEAK_DEFAULT_HANDLER;
-void PIT_Ch0_IRQHandler(void)                 WEAK_DEFAULT_HANDLER;
-void PIT_Ch1_IRQHandler(void)                 WEAK_DEFAULT_HANDLER;
+void PIT_CH0_IRQHandler(void)                 WEAK_DEFAULT_HANDLER;
+void PIT_CH1_IRQHandler(void)                 WEAK_DEFAULT_HANDLER;
 void KBI0_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void KBI1_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void ICS_IRQHandler(void)                     WEAK_DEFAULT_HANDLER;
@@ -186,15 +211,15 @@ VectorTable const __vector_table = {
       __HardReset,                   /*    1   -15  Reset Handler                                                                    */
       NMI_Handler,                   /*    2,  -14  Non maskable Interrupt, cannot be stopped or preempted                           */
       HardFault_Handler,             /*    3,  -13  Hard Fault, all classes of Fault                                                 */
-      MemManage_Handler,             /*    4,  -12  Memory Management, MPU mismatch, including Access Violation and No Match         */
-      BusFault_Handler,              /*    5,  -11  Bus Fault, Pre-Fetch-, Memory Access Fault, other address/memory related Fault   */
-      UsageFault_Handler,            /*    6,  -10  Usage Fault, i.e. Undef Instruction, Illegal State Transition                    */
+      0,                             /*    4,  -12                                                                                   */
+      0,                             /*    5,  -11                                                                                   */
+      0,                             /*    6,  -10                                                                                   */
       0,                             /*    7,   -9                                                                                   */
       0,                             /*    8,   -8                                                                                   */
       0,                             /*    9,   -7                                                                                   */
       0,                             /*   10,   -6                                                                                   */
       SVC_Handler,                   /*   11,   -5  System Service Call via SVC instruction                                          */
-      DebugMon_Handler,              /*   12,   -4  Debug Monitor                                                                    */
+      0,                             /*   12,   -4                                                                                   */
       0,                             /*   13,   -3                                                                                   */
       PendSV_Handler,                /*   14,   -2  Pendable request for system service                                              */
       SysTick_Handler,               /*   15,   -1  System Tick Timer                                                                */
@@ -222,8 +247,8 @@ VectorTable const __vector_table = {
       FTM2_IRQHandler,               /*   35,   19  Flexible Timer Module 2                                                          */
       RTC_IRQHandler,                /*   36,   20  Real Time Clock overflow                                                         */
       ACMP1_IRQHandler,              /*   37,   21  Analogue comparator 0                                                            */
-      PIT_Ch0_IRQHandler,            /*   38,   22  Programmable Interrupt Timer Channel 0                                           */
-      PIT_Ch1_IRQHandler,            /*   39,   23  Programmable Interrupt Timer Channel 1                                           */
+      PIT_CH0_IRQHandler,            /*   38,   22  Programmable Interrupt Timer Channel 0                                           */
+      PIT_CH1_IRQHandler,            /*   39,   23  Programmable Interrupt Timer Channel 1                                           */
       KBI0_IRQHandler,               /*   40,   24  Keyboard Interrupt 0                                                             */
       KBI1_IRQHandler,               /*   41,   25  Keyboard Interrupt 1                                                             */
       Default_Handler,               /*   42,   26                                                                                   */
