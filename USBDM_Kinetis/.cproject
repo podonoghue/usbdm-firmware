@@ -1,35 +1,37 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?fileVersion 4.0.0?><cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
+<?fileVersion 4.0.0?>
+
+<cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
 	<storageModule moduleId="org.eclipse.cdt.core.settings">
 		<cconfiguration id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765" moduleId="org.eclipse.cdt.core.settings" name="OpenSDAv1">
 				<externalSettings/>
 				<extensions>
-					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${usbdm_rm_command} -rf" description="OpenSDA Version 1 (as on FRDM-K20)" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765" name="OpenSDAv1" parent="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration" postannouncebuildStep="Create hex file for bootloader" postbuildStep="arm-none-eabi-objcopy -O srec ${BuildArtifactFileBaseName}.elf ${BuildArtifactFileBaseName}.sx" preannouncebuildStep="" prebuildStep="">
+				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="${usbdm_rm_command} -rf" description="OpenSDA Version 1 (as on FRDM-K20)" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser;" id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765" isPrebuildInvalidatingBuild="false" name="OpenSDAv1" postannouncebuildStep="Create hex file for bootloader" postbuildStep="arm-none-eabi-objcopy -O srec ${BuildArtifactFileBaseName}.elf ${BuildArtifactFileBaseName}.sx" preannouncebuildStep="" prebuildStep="">
 					<folderInfo id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765." name="/" resourcePath="">
-						<toolChain id="net.sourceforge.usbdm.cdt.arm.exe.debug.toolchain.909016377" name="ARM-USBDM ToolChain" superClass="net.sourceforge.usbdm.cdt.arm.exe.debug.toolchain">
+						<toolChain id="net.sourceforge.usbdm.cdt.arm.exe.debug.toolchain.909016377" name="ARM-USBDM ToolChain">
 							<option defaultValue="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel.max" id="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel.332519052" name="Debug level" superClass="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel" valueType="enumerated"/>
 							<option defaultValue="net.sourceforge.usbdm.gnu.c.optimization.level.none" id="net.sourceforge.usbdm.cdt.toolchain.optimization.level.258827551" name="Optimization level" superClass="net.sourceforge.usbdm.cdt.toolchain.optimization.level" valueType="enumerated"/>
 							<option id="net.sourceforge.usbdm.cdt.arm.toolchain.mcpu.1870126923" name="Cpu (-mcpu=)" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.mcpu" value="net.sourceforge.usbdm.cdt.arm.toolchain.mcpu.cortexM4" valueType="enumerated"/>
 							<option id="net.sourceforge.usbdm.cdt.arm.toolchain.mthumb.935133095" name="Thumb Instruction set (-mthumb)" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.mthumb" value="true" valueType="boolean"/>
-							<targetPlatform binaryParser="org.eclipse.cdt.core.ELF" id="net.sourceforge.usbdm.cdt.toolchain.targetPlatform.1555106883" name="USBDM common base platform" superClass="net.sourceforge.usbdm.cdt.toolchain.targetPlatform"/>
-							<builder buildPath="${workspace_loc:/USBDM_Kinetis_Firmware}/OpenSDAv1" id="net.sourceforge.usbdm.cdt.toolchain.builder.1815708851" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" superClass="net.sourceforge.usbdm.cdt.toolchain.builder"/>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler.1664938783" name="ARM Assembler" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler">
+							<targetPlatform binaryParser="org.eclipse.cdt.core.ELF" id="net.sourceforge.usbdm.cdt.toolchain.targetPlatform.1555106883" name="USBDM common base platform"/>
+							<builder buildPath="${workspace_loc:/USBDM_Kinetis_Firmware}/OpenSDAv1" id="net.sourceforge.usbdm.cdt.toolchain.builder.1815708851" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" parallelBuildWorkspaceOn="true"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler.1664938783" name="ARM Assembler">
 								<option id="net.sourceforge.usbdm.cdt.toolchain.cppAssembler.Directories.includePaths.1784075923" name="Include paths (-I)" superClass="net.sourceforge.usbdm.cdt.toolchain.cppAssembler.Directories.includePaths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Project_Headers&quot;"/>
 								</option>
-								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler.inputType.1218920924" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler.inputType"/>
+								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler.inputType.1218920924"/>
 							</tool>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.1028457556" name="ARM C Compiler" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler">
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.1028457556" name="ARM C Compiler">
 								<option id="net.sourceforge.usbdm.gnu.c.compiler.option.include.paths.385007858" name="Include paths (-I)" superClass="net.sourceforge.usbdm.gnu.c.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Project_Headers&quot;"/>
 								</option>
@@ -38,9 +40,9 @@
 									<listOptionValue builtIn="false" value="CPU=MK20D5"/>
 									<listOptionValue builtIn="false" value="OPEN_SDA_V1"/>
 								</option>
-								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.input.1854103975" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.input"/>
+								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.input.1854103975"/>
 							</tool>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.495613800" name="ARM C++ Compiler" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler">
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.495613800" name="ARM C++ Compiler">
 								<option id="net.sourceforge.usbdm.gnu.cpp.compiler.option.include.paths.1322211166" name="Include paths (-I)" superClass="net.sourceforge.usbdm.gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Project_Headers&quot;"/>
 								</option>
@@ -49,11 +51,11 @@
 									<listOptionValue builtIn="false" value="CPU=MK20D5"/>
 									<listOptionValue builtIn="false" value="OPEN_SDA_V1"/>
 								</option>
-								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.input.832587667" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.input"/>
+								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.input.832587667"/>
 							</tool>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.archiver.837578816" name="ARM Archiver" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.archiver"/>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.c.linker.430909306" name="ARM C Linker" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.c.linker"/>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.linker.1014194886" name="ARM C++ Linker" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.linker">
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.archiver.837578816" name="ARM Archiver"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.c.linker.430909306" name="ARM C Linker"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.linker.1014194886" name="ARM C++ Linker">
 								<option id="gnu.cpp.link.option.paths.1955005114" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Project_Settings/Linker_Files&quot;"/>
 								</option>
@@ -64,9 +66,9 @@
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
 								</inputType>
 							</tool>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.lister.564376282" name="ARM Disassembler" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.lister"/>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.sizer.2133385066" name="ARM Sizer" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.sizer"/>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.sym.924166154" name="ARM Symbol Table" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.sym"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.lister.564376282" name="ARM Disassembler"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.sizer.2133385066" name="ARM Sizer"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.sym.924166154" name="ARM Symbol Table"/>
 						</toolChain>
 					</folderInfo>
 				</configuration>
@@ -77,31 +79,31 @@
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.115511992" moduleId="org.eclipse.cdt.core.settings" name="OpenSDAv2_0">
 				<externalSettings/>
 				<extensions>
-					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${usbdm_rm_command} -rf" description="OpenSDA Version 2 (as on FRDM-K64F)" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.115511992" name="OpenSDAv2_0" parent="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration" postannouncebuildStep="Create binary file for bootloader" postbuildStep="arm-none-eabi-objcopy  -O binary ${BuildArtifactFileBaseName}.elf ${BuildArtifactFileBaseName}.bin" preannouncebuildStep="" prebuildStep="">
+				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="${usbdm_rm_command} -rf" description="OpenSDA Version 2 (as on FRDM-K64F)" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser;" id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.115511992" isPrebuildInvalidatingBuild="false" name="OpenSDAv2_0" postannouncebuildStep="Create binary file for bootloader" postbuildStep="arm-none-eabi-objcopy  -O binary ${BuildArtifactFileBaseName}.elf ${BuildArtifactFileBaseName}.bin" preannouncebuildStep="" prebuildStep="">
 					<folderInfo id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.115511992." name="/" resourcePath="">
-						<toolChain id="net.sourceforge.usbdm.cdt.arm.exe.debug.toolchain.1763236059" name="ARM-USBDM ToolChain" superClass="net.sourceforge.usbdm.cdt.arm.exe.debug.toolchain">
+						<toolChain id="net.sourceforge.usbdm.cdt.arm.exe.debug.toolchain.1763236059" name="ARM-USBDM ToolChain">
 							<option defaultValue="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel.max" id="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel.48274654" name="Debug level" superClass="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel" valueType="enumerated"/>
 							<option defaultValue="net.sourceforge.usbdm.gnu.c.optimization.level.none" id="net.sourceforge.usbdm.cdt.toolchain.optimization.level.1075657696" name="Optimization level" superClass="net.sourceforge.usbdm.cdt.toolchain.optimization.level" valueType="enumerated"/>
 							<option id="net.sourceforge.usbdm.cdt.arm.toolchain.mcpu.951025058" name="Cpu (-mcpu=)" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.mcpu" value="net.sourceforge.usbdm.cdt.arm.toolchain.mcpu.cortexM4" valueType="enumerated"/>
 							<option id="net.sourceforge.usbdm.cdt.arm.toolchain.mthumb.95031986" name="Thumb Instruction set (-mthumb)" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.mthumb" value="true" valueType="boolean"/>
-							<targetPlatform binaryParser="org.eclipse.cdt.core.ELF" id="net.sourceforge.usbdm.cdt.toolchain.targetPlatform.1057202991" name="USBDM common base platform" superClass="net.sourceforge.usbdm.cdt.toolchain.targetPlatform"/>
-							<builder buildPath="${workspace_loc:/USBDM_Kinetis_Firmware}/OpenSDAv2_0" id="net.sourceforge.usbdm.cdt.toolchain.builder.1557229277" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" superClass="net.sourceforge.usbdm.cdt.toolchain.builder"/>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler.124434437" name="ARM Assembler" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler">
+							<targetPlatform binaryParser="org.eclipse.cdt.core.ELF" id="net.sourceforge.usbdm.cdt.toolchain.targetPlatform.1057202991" name="USBDM common base platform"/>
+							<builder buildPath="${workspace_loc:/USBDM_Kinetis_Firmware}/OpenSDAv2_0" id="net.sourceforge.usbdm.cdt.toolchain.builder.1557229277" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" parallelBuildWorkspaceOn="true"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler.124434437" name="ARM Assembler">
 								<option id="net.sourceforge.usbdm.cdt.toolchain.cppAssembler.Directories.includePaths.1409951373" name="Include paths (-I)" superClass="net.sourceforge.usbdm.cdt.toolchain.cppAssembler.Directories.includePaths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Project_Headers&quot;"/>
 								</option>
-								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler.inputType.1113305679" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler.inputType"/>
+								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler.inputType.1113305679"/>
 							</tool>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.135817104" name="ARM C Compiler" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler">
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.135817104" name="ARM C Compiler">
 								<option id="net.sourceforge.usbdm.gnu.c.compiler.option.include.paths.169381947" name="Include paths (-I)" superClass="net.sourceforge.usbdm.gnu.c.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Project_Headers&quot;"/>
 								</option>
@@ -110,9 +112,9 @@
 									<listOptionValue builtIn="false" value="CPU=MK20D5"/>
 									<listOptionValue builtIn="false" value="OPEN_SDA_V2=1"/>
 								</option>
-								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.input.1154278500" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.input"/>
+								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.input.1154278500"/>
 							</tool>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.2145590270" name="ARM C++ Compiler" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler">
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.2145590270" name="ARM C++ Compiler">
 								<option id="net.sourceforge.usbdm.gnu.cpp.compiler.option.include.paths.630804180" name="Include paths (-I)" superClass="net.sourceforge.usbdm.gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Project_Headers&quot;"/>
 								</option>
@@ -121,11 +123,11 @@
 									<listOptionValue builtIn="false" value="CPU=MK20D5"/>
 									<listOptionValue builtIn="false" value="OPEN_SDA_V2=1"/>
 								</option>
-								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.input.1110085778" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.input"/>
+								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.input.1110085778"/>
 							</tool>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.archiver.1155095354" name="ARM Archiver" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.archiver"/>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.c.linker.411358820" name="ARM C Linker" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.c.linker"/>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.linker.229652169" name="ARM C++ Linker" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.linker">
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.archiver.1155095354" name="ARM Archiver"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.c.linker.411358820" name="ARM C Linker"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.linker.229652169" name="ARM C++ Linker">
 								<option id="gnu.cpp.link.option.paths.1736960496" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Project_Settings/Linker_Files&quot;"/>
 								</option>
@@ -136,9 +138,9 @@
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
 								</inputType>
 							</tool>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.lister.22978641" name="ARM Disassembler" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.lister"/>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.sizer.829539229" name="ARM Sizer" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.sizer"/>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.sym.833485803" name="ARM Symbol Table" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.sym"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.lister.22978641" name="ARM Disassembler"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.sizer.829539229" name="ARM Sizer"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.sym.833485803" name="ARM Symbol Table"/>
 						</toolChain>
 					</folderInfo>
 				</configuration>
@@ -149,31 +151,31 @@
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.1303012057" moduleId="org.eclipse.cdt.core.settings" name="OpenSDAv1_Unique_ID">
 				<externalSettings/>
 				<extensions>
-					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${usbdm_rm_command} -rf" description="OpenSDA Version 1 (as on FRDM-K20) with semi-unique USB Serial number" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.1303012057" name="OpenSDAv1_Unique_ID" parent="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration" postannouncebuildStep="Create hex file for bootloader" postbuildStep="arm-none-eabi-objcopy -O srec ${BuildArtifactFileBaseName}.elf ${BuildArtifactFileBaseName}.sx" preannouncebuildStep="" prebuildStep="">
+				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="${usbdm_rm_command} -rf" description="OpenSDA Version 1 (as on FRDM-K20) with semi-unique USB Serial number" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser;" id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.1303012057" isPrebuildInvalidatingBuild="false" name="OpenSDAv1_Unique_ID" postannouncebuildStep="Create hex file for bootloader" postbuildStep="arm-none-eabi-objcopy -O srec ${BuildArtifactFileBaseName}.elf ${BuildArtifactFileBaseName}.sx" preannouncebuildStep="" prebuildStep="">
 					<folderInfo id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.1303012057." name="/" resourcePath="">
-						<toolChain id="net.sourceforge.usbdm.cdt.arm.exe.debug.toolchain.1396924845" name="ARM-USBDM ToolChain" superClass="net.sourceforge.usbdm.cdt.arm.exe.debug.toolchain">
+						<toolChain id="net.sourceforge.usbdm.cdt.arm.exe.debug.toolchain.1396924845" name="ARM-USBDM ToolChain">
 							<option defaultValue="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel.max" id="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel.1477095835" name="Debug level" superClass="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel" valueType="enumerated"/>
 							<option defaultValue="net.sourceforge.usbdm.gnu.c.optimization.level.none" id="net.sourceforge.usbdm.cdt.toolchain.optimization.level.897709335" name="Optimization level" superClass="net.sourceforge.usbdm.cdt.toolchain.optimization.level" valueType="enumerated"/>
 							<option id="net.sourceforge.usbdm.cdt.arm.toolchain.mcpu.5572428" name="Cpu (-mcpu=)" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.mcpu" value="net.sourceforge.usbdm.cdt.arm.toolchain.mcpu.cortexM4" valueType="enumerated"/>
 							<option id="net.sourceforge.usbdm.cdt.arm.toolchain.mthumb.436909657" name="Thumb Instruction set (-mthumb)" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.mthumb" value="true" valueType="boolean"/>
-							<targetPlatform binaryParser="org.eclipse.cdt.core.ELF" id="net.sourceforge.usbdm.cdt.toolchain.targetPlatform.225025098" name="USBDM common base platform" superClass="net.sourceforge.usbdm.cdt.toolchain.targetPlatform"/>
-							<builder buildPath="${workspace_loc:/USBDM_Kinetis_Firmware}/OpenSDAv1_Unique_ID" id="net.sourceforge.usbdm.cdt.toolchain.builder.362961009" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" superClass="net.sourceforge.usbdm.cdt.toolchain.builder"/>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler.845934644" name="ARM Assembler" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler">
+							<targetPlatform binaryParser="org.eclipse.cdt.core.ELF" id="net.sourceforge.usbdm.cdt.toolchain.targetPlatform.225025098" name="USBDM common base platform"/>
+							<builder buildPath="${workspace_loc:/USBDM_Kinetis_Firmware}/OpenSDAv1_Unique_ID" id="net.sourceforge.usbdm.cdt.toolchain.builder.362961009" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" parallelBuildWorkspaceOn="true"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler.845934644" name="ARM Assembler">
 								<option id="net.sourceforge.usbdm.cdt.toolchain.cppAssembler.Directories.includePaths.660108040" name="Include paths (-I)" superClass="net.sourceforge.usbdm.cdt.toolchain.cppAssembler.Directories.includePaths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Project_Headers&quot;"/>
 								</option>
-								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler.inputType.2033533497" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler.inputType"/>
+								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler.inputType.2033533497"/>
 							</tool>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.428371641" name="ARM C Compiler" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler">
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.428371641" name="ARM C Compiler">
 								<option id="net.sourceforge.usbdm.gnu.c.compiler.option.include.paths.1705419120" name="Include paths (-I)" superClass="net.sourceforge.usbdm.gnu.c.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Project_Headers&quot;"/>
 								</option>
@@ -183,9 +185,9 @@
 									<listOptionValue builtIn="false" value="OPEN_SDA_V1"/>
 									<listOptionValue builtIn="false" value="UNIQUE_ID"/>
 								</option>
-								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.input.1274335939" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.input"/>
+								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.input.1274335939"/>
 							</tool>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.372018656" name="ARM C++ Compiler" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler">
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.372018656" name="ARM C++ Compiler">
 								<option id="net.sourceforge.usbdm.gnu.cpp.compiler.option.include.paths.1682297839" name="Include paths (-I)" superClass="net.sourceforge.usbdm.gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Project_Headers&quot;"/>
 								</option>
@@ -195,11 +197,11 @@
 									<listOptionValue builtIn="false" value="OPEN_SDA_V1"/>
 									<listOptionValue builtIn="false" value="UNIQUE_ID"/>
 								</option>
-								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.input.2101194440" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.input"/>
+								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.input.2101194440"/>
 							</tool>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.archiver.658846724" name="ARM Archiver" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.archiver"/>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.c.linker.2142663585" name="ARM C Linker" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.c.linker"/>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.linker.1513916336" name="ARM C++ Linker" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.linker">
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.archiver.658846724" name="ARM Archiver"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.c.linker.2142663585" name="ARM C Linker"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.linker.1513916336" name="ARM C++ Linker">
 								<option id="net.sourceforge.usbdm.cdt.toolchain.cpp.linker.linkerFile.733496609" name="Linker File (-T option):" superClass="net.sourceforge.usbdm.cdt.toolchain.cpp.linker.linkerFile" value="OpenSDA.ld" valueType="string"/>
 								<option id="gnu.cpp.link.option.paths.1461956802" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Project_Settings/Linker_Files&quot;"/>
@@ -210,9 +212,9 @@
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
 								</inputType>
 							</tool>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.lister.1364958246" name="ARM Disassembler" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.lister"/>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.sizer.825111457" name="ARM Sizer" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.sizer"/>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.sym.634066123" name="ARM Symbol Table" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.sym"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.lister.1364958246" name="ARM Disassembler"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.sizer.825111457" name="ARM Sizer"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.sym.634066123" name="ARM Symbol Table"/>
 						</toolChain>
 					</folderInfo>
 				</configuration>
@@ -223,31 +225,31 @@
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.115511992.1563576321" moduleId="org.eclipse.cdt.core.settings" name="OpenSDAv2_0_Unique_ID">
 				<externalSettings/>
 				<extensions>
-					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${usbdm_rm_command} -rf" description="OpenSDA Version 2 (as on FRDM-K64F) with semi-unique USB Serial number" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.115511992.1563576321" name="OpenSDAv2_0_Unique_ID" parent="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration" postannouncebuildStep="Create binary file for bootloader" postbuildStep="arm-none-eabi-objcopy  -O binary ${BuildArtifactFileBaseName}.elf ${BuildArtifactFileBaseName}.bin" preannouncebuildStep="" prebuildStep="">
+				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="${usbdm_rm_command} -rf" description="OpenSDA Version 2 (as on FRDM-K64F) with semi-unique USB Serial number" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser;" id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.115511992.1563576321" isPrebuildInvalidatingBuild="false" name="OpenSDAv2_0_Unique_ID" postannouncebuildStep="Create binary file for bootloader" postbuildStep="arm-none-eabi-objcopy  -O binary ${BuildArtifactFileBaseName}.elf ${BuildArtifactFileBaseName}.bin" preannouncebuildStep="" prebuildStep="">
 					<folderInfo id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.115511992.1563576321." name="/" resourcePath="">
-						<toolChain id="net.sourceforge.usbdm.cdt.arm.exe.debug.toolchain.2073550527" name="ARM-USBDM ToolChain" superClass="net.sourceforge.usbdm.cdt.arm.exe.debug.toolchain">
+						<toolChain id="net.sourceforge.usbdm.cdt.arm.exe.debug.toolchain.2073550527" name="ARM-USBDM ToolChain">
 							<option defaultValue="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel.max" id="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel.1740649091" name="Debug level" superClass="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel" valueType="enumerated"/>
 							<option defaultValue="net.sourceforge.usbdm.gnu.c.optimization.level.none" id="net.sourceforge.usbdm.cdt.toolchain.optimization.level.878771010" name="Optimization level" superClass="net.sourceforge.usbdm.cdt.toolchain.optimization.level" valueType="enumerated"/>
 							<option id="net.sourceforge.usbdm.cdt.arm.toolchain.mcpu.1932852651" name="Cpu (-mcpu=)" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.mcpu" value="net.sourceforge.usbdm.cdt.arm.toolchain.mcpu.cortexM4" valueType="enumerated"/>
 							<option id="net.sourceforge.usbdm.cdt.arm.toolchain.mthumb.1482877699" name="Thumb Instruction set (-mthumb)" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.mthumb" value="true" valueType="boolean"/>
-							<targetPlatform binaryParser="org.eclipse.cdt.core.ELF" id="net.sourceforge.usbdm.cdt.toolchain.targetPlatform.681718190" name="USBDM common base platform" superClass="net.sourceforge.usbdm.cdt.toolchain.targetPlatform"/>
-							<builder buildPath="${workspace_loc:/USBDM_Kinetis_Firmware}/OpenSDAv2_0_Unique_ID" id="net.sourceforge.usbdm.cdt.toolchain.builder.1474011967" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" superClass="net.sourceforge.usbdm.cdt.toolchain.builder"/>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler.260651075" name="ARM Assembler" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler">
+							<targetPlatform binaryParser="org.eclipse.cdt.core.ELF" id="net.sourceforge.usbdm.cdt.toolchain.targetPlatform.681718190" name="USBDM common base platform"/>
+							<builder buildPath="${workspace_loc:/USBDM_Kinetis_Firmware}/OpenSDAv2_0_Unique_ID" id="net.sourceforge.usbdm.cdt.toolchain.builder.1474011967" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" parallelBuildWorkspaceOn="true"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler.260651075" name="ARM Assembler">
 								<option id="net.sourceforge.usbdm.cdt.toolchain.cppAssembler.Directories.includePaths.1453225357" name="Include paths (-I)" superClass="net.sourceforge.usbdm.cdt.toolchain.cppAssembler.Directories.includePaths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Project_Headers&quot;"/>
 								</option>
-								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler.inputType.1781723149" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler.inputType"/>
+								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler.inputType.1781723149"/>
 							</tool>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.2096105147" name="ARM C Compiler" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler">
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.2096105147" name="ARM C Compiler">
 								<option id="net.sourceforge.usbdm.gnu.c.compiler.option.include.paths.1690475657" name="Include paths (-I)" superClass="net.sourceforge.usbdm.gnu.c.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Project_Headers&quot;"/>
 								</option>
@@ -257,9 +259,9 @@
 									<listOptionValue builtIn="false" value="OPEN_SDA_V2=1"/>
 									<listOptionValue builtIn="false" value="UNIQUE_ID=1"/>
 								</option>
-								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.input.2075519153" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.input"/>
+								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.input.2075519153"/>
 							</tool>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.483385833" name="ARM C++ Compiler" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler">
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.483385833" name="ARM C++ Compiler">
 								<option id="net.sourceforge.usbdm.gnu.cpp.compiler.option.include.paths.1133642870" name="Include paths (-I)" superClass="net.sourceforge.usbdm.gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Project_Headers&quot;"/>
 								</option>
@@ -269,11 +271,11 @@
 									<listOptionValue builtIn="false" value="OPEN_SDA_V2=1"/>
 									<listOptionValue builtIn="false" value="UNIQUE_ID=1"/>
 								</option>
-								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.input.32463738" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.input"/>
+								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.input.32463738"/>
 							</tool>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.archiver.628094526" name="ARM Archiver" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.archiver"/>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.c.linker.544820807" name="ARM C Linker" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.c.linker"/>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.linker.1816745392" name="ARM C++ Linker" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.linker">
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.archiver.628094526" name="ARM Archiver"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.c.linker.544820807" name="ARM C Linker"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.linker.1816745392" name="ARM C++ Linker">
 								<option id="net.sourceforge.usbdm.cdt.toolchain.cpp.linker.linkerFile.1829054589" name="Linker File (-T option):" superClass="net.sourceforge.usbdm.cdt.toolchain.cpp.linker.linkerFile" value="OpenSDAv2_0.ld" valueType="string"/>
 								<option id="gnu.cpp.link.option.paths.78791840" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Project_Settings/Linker_Files&quot;"/>
@@ -284,9 +286,9 @@
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
 								</inputType>
 							</tool>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.lister.2035087291" name="ARM Disassembler" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.lister"/>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.sizer.132022799" name="ARM Sizer" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.sizer"/>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.sym.319450608" name="ARM Symbol Table" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.sym"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.lister.2035087291" name="ARM Disassembler"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.sizer.132022799" name="ARM Sizer"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.sym.319450608" name="ARM Symbol Table"/>
 						</toolChain>
 					</folderInfo>
 				</configuration>
@@ -297,31 +299,31 @@
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.262006593" moduleId="org.eclipse.cdt.core.settings" name="Debug">
 				<externalSettings/>
 				<extensions>
-					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${usbdm_rm_command} -rf" description="Default load address for testing on bare hardware without bootloader" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.262006593" name="Debug" parent="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration" postannouncebuildStep="" postbuildStep="" preannouncebuildStep="" prebuildStep="">
+				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="${usbdm_rm_command} -rf" description="Default load address for testing on bare hardware without bootloader" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser;" id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.262006593" isPrebuildInvalidatingBuild="false" name="Debug" postannouncebuildStep="" postbuildStep="" preannouncebuildStep="" prebuildStep="">
 					<folderInfo id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.262006593." name="/" resourcePath="">
-						<toolChain id="net.sourceforge.usbdm.cdt.arm.exe.debug.toolchain.951461042" name="ARM-USBDM ToolChain" superClass="net.sourceforge.usbdm.cdt.arm.exe.debug.toolchain">
+						<toolChain id="net.sourceforge.usbdm.cdt.arm.exe.debug.toolchain.951461042" name="ARM-USBDM ToolChain">
 							<option defaultValue="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel.max" id="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel.432091979" name="Debug level" superClass="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel" value="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel.max" valueType="enumerated"/>
 							<option defaultValue="net.sourceforge.usbdm.gnu.c.optimization.level.none" id="net.sourceforge.usbdm.cdt.toolchain.optimization.level.752494632" name="Optimization level" superClass="net.sourceforge.usbdm.cdt.toolchain.optimization.level" value="net.sourceforge.usbdm.gnu.c.optimization.level.none" valueType="enumerated"/>
 							<option id="net.sourceforge.usbdm.cdt.arm.toolchain.mcpu.1812954013" name="Cpu (-mcpu=)" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.mcpu" value="net.sourceforge.usbdm.cdt.arm.toolchain.mcpu.cortexM4" valueType="enumerated"/>
 							<option id="net.sourceforge.usbdm.cdt.arm.toolchain.mthumb.250191366" name="Thumb Instruction set (-mthumb)" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.mthumb" value="true" valueType="boolean"/>
-							<targetPlatform binaryParser="org.eclipse.cdt.core.ELF" id="net.sourceforge.usbdm.cdt.toolchain.targetPlatform.201875744" name="USBDM common base platform" superClass="net.sourceforge.usbdm.cdt.toolchain.targetPlatform"/>
-							<builder buildPath="${workspace_loc:/USBDM_Kinetis_Firmware}/Debug" id="net.sourceforge.usbdm.cdt.toolchain.builder.517289084" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" superClass="net.sourceforge.usbdm.cdt.toolchain.builder"/>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler.362286141" name="ARM Assembler" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler">
+							<targetPlatform binaryParser="org.eclipse.cdt.core.ELF" id="net.sourceforge.usbdm.cdt.toolchain.targetPlatform.201875744" name="USBDM common base platform"/>
+							<builder buildPath="${workspace_loc:/USBDM_Kinetis_Firmware}/Debug" id="net.sourceforge.usbdm.cdt.toolchain.builder.517289084" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" parallelBuildWorkspaceOn="true"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler.362286141" name="ARM Assembler">
 								<option id="net.sourceforge.usbdm.cdt.toolchain.cppAssembler.Directories.includePaths.1152744935" name="Include paths (-I)" superClass="net.sourceforge.usbdm.cdt.toolchain.cppAssembler.Directories.includePaths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Project_Headers&quot;"/>
 								</option>
-								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler.inputType.881545105" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler.inputType"/>
+								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler.inputType.881545105"/>
 							</tool>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.1553143265" name="ARM C Compiler" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler">
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.1553143265" name="ARM C Compiler">
 								<option id="net.sourceforge.usbdm.gnu.c.compiler.option.include.paths.1160921801" name="Include paths (-I)" superClass="net.sourceforge.usbdm.gnu.c.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Project_Headers&quot;"/>
 								</option>
@@ -330,9 +332,9 @@
 									<listOptionValue builtIn="false" value="CPU=MK20D5"/>
 									<listOptionValue builtIn="false" value="TARGET_DEBUG"/>
 								</option>
-								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.input.1516455721" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.input"/>
+								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.input.1516455721"/>
 							</tool>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.432549869" name="ARM C++ Compiler" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler">
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.432549869" name="ARM C++ Compiler">
 								<option id="net.sourceforge.usbdm.gnu.cpp.compiler.option.include.paths.2134509670" name="Include paths (-I)" superClass="net.sourceforge.usbdm.gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Project_Headers&quot;"/>
 								</option>
@@ -341,11 +343,11 @@
 									<listOptionValue builtIn="false" value="CPU=MK20D5"/>
 									<listOptionValue builtIn="false" value="TARGET_DEBUG"/>
 								</option>
-								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.input.1405267420" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.input"/>
+								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.input.1405267420"/>
 							</tool>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.archiver.284346267" name="ARM Archiver" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.archiver"/>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.c.linker.674091424" name="ARM C Linker" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.c.linker"/>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.linker.2139597326" name="ARM C++ Linker" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.linker">
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.archiver.284346267" name="ARM Archiver"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.c.linker.674091424" name="ARM C Linker"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.linker.2139597326" name="ARM C++ Linker">
 								<option id="net.sourceforge.usbdm.cdt.toolchain.cpp.linker.linkerFile.1125577759" name="Linker File (-T option):" superClass="net.sourceforge.usbdm.cdt.toolchain.cpp.linker.linkerFile" value="ARMLtd_GCC-rom.ld" valueType="string"/>
 								<option id="gnu.cpp.link.option.paths.1332103200" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Project_Settings/Linker_Files&quot;"/>
@@ -356,11 +358,11 @@
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
 								</inputType>
 							</tool>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.lister.226166328" name="ARM Disassembler" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.lister"/>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.sizer.1798798566" name="ARM Sizer" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.sizer">
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.lister.226166328" name="ARM Disassembler"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.sizer.1798798566" name="ARM Sizer">
 								<option id="net.sourceforge.usbdm.cdt.toolchain.sizer.format.1567561228" name="Output format (--format=)" superClass="net.sourceforge.usbdm.cdt.toolchain.sizer.format" value="net.sourceforge.usbdm.cdt.toolchain.sizer.format.sysv" valueType="enumerated"/>
 							</tool>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.sym.1674661297" name="ARM Symbol Table" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.sym"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.sym.1674661297" name="ARM Symbol Table"/>
 						</toolChain>
 					</folderInfo>
 				</configuration>
@@ -371,31 +373,31 @@
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.115511992.1419787998" moduleId="org.eclipse.cdt.core.settings" name="OpenSDAv2_1">
 				<externalSettings/>
 				<extensions>
-					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${usbdm_rm_command} -rf" description="OpenSDA Version 2 (as on FRDM-K22F)" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.115511992.1419787998" name="OpenSDAv2_1" parent="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration" postannouncebuildStep="Create binary file for bootloader" postbuildStep="arm-none-eabi-objcopy  -O binary ${BuildArtifactFileBaseName}.elf ${BuildArtifactFileBaseName}.bin" preannouncebuildStep="" prebuildStep="">
+				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="${usbdm_rm_command} -rf" description="OpenSDA Version 2 (as on FRDM-K22F)" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser;" id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.115511992.1419787998" isPrebuildInvalidatingBuild="false" name="OpenSDAv2_1" postannouncebuildStep="Create binary file for bootloader" postbuildStep="arm-none-eabi-objcopy  -O binary ${BuildArtifactFileBaseName}.elf ${BuildArtifactFileBaseName}.bin" preannouncebuildStep="" prebuildStep="">
 					<folderInfo id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.115511992.1419787998." name="/" resourcePath="">
-						<toolChain id="net.sourceforge.usbdm.cdt.arm.exe.debug.toolchain.1821117233" name="ARM-USBDM ToolChain" superClass="net.sourceforge.usbdm.cdt.arm.exe.debug.toolchain">
+						<toolChain id="net.sourceforge.usbdm.cdt.arm.exe.debug.toolchain.1821117233" name="ARM-USBDM ToolChain">
 							<option defaultValue="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel.max" id="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel.1110791632" name="Debug level" superClass="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel" valueType="enumerated"/>
 							<option defaultValue="net.sourceforge.usbdm.gnu.c.optimization.level.none" id="net.sourceforge.usbdm.cdt.toolchain.optimization.level.1613749615" name="Optimization level" superClass="net.sourceforge.usbdm.cdt.toolchain.optimization.level" valueType="enumerated"/>
 							<option id="net.sourceforge.usbdm.cdt.arm.toolchain.mcpu.754915493" name="Cpu (-mcpu=)" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.mcpu" value="net.sourceforge.usbdm.cdt.arm.toolchain.mcpu.cortexM4" valueType="enumerated"/>
 							<option id="net.sourceforge.usbdm.cdt.arm.toolchain.mthumb.499712530" name="Thumb Instruction set (-mthumb)" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.mthumb" value="true" valueType="boolean"/>
-							<targetPlatform binaryParser="org.eclipse.cdt.core.ELF" id="net.sourceforge.usbdm.cdt.toolchain.targetPlatform.2069039251" name="USBDM common base platform" superClass="net.sourceforge.usbdm.cdt.toolchain.targetPlatform"/>
-							<builder buildPath="${workspace_loc:/USBDM_Kinetis_Firmware}/OpenSDAv2_1" id="net.sourceforge.usbdm.cdt.toolchain.builder.1067766670" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" superClass="net.sourceforge.usbdm.cdt.toolchain.builder"/>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler.1294096522" name="ARM Assembler" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler">
+							<targetPlatform binaryParser="org.eclipse.cdt.core.ELF" id="net.sourceforge.usbdm.cdt.toolchain.targetPlatform.2069039251" name="USBDM common base platform"/>
+							<builder buildPath="${workspace_loc:/USBDM_Kinetis_Firmware}/OpenSDAv2_1" id="net.sourceforge.usbdm.cdt.toolchain.builder.1067766670" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" parallelBuildWorkspaceOn="true"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler.1294096522" name="ARM Assembler">
 								<option id="net.sourceforge.usbdm.cdt.toolchain.cppAssembler.Directories.includePaths.1416483865" name="Include paths (-I)" superClass="net.sourceforge.usbdm.cdt.toolchain.cppAssembler.Directories.includePaths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Project_Headers&quot;"/>
 								</option>
-								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler.inputType.1343991453" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler.inputType"/>
+								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler.inputType.1343991453"/>
 							</tool>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.2117876867" name="ARM C Compiler" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler">
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.2117876867" name="ARM C Compiler">
 								<option id="net.sourceforge.usbdm.gnu.c.compiler.option.include.paths.2078894352" name="Include paths (-I)" superClass="net.sourceforge.usbdm.gnu.c.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Project_Headers&quot;"/>
 								</option>
@@ -404,9 +406,9 @@
 									<listOptionValue builtIn="false" value="CPU=MK20D5"/>
 									<listOptionValue builtIn="false" value="OPEN_SDA_V2=1"/>
 								</option>
-								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.input.2102074270" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.input"/>
+								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.input.2102074270"/>
 							</tool>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.1396905928" name="ARM C++ Compiler" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler">
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.1396905928" name="ARM C++ Compiler">
 								<option id="net.sourceforge.usbdm.gnu.cpp.compiler.option.include.paths.888978143" name="Include paths (-I)" superClass="net.sourceforge.usbdm.gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Project_Headers&quot;"/>
 								</option>
@@ -415,11 +417,11 @@
 									<listOptionValue builtIn="false" value="CPU=MK20D5"/>
 									<listOptionValue builtIn="false" value="OPEN_SDA_V2=1"/>
 								</option>
-								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.input.889857843" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.input"/>
+								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.input.889857843"/>
 							</tool>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.archiver.494681553" name="ARM Archiver" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.archiver"/>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.c.linker.919592292" name="ARM C Linker" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.c.linker"/>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.linker.400562432" name="ARM C++ Linker" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.linker">
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.archiver.494681553" name="ARM Archiver"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.c.linker.919592292" name="ARM C Linker"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.linker.400562432" name="ARM C++ Linker">
 								<option id="net.sourceforge.usbdm.cdt.toolchain.cpp.linker.linkerFile.170453126" name="Linker File (-T option):" superClass="net.sourceforge.usbdm.cdt.toolchain.cpp.linker.linkerFile" value="OpenSDAv2_1.ld" valueType="string"/>
 								<option id="gnu.cpp.link.option.paths.1112384914" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Project_Settings/Linker_Files&quot;"/>
@@ -430,9 +432,9 @@
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
 								</inputType>
 							</tool>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.lister.1968056648" name="ARM Disassembler" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.lister"/>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.sizer.453202807" name="ARM Sizer" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.sizer"/>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.sym.1914410042" name="ARM Symbol Table" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.sym"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.lister.1968056648" name="ARM Disassembler"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.sizer.453202807" name="ARM Sizer"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.sym.1914410042" name="ARM Symbol Table"/>
 						</toolChain>
 					</folderInfo>
 				</configuration>
@@ -443,31 +445,31 @@
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.115511992.1563576321.1649641685" moduleId="org.eclipse.cdt.core.settings" name="OpenSDAv2_1_Unique_ID">
 				<externalSettings/>
 				<extensions>
-					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${usbdm_rm_command} -rf" description="OpenSDA Version 2 (as on FRDM-K22F) with semi-unique USB Serial number" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.115511992.1563576321.1649641685" name="OpenSDAv2_1_Unique_ID" parent="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration" postannouncebuildStep="Create binary file for bootloader" postbuildStep="arm-none-eabi-objcopy  -O binary ${BuildArtifactFileBaseName}.elf ${BuildArtifactFileBaseName}.bin" preannouncebuildStep="" prebuildStep="">
+				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="${usbdm_rm_command} -rf" description="OpenSDA Version 2 (as on FRDM-K22F) with semi-unique USB Serial number" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser;" id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.115511992.1563576321.1649641685" isPrebuildInvalidatingBuild="false" name="OpenSDAv2_1_Unique_ID" postannouncebuildStep="Create binary file for bootloader" postbuildStep="arm-none-eabi-objcopy  -O binary ${BuildArtifactFileBaseName}.elf ${BuildArtifactFileBaseName}.bin" preannouncebuildStep="" prebuildStep="">
 					<folderInfo id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.115511992.1563576321.1649641685." name="/" resourcePath="">
-						<toolChain id="net.sourceforge.usbdm.cdt.arm.exe.debug.toolchain.1748698142" name="ARM-USBDM ToolChain" superClass="net.sourceforge.usbdm.cdt.arm.exe.debug.toolchain">
+						<toolChain id="net.sourceforge.usbdm.cdt.arm.exe.debug.toolchain.1748698142" name="ARM-USBDM ToolChain">
 							<option defaultValue="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel.max" id="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel.676621727" name="Debug level" superClass="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel" valueType="enumerated"/>
 							<option defaultValue="net.sourceforge.usbdm.gnu.c.optimization.level.none" id="net.sourceforge.usbdm.cdt.toolchain.optimization.level.30529500" name="Optimization level" superClass="net.sourceforge.usbdm.cdt.toolchain.optimization.level" valueType="enumerated"/>
 							<option id="net.sourceforge.usbdm.cdt.arm.toolchain.mcpu.198801004" name="Cpu (-mcpu=)" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.mcpu" value="net.sourceforge.usbdm.cdt.arm.toolchain.mcpu.cortexM4" valueType="enumerated"/>
 							<option id="net.sourceforge.usbdm.cdt.arm.toolchain.mthumb.45856877" name="Thumb Instruction set (-mthumb)" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.mthumb" value="true" valueType="boolean"/>
-							<targetPlatform binaryParser="org.eclipse.cdt.core.ELF" id="net.sourceforge.usbdm.cdt.toolchain.targetPlatform.267763007" name="USBDM common base platform" superClass="net.sourceforge.usbdm.cdt.toolchain.targetPlatform"/>
-							<builder buildPath="${workspace_loc:/USBDM_Kinetis_Firmware}/OpenSDAv2_1_Unique_ID" id="net.sourceforge.usbdm.cdt.toolchain.builder.1513936354" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" superClass="net.sourceforge.usbdm.cdt.toolchain.builder"/>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler.1442626238" name="ARM Assembler" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler">
+							<targetPlatform binaryParser="org.eclipse.cdt.core.ELF" id="net.sourceforge.usbdm.cdt.toolchain.targetPlatform.267763007" name="USBDM common base platform"/>
+							<builder buildPath="${workspace_loc:/USBDM_Kinetis_Firmware}/OpenSDAv2_1_Unique_ID" id="net.sourceforge.usbdm.cdt.toolchain.builder.1513936354" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" parallelBuildWorkspaceOn="true"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler.1442626238" name="ARM Assembler">
 								<option id="net.sourceforge.usbdm.cdt.toolchain.cppAssembler.Directories.includePaths.563361270" name="Include paths (-I)" superClass="net.sourceforge.usbdm.cdt.toolchain.cppAssembler.Directories.includePaths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Project_Headers&quot;"/>
 								</option>
-								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler.inputType.401619709" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler.inputType"/>
+								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler.inputType.401619709"/>
 							</tool>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.1151525903" name="ARM C Compiler" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler">
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.1151525903" name="ARM C Compiler">
 								<option id="net.sourceforge.usbdm.gnu.c.compiler.option.include.paths.121048181" name="Include paths (-I)" superClass="net.sourceforge.usbdm.gnu.c.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Project_Headers&quot;"/>
 								</option>
@@ -477,9 +479,9 @@
 									<listOptionValue builtIn="false" value="OPEN_SDA_V2=1"/>
 									<listOptionValue builtIn="false" value="UNIQUE_ID=1"/>
 								</option>
-								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.input.1743970055" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.input"/>
+								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.input.1743970055"/>
 							</tool>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.657717774" name="ARM C++ Compiler" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler">
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.657717774" name="ARM C++ Compiler">
 								<option id="net.sourceforge.usbdm.gnu.cpp.compiler.option.include.paths.1491639183" name="Include paths (-I)" superClass="net.sourceforge.usbdm.gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Project_Headers&quot;"/>
 								</option>
@@ -489,11 +491,11 @@
 									<listOptionValue builtIn="false" value="OPEN_SDA_V2=1"/>
 									<listOptionValue builtIn="false" value="UNIQUE_ID=1"/>
 								</option>
-								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.input.158628322" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.input"/>
+								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.input.158628322"/>
 							</tool>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.archiver.592653810" name="ARM Archiver" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.archiver"/>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.c.linker.1215874582" name="ARM C Linker" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.c.linker"/>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.linker.964730100" name="ARM C++ Linker" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.linker">
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.archiver.592653810" name="ARM Archiver"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.c.linker.1215874582" name="ARM C Linker"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.linker.964730100" name="ARM C++ Linker">
 								<option id="net.sourceforge.usbdm.cdt.toolchain.cpp.linker.linkerFile.888480078" name="Linker File (-T option):" superClass="net.sourceforge.usbdm.cdt.toolchain.cpp.linker.linkerFile" value="OpenSDAv2_1.ld" valueType="string"/>
 								<option id="gnu.cpp.link.option.paths.1959898195" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Project_Settings/Linker_Files&quot;"/>
@@ -504,9 +506,9 @@
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
 								</inputType>
 							</tool>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.lister.1339027555" name="ARM Disassembler" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.lister"/>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.sizer.1678254406" name="ARM Sizer" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.sizer"/>
-							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.sym.1941187861" name="ARM Symbol Table" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.sym"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.lister.1339027555" name="ARM Disassembler"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.sizer.1678254406" name="ARM Sizer"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.sym.1941187861" name="ARM Symbol Table"/>
 						</toolChain>
 					</folderInfo>
 				</configuration>
@@ -515,7 +517,7 @@
 		</cconfiguration>
 	</storageModule>
 	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-		<project id="USBDM_Kinetis.net.sourceforge.usbdm.cdt.projectType.exe.1572943772" name="Executable" projectType="net.sourceforge.usbdm.cdt.projectType.exe"/>
+		<project id="USBDM_Kinetis.net.sourceforge.usbdm.cdt.projectType.exe.1572943772" name="Executable"/>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
 	<storageModule moduleId="refreshScope" versionNumber="2">

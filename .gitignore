@@ -1,2 +1,6 @@
 Debug/
 Release/
+/.metadata/
+/RemoteLaunch/
+/RemoteSystemsTempFiles/
+com.freescale.core.ide.cdt.toolchain.prefs
