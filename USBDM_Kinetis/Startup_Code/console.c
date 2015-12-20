@@ -1,5 +1,5 @@
 /*
- * uart-mk.c
+ * console-mk.c
  *
  *  Created on: 14/04/2013
  *      Author: pgo
@@ -8,7 +8,7 @@
 #include <derivative.h>
 #include "system.h"
 #include "clock_configure.h"
-#include "uart.h"
+#include "console.h"
 
 //#define USE_IRQ
 
@@ -180,7 +180,7 @@ inline static void initDefaultUart()  {
  *
  * @param baudrate - the baud rate to use e.g. DEFAULT_BAUD_RATE
  */
-void uart_initialise(int baudrate) {
+void console_initialise(int baudrate) {
    initDefaultUart();
 
    // Disable UART before changing registers
@@ -218,7 +218,7 @@ void uart_initialise(int baudrate) {
  *
  * @param ch - character to send
  */
-void uart_txChar(int ch) {
+void console_txChar(int ch) {
    while ((UART->S1 & UART_S1_TDRE_MASK) == 0) {
       // Wait for Tx buffer empty
       __asm__("nop");
@@ -254,7 +254,7 @@ void UART0_Error_IRQHandler() {
  *
  * @return - character received
  */
-int uart_rxChar(void) {
+int console_rxChar(void) {
 
    // Wait for character
    while (rxGetPtr==rxPutPtr) {
@@ -277,7 +277,7 @@ int uart_rxChar(void) {
  *
  * @return - character received
  */
-int uart_rxChar(void) {
+int console_rxChar(void) {
    uint8_t status;
    // Wait for Rx buffer full
    do {
@@ -288,7 +288,7 @@ int uart_rxChar(void) {
       }
    }  while ((status & UART_S1_RDRF_MASK) == 0);
    int ch = UART->D;
-//   uart_txChar(ch);
+//   console_txChar(ch);
    if (ch == '\r') {
       ch = '\n';
    }

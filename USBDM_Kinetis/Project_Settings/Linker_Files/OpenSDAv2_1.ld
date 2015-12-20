@@ -294,6 +294,13 @@ M_VECTOR_RAM_SIZE = DEFINED(__ram_vector_table__) ? (__VECTOR_TABLE_END - __VECT
   PROVIDE(__cs3_stack = __StackTop);
   
   /*
+   * These are very 'weak' to ensure semi-hosting version 
+   * will be used for rdimon.specs option
+   */
+  PROVIDE(_write = _usbdm_write);
+  PROVIDE(_read  = _usbdm_read);
+
+  /*
    RAM Memory map                                            Example
   +----------------------+                                   0x1FFFFF00
   | Micro Trace Buffer   |

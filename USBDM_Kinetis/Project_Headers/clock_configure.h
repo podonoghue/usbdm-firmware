@@ -296,7 +296,7 @@ extern "C" {
 //     <0=>
 //     <1=> +16pF
 
-#define OSC_CR_SCP_M ((1<<OSC_CR_SC2P_SHIFT)|(1<<OSC_CR_SC4P_SHIFT)|(0<<OSC_CR_SC8P_SHIFT)|(1<<OSC_CR_SC16P_SHIFT))
+#define OSC_CR_SCP_M ((0<<OSC_CR_SC2P_SHIFT)|(0<<OSC_CR_SC4P_SHIFT)|(0<<OSC_CR_SC8P_SHIFT)|(1<<OSC_CR_SC16P_SHIFT))
 // </h>
 
 //========================================================================================

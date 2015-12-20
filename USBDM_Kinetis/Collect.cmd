@@ -1,6 +1,8 @@
 @echo off
 cls
 
+set HOME_DIR=%~dp0
+
 rem ***  Paths to various things
 set VERSION_NUMBER=4
 set VERSION_MINOR_NUMBER=10
@@ -11,7 +13,7 @@ set USBDM_ROOT=C:\Users\podonoghue\Documents\Development\USBDM
 
 set ECLIPSE_ROOT=%USBDM_ROOT%\usbdm-eclipse-makefiles-build
 
-set CW_Kinetis_ROOT=%ECLIPSE_ROOT%\USBDM_Kinetis_Firmware
+set CW_Kinetis_ROOT=%HOME_DIR%
 set FLASH_DIR=%ECLIPSE_ROOT%\PackageFiles\FlashImages
 set MK_FLASH_DIR="%FLASH_DIR%\MKxxNew"
 

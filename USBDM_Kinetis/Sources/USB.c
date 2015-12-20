@@ -254,7 +254,7 @@ static const DeviceDescriptor deviceDescriptor = {
 #else
    CONST_NATIVE_TO_LE16(ProductID),        // idProduct          = Product ID
 #endif
-   CONST_NATIVE_TO_LE16(0x0410),           // bcdDevice          = Device Release         [BCD = 4.10]
+   CONST_NATIVE_TO_LE16(VersionID),        // bcdDevice          = Device Release         [BCD = 4.10]
    1,                                      // iManufacturer      = String index of Manufacturer name
    2,                                      // iProduct           = String index of product desc.
    3,                                      // iSerialNumber      = String index desc. serial #

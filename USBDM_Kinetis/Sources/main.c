@@ -7,7 +7,7 @@
 #include "CmdProcessing.h"
 #include "BDMCommon.h"
 
-#include "uart.h"
+#include "console.h"
 
 void initPorts(void) {
    // Enable all port clocks
@@ -209,7 +209,7 @@ void init() {
 
 int main(void) {
 
-   uart_initialise(115200);
+   console_initialise(115200);
    puts("Starting\n");
    
 #ifdef DEBUG_TEST_LOOP

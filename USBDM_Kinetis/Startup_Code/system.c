@@ -19,6 +19,12 @@ __attribute__((__weak__))
 void SystemCoreClockUpdate(void) {
 }
 
+/* This is overridden if actual clock code is provided */
+__attribute__((__weak__))
+uint32_t SystemBusClock  = 8000000;
+__attribute__((__weak__))
+uint32_t SystemCoreClock = 4000000;
+
 /* Actual Vector table */
 extern int const __vector_table[];
 
@@ -57,7 +63,7 @@ void clock_initialise() {
 
 /* This definition is overridden if UART initialisation is provided */
 __attribute__((__weak__))
-void uart_initialise(int baudRate __attribute__((__unused__))) {
+void console_initialise(int baudRate __attribute__((__unused__))) {
 }
 
 /* This definition is overridden if RTC initialisation is provided */
@@ -86,15 +92,15 @@ void SystemInitLowLevel(void) {
    /* It may not be correct for a specific target */
 
    /* Set the interrupt vector table position */
-   SCB->VTOR = (uint32_t)__vector_table;
-
-   // Restore reset settings + Div0 trap
-   SCB->CCR =SCB_CCR_STKALIGN_Msk|SCB_CCR_DIV_0_TRP_Msk;
+   SCB_VTOR = (uint32_t)__vector_table;
 
    // Disable watch-dog
    WDOG_UNLOCK  = KINETIS_WDOG_UNLOCK_SEQ_1;
    WDOG_UNLOCK  = KINETIS_WDOG_UNLOCK_SEQ_2;
    WDOG_STCTRLH = KINETIS_WDOG_DISABLED_CTRL;
+
+   // Enable trapping of divide by zero
+   SCB_CCR |= SCB_CCR_DIV_0_TRP_Msk;
 }
 
 /**
@@ -110,7 +116,7 @@ void SystemInit(void) {
    clock_initialise();
 
    /* Use UART initialisation - if present */
-   uart_initialise(DEFAULT_BAUD_RATE);
+   console_initialise(DEFAULT_BAUD_RATE);
 
    /* Use RTC initialisation - if present */
    rtc_initialise();

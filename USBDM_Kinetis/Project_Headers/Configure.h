@@ -155,6 +155,17 @@ extern void dputs(char *msg);
 #define VERSION_MICRO 1
 #define VERSION_STR "4.12.1"
 #define VERSION_SW  ((VERSION_MAJOR<<4)+VERSION_MINOR)
+
+#define VendorID        (0x16D0)       // Vendor (actually MCS)
+#define ProductID       (0x0567)       // Non-CDC versions
+#define ProductID_CDC   (0x06A5)       // CDC versions
+#define VersionID       (VERSION_SW)   // Reported version (via USB)
+
+//#define ProductID (0x9999) // Testing
+//#define ProductID (0x06A5) // Alternative number (from MCS)
+//#define ProductID (0x06A6) // Alternative number (from MCS)
+
+
 //! Selected hardware platform
 #if TARGET_HARDWARE==H_USBDM_JMxxCLD
 #include "USBDM_JMxxCLD.h" // Deluxe USBDM - see schematic
@@ -245,14 +256,6 @@ extern void dputs(char *msg);
 #ifndef PLATFORM
 #define PLATFORM USBDM   // Choose BDM emulation
 #endif
-
-#define VendorID        (0x16D0)
-#define ProductID       (0x0567)
-#define ProductID_CDC   (0x06A5)
-
-//#define ProductID (0x9999) // Testing
-//#define ProductID (0x06A5) // Alternative number (from MCS)
-//#define ProductID (0x06A6) // Alternative number (from MCS)
 
 //==========================================================================================
 // CPUs supported (just clock frequency changes)

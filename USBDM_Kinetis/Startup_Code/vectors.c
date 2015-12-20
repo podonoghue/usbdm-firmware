@@ -244,7 +244,7 @@ void USB0_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void USBDCD_IRQHandler(void)                  WEAK_DEFAULT_HANDLER;
 void TSI0_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void MCG_IRQHandler(void)                     WEAK_DEFAULT_HANDLER;
-void LPTimer_IRQHandler(void)                 WEAK_DEFAULT_HANDLER;
+void LPTMR0_IRQHandler(void)                  WEAK_DEFAULT_HANDLER;
 void PORTA_IRQHandler(void)                   WEAK_DEFAULT_HANDLER;
 void PORTB_IRQHandler(void)                   WEAK_DEFAULT_HANDLER;
 void PORTC_IRQHandler(void)                   WEAK_DEFAULT_HANDLER;
@@ -318,7 +318,7 @@ VectorTable const __vector_table = {
       USBDCD_IRQHandler,             /*   52,   36  USBDCD interrupt                                                                 */
       TSI0_IRQHandler,               /*   53,   37  TSI0 interrupt                                                                   */
       MCG_IRQHandler,                /*   54,   38  MCG interrupt                                                                    */
-      LPTimer_IRQHandler,            /*   55,   39  LPTMR Low Power Timer interrupt                                                  */
+      LPTMR0_IRQHandler,             /*   55,   39  LPTMR Low Power Timer interrupt                                                  */
       PORTA_IRQHandler,              /*   56,   40  Port A interrupt                                                                 */
       PORTB_IRQHandler,              /*   57,   41  Port B interrupt                                                                 */
       PORTC_IRQHandler,              /*   58,   42  Port C interrupt                                                                 */

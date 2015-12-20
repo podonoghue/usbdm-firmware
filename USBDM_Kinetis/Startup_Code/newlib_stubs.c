@@ -6,6 +6,7 @@
  *      Modified: pgo
  *
  *  All routines have been marked "weak" in case already defined in library or elsewhere
+ *  But the above wasn't sufficient because the library routines are also marked weak (WHY??)
  */
 #include <errno.h>
 #include <stdint.h>
@@ -20,7 +21,7 @@ extern int errno;
  * Overridden by actual routine if present
  */
 __attribute__((__weak__))
-void uart_txChar(int ch) {
+void console_txChar(int ch) {
    (void)ch;
 }
 
@@ -28,7 +29,7 @@ void uart_txChar(int ch) {
  * Overridden by actual routine if present
  */
 __attribute__((__weak__))
-int uart_rxChar(void) {
+int console_rxChar(void) {
    return 0;
 }
 
@@ -77,8 +78,7 @@ int _fork() {
  *  fstat
  *
  *  Status of an open file. For consistency with other minimal implementations in these examples,
- *   all files are regarded as character special devices.
- *   The `sys/stat.h' header file required is distributed in the `include' subdirectory for this C library.
+ *  all files are regarded as character special devices.
  */
 __attribute__((__weak__))
 int _fstat(int file __attribute__((unused)), struct stat *st __attribute__((unused))) {
@@ -173,40 +173,15 @@ caddr_t _sbrk(int incr) {
    next_heap_end = (caddr_t)(((int)prev_heap_end + incr + 7) & ~7);
    if (next_heap_end > &__HeapLimit) {
       /* Heap and stack collision */
-//      __asm__("bkpt");
+#ifdef DEBUG_BUILD
+      __asm__("bkpt");
+#else
       errno = ENOMEM;
       return (caddr_t)-1;
+#endif
    }
    heap_end = next_heap_end;
    return prev_heap_end;
-}
-
-/**
- * read
- *
- * Reads characters from a file.
- * 'libc' subroutines will use this system routine for input from all files, including STDIN
- * Blocks until len characters are read or a '\n' is encountered
- *
- * @param file - File to read from (not used - assumed UART=STDIN)
- * @param ptr  - Pointer to buffer for characters
- * @param len  - Maximum number of characters to read
- *
- * @return -1 on error or the number of characters read
- */
-__attribute__((__weak__))
-int _read(int file, char *ptr, int len) {
-   if (file != STDIN_FILENO) {
-      errno = EBADF;
-      return -1;
-   }
-   int done=0; // Characters read
-   int ch;
-   do {
-      ch = uart_rxChar();
-      *ptr++ = ch;
-   } while ((++done<len) && (ch != '\n'));
-   return done;
 }
 
 /**
@@ -253,33 +228,6 @@ int _wait(int *status __attribute__((unused))) {
 }
 
 /*
- *  write
- *
- *  Write a character to a file. `libc' subroutines will use this system routine for output to all files, including stdout
- *
- *  @return -1 on error or number of bytes sent
- */
-__attribute__((__weak__))
-int _write(int file, char *ptr, int len) {
-   int n;
-   switch (file) {
-   case STDOUT_FILENO: /* stdout */
-   case STDERR_FILENO: /* stderr */
-      for (n = 0; n < len; n++) {
-         if (*ptr == '\n') {
-            uart_txChar('\r');
-         }
-         uart_txChar(*ptr++);
-      }
-      break;
-   default:
-      errno = EBADF;
-      return -1;
-   }
-   return len;
-}
-
-/*
  * cmsis-os optional routine
  */
 __attribute__((__weak__))
@@ -297,7 +245,62 @@ void os_tmr_call(uint16_t  info __attribute__((unused))) {
 __attribute__((__weak__))
 void _exit(int rc __attribute__((unused))) {
    for(;;) {
+	 // If you end up here it probably means you fell of the end of main()!
       __asm__("bkpt");
    }
+}
+
+/**
+ * read
+ *
+ * Reads characters from a file.
+ * 'libc' subroutines will use this system routine for input from all files, including STDIN
+ * Blocks until len characters are read or a '\n' is encountered
+ *
+ * @param file - File to read from (not used - assumed UART=STDIN)
+ * @param ptr  - Pointer to buffer for characters
+ * @param len  - Maximum number of characters to read
+ *
+ * @return -1 on error or the number of characters read
+ */
+int _usbdm_read(int file, char *ptr, int len) {
+   if (file != STDIN_FILENO) {
+      errno = EBADF;
+      return -1;
+   }
+   int done=0; // Characters read
+   int ch;
+   do {
+      ch = console_rxChar();
+      *ptr++ = ch;
+   } while ((++done<len) && (ch != '\n'));
+   return done;
+}
+
+/*
+ *  write
+ *
+ *  Write a character to a file.
+ *  `libc' subroutines will use this system routine for output to all files, including stdout
+ *
+ *  @return -1 on error or number of bytes sent
+ */
+int _usbdm_write(int file, char *ptr, int len) {
+   int n;
+   switch (file) {
+   case STDOUT_FILENO: /* stdout */
+   case STDERR_FILENO: /* stderr */
+      for (n = 0; n < len; n++) {
+         if (*ptr == '\n') {
+            console_txChar('\r');
+         }
+         console_txChar(*ptr++);
+      }
+      break;
+   default:
+      errno = EBADF;
+      return -1;
+   }
+   return len;
 }
 
