@@ -42,8 +42,6 @@
 
 #define CPU  JS16
 
-#define DISABLE_BKGD  // BKGD pin is used as GPIO, comment for enable debug using BDM
-
 #if !defined(LOG) && !defined(DISABLE_BKGD)
 #define DISABLE_BKGD  // BKGD pin is used as GPIO
 #endif

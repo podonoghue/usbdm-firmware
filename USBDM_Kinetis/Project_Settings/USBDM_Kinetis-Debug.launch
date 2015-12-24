@@ -32,7 +32,7 @@
 <booleanAttribute key="net.sourceforge.usbdm.gdb.useDebugVersion" value="false"/>
 <booleanAttribute key="net.sourceforge.usbdm.gdb.usePstSignals" value="false"/>
 <booleanAttribute key="net.sourceforge.usbdm.gdb.useSemiHosting" value="true"/>
-<stringAttribute key="org.eclipse.cdt.debug.gdbjtag.core.connection" value="&lt;not used&gt;"/>
+<stringAttribute key="org.eclipse.cdt.debug.gdbjtag.core.connection" value="not used"/>
 <intAttribute key="org.eclipse.cdt.debug.gdbjtag.core.delay" value="0"/>
 <booleanAttribute key="org.eclipse.cdt.debug.gdbjtag.core.doHalt" value="false"/>
 <booleanAttribute key="org.eclipse.cdt.debug.gdbjtag.core.doReset" value="false"/>
@@ -55,11 +55,11 @@
 <booleanAttribute key="org.eclipse.cdt.debug.gdbjtag.core.useProjBinaryForImage" value="true"/>
 <booleanAttribute key="org.eclipse.cdt.debug.gdbjtag.core.useProjBinaryForSymbols" value="true"/>
 <booleanAttribute key="org.eclipse.cdt.debug.gdbjtag.core.useRemoteTarget" value="true"/>
-<stringAttribute key="org.eclipse.cdt.debug.mi.core.DEBUG_NAME" value="${usbdm_armLtd_arm_path}/${usbdm_armLtd_arm_prefix}gdb"/>
-<stringAttribute key="org.eclipse.cdt.debug.mi.core.commandFactory" value="Standard (Linux)"/>
+<stringAttribute key="org.eclipse.cdt.debug.mi.core.DEBUG_NAME" value="${usbdm_armLtd_arm_path}\${usbdm_armLtd_arm_prefix}gdb"/>
+<stringAttribute key="org.eclipse.cdt.debug.mi.core.commandFactory" value="Standard (Windows)"/>
 <stringAttribute key="org.eclipse.cdt.debug.mi.core.protocol" value="mi"/>
 <booleanAttribute key="org.eclipse.cdt.debug.mi.core.verboseMode" value="false"/>
-<stringAttribute key="org.eclipse.cdt.dsf.gdb.DEBUG_NAME" value="${usbdm_armLtd_arm_path}/${usbdm_armLtd_arm_prefix}gdb"/>
+<stringAttribute key="org.eclipse.cdt.dsf.gdb.DEBUG_NAME" value="${usbdm_armLtd_arm_path}\${usbdm_armLtd_arm_prefix}gdb"/>
 <intAttribute key="org.eclipse.cdt.launch.ATTR_BUILD_BEFORE_LAUNCH_ATTR" value="2"/>
 <stringAttribute key="org.eclipse.cdt.launch.COREFILE_PATH" value=""/>
 <stringAttribute key="org.eclipse.cdt.launch.DEBUGGER_REGISTER_GROUPS" value=""/>

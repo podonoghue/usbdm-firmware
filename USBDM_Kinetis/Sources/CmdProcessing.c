@@ -33,33 +33,35 @@
 
    \verbatim
    Change History
-   +===============================================================================================
-   | 24 Jul 2013 | Changed guard on common error recovery                             - pgo V4.10.4
-   |    Jul 2013 | Added Read all registers                                                 V4.10.6
-   | 30 Aug 2012 | ARM-JTAG & ARM-SWD Changes                                               V4.10.3
-   | 20 May 2012 | Extended firmware version information                                    V4.9.5
-   |  8 Apr 2012 | Fixed missing PST status in makeStatusWord()                       - pgo V4.7.4
-   | 20 Apr 2011 | Added DE to f_CMD_USBDM_CONTROL_PINS                               - pgo V4.7
-   | 20 Apr 2011 | Added CMD_USBDM_SET_VDD                                            - pgo V4.6
-   | 20 Apr 2011 | Added CMD_USBDM_CONTROL_PINS                                       - pgo V4.6
-   | 31 Mar 2011 | Added command toggle                                               - pgo V4.6
-   | 24 Feb 2011 | Extended auto-connect options                                      - pgo V4.6
-   | 26 Nov 2010 | Modified f_CMD_SET_OPTIONS so changes do NOT have immediate effect - pgo V4.3
-   |  8 Aug 2010 | Added supported target check                                       - pgo 
-   |  8 Aug 2010 | Re-arranged target execution tables & added DSC                    - pgo 
-   | 21 Jun 2010 | Added T_MC56F800xx Type                                            - pgo
-   | 20 May 2010 | Added JTAG as separate command table                               - pgo
-   | 10 May 2010 | Many changes in Vpp/RS08 code (deleted!)                           - pgo
-   |  1 May 2010 | Action option changes immediately in f_CMD_SET_OPTIONS()           - pgo
-   |    Oct 2009 | Extended status information available                              - pgo
-   |    Sep 2009 | Major changes for V2                                               - pgo
-   -=======================================================================================
-   |  3 Feb 2009 | Extended bdm_setInterfaceLeve[]                                    - pgo
-   | 20 Jan 2009 | Merged HCS/CFV1 code from USBDM                                    - pgo
-   | 13 Jan 2009 | Moved CFVx commands to separate file                               - pgo
-   | 12 Jan 2009 | Changed to dispatch table & individual functions                   - pgo
-   |  1 Jan 2009 | Ported to JMxx from JB16 TBLCF code                                - pgo
-   +=======================================================================================
+   +====================================================================================================
+   | 23 Dec 2015 | Now correctly returns error code on pre-command optionalReconnect() - pgo V4.12.1.70
+   | 24 Jul 2013 | Changed guard on common error recovery                              - pgo V4.10.4
+   |    Jul 2013 | Added Read all registers                                                  V4.10.6
+   | 26 Dec 2012 | Changed Reset handling to prevent USB timeouts                      - pgo V4.10.4
+   | 30 Aug 2012 | ARM-JTAG & ARM-SWD Changes                                                V4.10.3
+   | 20 May 2012 | Extended firmware version information                                     V4.9.5
+   |  8 Apr 2012 | Fixed missing PST status in makeStatusWord()                        - pgo V4.7.4
+   | 20 Apr 2011 | Added DE to f_CMD_USBDM_CONTROL_PINS                                - pgo V4.7
+   | 20 Apr 2011 | Added CMD_USBDM_SET_VDD                                             - pgo V4.6
+   | 20 Apr 2011 | Added CMD_USBDM_CONTROL_PINS                                        - pgo V4.6
+   | 31 Mar 2011 | Added command toggle                                                - pgo V4.6
+   | 24 Feb 2011 | Extended auto-connect options                                       - pgo V4.6
+   | 26 Nov 2010 | Modified f_CMD_SET_OPTIONS so changes do NOT have immediate effect  - pgo V4.3
+   |  8 Aug 2010 | Added supported target check                                        - pgo 
+   |  8 Aug 2010 | Re-arranged target execution tables & added DSC                     - pgo 
+   | 21 Jun 2010 | Added T_MC56F800xx Type                                             - pgo
+   | 20 May 2010 | Added JTAG as separate command table                                - pgo
+   | 10 May 2010 | Many changes in Vpp/RS08 code (deleted!)                            - pgo
+   |  1 May 2010 | Action option changes immediately in f_CMD_SET_OPTIONS()            - pgo
+   |    Oct 2009 | Extended status information available                               - pgo
+   |    Sep 2009 | Major changes for V2                                                - pgo
+   -==================================================================================================
+   |  3 Feb 2009 | Extended bdm_setInterfaceLeve[]                                     - pgo
+   | 20 Jan 2009 | Merged HCS/CFV1 code from USBDM                                     - pgo
+   | 13 Jan 2009 | Moved CFVx commands to separate file                                - pgo
+   | 12 Jan 2009 | Changed to dispatch table & individual functions                    - pgo
+   |  1 Jan 2009 | Ported to JMxx from JB16 TBLCF code                                 - pgo
+   +==================================================================================================
    \endverbatim
 */
 #include <string.h>
@@ -1182,8 +1184,8 @@ FunctionPtr commandPtr = f_CMD_ILLEGAL;     // Default to illegal command
    }
    if (commandStatus == BDM_RC_OK) {
       commandStatus = commandPtr();      // Execute command & update command status
-      commandBuffer[0] = commandStatus;  // return command status
    }
+   commandBuffer[0] = commandStatus;  // return command status
    if (commandStatus != BDM_RC_OK) {
       returnSize = 1;  // Return a single byte error code
       // Always do
