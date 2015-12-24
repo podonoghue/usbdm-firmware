@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <?fileVersion 4.0.0?><cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
 	<storageModule moduleId="org.eclipse.cdt.core.settings">
-		<cconfiguration id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765">
-			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765" moduleId="org.eclipse.cdt.core.settings" name="OpenSDAv1">
+		<cconfiguration id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765" moduleId="org.eclipse.cdt.core.settings" name="OpenSDAv1">
 				<externalSettings/>
 				<extensions>
 					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
@@ -14,8 +14,8 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${usbdm_rm_command} -rf" description="OpenSDA Version 1 (as on FRDM-K20)" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765" name="OpenSDAv1" parent="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration" postannouncebuildStep="Create hex file for bootloader" postbuildStep="arm-none-eabi-objcopy -O srec ${BuildArtifactFileBaseName}.elf ${BuildArtifactFileBaseName}.sx" preannouncebuildStep="" prebuildStep="">
-					<folderInfo id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765." name="/" resourcePath="">
+				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${usbdm_rm_command} -rf" description="OpenSDA Version 1 (as on FRDM-K20)" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765" name="OpenSDAv1" parent="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration" postannouncebuildStep="Create hex file for bootloader" postbuildStep="arm-none-eabi-objcopy -O srec ${BuildArtifactFileBaseName}.elf ${BuildArtifactFileBaseName}.sx" preannouncebuildStep="" prebuildStep="">
+					<folderInfo id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765." name="/" resourcePath="">
 						<toolChain id="net.sourceforge.usbdm.cdt.arm.exe.debug.toolchain.909016377" name="ARM-USBDM ToolChain" superClass="net.sourceforge.usbdm.cdt.arm.exe.debug.toolchain">
 							<option defaultValue="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel.max" id="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel.332519052" name="Debug level" superClass="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel" valueType="enumerated"/>
 							<option defaultValue="net.sourceforge.usbdm.gnu.c.optimization.level.none" id="net.sourceforge.usbdm.cdt.toolchain.optimization.level.258827551" name="Optimization level" superClass="net.sourceforge.usbdm.cdt.toolchain.optimization.level" valueType="enumerated"/>
@@ -73,8 +73,8 @@
 			</storageModule>
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
 		</cconfiguration>
-		<cconfiguration id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.115511992">
-			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.115511992" moduleId="org.eclipse.cdt.core.settings" name="OpenSDAv2_0">
+		<cconfiguration id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.115511992">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.115511992" moduleId="org.eclipse.cdt.core.settings" name="OpenSDAv2_0">
 				<externalSettings/>
 				<extensions>
 					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
@@ -86,8 +86,8 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${usbdm_rm_command} -rf" description="OpenSDA Version 2 (as on FRDM-K64F)" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.115511992" name="OpenSDAv2_0" parent="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration" postannouncebuildStep="Create binary file for bootloader" postbuildStep="arm-none-eabi-objcopy  -O binary ${BuildArtifactFileBaseName}.elf ${BuildArtifactFileBaseName}.bin" preannouncebuildStep="" prebuildStep="">
-					<folderInfo id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.115511992." name="/" resourcePath="">
+				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${usbdm_rm_command} -rf" description="OpenSDA Version 2 (as on FRDM-K64F)" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.115511992" name="OpenSDAv2_0" parent="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration" postannouncebuildStep="Create binary file for bootloader" postbuildStep="arm-none-eabi-objcopy  -O binary ${BuildArtifactFileBaseName}.elf ${BuildArtifactFileBaseName}.bin" preannouncebuildStep="" prebuildStep="">
+					<folderInfo id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.115511992." name="/" resourcePath="">
 						<toolChain id="net.sourceforge.usbdm.cdt.arm.exe.debug.toolchain.1763236059" name="ARM-USBDM ToolChain" superClass="net.sourceforge.usbdm.cdt.arm.exe.debug.toolchain">
 							<option defaultValue="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel.max" id="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel.48274654" name="Debug level" superClass="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel" valueType="enumerated"/>
 							<option defaultValue="net.sourceforge.usbdm.gnu.c.optimization.level.none" id="net.sourceforge.usbdm.cdt.toolchain.optimization.level.1075657696" name="Optimization level" superClass="net.sourceforge.usbdm.cdt.toolchain.optimization.level" valueType="enumerated"/>
@@ -145,8 +145,8 @@
 			</storageModule>
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
 		</cconfiguration>
-		<cconfiguration id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.1303012057">
-			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.1303012057" moduleId="org.eclipse.cdt.core.settings" name="OpenSDAv1_Unique_ID">
+		<cconfiguration id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.1303012057">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.1303012057" moduleId="org.eclipse.cdt.core.settings" name="OpenSDAv1_Unique_ID">
 				<externalSettings/>
 				<extensions>
 					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
@@ -158,8 +158,8 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${usbdm_rm_command} -rf" description="OpenSDA Version 1 (as on FRDM-K20) with semi-unique USB Serial number" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.1303012057" name="OpenSDAv1_Unique_ID" parent="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration" postannouncebuildStep="Create hex file for bootloader" postbuildStep="arm-none-eabi-objcopy -O srec ${BuildArtifactFileBaseName}.elf ${BuildArtifactFileBaseName}.sx" preannouncebuildStep="" prebuildStep="">
-					<folderInfo id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.1303012057." name="/" resourcePath="">
+				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${usbdm_rm_command} -rf" description="OpenSDA Version 1 (as on FRDM-K20) with semi-unique USB Serial number" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.1303012057" name="OpenSDAv1_Unique_ID" parent="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration" postannouncebuildStep="Create hex file for bootloader" postbuildStep="arm-none-eabi-objcopy -O srec ${BuildArtifactFileBaseName}.elf ${BuildArtifactFileBaseName}.sx" preannouncebuildStep="" prebuildStep="">
+					<folderInfo id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.1303012057." name="/" resourcePath="">
 						<toolChain id="net.sourceforge.usbdm.cdt.arm.exe.debug.toolchain.1396924845" name="ARM-USBDM ToolChain" superClass="net.sourceforge.usbdm.cdt.arm.exe.debug.toolchain">
 							<option defaultValue="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel.max" id="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel.1477095835" name="Debug level" superClass="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel" valueType="enumerated"/>
 							<option defaultValue="net.sourceforge.usbdm.gnu.c.optimization.level.none" id="net.sourceforge.usbdm.cdt.toolchain.optimization.level.897709335" name="Optimization level" superClass="net.sourceforge.usbdm.cdt.toolchain.optimization.level" valueType="enumerated"/>
@@ -219,8 +219,8 @@
 			</storageModule>
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
 		</cconfiguration>
-		<cconfiguration id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.115511992.1563576321">
-			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.115511992.1563576321" moduleId="org.eclipse.cdt.core.settings" name="OpenSDAv2_0_Unique_ID">
+		<cconfiguration id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.115511992.1563576321">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.115511992.1563576321" moduleId="org.eclipse.cdt.core.settings" name="OpenSDAv2_0_Unique_ID">
 				<externalSettings/>
 				<extensions>
 					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
@@ -232,8 +232,8 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${usbdm_rm_command} -rf" description="OpenSDA Version 2 (as on FRDM-K64F) with semi-unique USB Serial number" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.115511992.1563576321" name="OpenSDAv2_0_Unique_ID" parent="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration" postannouncebuildStep="Create binary file for bootloader" postbuildStep="arm-none-eabi-objcopy  -O binary ${BuildArtifactFileBaseName}.elf ${BuildArtifactFileBaseName}.bin" preannouncebuildStep="" prebuildStep="">
-					<folderInfo id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.115511992.1563576321." name="/" resourcePath="">
+				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${usbdm_rm_command} -rf" description="OpenSDA Version 2 (as on FRDM-K64F) with semi-unique USB Serial number" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.115511992.1563576321" name="OpenSDAv2_0_Unique_ID" parent="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration" postannouncebuildStep="Create binary file for bootloader" postbuildStep="arm-none-eabi-objcopy  -O binary ${BuildArtifactFileBaseName}.elf ${BuildArtifactFileBaseName}.bin" preannouncebuildStep="" prebuildStep="">
+					<folderInfo id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.115511992.1563576321." name="/" resourcePath="">
 						<toolChain id="net.sourceforge.usbdm.cdt.arm.exe.debug.toolchain.2073550527" name="ARM-USBDM ToolChain" superClass="net.sourceforge.usbdm.cdt.arm.exe.debug.toolchain">
 							<option defaultValue="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel.max" id="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel.1740649091" name="Debug level" superClass="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel" valueType="enumerated"/>
 							<option defaultValue="net.sourceforge.usbdm.gnu.c.optimization.level.none" id="net.sourceforge.usbdm.cdt.toolchain.optimization.level.878771010" name="Optimization level" superClass="net.sourceforge.usbdm.cdt.toolchain.optimization.level" valueType="enumerated"/>
@@ -293,8 +293,8 @@
 			</storageModule>
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
 		</cconfiguration>
-		<cconfiguration id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.262006593">
-			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.262006593" moduleId="org.eclipse.cdt.core.settings" name="Debug">
+		<cconfiguration id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.262006593">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.262006593" moduleId="org.eclipse.cdt.core.settings" name="Debug">
 				<externalSettings/>
 				<extensions>
 					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
@@ -306,8 +306,8 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${usbdm_rm_command} -rf" description="Default load address for testing on bare hardware without bootloader" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.262006593" name="Debug" parent="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration" postannouncebuildStep="" postbuildStep="" preannouncebuildStep="" prebuildStep="">
-					<folderInfo id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.262006593." name="/" resourcePath="">
+				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${usbdm_rm_command} -rf" description="Default load address for testing on bare hardware without bootloader" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.262006593" name="Debug" parent="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration" postannouncebuildStep="" postbuildStep="" preannouncebuildStep="" prebuildStep="">
+					<folderInfo id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.262006593." name="/" resourcePath="">
 						<toolChain id="net.sourceforge.usbdm.cdt.arm.exe.debug.toolchain.951461042" name="ARM-USBDM ToolChain" superClass="net.sourceforge.usbdm.cdt.arm.exe.debug.toolchain">
 							<option defaultValue="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel.max" id="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel.432091979" name="Debug level" superClass="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel" value="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel.max" valueType="enumerated"/>
 							<option defaultValue="net.sourceforge.usbdm.gnu.c.optimization.level.none" id="net.sourceforge.usbdm.cdt.toolchain.optimization.level.752494632" name="Optimization level" superClass="net.sourceforge.usbdm.cdt.toolchain.optimization.level" value="net.sourceforge.usbdm.gnu.c.optimization.level.none" valueType="enumerated"/>
@@ -367,8 +367,8 @@
 			</storageModule>
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
 		</cconfiguration>
-		<cconfiguration id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.115511992.1419787998">
-			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.115511992.1419787998" moduleId="org.eclipse.cdt.core.settings" name="OpenSDAv2_1">
+		<cconfiguration id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.115511992.1419787998">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.115511992.1419787998" moduleId="org.eclipse.cdt.core.settings" name="OpenSDAv2_1">
 				<externalSettings/>
 				<extensions>
 					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
@@ -380,8 +380,8 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${usbdm_rm_command} -rf" description="OpenSDA Version 2 (as on FRDM-K22F)" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.115511992.1419787998" name="OpenSDAv2_1" parent="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration" postannouncebuildStep="Create binary file for bootloader" postbuildStep="arm-none-eabi-objcopy  -O binary ${BuildArtifactFileBaseName}.elf ${BuildArtifactFileBaseName}.bin" preannouncebuildStep="" prebuildStep="">
-					<folderInfo id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.115511992.1419787998." name="/" resourcePath="">
+				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${usbdm_rm_command} -rf" description="OpenSDA Version 2 (as on FRDM-K22F)" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.115511992.1419787998" name="OpenSDAv2_1" parent="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration" postannouncebuildStep="Create binary file for bootloader" postbuildStep="arm-none-eabi-objcopy  -O binary ${BuildArtifactFileBaseName}.elf ${BuildArtifactFileBaseName}.bin" preannouncebuildStep="" prebuildStep="">
+					<folderInfo id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.115511992.1419787998." name="/" resourcePath="">
 						<toolChain id="net.sourceforge.usbdm.cdt.arm.exe.debug.toolchain.1821117233" name="ARM-USBDM ToolChain" superClass="net.sourceforge.usbdm.cdt.arm.exe.debug.toolchain">
 							<option defaultValue="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel.max" id="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel.1110791632" name="Debug level" superClass="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel" valueType="enumerated"/>
 							<option defaultValue="net.sourceforge.usbdm.gnu.c.optimization.level.none" id="net.sourceforge.usbdm.cdt.toolchain.optimization.level.1613749615" name="Optimization level" superClass="net.sourceforge.usbdm.cdt.toolchain.optimization.level" valueType="enumerated"/>
@@ -439,8 +439,8 @@
 			</storageModule>
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
 		</cconfiguration>
-		<cconfiguration id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.115511992.1563576321.1649641685">
-			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.115511992.1563576321.1649641685" moduleId="org.eclipse.cdt.core.settings" name="OpenSDAv2_1_Unique_ID">
+		<cconfiguration id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.115511992.1563576321.1649641685">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.115511992.1563576321.1649641685" moduleId="org.eclipse.cdt.core.settings" name="OpenSDAv2_1_Unique_ID">
 				<externalSettings/>
 				<extensions>
 					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
@@ -452,8 +452,8 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${usbdm_rm_command} -rf" description="OpenSDA Version 2 (as on FRDM-K22F) with semi-unique USB Serial number" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.115511992.1563576321.1649641685" name="OpenSDAv2_1_Unique_ID" parent="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration" postannouncebuildStep="Create binary file for bootloader" postbuildStep="arm-none-eabi-objcopy  -O binary ${BuildArtifactFileBaseName}.elf ${BuildArtifactFileBaseName}.bin" preannouncebuildStep="" prebuildStep="">
-					<folderInfo id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.115511992.1563576321.1649641685." name="/" resourcePath="">
+				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${usbdm_rm_command} -rf" description="OpenSDA Version 2 (as on FRDM-K22F) with semi-unique USB Serial number" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.115511992.1563576321.1649641685" name="OpenSDAv2_1_Unique_ID" parent="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration" postannouncebuildStep="Create binary file for bootloader" postbuildStep="arm-none-eabi-objcopy  -O binary ${BuildArtifactFileBaseName}.elf ${BuildArtifactFileBaseName}.bin" preannouncebuildStep="" prebuildStep="">
+					<folderInfo id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.115511992.1563576321.1649641685." name="/" resourcePath="">
 						<toolChain id="net.sourceforge.usbdm.cdt.arm.exe.debug.toolchain.1748698142" name="ARM-USBDM ToolChain" superClass="net.sourceforge.usbdm.cdt.arm.exe.debug.toolchain">
 							<option defaultValue="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel.max" id="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel.676621727" name="Debug level" superClass="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel" valueType="enumerated"/>
 							<option defaultValue="net.sourceforge.usbdm.gnu.c.optimization.level.none" id="net.sourceforge.usbdm.cdt.toolchain.optimization.level.30529500" name="Optimization level" superClass="net.sourceforge.usbdm.cdt.toolchain.optimization.level" valueType="enumerated"/>
@@ -555,28 +555,28 @@
 	</storageModule>
 	<storageModule moduleId="scannerConfiguration">
 		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		<scannerConfigBuildInfo instanceId="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.262006593;net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.262006593.;net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.900757582;net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.input.1777625819">
+		<scannerConfigBuildInfo instanceId="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.262006593;net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.262006593.;net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.900757582;net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.input.1777625819">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="net.sourceforge.usbdm.cdt.tools.UsbdmManagedMakePerProjectProfileC"/>
 		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.115511992.1563576321;net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.115511992.1563576321.;net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.436412632;net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.input.1838608098">
+		<scannerConfigBuildInfo instanceId="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.115511992.1563576321;net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.115511992.1563576321.;net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.436412632;net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.input.1838608098">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.115511992;net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.115511992.;net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.43245413;net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.input.162581890">
+		<scannerConfigBuildInfo instanceId="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.115511992;net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.115511992.;net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.43245413;net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.input.162581890">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="net.sourceforge.usbdm.cdt.tools.UsbdmManagedMakePerProjectProfileCPP"/>
 		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.262006593;net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.262006593.;net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.948607962;net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.input.1752013342">
+		<scannerConfigBuildInfo instanceId="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.262006593;net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.262006593.;net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.948607962;net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.input.1752013342">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="net.sourceforge.usbdm.cdt.tools.UsbdmManagedMakePerProjectProfileCPP"/>
 		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765;net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.;net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.1622596802;net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.input.648705076">
+		<scannerConfigBuildInfo instanceId="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765;net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.;net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.1622596802;net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.input.648705076">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="net.sourceforge.usbdm.cdt.tools.UsbdmManagedMakePerProjectProfileC"/>
 		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.115511992;net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.115511992.;net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.1190804376;net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.input.892708053">
+		<scannerConfigBuildInfo instanceId="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.115511992;net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.115511992.;net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.1190804376;net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.input.892708053">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="net.sourceforge.usbdm.cdt.tools.UsbdmManagedMakePerProjectProfileC"/>
 		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.115511992.1563576321;net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.115511992.1563576321.;net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.1009853204;net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.input.2055339525">
+		<scannerConfigBuildInfo instanceId="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.115511992.1563576321;net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.115511992.1563576321.;net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.1009853204;net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.input.2055339525">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765;net.sourceforge.usbdm.cdt.arm.windows.debug.configuration.472898765.;net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.211957342;net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.input.1845299035">
+		<scannerConfigBuildInfo instanceId="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765;net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.;net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.211957342;net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.input.1845299035">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="net.sourceforge.usbdm.cdt.tools.UsbdmManagedMakePerProjectProfileCPP"/>
 		</scannerConfigBuildInfo>
 	</storageModule>
