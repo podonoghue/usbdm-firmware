@@ -170,7 +170,7 @@ uint16_t status = 0;
          cable_status.reset = NO_RESET_ACTIVITY;   // Clear the flag if reset pin has returned high
       }
    }
-#endif
+#endif // (HW_CAPABILITY&CAP_RST_IN)
 #if (HW_CAPABILITY&CAP_VDDSENSE)
    switch (cable_status.power) {    // Target has power ?
 //    case BDM_TARGET_VDD_NONE : status |= S_POWER_NONE; break;
@@ -619,7 +619,7 @@ uint8_t f_CMD_CONTROL_PINS(void) {
    }
 #endif
 
-#if (HW_CAPABILITY & CAP_RST_IO)
+#if (HW_CAPABILITY & CAP_RST_OUT)
    switch (control & PIN_RESET) {
    case PIN_RESET_3STATE : 
 	   RESET_3STATE(); 
@@ -628,13 +628,13 @@ uint8_t f_CMD_CONTROL_PINS(void) {
 	   if (RESET_IS_LOW()) { 
           return(BDM_RC_RESET_TIMEOUT_RISE);
 	   }
-#endif
+#endif // (HW_CAPABILITY&CAP_RST_IN)
 	   break;
    case PIN_RESET_LOW :
 	   RESET_LOW(); 
 	   break;
    }
-#endif
+#endif // (HW_CAPABILITY&CAP_RST_OUT)
    
 #if (HW_CAPABILITY&CAP_JTAG_HW)
    switch(control&PIN_TRST) {

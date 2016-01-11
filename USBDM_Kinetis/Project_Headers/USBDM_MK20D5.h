@@ -30,8 +30,13 @@
 //==========================================================================================
 // Capabilities of the hardware - used to enable/disable appropriate code
 //
-#define HW_CAPABILITY       (CAP_RST_IO|CAP_CDC|CAP_RST_IN|CAP_SWD_HW|CAP_CORE_REGS)
-#define TARGET_CAPABILITY   (CAP_RST   |CAP_CDC|CAP_ARM_SWD)
+#ifdef SDA_POWER
+#define HW_CAPABILITY       (CAP_RST_OUT|CAP_RST_IN|CAP_SWD_HW|CAP_CDC|CAP_CORE_REGS|CAP_VDDCONTROL)
+#define TARGET_CAPABILITY   (CAP_RST   |CAP_ARM_SWD|CAP_CDC|CAP_VDDCONTROL)
+#else
+#define HW_CAPABILITY       (CAP_RST_OUT|CAP_RST_IN|CAP_SWD_HW|CAP_CDC|CAP_CORE_REGS)
+#define TARGET_CAPABILITY   (CAP_RST   |CAP_ARM_SWD|CAP_CDC)
+#endif
 
 #ifndef PLATFORM
 #define PLATFORM USBDM   //! Choose BDM emulation
@@ -250,7 +255,7 @@
 //=================================================================================
 // RESET control & sensing
 //
-#if (HW_CAPABILITY&CAP_RST_IO)
+#if (HW_CAPABILITY&CAP_RST_OUT)
 
 // RESET out pin
 #define RESET_OUT_NUM         1
@@ -301,14 +306,12 @@ __inline__ static void resetOutFini() {
 #define RESET_3STATE()       reset3State()
 #define RESET_OUT_FINI()     resetOutFini()
 
-#endif
+#endif // (HW_CAPABILITY&CAP_RST_OUT)
 
 //---------------------------------------------------------------------------------------
 #if (HW_CAPABILITY&CAP_RST_IN)
 
-// RESET in pin = RESET out pin WITH external driver
-// This means that RESET_IN just reflects RESET_OUT and does not truly sense the RESET value
- 
+// RESET in pin = RESET out pin, no external driver
 /*!
  * Checks is RESET line is high
  * 
@@ -336,7 +339,7 @@ __inline__ static int resetIsLow() {
 #define RESET_IS_LOW()       resetIsLow()
 #define RESET_IN_FINI()      resetOutFini()
 
-#endif // CAP_RST_IO
+#endif // (HW_CAPABILITY&CAP_RST_IN)
 
 //=================================================================================
 // LED Port bit masks
@@ -442,16 +445,42 @@ __inline static void ledInit(void) {
 // Target Vdd control
 
 #if (HW_CAPABILITY&CAP_VDDCONTROL)
+#define VDD_ON_INITIALLY 3  // Enable target Vdd=3V on plugin
+
+// Target Vdd data out pin (GPIO)
+#define VDD_EN_NUM            6
+#define VDD_EN_REG            D
+#define VDD_EN_MASK           (1<<VDD_EN_NUM)
+#define VDD_EN_PCR            PCR(VDD_EN_REG,VDD_EN_NUM)
+#define VDD_EN_PDOR           PDOR(VDD_EN_REG)
+#define VDD_EN_PSOR           PSOR(VDD_EN_REG)  // Data set 
+#define VDD_EN_PCOR           PCOR(VDD_EN_REG)  // Data clear
+#define VDD_EN_PTOR           PTOR(VDD_EN_REG)  // Data toggle
+#define VDD_EN_PDIR           PDIR(VDD_EN_REG)  // Data input
+#define VDD_EN_PDDR           PDDR(VDD_EN_REG)  // Data direction
+
+/*!
+ * Enable Target Vdd
+ */
+__inline__ static void enableVdd() {
+   VDD_EN_PCR   = PORT_PCR_MUX(1)|PORT_PCR_DSE_MASK;
+   VDD_EN_PDDR |= VDD_EN_MASK;
+   VDD_EN_PSOR  = VDD_EN_MASK;
+}
+
+/*!
+ *  Disable Target Vdd
+ */
+__inline__ static void disableVdd() {
+   VDD_EN_PCR   = PORT_PCR_MUX(1)|PORT_PCR_DSE_MASK;
+   VDD_EN_PCOR  = VDD_EN_MASK;
+   VDD_EN_PDDR |= VDD_EN_MASK;
+}
 
 //  Vdd on/off
-#define VDD3_EN          (PTBD_PTBD1)
-#define VDD3_EN_DDR      (PTBDD_PTBDD1)
-#define VDD5_EN          (PTBD_PTBD4)
-#define VDD5_EN_DDR      (PTBDD_PTBDD4)
-
-#define VDD_OFF()        (VDD5_EN=0, VDD5_EN_DDR=1, VDD3_EN=0, VDD3_EN_DDR=1) // Vdd Off
-#define VDD3_ON()        (VDD5_EN=0, VDD5_EN_DDR=1, VDD3_EN=1, VDD3_EN_DDR=1) // Vdd = 3.3V
-#define VDD5_ON()        (VDD3_EN=0, VDD3_EN_DDR=1, VDD5_EN=1, VDD5_EN_DDR=1) // Vdd = 5V
+#define VDD_OFF()        disableVdd()
+#define VDD3_ON()        enableVdd(); // Single control for 2V3 and 5V - differs by board
+#define VDD5_ON()        enableVdd();
 
 #else // !CAP_VDDCONTROL
 // No Vdd control
@@ -520,8 +549,29 @@ __inline static void ledInit(void) {
 #define TIMEOUT_TPMxCnVALUE               TPM1C2V             // OC Event time
 
 #if (HW_CAPABILITY&CAP_VDDSENSE)
-// Target Vdd Present
-#define VDD_SENSE                 (ACMPSC_ACO == 0)
+
+// Target Vdd data out pin (GPIO)
+#define VDD_SENSE_NUM            6
+#define VDD_SENSE_REG            D
+#define VDD_SENSE_MASK           (1<<VDD_SENSE_NUM)
+#define VDD_SENSE_PCR            PCR(VDD_SENSE_REG,VDD_SENSE_NUM)
+#define VDD_SENSE_PDOR           PDOR(VDD_SENSE_REG)
+#define VDD_SENSE_PSOR           PSOR(VDD_SENSE_REG)  // Data set 
+#define VDD_SENSE_PCOR           PCOR(VDD_SENSE_REG)  // Data clear
+#define VDD_SENSE_PTOR           PTOR(VDD_SENSE_REG)  // Data toggle
+#define VDD_SENSE_PDIR           PDIR(VDD_SENSE_REG)  // Data input
+#define VDD_SENSE_PDDR           PDDR(VDD_SENSE_REG)  // Data direction
+
+/*
+ * Check Target Vdd Present
+ */ 
+__inline__ static int checkTargetVdd() {
+   VDD_SENSE_PCR   = PORT_PCR_MUX(1);
+   VDD_SENSE_PDDR &= ~VDD_SENSE_MASK;
+   return (VDD_SENSE_PDIR&VDD_SENSE_MASK) != 0;
+}
+
+#define VDD_SENSE                 checkTargetVdd()
 
 #else // !CAP_VDDSENSE
 
@@ -542,7 +592,7 @@ __inline static void ledInit(void) {
 #define CLEAR_RESET_SENSE_FLAG()  (RESET_TPMxCnSC_CHF  = 0)
 // Disable  RESET Change interrupts
 #define DISABLE_RESET_SENSE_INT() (RESET_TPMxCnSC_CHIE = 0)
-#endif
+#endif // (HW_CAPABILITY&CAP_RST_IN)
 
 //===================================================================================
 // Enable & Configure Vdd Change interrupts (Using Analogue comparator, rising or falling edges)

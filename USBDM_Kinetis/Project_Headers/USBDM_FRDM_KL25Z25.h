@@ -38,10 +38,7 @@
 //==========================================================================================
 // Capabilities of the hardware - used to enable/disable appropriate code
 //
-// CAP_CDC
-//#define HW_CAPABILITY     (CAP_VDDCONTROL|CAP_VDDSENSE|CAP_JTAG_HW|CAP_BDM  |CAP_FLASH|        CAP_RST_IO|CAP_CFVx)
-//#define TARGET_CAPABILITY (CAP_VDDCONTROL|CAP_VDDSENSE|CAP_HCS12 |CAP_HCS08|CAP_RS08 |CAP_CFV1|CAP_RST   |CAP_CFVx|CAP_JTAG|CAP_DSC|CAP_ARM_JTAG|CAP_PST)
-#define HW_CAPABILITY       (CAP_RST_IO|CAP_SWD_HW) //|CAP_SWD_HW)
+#define HW_CAPABILITY       (CAP_RST_OUT|CAP_SWD_HW) //|CAP_SWD_HW)
 #define TARGET_CAPABILITY   (CAP_RST|CAP_ARM_SWD) //|CAP_ARM_SWD)
 
 #ifndef PLATFORM
@@ -311,7 +308,7 @@
 //=================================================================================
 // RESET control & sensing
 //
-#if (HW_CAPABILITY&CAP_RST_IO)
+#if (HW_CAPABILITY&CAP_RST_OUT)
 
 // RESET out pin
 #define RESET_OUT_NUM         2
@@ -332,7 +329,7 @@
 #define RESET_OUT_INIT()     (RESET_3STATE(), \
                               RESET_OUT_PCOR = RESET_OUT_MASK, \
                               RESET_OUT_PCR=PORT_PCR_MUX(1)|PORT_PCR_DSE_MASK|PORT_PCR_PE_MASK|PORT_PCR_PS_MASK)
-#endif
+#endif // (HW_CAPABILITY&CAP_RST_OUT)
 
 //---------------------------------------------------------------------------------------
 #if (HW_CAPABILITY&CAP_RST_IN)
@@ -354,7 +351,7 @@
 #define RESET_IS_HIGH()      (RESET_IN!=0)
 #define RESET_IS_LOW()       (RESET_IN==0)
 
-#endif // CAP_RST_IO
+#endif // (HW_CAPABILITY&CAP_RST_IN)
 
 //=================================================================================
 // LED Port bit masks
@@ -569,7 +566,7 @@ static void ledInit(void) {
 #define CLEAR_RESET_SENSE_FLAG()  (RESET_TPMxCnSC_CHF  = 0)
 // Disable  RESET Change interrupts
 #define DISABLE_RESET_SENSE_INT() (RESET_TPMxCnSC_CHIE = 0)
-#endif
+#endif // (HW_CAPABILITY&CAP_RST_IN)
 
 //===================================================================================
 // Enable & Configure Vdd Change interrupts (Using Analogue comparator, rising or falling edges)

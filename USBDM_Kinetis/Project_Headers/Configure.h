@@ -58,7 +58,7 @@ extern void dputs(char *msg);
 // Capabilities of the hardware - used to enable/disable appropriate code in build
 // HW_CAPABILITY
 //
-#define CAP_RST_IO      (1<<0)   // RESET can be driven/sensed (req. for HC12)
+#define CAP_RST_OUT      (1<<0)   // RESET can be driven/sensed (req. for HC12)
 #define CAP_FLASH       (1<<1)   // 12 V Flash programming supply available (req. RS08)
 #define CAP_VDDCONTROL  (1<<2)   // Control over target Vdd
 #define CAP_VDDSENSE    (1<<3)   // Sensing of target Vdd
@@ -72,13 +72,13 @@ extern void dputs(char *msg);
 
 //==========================================================================================
 // Targets and visible capabilities supported - related to above but not exactly!
-// e.g. CAP_HCS12 => CAP_BDM+CAP_RST_IO
-//      CAP_RS08  => CAP_BDM+CAP_FLASH(+CAP_RST_IO)
-//      CAP_HCS08 => CAP_BDM(+CAP_RST_IO)
-//      CAP_CFVx  => CAP_JTAG_HW+CAP_CFVx_HW+CAP_RST_IO
-//      CAP_DSC   => CAP_JTAG_HW+CAP_RST_IO + s/w routines
-//      CAP_JTAG  => CAP_JTAG_HW+CAP_RST_IO
-//      CAP_RST   => CAP_RST_IO
+// e.g. CAP_HCS12 => CAP_BDM+CAP_RST_OUT
+//      CAP_RS08  => CAP_BDM+CAP_FLASH(+CAP_RST_OUT)
+//      CAP_HCS08 => CAP_BDM(+CAP_RST_OUT)
+//      CAP_CFVx  => CAP_JTAG_HW+CAP_CFVx_HW+CAP_RST_OUT
+//      CAP_DSC   => CAP_JTAG_HW+CAP_RST_OUT + s/w routines
+//      CAP_JTAG  => CAP_JTAG_HW+CAP_RST_OUT
+//      CAP_RST   => CAP_RST_OUT
 // TARGET_CAPABILITY
 //
 #define CAP_HCS12       (1<<0)      // Supports HCS12 targets
@@ -201,8 +201,6 @@ extern void dputs(char *msg);
 #include "USBDM_MKL25Z.h"
 #elif TARGET_HARDWARE==H_USBDM_MK20D5
 #include "USBDM_MK20D5.h"
-#elif (TARGET_HARDWARE==H_USBDM_OPENSDA) && defined(OPEN_SDA_V2)
-#include "USBDM_OpenSDAV2.h"
 #elif TARGET_HARDWARE==H_USBDM_OPENSDA
 #include "USBDM_OpenSDA.h"
 #elif TARGET_HARDWARE==H_USBDM_TWR_HCS12

@@ -366,9 +366,9 @@ uint8_t rc = BDM_RC_OK;
 #if (HW_CAPABILITY&CAP_RST_IN)
    // RESET rise may be delayed by target POR
    if (bdm_option.useResetSignal) {
-      WAIT_WITH_TIMEOUT_S( 2 /* s */, (RESET_IN!=0) );
+      WAIT_WITH_TIMEOUT_S( 2 /* s */, resetIsHigh() );
    }
-#endif
+#endif // (HW_CAPABILITY&CAP_RST_IN)
 #if (DEBUG&CYCLE_DEBUG)
    DEBUG_PIN   = 0;
    DEBUG_PIN   = 1;
@@ -378,12 +378,12 @@ uint8_t rc = BDM_RC_OK;
    WAIT_US(BKGD_WAITus);
 
 #if (HW_CAPABILITY&CAP_RST_IN)
-   if (bdm_option.useResetSignal && (RESET_IN==0)) {
+   if (bdm_option.useResetSignal && resetIsLow()) {
       // RESET didn't rise
       rc = BDM_RC_RESET_TIMEOUT_RISE;
       goto cleanUp;
       }
-#endif //(HW_CAPABILITY&CAP_RST_IO)
+#endif // (HW_CAPABILITY&CAP_RST_IN)
 
 #if (DEBUG&CYCLE_DEBUG)
    DEBUG_PIN     = 1;

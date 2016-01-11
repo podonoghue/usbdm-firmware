@@ -25,7 +25,7 @@ if not exist "%FLASH_DIR%"        mkdir "%FLASH_DIR%"
 if not exist "%MK_FLASH_DIR%"     mkdir "%MK_FLASH_DIR%"
 
 echo ***  MKxx...
-set FIRMWARE_VERSIONS=OpenSDAv1 OpenSDAv1_Unique_ID
+set FIRMWARE_VERSIONS=OpenSDAv1 OpenSDAv1_Unique_ID OpenSDAv1_Power OpenSDAv1_Power_Unique_ID
 for %%f in (%FIRMWARE_VERSIONS%) do copy "%CW_Kinetis_ROOT%\%%f\*.sx"        "%MK_FLASH_DIR%"
 set FIRMWARE_VERSIONS=OpenSDAv2_0 OpenSDAv2_0_Unique_ID OpenSDAv2_1 OpenSDAv2_1_Unique_ID
 for %%f in (%FIRMWARE_VERSIONS%) do copy "%CW_Kinetis_ROOT%\%%f\*.bin"        "%MK_FLASH_DIR%"
