@@ -37,7 +37,7 @@ inline static void initDefaultUart()  {
    PORTE->PCR[0] = PORT_PCR_MUX(3);
    PORTE->PCR[1] = PORT_PCR_MUX(3);
 }
-#elif defined(MCU_MK21F12) || defined(MCU_MK22F12) || defined(MCU_MK20D5)
+#elif defined(MCU_MK21F12) || defined(MCU_MK22F12)|| defined(MCU_MK22FA12) || defined(MCU_MK20D5)
 //=================================================================================
 // UART to use
 //

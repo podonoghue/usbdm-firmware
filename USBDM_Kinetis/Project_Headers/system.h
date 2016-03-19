@@ -66,6 +66,15 @@ void SystemCoreClockUpdate(void);
 #define DEFAULT_BAUD_RATE 115200 
 #endif
 
+#if ((DEBUG&USB_PUTS_DEBUG) != 0)
+#include "uart.h"
+#define PUTS(x) puts(x)
+#define PRINTF(...) printf (__VA_ARGS__)
+#else
+#define PUTS(x)
+#define PRINTF(...)
+#endif
+
 #ifdef __cplusplus
 }
 #endif

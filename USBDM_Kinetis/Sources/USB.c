@@ -43,15 +43,6 @@ Change History
 #include "ICP.h"
 #include "CDC.h"
 
-#if ((DEBUG&USB_PUTS_DEBUG) != 0)
-#include "uart.h"
-#define PUTS(x) puts(x)
-#define PRINTF(...) printf (__VA_ARGS__)
-#else
-#define PUTS(x) 
-#define PRINTF(...)
-#endif
-
 #if (HW_CAPABILITY&CAP_CDC)
 static void ep3StartTxTransaction( void );
 static void ep4InitialiseBdtRx( void );
@@ -945,7 +936,7 @@ static void ep2StartTxTransaction( uint8_t bufSize, const uint8_t *bufPtr ) {
 
 
 //======================================================================
-// (re)Initialises end-points other than EP0
+// (re)Initialises end-points
 //
 static void initialiseEndpoints(void) {
 
@@ -1170,6 +1161,12 @@ void checkUsbCdcRxData(void) {
 //! +--------------------------+
 void receiveUSBCommand(uint8_t maxSize, uint8_t *buffer) {
    uint8_t size;
+
+   // Wait for USB connection
+   while(deviceState.state != USBconfigured) {
+      __WFI();
+   }
+
    enableUSBIrq();
    // Size of first (command) transaction
    do {
@@ -1290,7 +1287,7 @@ static void epClearStall(uint8_t epNum) {
 static void setUSBdefaultState( void ) {
    greenLedOff();
    deviceState.state                = USBdefault;
-   USB0->ADDR                        = 0;
+   USB0->ADDR                       = 0;
    deviceState.configuration        = 0;
    deviceState.interfaceAltSetting  = 0;
 }
@@ -1404,9 +1401,9 @@ void initUSB() {
    USB0->CONTROL = 0;
    USB0->USBTRC0 = 0;
 
-#ifdef MPU_CESR
-   // Disable MPU
-   MPU_CESR = 0;
+#ifdef MPU_CESR_VLD_MASK
+   // Disable MPU & clear errors
+   MPU->CESR = MPU_CESR_SPERR_MASK;
 #endif
    // Enable USB regulator
    SIM->SOPT1CFG  = SIM_SOPT1CFG_URWE_MASK;
@@ -1433,9 +1430,9 @@ void initUSB() {
    USB0->BDTPAGE2 = (uint8_t) (((unsigned)endPointBdts)>>16);
    USB0->BDTPAGE1 = (uint8_t) (((unsigned)endPointBdts)>>8);
 
-   for (int i=0; i<100000; i++) {
-      __asm__("nop");
-   }
+//   for (int i=0; i<100000; i++) {
+//      __asm__("nop");
+//   }
    // Clear all pending interrupts except reset.
    USB0->ISTAT = (USB_ISTAT_USBRST_MASK^0xFF);
 

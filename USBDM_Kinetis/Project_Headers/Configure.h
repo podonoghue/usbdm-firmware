@@ -282,7 +282,7 @@ extern void dputs(char *msg);
 #elif (CPU == JMxx) || (CPU == JS16)
 #define OSC_FREQ     (48000000UL)               // Oscillator frequency
 #define BUS_FREQ     (OSC_FREQ/2)               // Bus freq. derived from oscillator
-//#error "JMxx is not supported by this version of the software"
+#error "JMxx is not supported by this version of the software"
 #elif (CPU == UF32)
 #define OSC_FREQ     (60000000UL)               // Oscillator frequency
 #define BUS_FREQ     (OSC_FREQ/2)               // Bus freq. derived from oscillator

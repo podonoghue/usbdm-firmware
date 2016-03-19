@@ -10,10 +10,6 @@
 #include <stdint.h>
 #include "derivative.h"
 
-#define MK20D5
-
-
-
 /* This definition is overridden if Clock initialisation is provided */
 __attribute__((__weak__))
 void SystemCoreClockUpdate(void) {

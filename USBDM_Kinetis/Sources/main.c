@@ -188,6 +188,11 @@ void init() {
    initPorts();
    initTimers();
    bdm_interfaceOff();
+
+//   SIM->SCGC4 |= SIM_SCGC4_USBOTG_MASK;
+//   USB0->CLK_RECOVER_IRC_EN = USB_CLK_RECOVER_IRC_EN_IRC_EN_MASK|USB_CLK_RECOVER_IRC_EN_REG_EN_MASK;
+//   USB0->CLK_RECOVER_CTRL   = USB_CLK_RECOVER_CTRL_CLOCK_RECOVER_EN_MASK;
+
    initUSB();
 
 #ifdef VDD_ON_INITIALLY
@@ -209,8 +214,7 @@ void init() {
 
 int main(void) {
 
-   console_initialise(115200);
-   puts("Starting\n");
+   PUTS("Starting\n");
    
 #ifdef DEBUG_TEST_LOOP
    testMode();

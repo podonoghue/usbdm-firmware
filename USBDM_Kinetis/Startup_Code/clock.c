@@ -20,7 +20,7 @@
 #include "utilities.h"
 #include "stdbool.h"
 
-// Some MCUs call OSC_CR0 just OSC->CR
+// Some MCUs call OSC0 just OSC
 #ifndef OSC0
 #define OSC0 OSC
 #endif
@@ -97,7 +97,7 @@ void clock_initialise(void) {
    // No clock setup
 #else
    // XTAL/EXTAL Pins
-   SIM->SCGC5  |= SIM_SCGC5_PORTA_MASK;
+   SIM->SCGC5    |= SIM_SCGC5_PORTA_MASK;
    PORTA->PCR[18] = PORT_PCR_MUX(0);
    PORTA->PCR[19] = PORT_PCR_MUX(0);
 
@@ -197,9 +197,9 @@ void clock_initialise(void) {
 
    // Configure PLL Reference Frequency
    // =============================================================
-   MCG->C5 =  MCG_C5_PLLCLKEN0_M    |  // PLLCLKEN = 0,1 -> PLL -/enabled (irrespective of PLLS)
-              MCG_C5_PLLSTEN0_M     |  // PLLSTEN0 = 0,1 -> disabled/enabled in normal stop mode
-              MCG_C5_PRDIV0_M;         // PRDIV0   = N   -> PLL divider so PLL Ref. Freq. = 2-4 MHz
+   MCG->C5 =   MCG_C5_PLLCLKEN0_M    |  // PLLCLKEN0  = 0,1 -> PLL -/enabled (irrespective of PLLS)
+               MCG_C5_PLLSTEN0_M     |  // PLLSTEN0   = 0,1 -> disabled/enabled in normal stop mode
+               MCG_C5_PRDIV0_M;         // PRDIV0     = N   -> PLL divider so PLL Ref. Freq. = 2-4 MHz
 
    // Transition via PBE
    // =============================================================

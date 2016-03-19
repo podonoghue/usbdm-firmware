@@ -10,8 +10,6 @@
 #include <string.h>
 #include "derivative.h"
 
-#define MK20D5
-
 #if !defined(OPEN_SDA_V1)
 /*
  * OpenSDA doesn't use the security area
@@ -29,39 +27,124 @@ typedef struct {
 } SecurityInfo;
 
 //-------- <<< Use Configuration Wizard in Context Menu >>> -----------------
+/*
+  <h> Flash Configuration
+  <i> 16-byte flash configuration field that stores default protection settings (loaded on reset)
+  <i> and security information that allows the MCU to restrict access to the FTFL module.
+  
+  <h> Backdoor Comparison Key
+  <i> The Verify Backdoor Access Key command releases security if user-supplied keys
+  <i> matches the Backdoor Comparison Key bytes
+    <o0>  Backdoor Comparison Key 0.  <0x0-0xFF>
+    <o1>  Backdoor Comparison Key 1.  <0x0-0xFF>
+    <o2>  Backdoor Comparison Key 2.  <0x0-0xFF>
+    <o3>  Backdoor Comparison Key 3.  <0x0-0xFF>
+    <o4>  Backdoor Comparison Key 4.  <0x0-0xFF>
+    <o5>  Backdoor Comparison Key 5.  <0x0-0xFF>
+    <o6>  Backdoor Comparison Key 6.  <0x0-0xFF>
+    <o7>  Backdoor Comparison Key 7.  <0x0-0xFF>
+  </h>
+ */
+#define BACKDOOR_VALUE {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, }
+/*
+   <h> Program Flash Region Protect (NV_FPROT0-3)
+      <i> Each program flash region can be protected from program and erase operation by clearing the associated PROT bit.
+      <i> Each bit protects a 1/32 region of the program flash memory.
+	   <q.31>   FPROT0.0	<0=>protected  <1=>unprotected   <info>lowest 1/32 block
+	   <q.30>   FPROT0.1	<0=>protected  <1=>unprotected
+	   <q.29>   FPROT0.2	<0=>protected  <1=>unprotected
+	   <q.28>   FPROT0.3	<0=>protected  <1=>unprotected
+	   <q.27>   FPROT0.4	<0=>protected  <1=>unprotected
+	   <q.26>   FPROT0.5	<0=>protected  <1=>unprotected
+	   <q.25>   FPROT0.6	<0=>protected  <1=>unprotected
+	   <q.24>   FPROT0.7	<0=>protected  <1=>unprotected
+	   <q.23>   FPROT1.0	<0=>protected  <1=>unprotected
+	   <q.22>   FPROT1.1	<0=>protected  <1=>unprotected
+	   <q.21>   FPROT1.2	<0=>protected  <1=>unprotected
+	   <q.20>   FPROT1.3	<0=>protected  <1=>unprotected
+	   <q.19>   FPROT1.4	<0=>protected  <1=>unprotected
+	   <q.18>   FPROT1.5	<0=>protected  <1=>unprotected
+	   <q.17>   FPROT1.6	<0=>protected  <1=>unprotected
+	   <q.16>   FPROT1.7	<0=>protected  <1=>unprotected
+	   <q.15>   FPROT2.0	<0=>protected  <1=>unprotected
+	   <q.14>   FPROT2.1	<0=>protected  <1=>unprotected
+	   <q.13>   FPROT2.2	<0=>protected  <1=>unprotected
+	   <q.12>   FPROT2.3	<0=>protected  <1=>unprotected
+	   <q.11>   FPROT2.4	<0=>protected  <1=>unprotected
+	   <q.10>   FPROT2.5	<0=>protected  <1=>unprotected
+	   <q.9>    FPROT2.6	<0=>protected  <1=>unprotected
+	   <q.8>    FPROT2.7	<0=>protected  <1=>unprotected
+	   <q.7>    FPROT3.0	<0=>protected  <1=>unprotected
+	   <q.6>    FPROT3.1	<0=>protected  <1=>unprotected
+	   <q.5>    FPROT3.2	<0=>protected  <1=>unprotected
+	   <q.4>    FPROT3.3	<0=>protected  <1=>unprotected
+	   <q.3>    FPROT3.4	<0=>protected  <1=>unprotected
+	   <q.2>    FPROT3.5	<0=>protected  <1=>unprotected
+	   <q.1>    FPROT3.6	<0=>protected  <1=>unprotected
+	   <q.0>    FPROT3.7	<0=>protected  <1=>unprotected   <info> highest 1/32 block
+   </h>
+*/
+#define FPROT_VALUE 0xFFFFFFFF
+/*
+   <h> EEPROM Region Protect (NV_FEPROT)
+      <i> Each bit protects a 1/8 region of the EEPROM memory.
+      <i> (FlexNVM devices only)
+      <q.0>   FEPROT.0	<0=>protected  <1=>unprotected   <info> lowest 1/8 block
+      <q.1>   FEPROT.1  <0=>protected  <1=>unprotected
+      <q.2>   FEPROT.2  <0=>protected  <1=>unprotected
+      <q.3>   FEPROT.3  <0=>protected  <1=>unprotected
+      <q.4>   FEPROT.4  <0=>protected  <1=>unprotected
+      <q.5>   FEPROT.5  <0=>protected  <1=>unprotected
+      <q.6>   FEPROT.6  <0=>protected  <1=>unprotected
+      <q.7>   FEPROT.7	<0=>protected  <1=>unprotected   <info> highest 1/8 block
+   </h>
+*/
+#define FEPROT_VALUE 0xFF
+/*
+   <h> Data Flash Region Protect (NV_FDPROT)
+      <i> Each bit protects a 1/8 region of the data flash memory.
+      <i> (Device with Data flash only)
+      <q.0>   FDPROT.0	<0=>protected  <1=>unprotected   <info> lowest 1/8 block
+      <q.1>   FDPROT.1  <0=>protected  <1=>unprotected
+      <q.2>   FDPROT.2  <0=>protected  <1=>unprotected
+      <q.3>   FDPROT.3  <0=>protected  <1=>unprotected
+      <q.4>   FDPROT.4  <0=>protected  <1=>unprotected
+      <q.5>   FDPROT.5  <0=>protected  <1=>unprotected
+      <q.6>   FDPROT.6  <0=>protected  <1=>unprotected
+      <q.7>   FDPROT.7	<0=>protected  <1=>unprotected   <info> highest 1/8 block
+   </h>
+*/
+#define FDPROT_VALUE 0xFF
 
 /*
-<h> Flash security value (NV_FTFA_FSEC)
+<h> Flash security value (NV_FSEC)
    <o0> Backdoor Key Security Access Enable (FSEC.KEYEN)
       <i> Controls use of Backdoor Key access to unsecure device
-      <0=> 0: Access disabled
-      <1=> 1: Access disabled (preferred disabled value)
+      <info>KEYEN
       <2=> 2: Access enabled
       <3=> 3: Access disabled
    <o1> Mass Erase Enable Bits (FSEC.MEEN)
       <i> Controls mass erase capability of the flash memory module.
       <i> Only relevant when FSEC.SEC is set to secure.
-      <0=> 0: Mass erase enabled
-      <1=> 1: Mass erase enabled
+      <info>MEEN
       <2=> 2: Mass erase disabled
       <3=> 3: Mass erase enabled
    <o2> Freescale Failure Analysis Access (FSEC.FSLACC)
       <i> Controls access to the flash memory contents during returned part failure analysis
-      <0=> 0: Factory access granted
-      <1=> 1: Factory access denied
+      <info>FSLACC
       <2=> 2: Factory access denied
       <3=> 3: Factory access granted
    <o3> Flash Security (FSEC.SEC)
       <i> Defines the security state of the MCU. 
       <i> In the secure state, the MCU limits access to flash memory module resources. 
       <i> If the flash memory module is unsecured using backdoor key access, SEC is forced to 10b.
-      <0=> 0: Secured
-      <1=> 1: Secured
+      <info>SEC
       <2=> 2: Unsecured
       <3=> 3: Secured
 </h>
 */
 #define FSEC_VALUE ((3<<NV_FSEC_KEYEN_SHIFT)|(3<<NV_FSEC_MEEN_SHIFT)|(3<<NV_FSEC_FSLACC_SHIFT)|(2<<NV_FSEC_SEC_SHIFT))
+
 #if ((FSEC_VALUE&NV_FSEC_MEEN_MASK) == (2<<NV_FSEC_MEEN_SHIFT)) && ((FSEC_VALUE&NV_FSEC_SEC_MASK) != (2<<NV_FSEC_SEC_SHIFT))
 // Change to warning if your really, really want to do this!
 #error "The security values selected will prevent the device from being unsecured using external methods"
@@ -69,34 +152,37 @@ typedef struct {
 
 /*
 Control extended Boot features on these devices
-<h> Flash boot options (NV_FTFA_FOPT)
+<h> Flash boot options (NV_FOPT)
    <q0.2> NMI pin control (FOPT.NMI_DIS)
       <i> Enables or disables the NMI function
+      <info>NMI_DIS
       <0=> NMI interrupts are always blocked.
-      <1=> NMI_b interrupts default to enabled
+      <1=> NMI interrupts default to enabled
    <q0.1> EZPORT pin control (FOPT.EZPORT_DIS)
       <i> Enables or disables EzPort function
       <i> Disabling EZPORT function avoids inadvertent resets into EzPort mode 
       <i> if the EZP_CS/NMI pin is used for its NMI function 
+      <info>EZPORT_DIS
       <0=> EZP_CSn pin is disabled on reset
       <1=> EZP_CSn pin is enabled on reset
    <q0.0> Low power boot control (FOPT.LPBOOT)
       <i> Controls the reset value of SIM_CLKDIV1.OUTDIVx (clock dividers)
       <i> Allows power consumption during reset to be reduced
-      <0=> CLKDIV1,2 = /8, CLKDIV3,4 = /16
-      <1=> CLKDIV1,2 = /1, CLKDIV3,4 = /2
+      <info>LPBOOT
+      <0=> Low Power - CLKDIV1,2 = /8, CLKDIV3,4 = /16
+      <1=> Normal - CLKDIV1,2 = /1, CLKDIV3,4 = /2
 </h>
  */
 #define FOPT_VALUE (0x7|0xF8)
 
 __attribute__ ((section(".security_information")))
 const SecurityInfo securityInfo = {
-    /* backdoor */ {0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF},
-    /* fprot    */ 0xFFFFFFFF,
+    /* backdoor */ BACKDOOR_VALUE,
+    /* fprot    */ FPROT_VALUE,
     /* fsec     */ FSEC_VALUE,
     /* fopt     */ FOPT_VALUE,
-    /* feprot   */ 0xFF,
-    /* fdprot   */ 0xFF,
+    /* feprot   */ FEPROT_VALUE,
+    /* fdprot   */ FDPROT_VALUE,
 };
 #endif
 
@@ -211,11 +297,11 @@ void DMA1_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void DMA2_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void DMA3_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void DMA_Error_IRQHandler(void)               WEAK_DEFAULT_HANDLER;
-void FTFL_Command_IRQHandler(void)            WEAK_DEFAULT_HANDLER;
-void FTFL_Collision_IRQHandler(void)          WEAK_DEFAULT_HANDLER;
-void LVD_LVW_IRQHandler(void)                 WEAK_DEFAULT_HANDLER;
-void LLW_IRQHandler(void)                     WEAK_DEFAULT_HANDLER;
-void Watchdog_IRQHandler(void)                WEAK_DEFAULT_HANDLER;
+void FTF_Command_IRQHandler(void)             WEAK_DEFAULT_HANDLER;
+void FTF_ReadCollision_IRQHandler(void)       WEAK_DEFAULT_HANDLER;
+void PMC_IRQHandler(void)                     WEAK_DEFAULT_HANDLER;
+void LLWU_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
+void WDOG_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void I2C0_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void SPI0_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void I2S0_Tx_IRQHandler(void)                 WEAK_DEFAULT_HANDLER;
@@ -233,7 +319,7 @@ void CMP1_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void FTM0_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void FTM1_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void CMT_IRQHandler(void)                     WEAK_DEFAULT_HANDLER;
-void RTC_IRQHandler(void)                     WEAK_DEFAULT_HANDLER;
+void RTC_Alarm_IRQHandler(void)               WEAK_DEFAULT_HANDLER;
 void RTC_Seconds_IRQHandler(void)             WEAK_DEFAULT_HANDLER;
 void PIT0_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void PIT1_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
@@ -279,51 +365,51 @@ VectorTable const __vector_table = {
       SysTick_Handler,               /*   15,   -1  System Tick Timer                                                                */
 
                                      /* External Interrupts */
-      DMA0_IRQHandler,               /*   16,    0  DMA channel 0 transfer complete interrupt                                        */
-      DMA1_IRQHandler,               /*   17,    1  DMA channel 1 transfer complete interrupt                                        */
-      DMA2_IRQHandler,               /*   18,    2  DMA channel 2 transfer complete interrupt                                        */
-      DMA3_IRQHandler,               /*   19,    3  DMA channel 3 transfer complete interrupt                                        */
+      DMA0_IRQHandler,               /*   16,    0  Direct memory access controller                                                  */
+      DMA1_IRQHandler,               /*   17,    1  Direct memory access controller                                                  */
+      DMA2_IRQHandler,               /*   18,    2  Direct memory access controller                                                  */
+      DMA3_IRQHandler,               /*   19,    3  Direct memory access controller                                                  */
       DMA_Error_IRQHandler,          /*   20,    4  DMA error interrupt                                                              */
       Default_Handler,               /*   21,    5                                                                                   */
-      FTFL_Command_IRQHandler,       /*   22,    6  FTFL interrupt                                                                   */
-      FTFL_Collision_IRQHandler,     /*   23,    7  FTFL Read collision interrupt                                                    */
-      LVD_LVW_IRQHandler,            /*   24,    8  PMC Low Voltage Detect, Low Voltage Warning                                      */
-      LLW_IRQHandler,                /*   25,    9  LLW Low Leakage Wakeup                                                           */
-      Watchdog_IRQHandler,           /*   26,   10  WDOG interrupt                                                                   */
-      I2C0_IRQHandler,               /*   27,   11  I2C0 interrupt                                                                   */
-      SPI0_IRQHandler,               /*   28,   12  SPI0 interrupt                                                                   */
-      I2S0_Tx_IRQHandler,            /*   29,   13  I2S0 transmit interrupt                                                          */
-      I2S0_Rx_IRQHandler,            /*   30,   14  I2S0 receive interrupt                                                           */
-      UART0_LON_IRQHandler,          /*   31,   15  UART0 LON interrupt                                                              */
-      UART0_RX_TX_IRQHandler,        /*   32,   16  UART0 receive/transmit interrupt                                                 */
-      UART0_ERR_IRQHandler,          /*   33,   17  UART0 error interrupt                                                            */
-      UART1_RX_TX_IRQHandler,        /*   34,   18  UART1 receive/transmit interrupt                                                 */
-      UART1_ERR_IRQHandler,          /*   35,   19  UART1 error interrupt                                                            */
-      UART2_RX_TX_IRQHandler,        /*   36,   20  UART2 receive/transmit interrupt                                                 */
-      UART2_ERR_IRQHandler,          /*   37,   21  UART0 error interrupt                                                            */
-      ADC0_IRQHandler,               /*   38,   22  ADC0 interrupt                                                                   */
-      CMP0_IRQHandler,               /*   39,   23  CMP0 interrupt                                                                   */
-      CMP1_IRQHandler,               /*   40,   24  CMP1 interrupt                                                                   */
-      FTM0_IRQHandler,               /*   41,   25  FTM0 fault, overflow and channels interrupt                                      */
-      FTM1_IRQHandler,               /*   42,   26  FTM1 fault, overflow and channels interrupt                                      */
-      CMT_IRQHandler,                /*   43,   27  CMT interrupt                                                                    */
-      RTC_IRQHandler,                /*   44,   28  RTC interrupt                                                                    */
-      RTC_Seconds_IRQHandler,        /*   45,   29  RTC seconds interrupt                                                            */
-      PIT0_IRQHandler,               /*   46,   30  PIT timer channel 0 interrupt                                                    */
-      PIT1_IRQHandler,               /*   47,   31  PIT timer channel 1 interrupt                                                    */
-      PIT2_IRQHandler,               /*   48,   32  PIT timer channel 2 interrupt                                                    */
-      PIT3_IRQHandler,               /*   49,   33  PIT timer channel 3 interrupt                                                    */
-      PDB0_IRQHandler,               /*   50,   34  PDB0 Programmable Delay Block interrupt                                          */
-      USB0_IRQHandler,               /*   51,   35  USB0 OTG interrupt                                                               */
-      USBDCD_IRQHandler,             /*   52,   36  USBDCD interrupt                                                                 */
-      TSI0_IRQHandler,               /*   53,   37  TSI0 interrupt                                                                   */
+      FTF_Command_IRQHandler,        /*   22,    6  Flash Memory Interface                                                           */
+      FTF_ReadCollision_IRQHandler,  /*   23,    7  Flash Memory Interface                                                           */
+      PMC_IRQHandler,                /*   24,    8  Power Management Controller                                                      */
+      LLWU_IRQHandler,               /*   25,    9  Low Leakage Wakeup                                                               */
+      WDOG_IRQHandler,               /*   26,   10  External Watchdog Monitor                                                        */
+      I2C0_IRQHandler,               /*   27,   11  Inter-Integrated Circuit                                                         */
+      SPI0_IRQHandler,               /*   28,   12  Serial Peripheral Interface                                                      */
+      I2S0_Tx_IRQHandler,            /*   29,   13  Synchronous Serial Interface                                                     */
+      I2S0_Rx_IRQHandler,            /*   30,   14  Synchronous Serial Interface                                                     */
+      UART0_LON_IRQHandler,          /*   31,   15  Serial Communication Interface                                                   */
+      UART0_RX_TX_IRQHandler,        /*   32,   16  Serial Communication Interface                                                   */
+      UART0_ERR_IRQHandler,          /*   33,   17  Serial Communication Interface                                                   */
+      UART1_RX_TX_IRQHandler,        /*   34,   18  Serial Communication Interface                                                   */
+      UART1_ERR_IRQHandler,          /*   35,   19  Serial Communication Interface                                                   */
+      UART2_RX_TX_IRQHandler,        /*   36,   20  Serial Communication Interface                                                   */
+      UART2_ERR_IRQHandler,          /*   37,   21  Serial Communication Interface                                                   */
+      ADC0_IRQHandler,               /*   38,   22  Analogue to Digital Converter                                                    */
+      CMP0_IRQHandler,               /*   39,   23  High-Speed Comparator                                                            */
+      CMP1_IRQHandler,               /*   40,   24  High-Speed Comparator                                                            */
+      FTM0_IRQHandler,               /*   41,   25  FlexTimer Module                                                                 */
+      FTM1_IRQHandler,               /*   42,   26  FlexTimer Module                                                                 */
+      CMT_IRQHandler,                /*   43,   27  Carrier Modulator Transmitter                                                    */
+      RTC_Alarm_IRQHandler,          /*   44,   28  Real Time Clock                                                                  */
+      RTC_Seconds_IRQHandler,        /*   45,   29  Real Time Clock                                                                  */
+      PIT0_IRQHandler,               /*   46,   30  Periodic Interrupt Timer                                                         */
+      PIT1_IRQHandler,               /*   47,   31  Periodic Interrupt Timer                                                         */
+      PIT2_IRQHandler,               /*   48,   32  Periodic Interrupt Timer                                                         */
+      PIT3_IRQHandler,               /*   49,   33  Periodic Interrupt Timer                                                         */
+      PDB0_IRQHandler,               /*   50,   34  Programmable Delay Block                                                         */
+      USB0_IRQHandler,               /*   51,   35  Universal Serial Bus                                                             */
+      USBDCD_IRQHandler,             /*   52,   36  USB Device Charger Detection                                                     */
+      TSI0_IRQHandler,               /*   53,   37  Touch Sense Interface                                                            */
       MCG_IRQHandler,                /*   54,   38  MCG interrupt                                                                    */
-      LPTMR0_IRQHandler,             /*   55,   39  LPTMR Low Power Timer interrupt                                                  */
-      PORTA_IRQHandler,              /*   56,   40  Port A interrupt                                                                 */
-      PORTB_IRQHandler,              /*   57,   41  Port B interrupt                                                                 */
-      PORTC_IRQHandler,              /*   58,   42  Port C interrupt                                                                 */
-      PORTD_IRQHandler,              /*   59,   43  Port D interrupt                                                                 */
-      PORTE_IRQHandler,              /*   60,   44  Port E interrupt                                                                 */
+      LPTMR0_IRQHandler,             /*   55,   39  Low Power Timer                                                                  */
+      PORTA_IRQHandler,              /*   56,   40  General Purpose Input/Output                                                     */
+      PORTB_IRQHandler,              /*   57,   41  General Purpose Input/Output                                                     */
+      PORTC_IRQHandler,              /*   58,   42  General Purpose Input/Output                                                     */
+      PORTD_IRQHandler,              /*   59,   43  General Purpose Input/Output                                                     */
+      PORTE_IRQHandler,              /*   60,   44  General Purpose Input/Output                                                     */
       SWI_IRQHandler,                /*   61,   45  Software interrupt                                                               */
    }
 };
