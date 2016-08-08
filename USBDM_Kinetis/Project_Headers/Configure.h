@@ -72,13 +72,13 @@ extern void dputs(char *msg);
 
 //==========================================================================================
 // Targets and visible capabilities supported - related to above but not exactly!
-// e.g. CAP_HCS12 => CAP_BDM+CAP_RST_OUT
-//      CAP_RS08  => CAP_BDM+CAP_FLASH(+CAP_RST_OUT)
-//      CAP_HCS08 => CAP_BDM(+CAP_RST_OUT)
-//      CAP_CFVx  => CAP_JTAG_HW+CAP_CFVx_HW+CAP_RST_OUT
-//      CAP_DSC   => CAP_JTAG_HW+CAP_RST_OUT + s/w routines
-//      CAP_JTAG  => CAP_JTAG_HW+CAP_RST_OUT
-//      CAP_RST   => CAP_RST_OUT
+// e.g. CAP_HCS12 => CAP_BDM+CAP_RST_IO
+//      CAP_RS08  => CAP_BDM+CAP_FLASH(+CAP_RST_IO)
+//      CAP_HCS08 => CAP_BDM(+CAP_RST_IO)
+//      CAP_CFVx  => CAP_JTAG_HW+CAP_CFVx_HW+CAP_RST_IO
+//      CAP_DSC   => CAP_JTAG_HW+CAP_RST_IO + s/w routines
+//      CAP_JTAG  => CAP_JTAG_HW+CAP_RST_IO
+//      CAP_RST   => CAP_RST_IO
 // TARGET_CAPABILITY
 //
 #define CAP_HCS12       (1<<0)      // Supports HCS12 targets

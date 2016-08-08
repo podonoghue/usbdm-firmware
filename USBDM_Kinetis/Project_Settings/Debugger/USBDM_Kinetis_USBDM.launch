@@ -160,7 +160,7 @@
 <stringAttribute key="net.sourceforge.usbdm.connections.usbdm.setTargetVdd" value="0"/>
 <stringAttribute key="net.sourceforge.usbdm.connections.usbdm.trimTargetClock" value="0"/>
 <stringAttribute key="net.sourceforge.usbdm.connections.usbdm.useAltBDMClock" value="255"/>
-<booleanAttribute key="net.sourceforge.usbdm.connections.usbdm.useDebugBuild" value="false"/>
+<stringAttribute key="net.sourceforge.usbdm.connections.usbdm.useDebugBuild" value="false"/>
 <stringAttribute key="net.sourceforge.usbdm.connections.usbdm.useResetSignal" value="0"/>
 <intAttribute key="org.eclipse.cdt.launch.ATTR_BUILD_BEFORE_LAUNCH_ATTR" value="2"/>
 <stringAttribute key="org.eclipse.cdt.launch.DEBUGGER_ID" value="com.freescale.cdt.debug.cw.hc08.HC08Debugger"/>

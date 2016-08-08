@@ -60,7 +60,6 @@ static void ep5StartTxTransactionIfIdle();
 #endif
 
 uint8_t commandBuffer[300];
-bool suspended = true;
 
 #ifdef __BYTE_ORDER__
    #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
@@ -111,6 +110,7 @@ bool suspended = true;
 //                                                                    <= 256 - each is rounded to 16 bytes
 #else
 #define NUMBER_OF_EPS    (3)  //!< Number of endpoints in use
+
 #define ENDPT0MAXSIZE    (32) //!< USBDM - Control in/out    
 #define ENDPT1MAXSIZE    (64) //!< USBDM - BDM out
 #define ENDPT2MAXSIZE    (64) //!< USBDM - BDM in
@@ -738,7 +738,7 @@ static void ep0StartRxTransaction( uint8_t bufSize, uint8_t *bufPtr ) {
 // Endpoint state is changed to EPIdle
 //
 static void ep0ConfigureSetupTransaction( void ) {
-   PRINTF("ep0ConfigSetupTr - ");
+   PUTS("ep0ConfigSetupTr - ");
    // Set up EP0-RX to Rx SETUP packets
    ep0InitialiseBdtRx(DATA0);
    epHardwareState[0].state = EPIdle;
@@ -1378,8 +1378,6 @@ void initUSB() {
    // Make sure no interrupt during setup
    disableUSBIrq();
 
-   suspended = true;
-
    // Clear USB RAM (includes BDTs)
    memset((uint8_t*)endPointBdts, 0, sizeof(endPointBdts));
 
@@ -1418,7 +1416,7 @@ void initUSB() {
 //   while ((USB0_USBTRC0&USB_USBTRC0_USBRESET_MASK) != 0) {
 //   }
 
-   // This bit is undocumented but seems top be necessary
+   // This bit is undocumented but seems to be necessary
    USB0->USBTRC0 = 0x40;
 
    // Set initial USB state
@@ -1433,8 +1431,8 @@ void initUSB() {
 //   for (int i=0; i<100000; i++) {
 //      __asm__("nop");
 //   }
-   // Clear all pending interrupts except reset.
-   USB0->ISTAT = (USB_ISTAT_USBRST_MASK^0xFF);
+   // Clear all pending interrupts
+   USB0->ISTAT = 0xFF;
 
    // Enable usb reset interrupt
    USB0->INTEN = USB_INTEN_USBRSTEN_MASK|USB_INTEN_SLEEPEN_MASK;
@@ -1444,6 +1442,9 @@ void initUSB() {
 
    // Enable Pull-up
    USB0->CONTROL = USB_CONTROL_DPPULLUPNONOTG_MASK;
+
+   // Enable interface
+   USB0->CTL = USB_CTL_USBENSOFEN_MASK;
 
    // Enable USB interrupts
    enableUSBIrq();
@@ -1628,13 +1629,13 @@ static void handleGetDescriptor( void ) {
    switch (ep0SetupBuffer.wValue.le.hi) {
 
       case DT_DEVICE: // Get Device Descriptor - 1
-         PRINTF("getDescriptor-device - ");
+         PUTS("getDescriptor-device - ");
          dataPtr  = (uint8_t *) &deviceDescriptor;
          dataSize = sizeof(DeviceDescriptor);
          break;
       case DT_CONFIGURATION: // Get Configuration Descriptor - 2
          //dprint("hGDconf()\r\n");
-         PRINTF("getDescriptor-config - ");
+         PUTS("getDescriptor-config - ");
          if (ep0SetupBuffer.wValue.le.lo != 0) {
             epStall(0);
             return;
@@ -1643,11 +1644,11 @@ static void handleGetDescriptor( void ) {
          dataSize = sizeof(otherDescriptors);
          break;
       case DT_DEVICEQUALIFIER: // Get Device Qualifier Descriptor
-         PRINTF("getDescriptor-deviceQ - ");
+         PUTS("getDescriptor-deviceQ - ");
          epStall(0);
          return;
       case DT_STRING: // Get String Desc.- 3
-         PRINTF("getDescriptor-string - ");
+         PUTS("getDescriptor-string - ");
 #ifdef MS_COMPATIBLE_ID_FEATURE
          if (descriptorIndex == 0xEE) {
             dataPtr  = OS_StringDescriptor;
@@ -1682,7 +1683,7 @@ static void handleGetDescriptor( void ) {
          dataSize = *dataPtr;
          break;
       default:
-         PRINTF("getDescriptor-default - ");
+         PUTS("getDescriptor-default - ");
          // shouldn't happen
          epStall(0);
          return;
@@ -1714,7 +1715,7 @@ static void setAddressCallback( void ) {
 // Set device Address - Device Req 0x05
 //
 static void handleSetAddress( void ) {
-   PRINTF("setAddress - ");
+   PUTS("setAddress - ");
 
    if (ep0SetupBuffer.bmRequestType != (EP_OUT|RT_DEVICE)) {// Out,Standard,Device
       //dprint("hSA():inv. bmR");
@@ -1891,14 +1892,12 @@ static void handleSetupToken( void ) {
       // Class requests
       switch (ep0SetupBuffer.bRequest) {
 #if (HW_CAPABILITY&CAP_CDC)
-//      case SEND_ENCAPSULATED_COMMAND : handleSendEncapsulatedCommand();    break;
-//      case GET_ENCAPSULATED_COMMAND :  handleGetEncapsulatedCommand();     break;
       case SET_LINE_CODING :           handleSetLineCoding();              break;
       case GET_LINE_CODING :           handleGetLineCoding();              break;
       case SET_CONTROL_LINE_STATE:     handleSetControlLineState();        break;
       case SEND_BREAK:                 handleSendBreak();                  break;
 #endif
-      default :                        handleUnexpected();              break;
+      default :                        handleUnexpected();                 break;
       }
       break;
 
@@ -1967,7 +1966,7 @@ static void ep0HandleInToken( void ) {
 
    switch (epHardwareState[0].state) {
       case EPDataIn:    // Doing a sequence of IN packets (until data count <= EPSIZE)
-         PRINTF("ep0InTok-EPDataIn - ");
+         PUTS("ep0InTok-EPDataIn - ");
          if ((ep0State.dataRemaining < ENDPT0MAXSIZE) ||   // Undersize pkt OR
              ((ep0State.dataRemaining == ENDPT0MAXSIZE) && // Full size AND
                !ep0State.shortInTransaction)) {
@@ -2211,7 +2210,7 @@ static void handleTokenComplete(void) {
 // Handler for Start of Frame Token interrupt (~1ms interval)
 //
 static void handleSOFToken( void ) {
-   // Green LED
+   // Activity LED
    // Off                     - no USB activity, not connected
    // On                      - no USB activity, connected
    // Off, flash briefly on   - USB activity, not connected
@@ -2361,8 +2360,10 @@ static void handleUSBResume( void ) {
 #endif
    PUTS("Resume");
 
-   suspended = false;
-
+   if (deviceState.state != USBsuspended) {
+      // Ignore if not suspended
+      return;
+   }
    // Mask further resume interrupts
    USB0->INTEN   &= ~USB_INTEN_RESUMEEN_MASK;
 //   USB0->USBTRC0 &= ~USB_USBTRC0_USBRESMEN_MASK;
