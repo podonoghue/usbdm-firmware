@@ -1406,6 +1406,9 @@ void initUSB() {
    // Enable USB regulator
    SIM->SOPT1CFG  = SIM_SOPT1CFG_URWE_MASK;
    SIM->SOPT1    |= SIM_SOPT1_USBREGEN_MASK;
+   // Enable in LP modes
+   //SIM->SOPT1CFG  = SIM_SOPT1CFG_URWE_MASK;
+   //SIM->SOPT1    &= ~(SIM_SOPT1_USBSSTBY_MASK|SIM_SOPT1_USBVSTBY_MASK);
 
    //   DEBUG_PIN_DDR = 1;
 
@@ -1906,8 +1909,8 @@ static void handleSetupToken( void ) {
       // Handle special commands here
       switch (ep0SetupBuffer.bRequest) {
       case ICP_GET_VER : {
-         reInit = true;  // tell command handler to re-init
          uint8_t versionResponse[5];
+         reInit = true;  // tell command handler to re-init
          versionResponse[0] = BDM_RC_OK;
          versionResponse[1] = VERSION_SW;      // BDM SW version
          versionResponse[2] = VERSION_HW;      // BDM HW version
@@ -2359,13 +2362,13 @@ static void handleUSBResume( void ) {
    resHigh();
 #endif
    PUTS("Resume");
+   // Mask further resume interrupts
+   USB0->INTEN   &= ~USB_INTEN_RESUMEEN_MASK;
 
    if (deviceState.state != USBsuspended) {
       // Ignore if not suspended
       return;
    }
-   // Mask further resume interrupts
-   USB0->INTEN   &= ~USB_INTEN_RESUMEEN_MASK;
 //   USB0->USBTRC0 &= ~USB_USBTRC0_USBRESMEN_MASK;
 
    // Clear the sleep and resume interrupt flags

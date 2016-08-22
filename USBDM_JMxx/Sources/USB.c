@@ -1673,14 +1673,12 @@ static void handleSetupToken( void ) {
       // Class requests
       switch (ep0SetupBuffer.bRequest) {
 #if (HW_CAPABILITY&CAP_CDC)
-//      case SEND_ENCAPSULATED_COMMAND : handleSendEncapsulatedCommand();    break;
-//      case GET_ENCAPSULATED_COMMAND :  handleGetEncapsulatedCommand();     break;
       case SET_LINE_CODING :           handleSetLineCoding();              break;
       case GET_LINE_CODING :           handleGetLineCoding();              break;
       case SET_CONTROL_LINE_STATE:     handleSetControlLineState();        break;
       case SEND_BREAK:                 handleSendBreak();                  break;
 #endif
-      default :                        handleUnexpected();              break;
+      default :                        handleUnexpected();                 break;
       }
       break;
 
@@ -2086,6 +2084,12 @@ static void handleUSBSuspend( void ) {
 // Disables further USB module wakeups
 static void handleUSBResume( void ) {
    INTENB_RESUME     = 0;              // Mask further resume ints
+
+   if (deviceState.state != USBsuspended) {
+      // Ignore if not suspended
+      return;
+   }
+
    CTL               = CTL_USBEN_MASK; // Enable the transmit or receive of packets
    deviceState.state = USBconfigured;
 
