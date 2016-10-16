@@ -96,6 +96,34 @@ extern "C" {
 #define PORT_CLOCK_MASK(port)  CONCAT4_(SIM_SCGC5,_PORT,port,_MASK)
 
 #ifdef __cplusplus
+
+#ifdef __BYTE_ORDER__
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+#define leToNative32(x) __REV(x)
+#define leToNative16(x) __REV16(x)
+#define nativeToLe32(x) __REV(x)
+#define nativeToLe16(x) __REV16(x)
+#define beToNative32(x) (x)
+#define beToNative16(x) (x)
+#define nativeToBe32(x) (x)
+#define nativeToBe16(x) (x)
+#elif __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+#define leToNative32(x) (x)
+#define leToNative16(x) (x)
+#define nativeToLe32(x) (x)
+#define nativeToLe16(x) (x)
+#define beToNative32(x) __REV(x)
+#define beToNative16(x) __REV16(x)
+#define nativeToBe32(x) __REV(x)
+#define nativeToBe16(x) __REV16(x)
+#else
+#error "Unexpected __BYTE_ORDER__ value"
+#endif
+#endif // __BYTE_ORDER__
+
+#endif
+
+#ifdef __cplusplus
    }
 #endif
 
