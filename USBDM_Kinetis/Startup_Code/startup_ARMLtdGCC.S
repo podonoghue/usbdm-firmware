@@ -160,7 +160,7 @@ Reset_Handler:
     // Make sure hook is provided for CMSIS (fix for KDS compiler)
     bl	  	software_init_hook
 
-    bl    __START
+    b       __START
     .pool
     .size Reset_Handler, . - Reset_Handler
     
