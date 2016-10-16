@@ -76,7 +76,7 @@ static uint8_t txHead        = 0;
 static uint8_t txBufferCount = 0;
 static uint8_t breakCount    = 0;
 #define CDC_RX_BUFFER_SIZE (16)  // Should less than or equal to end-point buffer size
-static char *rxBuffer;
+static char *rxBuffer = nullptr;
 static uint8_t rxBufferCount = 0;
 static uint8_t cdcStatus = SERIAL_STATE_CHANGE;
 
@@ -93,19 +93,21 @@ static uint8_t cdcStatus = SERIAL_STATE_CHANGE;
 #endif
 
 
-// The following routines are assumed to be called from interrupt code - Interrupts masked
-//
+/*
+ * The following routines are assumed to be called from interrupt code - Interrupts masked
+ */
 
 //
 // Simple double-buffering for Rx (in conjunction with USB buffer)
 //
 
-//! putRxBuffer() -  Add a char to the CDC-Rx buffer
-//!
-//! @param ch - char to add
-//!
-//! @note Overun flag is set on buffer full
-//!
+/** 
+ * putRxBuffer() -  Add a char to the CDC-Rx buffer
+ *
+ * @param ch - char to add
+ *
+ * @note Overun flag is set on buffer full
+ */
 void cdc_putRxBuffer(char ch) {
    if (rxBufferCount >= CDC_RX_BUFFER_SIZE) {
       cdcStatus |= UART_S1_OR_MASK;
@@ -117,45 +119,44 @@ void cdc_putRxBuffer(char ch) {
 //   }
 }
 
-//! setRxBuffer() - Sets CDC-Rx buffer
-//!
-//! @param buffer - buffer to write future data to
-//!
-//! @return -  number of characters in existing buffer
-//!
+/**
+ * Set current Rx Buffer
+ *
+ * @param buffer Buffer address, new data is written to this buffer
+ * 
+ * @return -  number of characters in existing buffer
+ */
 uint8_t cdc_setRxBuffer(char *buffer) {
    uint8_t temp;
-#ifdef LOG
-   *buffer = 'X'; // Debug - This character should never appear!
-#endif
    rxBuffer = buffer;
    temp = rxBufferCount;
    rxBufferCount = 0;
    return temp;
 }
 
-//! RxBufferEmpty() - Check if Rx buffer is empty
-//!
-//! @return -  1 => buffer is empty
-//!            0 => buffer is not empty
-//!
+/**
+ *  RxBufferEmpty() - Check if Rx buffer is empty
+ *
+ * @return -  1 => buffer is not empty
+ *            0 => buffer is empty
+ */
 uint8_t cdc_rxBufferItemCount(void) {
    return rxBufferCount;
 }
 
-//
-// Simple double-buffering for CDC-Tx (in conjunction with USB end-point buffer)
-//
-
-//! putTxBuffer() -  Copy characters to the CDC-Tx buffer
-//! UART interrupts are enabled.
-//!
-//! @param source - buffer of source chars
-//! @param size   - number of source characters in buffer
-//!
-//! @return - 0 - OK
-//!           1 - Buffer is busy (overrun)
-//!
+/*
+ * Simple double-buffering for CDC-Tx (in conjunction with USB end-point buffer)
+ */
+ 
+/**
+ * Add data to Tx Buffer (from USB)
+ *
+ * @param source Source buffer to copy from
+ * @param size   Number of bytes to copy
+ *
+ *  @return - 0 - OK
+ *            1 - Buffer is busy (overrun)
+ */
 uint8_t cdc_putTxBuffer(char *source, uint8_t size) {
    if (txBufferCount > 0) {
       return 1; // Busy
@@ -167,12 +168,12 @@ uint8_t cdc_putTxBuffer(char *source, uint8_t size) {
    return 0;
 }
 
-//! getTx() -  Gets a character from the CDC-Tx queue.
-//!
-//! @return
-//!  -  -ve => queue is empty \n
-//!  -  +ve => char from queue
-//!
+/** getTx() -  Gets a character from the CDC-Tx queue.
+ *
+ * @return
+ *  -  -ve => queue is empty \n
+ *  -  +ve => char from queue
+ */
 static int cdc_getTxBuffer(void) {
    uint8_t ch;
    if (txBufferCount == 0) {
@@ -188,12 +189,12 @@ static int cdc_getTxBuffer(void) {
       txBufferCount = 0;
    return ch;
 }
-
-//! cdcTxSpace - check if CDC-Tx buffer is free
-//!
-//! @return 0 => buffer is occupied
-//!         1 => buffer is free
-//!
+/**
+ *  cdcTxSpace - check if CDC-Tx buffer is free
+ *
+ * @return 0 => buffer is occupied
+ *         1 => buffer is free
+ */
 uint8_t cdc_txBufferIsFree(void) {
    return (txBufferCount == 0);
 }
@@ -271,15 +272,17 @@ void UARTx_IRQHandler() {
 
 static LineCodingStructure lineCoding = {CONST_NATIVE_TO_LE32(9600UL),0,1,8};
 
-//! Set CDC Tx characteristics
-//!
-//! @param lineCodingStructure - Structure describing desired settings
-//!
-//! The CDC is quite limited when compared to the serial interface implied by
-//! LineCodingStructure.
-//! It does not support many of the combinations available.
-//! BAUD > 300
-//!
+/**
+ *  Set CDC communication characteristics\n
+ *  Dummy routine
+ *
+ * @param lineCodingStructure - Structure describing desired settings
+ *
+ * The CDC is quite limited when compared to the serial interface implied by
+ * LineCodingStructure.
+ * It does not support many of the combinations available.
+ * BAUD > 300
+ */
 void cdc_setLineCoding(const LineCodingStructure *lineCodingStructure) {
    uint32_t baudrate;
    uint16_t ubd;
@@ -381,18 +384,20 @@ void cdc_setLineCoding(const LineCodingStructure *lineCodingStructure) {
    enableUartIrq();
 }
 
-//! Get CDC Tx characteristics
-//!
-//! @param lineCodingStructure - Structure describing desired settings
-//!
+/**
+ *  Get CDC communication characteristics\n
+ *
+ *  @param lineCodingStructure - Structure describing current settings
+ */
 const LineCodingStructure *cdc_getLineCoding(void) {
    return &lineCoding;
 }
 
-//! Set CDC Line values
-//!
-//! @param value - Describing desired settings
-//!
+/**
+ *  Set CDC Line values
+ *
+ * @param value - Describing desired settings
+ */
 void cdc_setControlLineState(uint8_t value) {
 #define LINE_CONTROL_DTR (1<<0)
 #define LINE_CONTROL_RTS (1<<1) // Ignored
@@ -408,16 +413,17 @@ void cdc_setControlLineState(uint8_t value) {
 // }
 }
 
-//! Send CDC break
-//!
-//! @param length - length of break in milliseconds (see note)\n
-//!  - 0x0000 => End BREAK
-//!  - 0xFFFF => Start indefinite BREAK
-//!  - else   => Send a 10 BREAK 'chars'
-//!
-//! @note - only partially implemented
-//!       - breaks are sent after currently queued characters
-//!
+/**
+ *  Send CDC break\n
+ *
+ * @param length - length of break in milliseconds (see note)\n
+ *  - 0x0000 => End BREAK
+ *  - 0xFFFF => Start indefinite BREAK
+ *  - else   => Send a break of 10 chars
+ 
+ * @note - only partially implemented
+ *       - breaks are sent after currently queued characters
+ */
 void cdc_sendBreak(uint16_t length) {
    if (length == 0xFFFF) {
      // Send indefinite BREAKs
