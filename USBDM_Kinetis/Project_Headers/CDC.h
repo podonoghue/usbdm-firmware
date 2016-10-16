@@ -10,10 +10,11 @@
 
 #include <stdint.h>
 
-//! Structure for SetLineCoding/GetLineCoding
-//! This MUST agree with the USB format
-//!
-typedef struct {
+/**
+ * Structure for SetLineCoding/GetLineCoding
+ * This MUST agree with the USB format
+ */
+typedef struct __attribute__((packed)) {
 	uint32_t dwDTERate;     //!< data rate (littleEndian format)
 	uint8_t  bCharFormat;   //!< character format
 	uint8_t  bParityType;   //!< parity type
