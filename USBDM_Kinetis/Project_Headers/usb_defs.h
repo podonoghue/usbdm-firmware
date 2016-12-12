@@ -2,6 +2,7 @@
 #define _USBDefs_H_
 
 #include <stdint.h>
+#include "utilities.h"
 
 #pragma pack(push)
 #pragma pack(1)
@@ -63,9 +64,9 @@ typedef struct {
 typedef struct {
    uint8_t      bmRequestType;       //!<  Characteristics (Direction,Type,Recipient)
    uint8_t      bRequest;            //!<  Standard Request Code
-   U16u         wValue;              //!<  Value Field
-   U16u         wIndex;              //!<  Index or Offset Field
-   U16u         wLength;             //!<  Number of Bytes to transfer (Data Stage)
+   uint16_le    wValue;              //!<  Value Field
+   uint16_le    wIndex;              //!<  Index or Offset Field
+   uint16_le    wLength;             //!<  Number of bytes to transfer (Data Stage)
 } SetupPacket;
 
 //! Structure of Device Qualifier Descriptor

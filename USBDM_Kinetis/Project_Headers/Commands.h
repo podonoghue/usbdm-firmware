@@ -14,16 +14,7 @@
 
 //! \brief Maximum USB transfer size - entire transfer!
 //!
-//! Limited by BDM RAM
-#ifndef CPU
-#error "Please define CPU"
-#endif
-
-#if (CPU==JMxx)||(CPU==UF32)||(CPU==MKL25Z4)||(CPU==MK20D5)
 #define MAX_COMMAND_SIZE       (254)
-#else
-#define MAX_COMMAND_SIZE       (145)
-#endif
 //! BDM command values
 //!
 //! The following values are the 1st byte in each command.  \n

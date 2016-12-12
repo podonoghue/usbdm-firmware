@@ -3,6 +3,8 @@
 
 #include "Common.h"
 
+extern void checkUsbCdcTxData(void);
+
 extern void initUSB(void);
 
 extern void receiveUSBCommand( uint8_t size, uint8_t *buffer);

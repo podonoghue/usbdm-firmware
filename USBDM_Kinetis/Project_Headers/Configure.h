@@ -11,11 +11,6 @@
          -  Modify the \b Linker options for this target so that the Application Filename is unique (change  \b USBDM_JB16 appropriately)
  */
 
-//==========================================================================================
-// Define the following to enable use of USBDM with MC51AC256 Colfire CPU
-// Not extensively tested - may affect other coldfire chips adversely
-// NOTE: This has been moved to Codewarrior Legacy DLLs
-//#define MC51AC256_HACK (1)
 #ifndef _CONFIG_H
 #define _CONFIG_H
 
@@ -152,7 +147,7 @@
 
 #define VendorID        (0x16D0)       // Vendor (actually MCS)
 #define ProductID       (0x0567)       // Non-CDC versions
-#define ProductID_CDC   (0x06A5)       // CDC versions
+#define ProductID_CDC   (0x06A5)       // CDC versions (Composite device)
 #define VersionID       (VERSION_SW)   // Reported version (via USB)
 
 //#define ProductID (0x9999) // Testing
@@ -242,7 +237,7 @@
 #define DEBUG_USBDM (-1) // For debug as different USB Device
 #define TBDML (1)        // Enumerate as TBDML
 #define OSBDM (2)        // Enumerate as OSBDM
-#define USBDM (3)        // Enumerate as OSBDM
+#define USBDMx (3)        // Enumerate as OSBDM (avoid clash with namespace!)
 #define TBLCF (4)        // Enumerate as TBLCF
 
 #ifndef PLATFORM

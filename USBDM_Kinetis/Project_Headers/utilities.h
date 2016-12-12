@@ -95,8 +95,6 @@ extern "C" {
  */
 #define PORT_CLOCK_MASK(port)  CONCAT4_(SIM_SCGC5,_PORT,port,_MASK)
 
-#ifdef __cplusplus
-
 #ifdef __BYTE_ORDER__
 #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 #define leToNative32(x) __REV(x)
@@ -121,10 +119,92 @@ extern "C" {
 #endif
 #endif // __BYTE_ORDER__
 
+#if defined(DEBUG_BUILD)
+#define PUTS(x)     puts(x)
+#define PRINTF(...) printf (__VA_ARGS__)
+#else
+#define PUTS(x)
+#define PRINTF(...)
 #endif
 
 #ifdef __cplusplus
    }
 #endif
+
+#ifdef __cplusplus
+
+class uint16_le {
+   uint16_t value;
+
+public:
+   /**
+    * @return Value as 16-bit unsigned in native format
+    */
+   operator uint16_t() const {
+      return leToNative16(value);
+   }
+   /**
+    * @return Lower byte of value as 8-bit unsigned value
+    */
+   uint8_t lo() {
+      return leToNative16(value)&0xFF;
+   }
+   /**
+    * @return Upper byte of value as 8-bit unsigned value
+    */
+   uint8_t hi() {
+      return (leToNative16(value)>>8)&0xFF;
+   }
+};
+
+class uint32_le {
+   uint32_t value;
+
+public:
+   /**
+    * @return Value as 32-bit unsigned in native format
+    */
+   operator uint32_t() const {
+      return leToNative32(value);
+   }
+   /**
+    * @return Lower 16-bits of value as unsigned value
+    */
+   uint16_t lo() {
+      return leToNative16(value)&0xFFFF;
+   }
+   /**
+    * @return Upper 16-bits of value as unsigned value
+    */
+   uint16_t hi() {
+      return (leToNative16(value)>>16)&0xFFFF;
+   }
+   /**
+    * @return Lowest byte of value as unsigned value
+    */
+   uint16_t b0() {
+      return leToNative16(value)&0xFF;
+   }
+   /**
+    * @return Higher-middle byte of value as unsigned value
+    */
+   uint16_t b1() {
+      return (leToNative16(value)>>8)&0xFF;
+   }
+   /**
+    * @return Lower-middle byte of value as unsigned value
+    */
+   uint16_t b2() {
+      return (leToNative16(value)>>16)&0xFF;
+   }
+   /**
+    * @return Highest byte of value as unsigned value
+    */
+   uint16_t b3() {
+      return (leToNative16(value)>>24)&0xFF;
+   }
+};
+
+#endif /* __cplusplus */
 
 #endif /* UTILTIES_H_ */

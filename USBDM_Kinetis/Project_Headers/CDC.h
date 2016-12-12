@@ -27,9 +27,8 @@ void cdc_rxHandler(void);
 //void cdcErrorHandler(void);
 
 // SCI Tx Buffer 
-uint8_t cdc_putTxBuffer(char *source, uint8_t size);
+bool cdc_putTxBuffer(char *source, uint8_t size);
 uint8_t cdc_txBufferIsFree(void);
-void checkUsbCdcTxData(void);
 
 // SCI Rx
 uint8_t cdc_setRxBuffer(char *buffer);
