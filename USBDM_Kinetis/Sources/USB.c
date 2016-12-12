@@ -38,7 +38,7 @@ Change History
 //#include "BDM.h"
 //#include "BDMCommon.h"
 //#include "CmdProcessing.h"
-#include "USBDefs.h"
+#include "usb_defs.h"
 #include "USB.h"
 #include "ICP.h"
 #include "CDC.h"
@@ -68,39 +68,6 @@ static void ep5StartTxTransactionIfIdle();
 #endif
 
 uint8_t commandBuffer[300];
-
-#ifdef __BYTE_ORDER__
-   #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-      __inline
-      static uint32_t swap32(uint32_t data) {
-         return ((data<<24)&0xFF000000)|((data<<8)&0x00FF0000)|
-               ((data>>24)&0x000000FF)|((data>>8)&0x0000FF00);
-      }
-      __inline
-      static uint16_t swap16(uint16_t data) {
-         return ((data<<16)&0xFF00)|((data>>8)&0xFF);
-      }
-      #define leToNative32(x) swap32(x)
-      #define leToNative16(x) swap16(x)
-      #define nativeToLe32(x) swap32(x)
-      #define nativeToLe16(x) swap16(x)
-   #elif __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-      __inline
-      static uint32_t noChange32(uint32_t data) {
-         return data;
-      }
-      __inline
-      static uint16_t noChange16(uint16_t data) {
-         return data;
-      }
-      #define leToNative32(x) noChange32(x)
-      #define leToNative16(x) noChange16(x)
-      #define nativeToLe32(x) noChange32(x)
-      #define nativeToLe16(x) noChange16(x)
-   #endif
-#else
-#error "Please define __BIG_ENDIAN__ or __LITTLE_ENDIAN__"
-#endif
 
 //======================================================================
 // Maximum packet sizes for each endpoint
@@ -161,7 +128,7 @@ typedef struct {
    } u;
    volatile uint8_t  :8;
    volatile uint16_t bc;          // Byte count
-   volatile uint32_t addr;        // buffer address
+   volatile uint32_t addr;        // Buffer address
 } BdtEntry ;
 #else
 // Big-endian (Used on Coldfire)
@@ -232,7 +199,7 @@ uint8_t ep5DataBuffer1[CDC_DATA_IN_EP_MAXSIZE];
 static EndpointBdtEntry endPointBdts[16] __attribute__ ((aligned (512)));
 
 /** BDTs as simple array */
-constexpr BdtEntry * bdts = (BdtEntry *)endPointBdts;
+BdtEntry * const bdts = (BdtEntry *)endPointBdts;
 
 /*
  * String descriptors
@@ -314,7 +281,7 @@ static const struct {
    InterfaceDescriptor                      cdc_DCI_Interface;
    EndpointDescriptor                       cdc_dataOut_Endpoint;
    EndpointDescriptor                       cdc_dataIn_Endpoint;
-
+#endif
 } otherDescriptors =
 {
       { // configDescriptor

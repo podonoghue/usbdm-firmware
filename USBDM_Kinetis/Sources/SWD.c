@@ -69,12 +69,13 @@
 // Masks for SWD_RD_DP_STATUS
 #define SWD_RD_DP_STATUS_ANYERROR_B3 0xB2
 
-//! Calculate parity
-//!
-//! @param data data to calculate parity for
-//!
-//! @return 0/1 indicating even/odd parity
-//!
+/**
+ * Calculate parity of the 32-bit value
+ *
+ * @param  dataptr   Data value
+ *
+ * @return parity value
+ */
 __forceinline
 static inline uint8_t calcParity(const uint8_t dataptr[]) {
    uint32_t data = dataptr[0]^dataptr[1]^dataptr[2]^dataptr[3];
@@ -208,13 +209,11 @@ static inline void spi_mark_tx32_parity(const uint8_t *data) {
    SPI0->SR = SPI_SR_RFDF_MASK|SPI_SR_EOQF_MASK;
    SWD_3STATE();
 }
-
-//! Transmit a [32-bit word] to the target
-//!
-//! @param send    - data to send
-//!
-//! @return BDM_RC_OK => success
-//!
+/**
+ *  Transmit a [32-bit word]
+ *
+ *  @param send Data to send
+ */
 __forceinline
 static inline void spi_tx32(const uint8_t *data) {
    SWD_ENABLE();
@@ -231,13 +230,13 @@ static inline void spi_tx32(const uint8_t *data) {
    (void)SPI0->POPR;
    SPI0->SR = SPI_SR_RFDF_MASK|SPI_SR_EOQF_MASK;
 }
-
-//! Receive a 32-bit word + parity from the target
-//!
-//! @param receive - data received
-//!
-//! @return BDM_RC_OK => success
-//!
+/**
+ *  Receive [32-bit word, parity] from the target
+ *
+ *  @param receive - data received
+ *
+ *  @return BDM_RC_OK => success
+ */
 __forceinline
 static inline uint8_t spi_rx32_parity(uint8_t *receive) {
    uint16_t dummy;
@@ -656,7 +655,7 @@ uint8_t swd_writeAPReg(const uint8_t *address, const uint8_t *buff) {
 uint8_t swd_readAPReg(const uint8_t *address, uint8_t *buff) {
    static const uint8_t readAP[]  = {SWD_RD_AP_REG0,   SWD_RD_AP_REG1,    SWD_RD_AP_REG2,   SWD_RD_AP_REG3};
    uint8_t rc;
-   uint8_t regNo = readAP[(address[1]&0xC)>>2];
+   uint8_t regNo = readAP[(address[1]>>2)&0x3];
    uint8_t selectData[4];
    selectData[0] = address[0];
    selectData[1] = 0;
@@ -666,7 +665,7 @@ uint8_t swd_readAPReg(const uint8_t *address, uint8_t *buff) {
    // Set up SELECT register for AP access
    rc = swd_writeReg(SWD_WR_DP_SELECT, selectData);
    if (rc != BDM_RC_OK) {
-     return rc;
+      return rc;
    }
    // Initiate read from AP register (dummy data)
    rc = swd_readReg(regNo, buff);
@@ -677,19 +676,22 @@ uint8_t swd_readAPReg(const uint8_t *address, uint8_t *buff) {
    return swd_readReg(SWD_RD_DP_RDBUFF, buff);
 }
 
-//! ARM-SWD - clear sticky bits
-//!
-//! @return error code
-//!
+
+/**
+ *  Clear all sticky bits in status register
+ *
+ *  @return error code
+ */
 uint8_t swd_clearStickyError(void) {
    static const uint8_t swdClearErrors[4] = {0,0,0,SWD_DP_ABORT_CLEAR_STICKY_ERRORS_B3};
    return swd_writeReg(SWD_WR_DP_ABORT, swdClearErrors);
 }
 
-//! ARM-SWD - clear sticky bits and abort AP transactions
-//!
-//! @return error code
-//!
+/**
+ * Clear sticky bits and abort AP transactions
+ *
+ *  @return error code
+ */
 uint8_t swd_abortAP(void) {
    static const uint8_t swdClearErrors[4] =
       {0,0,0,SWD_DP_ABORT_CLEAR_STICKY_ERRORS_B3|SWD_DP_ABORT_ABORT_AP_B3};

@@ -1,6 +1,6 @@
 /**
- * @file     bitband.h (derived from bitband-cpp-mk.h)
- * @brief    Template functions to access bit-band region
+ * @file     bitband.h
+ * @brief    Template functions to access bit-band region (derived from bitband-cpp-mk.h)
  * @version  V4.12.1.50
  * @date     5 Dec 2015
  */

@@ -948,7 +948,7 @@ static const FunctionPtr CFVxfunctionPtrs[] = {
 static const FunctionPtrs CFVxFunctionPointers  = {CMD_USBDM_CONNECT,
                                                    sizeof(CFVxfunctionPtrs)/sizeof(FunctionPtr),
                                                    CFVxfunctionPtrs};
-#endif 
+#endif
 #if (TARGET_CAPABILITY&CAP_ARM_JTAG)
 // Combined JTAG/ARM_JTAG Table
 static const FunctionPtr JTAGfunctionPtrs[] = {
@@ -989,7 +989,7 @@ static const FunctionPtr JTAGfunctionPtrs[] = {
    f_CMD_JTAG_EXECUTE_SEQUENCE      ,//= 44, CMD_JTAG_EXECUTE_SEQUENCE
    };
 static const FunctionPtrs JTAGFunctionPointers   = {CMD_USBDM_CONNECT,
-                                                    sizeof(JTAGfunctionPtrs)/sizeof(FunctionPtr),     
+                                                    sizeof(JTAGfunctionPtrs)/sizeof(FunctionPtr),
                                                     JTAGfunctionPtrs};
 #elif (TARGET_CAPABILITY&(CAP_DSC|CAP_JTAG))
 // Table for JTAG w/o JTAG_ARM
@@ -1027,105 +1027,105 @@ static const FunctionPtr JTAGfunctionPtrs[] = {
    f_CMD_JTAG_EXECUTE_SEQUENCE      ,//= 44, CMD_JTAG_EXECUTE_SEQUENCE
    };
 static const FunctionPtrs JTAGFunctionPointers   = {CMD_USBDM_CONNECT,
-                                                    sizeof(JTAGfunctionPtrs)/sizeof(FunctionPtr),     
+                                                    sizeof(JTAGfunctionPtrs)/sizeof(FunctionPtr),
                                                     JTAGfunctionPtrs};
-#endif 
+#endif
 
 #if (TARGET_CAPABILITY&CAP_ARM_SWD)
 static const FunctionPtr SWDfunctionPtrs[] = {
    // Target specific versions
-   f_CMD_SWD_CONNECT                ,//= 15, CMD_USBDM_CONNECT
-   f_CMD_SPI_SET_SPEED              ,//= 16, CMD_USBDM_SET_SPEED
-   f_CMD_SPI_GET_SPEED              ,//= 17, CMD_USBDM_GET_SPEED
-   f_CMD_ILLEGAL                    ,//= 18, CMD_CUSTOM_COMMAND
-   f_CMD_ILLEGAL                    ,//= 19, RESERVED
-   f_CMD_ILLEGAL                    ,//= 20, CMD_USBDM_READ_STATUS_REG
-   f_CMD_ILLEGAL                    ,//= 21, CMD_USBDM_WRITE_CONTROL_REG
-   f_CMD_ILLEGAL                    ,//= 22, CMD_USBDM_TARGET_RESET
-   f_CMD_SWD_TARGET_STEP            ,//= 23, CMD_USBDM_TARGET_STEP
-   f_CMD_SWD_TARGET_GO              ,//= 24, CMD_USBDM_TARGET_GO
-   f_CMD_SWD_TARGET_HALT            ,//= 25, CMD_USBDM_TARGET_HALT
-   f_CMD_SWD_WRITE_REG              ,//= 26, CMD_USBDM_WRITE_REG
-   f_CMD_SWD_READ_REG               ,//= 27  CMD_USBDM_READ_REG
-   f_CMD_SWD_WRITE_CREG             ,//= 28  CMD_USBDM_WRITE_CREG
-   f_CMD_SWD_READ_CREG              ,//= 29  CMD_USBDM_READ_CREG
-   f_CMD_SWD_WRITE_DREG             ,//= 30  CMD_USBDM_WRITE_DREG
-   f_CMD_SWD_READ_DREG              ,//= 31  CMD_USBDM_READ_DREG
-   f_CMD_SWD_WRITE_MEM              ,//= 32  CMD_USBDM_WRITE_MEM
-   f_CMD_SWD_READ_MEM               ,//= 33  CMD_USBDM_READ_MEM
+   f_CMD_SWD_CONNECT                 ,//= 15, CMD_USBDM_CONNECT
+   f_CMD_SPI_SET_SPEED               ,//= 16, CMD_USBDM_SET_SPEED
+   f_CMD_SPI_GET_SPEED               ,//= 17, CMD_USBDM_GET_SPEED
+   f_CMD_ILLEGAL                     ,//= 18, CMD_CUSTOM_COMMAND
+   f_CMD_ILLEGAL                     ,//= 19, RESERVED
+   f_CMD_ILLEGAL                     ,//= 20, CMD_USBDM_READ_STATUS_REG
+   f_CMD_ILLEGAL                     ,//= 21, CMD_USBDM_WRITE_CONTROL_REG
+   f_CMD_ILLEGAL                     ,//= 22, CMD_USBDM_TARGET_RESET
+   f_CMD_SWD_TARGET_STEP             ,//= 23, CMD_USBDM_TARGET_STEP
+   f_CMD_SWD_TARGET_GO               ,//= 24, CMD_USBDM_TARGET_GO
+   f_CMD_SWD_TARGET_HALT             ,//= 25, CMD_USBDM_TARGET_HALT
+   f_CMD_SWD_WRITE_REG               ,//= 26, CMD_USBDM_WRITE_REG
+   f_CMD_SWD_READ_REG                ,//= 27  CMD_USBDM_READ_REG
+   f_CMD_SWD_WRITE_CREG              ,//= 28  CMD_USBDM_WRITE_CREG
+   f_CMD_SWD_READ_CREG               ,//= 29  CMD_USBDM_READ_CREG
+   f_CMD_SWD_WRITE_DREG              ,//= 30  CMD_USBDM_WRITE_DREG
+   f_CMD_SWD_READ_DREG               ,//= 31  CMD_USBDM_READ_DREG
+   f_CMD_SWD_WRITE_MEM               ,//= 32  CMD_USBDM_WRITE_MEM
+   f_CMD_SWD_READ_MEM                ,//= 33  CMD_USBDM_READ_MEM
 #if HW_CAPABILITY&CAP_CORE_REGS
-   f_CMD_SWD_READ_ALL_CORE_REGS     ,//= 34  CMD_USBDM_READ_ALL_REGS
+   f_CMD_SWD_READ_ALL_CORE_REGS      ,//= 34  CMD_USBDM_READ_ALL_REGS
 #endif
    };
 static const FunctionPtrs SWDFunctionPointers   = {CMD_USBDM_CONNECT,
-                                                    sizeof(SWDfunctionPtrs)/sizeof(FunctionPtr),     
+                                                    sizeof(SWDfunctionPtrs)/sizeof(FunctionPtr),
                                                     SWDfunctionPtrs};
-#endif 
+#endif
 
-//! Ptr to function table for current target type
+//  Ptr to function table for current target type
 static const FunctionPtrs *currentFunctions = NULL; // default to empty
 
 static const FunctionPtrs *const functionsPtrs[] = {
 #if (TARGET_CAPABILITY&CAP_HCS12)
    /* T_HC12 */ &HCS12FunctionPointers,
 #else
-   NULL,   
+   NULL,
 #endif
 #if (TARGET_CAPABILITY&CAP_HCS08)
    /* T_HCS08 */ &HCS08FunctionPointers,
 #else
-   NULL,   
+   NULL,
 #endif
 #if (TARGET_CAPABILITY & CAP_RS08)
    /* T_RS08 */  &HCS08FunctionPointers,
 #else
-   NULL,   
+   NULL,
 #endif
 #if (TARGET_CAPABILITY & CAP_CFV1)
    /* T_CFV1 */ &CFV1FunctionPointers,
 #else
-   NULL,   
-#endif         
+   NULL,
+#endif
 #if (TARGET_CAPABILITY&CAP_CFVx)
    /* T_CFVx */ &CFVxFunctionPointers,
 #else
-   NULL,   
+   NULL,
 #endif
 #if (TARGET_CAPABILITY&CAP_JTAG)
    /* T_JTAG */ &JTAGFunctionPointers,
 #else
-   NULL,   
+   NULL,
 #endif
    /* T_EZFLASH */ NULL,
 #if (TARGET_CAPABILITY&CAP_DSC)
    /* T_MC56F80xx */ &JTAGFunctionPointers,
 #else
-   NULL,   
+   NULL,
 #endif
 #if (TARGET_CAPABILITY&CAP_ARM_JTAG)
    /* T_ARM_JTAG */ &JTAGFunctionPointers,
 #else
-   NULL,   
+   NULL,
 #endif
 #if (TARGET_CAPABILITY&CAP_ARM_SWD)
    /* T_ARM_SWD */ &SWDFunctionPointers,
 #else
-   NULL,   
+   NULL,
 #endif
-   /* T_ARM     */  NULL,   
+   /* T_ARM     */  NULL,
 #if (TARGET_CAPABILITY&CAP_S12Z)
    /* T_HC12ZVM */ &S12ZFunctionPointers,
 #else
-   NULL,   
+   NULL,
 #endif
 };
-
-//! Set target type
-//! Initialise interface for given target
-//! @note
-//!   commandBuffer        \n
-//!   - [2] = target type
-//!
+/*
+ *  Set target type
+ *  Initialise interface for given target
+ *  @note
+ *    commandBuffer        \n
+ *    - [2] = target type
+ */
 uint8_t f_CMD_SET_TARGET(void) {
    uint8_t target = commandBuffer[2];
 
@@ -1141,14 +1141,15 @@ uint8_t f_CMD_SET_TARGET(void) {
    return bdm_setTarget(target);
 }
 
-//!  Processes all commands received over USB
-//!
-//!  The command is expected to be in \ref commandBuffer[1..N]
-//!
-//!  @return Number of bytes left in commandBuffer to be sent back as response.\n
-//!         commandBuffer[0]    = result code, BDM_RC_OK => success, else failure error code\n
-//!         commandBuffer[1..N] = command results
-//!
+/*
+ *   Processes all commands received over USB
+ *
+ *   The command is expected to be in \ref commandBuffer[1..N]
+ *
+ *   @return Number of bytes left in commandBuffer to be sent back as response.\n
+ *          commandBuffer[0]    = result code, BDM_RC_OK => success, else failure error code\n
+ *          commandBuffer[1..N] = command results
+ */
 static void commandExec(void) {
 BDMCommands command    = commandBuffer[1];  // Command is 1st byte
 FunctionPtr commandPtr = f_CMD_ILLEGAL;     // Default to illegal command
@@ -1189,13 +1190,13 @@ FunctionPtr commandPtr = f_CMD_ILLEGAL;     // Default to illegal command
    if (commandStatus != BDM_RC_OK) {
       returnSize = 1;  // Return a single byte error code
       // Always do
-   	  // Changed guard V4.10.6
+        // Changed guard V4.10.6
       if ((uint8_t)command > sizeof(commonFunctionPtrs)/sizeof(FunctionPtr)) {
          // Modeless command
          // Do any common error recovery or cleanup here
 #if (TARGET_CAPABILITY&CAP_CFVx)
          if (cable_status.target_type == T_CFVx) {
-	        (void)bdmcf_complete_chk_rx(); //  Send at least 2 NOPs to purge the BDM
+           (void)bdmcf_complete_chk_rx(); //  Send at least 2 NOPs to purge the BDM
             (void)bdmcf_complete_chk_rx(); //  of the offending command
          }
 #endif
@@ -1204,10 +1205,10 @@ FunctionPtr commandPtr = f_CMD_ILLEGAL;     // Default to illegal command
             // Re-connect in case synchronisation lost
             if (commandStatus == BDM_RC_ACK_TIMEOUT) {
                // Abort AP transactions as they are the usual cause of WAIT timeouts
-		       (void)arm_abortAP();
+             (void)arm_abortAP();
             }
-	        // Clear sticky bits since already reporting error
-	        (void)arm_CheckStickyUnpipelined();
+           // Clear sticky bits since already reporting error
+           (void)arm_CheckStickyUnpipelined();
          }
 #endif
 #if (TARGET_CAPABILITY&CAP_ARM_SWD)

@@ -9,6 +9,7 @@
 #include "Common.h"
 #include "system.h"
 #include "CDC.h"
+#include "usb.h"
 
 #if (HW_CAPABILITY&CAP_CDC)
 
@@ -42,41 +43,13 @@
 #define UARTx_IRQHandler       UART_IRQHandler(UART_NUM)
 #define SIM_SCGC4_UARTx_MASK   SIM_SCGC4_UART_MASK(UART_NUM)
 
-#if 0
-__inline
-static uint32_t swap32(uint32_t data) {
-   return ((data<<24)&0xFF000000)|((data<<8)&0x00FF0000)|
-          ((data>>24)&0x000000FF)|((data>>8)&0x0000FF00);
-}
-__inline
-static uint16_t swap16(uint16_t data) {
-       return ((data<<16)&0xFF00)|((data>>8)&0xFF);
-}
-#define leToNative32(x) swap32(x)
-#define leToNative16(x) swap16(x)
-#define nativeToLe32(x) swap32(x)
-#define nativeToLe16(x) swap16(x)
-#else
-__inline
-static uint32_t noChange32(uint32_t data) {
-   return data;
-}
-//static uint16_t noChange16(uint16_t data) {
-//       return data;
-//}
-#define leToNative32(x) noChange32(x)
-#define leToNative16(x) noChange16(x)
-#define nativeToLe32(x) noChange32(x)
-#define nativeToLe16(x) noChange16(x)
-#endif
-
 #define CDC_TX_BUFFER_SIZE (16)  // Should equal end-point buffer size
 static char txBuffer[CDC_TX_BUFFER_SIZE];
 static uint8_t txHead        = 0;
 static uint8_t txBufferCount = 0;
 static uint8_t breakCount    = 0;
 #define CDC_RX_BUFFER_SIZE (16)  // Should less than or equal to end-point buffer size
-static char *rxBuffer = nullptr;
+static char *rxBuffer = NULL;
 static uint8_t rxBufferCount = 0;
 static uint8_t cdcStatus = SERIAL_STATE_CHANGE;
 
@@ -97,12 +70,12 @@ static uint8_t cdcStatus = SERIAL_STATE_CHANGE;
  * The following routines are assumed to be called from interrupt code - Interrupts masked
  */
 
-//
-// Simple double-buffering for Rx (in conjunction with USB buffer)
-//
+/*
+ * Simple double-buffering for Rx (in conjunction with USB buffer)
+ */
 
 /** 
- * putRxBuffer() -  Add a char to the CDC-Rx buffer
+ * Add a char to the CDC-Rx buffer
  *
  * @param ch - char to add
  *
@@ -114,9 +87,6 @@ void cdc_putRxBuffer(char ch) {
       return;
    }
    rxBuffer[rxBufferCount++] = ch;
-//   if (rxBufferCount == CDC_RX_BUFFER_SIZE) {
-//      checkUsbCdcRxData();
-//   }
 }
 
 /**
@@ -124,7 +94,9 @@ void cdc_putRxBuffer(char ch) {
  *
  * @param buffer Buffer address, new data is written to this buffer
  * 
- * @return -  number of characters in existing buffer
+ * @return Number of characters in existing buffer
+ *
+ * @note Assumed called while interrupts blocked
  */
 uint8_t cdc_setRxBuffer(char *buffer) {
    uint8_t temp;
@@ -137,8 +109,8 @@ uint8_t cdc_setRxBuffer(char *buffer) {
 /**
  *  RxBufferEmpty() - Check if Rx buffer is empty
  *
- * @return -  1 => buffer is not empty
- *            0 => buffer is empty
+ * @return -  >0 => buffer is not empty
+ *            0  => buffer is empty
  */
 uint8_t cdc_rxBufferItemCount(void) {
    return rxBufferCount;
@@ -154,10 +126,9 @@ uint8_t cdc_rxBufferItemCount(void) {
  * @param source Source buffer to copy from
  * @param size   Number of bytes to copy
  *
- *  @return - 0 - OK
- *            1 - Buffer is busy (overrun)
+ *  @return true => OK, false => Buffer is busy (overrun)
  */
-uint8_t cdc_putTxBuffer(char *source, uint8_t size) {
+bool cdc_putTxBuffer(char *source, uint8_t size) {
    if (txBufferCount > 0) {
       return 1; // Busy
    }
@@ -189,17 +160,18 @@ static int cdc_getTxBuffer(void) {
       txBufferCount = 0;
    return ch;
 }
+
 /**
  *  cdcTxSpace - check if CDC-Tx buffer is free
  *
  * @return 0 => buffer is occupied
  *         1 => buffer is free
  */
-uint8_t cdc_txBufferIsFree(void) {
+uint8_t cdc_txBufferIsFree() {
    return (txBufferCount == 0);
 }
 
-uint8_t cdc_getSerialState(void) {
+uint8_t cdc_getSerialState() {
    uint8_t status = 0x3;
    static uint8_t lastSciStatus = 0x00;
 

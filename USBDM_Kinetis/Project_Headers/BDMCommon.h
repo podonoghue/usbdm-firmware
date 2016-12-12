@@ -92,7 +92,7 @@ uint8_t   initTimers(void);
 
 void      bdm_init(void);
 void      bdm_off(void);
-uint8_t   bdm_setTarget(uint8_t target);
+uint8_t   bdm_setTarget(TargetType_t target);
 uint8_t   bdm_checkTargetVdd(void);
 void      bdm_suspend(void);
 uint8_t   bdm_cycleTargetVddOn(uint8_t mode);
