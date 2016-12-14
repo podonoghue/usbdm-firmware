@@ -23,7 +23,7 @@
 #else
 #define SERIAL_NO "USBDM-OPENSDA-0001"
 #endif
-#define ProductDescription "USBDM ARM-SWD for MK20D5"
+#define PRODUCT_DESCRIPTION "USBDM ARM-SWD for MK20D5"
 
 #define CRYSTAL 4000000UL
 

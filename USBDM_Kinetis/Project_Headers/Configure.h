@@ -145,10 +145,10 @@
 #define VERSION_STR "4.12.1"
 #define VERSION_SW  ((VERSION_MAJOR<<4)+VERSION_MINOR)
 
-#define VendorID        (0x16D0)       // Vendor (actually MCS)
-#define ProductID       (0x0567)       // Non-CDC versions
-#define ProductID_CDC   (0x06A5)       // CDC versions (Composite device)
-#define VersionID       (VERSION_SW)   // Reported version (via USB)
+#define VENDOR_ID        (0x16D0)       // Vendor (actually MCS)
+#define PRODUCT_ID       (0x0567)       // Non-CDC versions
+#define PRODUCT_ID_CDC   (0x06A5)       // CDC versions (Composite device)
+#define VERSION_ID       (VERSION_SW)   // Reported version (via USB)
 
 //#define ProductID (0x9999) // Testing
 //#define ProductID (0x06A5) // Alternative number (from MCS)

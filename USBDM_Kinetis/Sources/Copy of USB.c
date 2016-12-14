@@ -74,24 +74,24 @@ uint8_t commandBuffer[300];
 //
 #if (HW_CAPABILITY&CAP_CDC)
 #define NUMBER_OF_EPS    (6)
-                                       //!< BDTs                                  32
-#define CONTROL_EP_MAXSIZE             (16) //!< USBDM - Control in/out   	    x2 = 32
-#define BDM_OUT_EP_MAXSIZE             (64) //!< USBDM - BDM out                       64
-#define BDM_IN_EP_MAXSIZE              (64) //!< USBDM - BDM in                        64
-#define CDC_NOTIFICATION_EP_MAXSIZE    (16) //!< USBDM - CDC control                   16
-#define CDC_DATA_OUT_EP_MAXSIZE        (16) //!< USBDM - CDC data out                  16
-#define CDC_DATA_IN_EP_MAXSIZE         (16) //!< USBDM - CDC data in              x2 = 32
+                              //!< BDTs                                  32
+#define CONTROL_EP_MAXSIZE    (16) //!< USBDM - Control in/out   	    x2 = 32 
+#define BDM_OUT_EP_MAXSIZE    (64) //!< USBDM - BDM out                       64
+#define BDM_IN_EP_MAXSIZE    (64) //!< USBDM - BDM in                        64
+#define CDC_CONTROL_EP_MAXSIZE    (16) //!< USBDM - CDC control                   16      
+#define CDC_DATA_OUT_EP_MAXSIZE    (16) //!< USBDM - CDC data out                  16
+#define CDC_DATA_IN_EP_MAXSIZE    (16) //!< USBDM - CDC data in              x2 = 32
 //                                                                    -------
 //                                                                    <= 256 - each is rounded to 16 bytes
 #else
-#define NUMBER_OF_EPS                  (3)  //!< Number of endpoints in use
+#define NUMBER_OF_EPS    (3)  //!< Number of endpoints in use
 
-#define CONTROL_EP_MAXSIZE             (32) //!< USBDM - Control in/out
-#define BDM_OUT_EP_MAXSIZE             (64) //!< USBDM - BDM out
-#define BDM_IN_EP_MAXSIZE              (64) //!< USBDM - BDM in
-#define CDC_NOTIFICATION_EP_MAXSIZE    (0)  //!< USBDM - CDC control (not used)
-#define CDC_DATA_OUT_EP_MAXSIZE        (0)  //!< USBDM - CDC data out (not used)
-#define CDC_DATA_IN_EP_MAXSIZE         (0)  //!< USBDM - CDC data in (not used)
+#define CONTROL_EP_MAXSIZE    (32) //!< USBDM - Control in/out    
+#define BDM_OUT_EP_MAXSIZE    (64) //!< USBDM - BDM out
+#define BDM_IN_EP_MAXSIZE    (64) //!< USBDM - BDM in
+#define CDC_CONTROL_EP_MAXSIZE    (0)  //!< USBDM - CDC control (not used)
+#define CDC_DATA_OUT_EP_MAXSIZE    (0)  //!< USBDM - CDC data out (not used)
+#define CDC_DATA_IN_EP_MAXSIZE    (0)  //!< USBDM - CDC data in (not used)
 #endif
 
 //======================================================================
@@ -185,104 +185,18 @@ typedef struct {
 
 uint8_t ep0InDataBuffer[CONTROL_EP_MAXSIZE];
 uint8_t ep0OutDataBuffer[CONTROL_EP_MAXSIZE];
-uint8_t ep1DataBuffer[BDM_OUT_EP_MAXSIZE];         		// #01,OUT,Bulk   - BDM Command & data out
-uint8_t ep2DataBuffer[BDM_IN_EP_MAXSIZE];          		// #82,IN, BULK   - BDM data in
+uint8_t ep1DataBuffer[BDM_OUT_EP_MAXSIZE];         // #01,OUT,Bulk   - BDM Command & data out
+uint8_t ep2DataBuffer[BDM_IN_EP_MAXSIZE];          // #82,IN, BULK   - BDM data in
 
 #if (HW_CAPABILITY&CAP_CDC)
-uint8_t ep3DataBuffer[CDC_NOTIFICATION_EP_MAXSIZE];     // #83,IN,interrupt CDC status
-uint8_t ep4DataBuffer[CDC_DATA_OUT_EP_MAXSIZE];    		// #04,OUT,bulk     CDC Tx
-uint8_t ep5DataBuffer0[CDC_DATA_IN_EP_MAXSIZE];    		// #85,IN,bulk      CDC Rx
+uint8_t ep3DataBuffer[CDC_CONTROL_EP_MAXSIZE];     // #83,IN,interrupt CDC status
+uint8_t ep4DataBuffer[CDC_DATA_OUT_EP_MAXSIZE];    // #04,OUT,bulk     CDC Tx
+uint8_t ep5DataBuffer0[CDC_DATA_IN_EP_MAXSIZE];    // #85,IN,bulk      CDC Rx
 uint8_t ep5DataBuffer1[CDC_DATA_IN_EP_MAXSIZE];
 #endif
 
-#define MANUFACTURER "pgo"
-/**
- * Interface numbers for USB descriptors
- */
-enum InterfaceNumbers {
-   /** Interface number for BDM channel */
-   BULK_INTF_ID,
-#if (HW_CAPABILITY&CAP_CDC)
-   /** Interface number for CDC Control channel */
-   CDC_COMM_INTF_ID,
-   /** Interface number for CDC Data channel */
-   CDC_DATA_INTF_ID,
-#endif // (HW_CAPABILITY&CAP_CDC)
-   /** Total number of interfaces */
-   NUMBER_OF_INTERFACES,
-};
-
-/**
- * String indexes
- *
- * Must agree with stringDescriptors[] order
- */
-enum StringIds {
-   /** Language information for string descriptors */
-   s_language_index=0,    // Must be zero
-   /** Manufacturer */
-   s_manufacturer_index,
-   /** Product Description */
-   s_product_index,
-   /** Serial Number */
-   s_serial_index,
-   /** Configuration Index */
-   s_config_index,
-
-   /** Name of Bulk interface */
-   s_bulk_interface_index,
-
-   /** Name of CDC interface */
-   s_cdc_interface_index,
-   /** CDC Control Interface */
-   s_cdc_control_interface_index,
-   /** CDC Data Interface */
-   s_cdc_data_Interface_index,
-
-   /** Marks last entry */
-   s_number_of_string_descriptors
-};
-
-/**
- * Endpoint numbers\n
- * Must be consecutive
- */
-enum EndpointNumbers {
-   /** USB Control endpoint number - must be zero */
-   CONTROL_ENDPOINT  = 0,
-
-   /* end-points are assumed consecutive */
-
-   /** Bulk out endpoint number */
-   BULK_OUT_ENDPOINT,
-   /** Bulk in endpoint number */
-   BULK_IN_ENDPOINT,
-
-   /** CDC Control endpoint number */
-   CDC_NOTIFICATION_ENDPOINT,
-   /** CDC Data out endpoint number */
-   CDC_DATA_OUT_ENDPOINT,
-   /** CDC Data in endpoint number */
-   CDC_DATA_IN_ENDPOINT,
-
-   /** Total number of end-points */
-   NUMBER_OF_ENDPOINTS,
-};
-
-/**
- * Configuration numbers, consecutive from 1
- */
-enum Configurations {
-  CONFIGURATION_NUM = 1,
-  /*
-   * Assumes single configuration
-   */
-  /** Total number of configurations */
-  NUMBER_OF_CONFIGURATIONS = CONFIGURATION_NUM,
-};
-
 /** BDTs organised by endpoint, odd/even, tx/rx */
-static EndpointBdtEntry endPointBdts[NUMBER_OF_ENDPOINTS] __attribute__ ((aligned (512)));
+static EndpointBdtEntry endPointBdts[16] __attribute__ ((aligned (512)));
 
 /** BDTs as simple array */
 BdtEntry * const bdts = (BdtEntry *)endPointBdts;
@@ -290,41 +204,26 @@ BdtEntry * const bdts = (BdtEntry *)endPointBdts;
 /*
  * String descriptors
  */
-static const uint8_t s_language[]        = {4, DT_STRING, 0x09, 0x0C};  //!< Language IDs
-static const uint8_t s_manufacturer[]    = MANUFACTURER;                //!< Manufacturer
-static const uint8_t s_product[]         = PRODUCT_DESCRIPTION;         //!< Product Description
-static const uint8_t s_serial[]          = SERIAL_NO;                   //!< Serial Number
-static const uint8_t s_config[]          = "Default configuration";     //!< Configuration name
-
-static const uint8_t s_bulk_interface[]  = "Bulk Interface";           //!< Bulk Interface
-
-static const uint8_t s_cdc_interface[]   = "CDC Interface";             //!< Interface Association #2
-static const uint8_t s_cdc_control[]     = "CDC Control Interface";     //!< CDC Control Interface
-static const uint8_t s_cdc_data[]        = "CDC Data Interface";        //!< CDC Data Interface
-/*
- * Add additional String descriptors here
- */
+static const uint8_t sd0[] = {4,  DT_STRING, 0x09, 0x0C};  // Language IDs
+static const uint8_t sd1[] = "pgo";                        // Manufacturer
+static const uint8_t sd2[] = ProductDescription;           // Product Description
+static const uint8_t sd3[] = SERIAL_NO;                    // Serial Number
+static const uint8_t sd4[] = "USBDM BDM Interface";        // Interface Association #1
+static const uint8_t sd5[] = "Interface 0 - USBDM";        // Interface #0
+static const uint8_t sd6[] = "USBDM CDC Interface";        // Interface Association #2
+static const uint8_t sd7[] = "Interface 1 - CDC Control";  // Interface #1
+static const uint8_t sd8[] = "Interface 2 - CDC Data";     // Interface #2
 
 /**
  * String descriptor table
  */
-const uint8_t *const stringDescriptors[] = {
-      s_language,
-      s_manufacturer,
-      s_product,
-      s_serial,
-      s_config,
+static const uint8_t *const stringDescriptors[] = {sd0, sd1, sd2, sd3, sd4, sd5, sd6, sd7, sd8};
 
-      s_bulk_interface,
-      
-      s_cdc_interface,
-      s_cdc_control,
-      s_cdc_data
-      /*
-       * Add additional String descriptors here
-       */
-};
-
+/**
+ * String indexes
+ *
+ * Must agree with stringDescriptors[] order
+ */
 /**
  * Device Descriptor
  */
@@ -333,39 +232,39 @@ static const DeviceDescriptor deviceDescriptor = {
       /* bDescriptorType     */ DT_DEVICE,
       /* bcdUSB              */ CONST_NATIVE_TO_LE16(0x0200),    // USB specification release No. [BCD = 2.00]
 #if (HW_CAPABILITY&CAP_CDC)
-      /* bDeviceClass        */ 0xEF,                    // Device Class code [Miscellaneous Device Class]
-      /* bDeviceSubClass     */ 0x02,                    // Sub Class code    [Common Class]
-      /* bDeviceProtocol     */ 0x01,                    // Protocol          [Interface Association Descriptor]
+      /* bDeviceClass        */ 0xEF,                            // Device Class code [Miscellaneous Device Class]
+      /* bDeviceSubClass     */ 0x02,                            // Sub Class code    [Common Class]
+      /* bDeviceProtocol     */ 0x01,                            // Protocol          [Interface Association Descriptor]
 #else
       /* bDeviceClass        */ 0xFF,                            // Class code        [none]
       /* bDeviceSubClass     */ 0xFF,                            // Sub Class code    [none]
       /* bDeviceProtocol     */ 0xFF,                            // Protocol          [none]
 #endif
-      /* bMaxPacketSize0     */ CONTROL_EP_MAXSIZE,             // EndPt 0 max packet size
-      /* idVendor            */ CONST_NATIVE_TO_LE16(VENDOR_ID),  // Vendor ID
+      /* bMaxPacketSize0     */ CONTROL_EP_MAXSIZE,              // EndPt 0 max packet size
+      /* idVendor            */ CONST_NATIVE_TO_LE16(VendorID),  // Vendor ID
 #if (HW_CAPABILITY&CAP_CDC)
-      /* idProduct           */ CONST_NATIVE_TO_LE16(PRODUCT_ID_CDC), // Product ID for Composite device
+      /* idProduct           */ CONST_NATIVE_TO_LE16(ProductID_CDC), // Product ID for Composite device
 #else
-      /* idProduct           */ CONST_NATIVE_TO_LE16(PRODUCT_ID),  // Product ID for Composite device
+      /* idProduct           */ CONST_NATIVE_TO_LE16(ProductID), // Product ID for Composite device
 #endif
-      /* bcdDevice           */ CONST_NATIVE_TO_LE16(VERSION_ID),  // Device Release         [BCD = 4.10]
-      /* iManufacturer       */ s_manufacturer_index,           // String index of Manufacturer name
-      /* iProduct            */ s_product_index,                // String index of product description
-      /* iSerialNumber       */ s_serial_index,                 // String index of serial number
-      /* bNumConfigurations  */ NUMBER_OF_CONFIGURATIONS        // Number of configurations
+      /* bcdDevice           */ CONST_NATIVE_TO_LE16(VersionID), // Device Release         [BCD = 4.10]
+      /* iManufacturer       */ 1,                               // String index of Manufacturer name
+      /* iProduct            */ 2,                               // String index of product desc.
+      /* iSerialNumber       */ 3,                               // String index desc. serial #
+      /* bNumConfigurations  */ 1                                // Number of configurations
 };
 
-//#define CDC_COMM_INTF_ID 		0
-//#define CDC_DATA_INTF_ID 		1
+#define CDC_COMM_INTF_ID 		0
+#define CDC_DATA_INTF_ID 		1
 
-//#define CDC_CONTROL_ENDPOINT  	3
-//#define CDC_DATA_OUT_ENDPOINT 	4
-//#define CDC_DATA_IN_ENDPOINT  	5
+#define CDC_CONTROL_ENDPOINT  	3
+#define CDC_DATA_OUT_ENDPOINT 	4
+#define CDC_DATA_IN_ENDPOINT  	5
 
 /**
  * All other descriptors
  */
-static const struct  {
+static const struct {
    ConfigurationDescriptor                  configDescriptor;
    InterfaceDescriptor                      interfaceDescriptor0;
    EndpointDescriptor                       endpointDescriptor1;
@@ -386,56 +285,57 @@ static const struct  {
 } otherDescriptors =
 {
       { // configDescriptor
-            /* bLength                 */ sizeof(ConfigurationDescriptor),
-            /* bDescriptorType         */ DT_CONFIGURATION,
-            /* wTotalLength            */ CONST_NATIVE_TO_LE16(sizeof(otherDescriptors)),
-            /* bNumInterfaces          */ NUMBER_OF_INTERFACES,
-            /* bConfigurationValue     */ CONFIGURATION_NUM,
-            /* iConfiguration          */ s_config_index,
-            /* bmAttributes            */ 0x80,     //  = Bus powered, no wake-up
-            /* bMaxPower               */ USBMilliamps(500)
-      },
-      /**
-       * Bulk interface, 2 end-points
-       */
-      { // bulk_interface
-            /* bLength                 */ sizeof(InterfaceDescriptor),
-            /* bDescriptorType         */ DT_INTERFACE,
-            /* bInterfaceNumber        */ BULK_INTF_ID,
-            /* bAlternateSetting       */ 0,
-            /* bNumEndpoints           */ 2,
-            /* bInterfaceClass         */ 0xFF,                         // (Vendor specific)
-            /* bInterfaceSubClass      */ 0xFF,                         // (Vendor specific)
-            /* bInterfaceProtocol      */ 0xFF,                         // (Vendor specific)
-            /* iInterface desc         */ s_bulk_interface_index,
-      },
-      { // bulk_out_endpoint - OUT, Bulk
-            /* bLength                 */ sizeof(EndpointDescriptor),
-            /* bDescriptorType         */ DT_ENDPOINT,
-            /* bEndpointAddress        */ EP_OUT|BULK_OUT_ENDPOINT,
-            /* bmAttributes            */ ATTR_BULK,
-            /* wMaxPacketSize          */ nativeToLe16(BDM_OUT_EP_MAXSIZE),
-            /* bInterval               */ USBMilliseconds(1)
-      },
-      { // bulk_in_endpoint - IN, Bulk
-            /* bLength                 */ sizeof(EndpointDescriptor),
-            /* bDescriptorType         */ DT_ENDPOINT,
-            /* bEndpointAddress        */ EP_IN|BULK_IN_ENDPOINT,
-            /* bmAttributes            */ ATTR_BULK,
-            /* wMaxPacketSize          */ CONST_NATIVE_TO_LE16(BDM_IN_EP_MAXSIZE),
-            /* bInterval               */ USBMilliseconds(1)
-      },
+            /* bLength             */ sizeof(ConfigurationDescriptor),
+            /* bDescriptorType     */ DT_CONFIGURATION,
+            /* wTotalLength        */ CONST_NATIVE_TO_LE16(sizeof(otherDescriptors)),
 #if (HW_CAPABILITY&CAP_CDC)
-      { // interfaceAssociationDescriptorCDC
-            /* bLength                 */ sizeof(InterfaceAssociationDescriptor),
-            /* bDescriptorType         */ DT_INTERFACEASSOCIATION,
-            /* bFirstInterface         */ CDC_COMM_INTF_ID,
-            /* bInterfaceCount         */ 2,
-            /* bFunctionClass          */ 0x02,                                   //  CDC Control
-            /* bFunctionSubClass       */ 0x02,                                   //  Abstract Control Model
-            /* bFunctionProtocol       */ 0x01,                                   //  AT CommandL V.250
-            /* iFunction = ""          */ s_cdc_interface_index,
+            /* bNumInterfaces      */ 3,    
+#else
+            /* bNumInterfaces      */ 1,    
+#endif
+            /* bConfigurationValue */ 1,
+            /* iConfiguration      */ 0,
+            /* bmAttributes        */ 0x80,                                           //  = Bus powered, no wakeup (yet?)
+            /* bMaxPower           */ USBMilliamps(500)
       },
+   { // interfaceDescriptor0
+      sizeof(InterfaceDescriptor),  // bLength
+      DT_INTERFACE,                 // bDescriptorType
+      0,                            // bInterfaceNumber
+      0,                            // bAlternateSetting
+      2,                            // bNumEndpoints
+      0xFF,                         // bInterfaceClass      = (Vendor specific)
+      0xFF,                         // bInterfaceSubClass   = (Vendor specific)
+      0xFF,                         // bInterfaceProtocol   = (Vendor specific)
+      5                             // iInterface desc
+   },
+   { // endpointDescriptor1 - #01,OUT,Bulk
+     sizeof(EndpointDescriptor),          // bLength
+     DT_ENDPOINT,                         // bDescriptorType
+     EP_OUT|1,                            // bEndpointAddress
+     ATTR_BULK,                           // bmAttributes
+     CONST_NATIVE_TO_LE16(BDM_OUT_EP_MAXSIZE), // wMaxPacketSize
+     USBMilliseconds(1)                   // bInterval         = -
+   },
+   { // endpointDescriptor2 - #82,IN, BULK
+     sizeof(EndpointDescriptor),          // bLength
+     DT_ENDPOINT,                         // bDescriptorType
+     EP_IN|2,                             // bEndpointAddress
+     ATTR_BULK,                           // bmAttributes
+     CONST_NATIVE_TO_LE16(BDM_IN_EP_MAXSIZE), // wMaxPacketSize
+     USBMilliseconds(1)                   // bInterval         = -
+   },
+#if (HW_CAPABILITY&CAP_CDC)
+   { // interfaceAssociationDescriptorCDC
+       sizeof(InterfaceAssociationDescriptor), // bLength
+       DT_INTERFACEASSOCIATION,                // bDescriptorType
+       1,                                      // bFirstInterface
+       2,                                      // bInterfaceCount
+       0x02,                                   // bFunctionClass    = bInterfaceClass    = CDC Control
+       0x02,                                   // bFunctionSubClass = bInterfaceSubClass = Abstract Control Model
+       0x01,                                   // bFunctionProtocol = bDeviceProtocol    = AT CommandL V.250
+       6,                                      // iFunction = ""
+   },
       /**
        * CDC Control/Communication Interface, 1 end-point
        */
@@ -445,10 +345,10 @@ static const struct  {
             /* bInterfaceNumber        */ CDC_COMM_INTF_ID,
             /* bAlternateSetting       */ 0,
             /* bNumEndpoints           */ 1,
-            /* bInterfaceClass         */ 0x02,      //  CDC Communication
-            /* bInterfaceSubClass      */ 0x02,      //  Abstract Control Model
-            /* bInterfaceProtocol      */ 0x01,      //  V.25ter, AT Command V.250
-            /* iInterface description  */ s_cdc_control_interface_index
+            /* bInterfaceClass         */ 0x02,                         //  CDC Communication
+            /* bInterfaceSubClass      */ 0x02,                         //  Abstract Control Model
+            /* bInterfaceProtocol      */ 0x01,                         //  V.25ter, AT Command V.250
+            /* iInterface description  */ 7
       },
       { // cdc_Functional_Header
             /* bFunctionalLength       */ sizeof(CDCHeaderFunctionalDescriptor),
@@ -479,9 +379,9 @@ static const struct  {
       { // cdc_notification_Endpoint - IN,interrupt
             /* bLength                 */ sizeof(EndpointDescriptor),
             /* bDescriptorType         */ DT_ENDPOINT,
-            /* bEndpointAddress        */ EP_IN|CDC_NOTIFICATION_ENDPOINT,
+            /* bEndpointAddress        */ EP_IN|CDC_CONTROL_ENDPOINT,
             /* bmAttributes            */ ATTR_INTERRUPT,
-            /* wMaxPacketSize          */ CONST_NATIVE_TO_LE16(CDC_NOTIFICATION_EP_MAXSIZE),
+            /* wMaxPacketSize          */ CONST_NATIVE_TO_LE16(CDC_CONTROL_EP_MAXSIZE),
             /* bInterval               */ USBMilliseconds(255)
       },
       /**
@@ -496,9 +396,9 @@ static const struct  {
             /* bInterfaceClass         */ 0x0A,                         //  CDC DATA
             /* bInterfaceSubClass      */ 0x00,                         //  -
             /* bInterfaceProtocol      */ 0x00,                         //  -
-            /* iInterface description  */ s_cdc_data_Interface_index
+            /* iInterface description  */ 8
       },
-      { // cdc_dataOut_Endpoint - OUT, Bulk
+      { // cdc_dataOut_Endpoint - OUT,bulk
             /* bLength                 */ sizeof(EndpointDescriptor),
             /* bDescriptorType         */ DT_ENDPOINT,
             /* bEndpointAddress        */ EP_OUT|CDC_DATA_OUT_ENDPOINT,
@@ -506,18 +406,22 @@ static const struct  {
             /* wMaxPacketSize          */ CONST_NATIVE_TO_LE16(CDC_DATA_OUT_EP_MAXSIZE),
             /* bInterval               */ USBMilliseconds(1)
       },
-      { // cdc_dataIn_Endpoint - IN, Bulk
-            /* bLength                 */ sizeof(EndpointDescriptor),
-            /* bDescriptorType         */ DT_ENDPOINT,
-            /* bEndpointAddress        */ EP_IN|CDC_DATA_IN_ENDPOINT,
-            /* bmAttributes            */ ATTR_BULK,
+      { // cdc_dataIn_Endpoint - IN,bulk
+            /*  bLength                */ sizeof(EndpointDescriptor),
+            /*  bDescriptorType        */ DT_ENDPOINT,
+            /*  bEndpointAddress       */ EP_IN|CDC_DATA_IN_ENDPOINT,
+            /*  bmAttributes           */ ATTR_BULK,
             /*  wMaxPacketSize         */ CONST_NATIVE_TO_LE16(2*CDC_DATA_IN_EP_MAXSIZE), // x2 so all pkts are terminating (short))
-            /* bInterval               */ USBMilliseconds(1)
+            /*  bInterval              */ USBMilliseconds(1)
       },
 #endif
 };
 
 #ifdef MS_COMPATIBLE_ID_FEATURE
+
+#if WCHAR_MAX != 65535
+#error "Wide chars must be 16-bits for this file (use -fshort-wchar option)"
+#endif
 
 #define DeviceInterfaceGUIDs L"DeviceInterfaceGUIDs"
 #define DeviceGUID           L"{93FEBD51-6000-4E7E-A20E-A80FC78C7EA1}\0"

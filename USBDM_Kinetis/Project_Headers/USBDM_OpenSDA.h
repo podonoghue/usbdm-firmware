@@ -24,9 +24,9 @@
 #define SERIAL_NO "USBDM-OPENSDA-0001"
 #endif
 #ifdef OPEN_SDA_V2
-#define ProductDescription "USBDM ARM-SWD for OpenSDA2"
+#define PRODUCT_DESCRIPTION "USBDM ARM-SWD for OpenSDA2"
 #else
-#define ProductDescription "USBDM ARM-SWD for OpenSDA"
+#define PRODUCT_DESCRIPTION "USBDM ARM-SWD for OpenSDA"
 #endif
 #define CRYSTAL 8000000UL
 
