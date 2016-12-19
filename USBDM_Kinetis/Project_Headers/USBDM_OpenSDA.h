@@ -18,17 +18,19 @@
 
 //==========================================================================================
 // USB Serial Number
-#ifdef UNIQUE_ID
+#if defined(UNIQUE_ID)
 #define SERIAL_NO "USBDM-OPENSDA-%lu"
 #else
 #define SERIAL_NO "USBDM-OPENSDA-0001"
 #endif
-#ifdef OPEN_SDA_V2
-#define PRODUCT_DESCRIPTION "USBDM ARM-SWD for OpenSDA2"
+#if defined(OPEN_SDA_V2_1)
+#define PRODUCT_DESCRIPTION "USBDM ARM-SWD for OpenSDAv2.1"
+#elif defined(OPEN_SDA_V2)
+#define PRODUCT_DESCRIPTION "USBDM ARM-SWD for OpenSDAv2.0"
 #else
-#define PRODUCT_DESCRIPTION "USBDM ARM-SWD for OpenSDA"
+#define PRODUCT_DESCRIPTION "USBDM ARM-SWD for OpenSDAv1"
 #endif
-#define CRYSTAL 8000000UL
+//#define CRYSTAL 8000000UL
 
 //==========================================================================================
 // Capabilities of the hardware - used to enable/disable appropriate code

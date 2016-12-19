@@ -14,21 +14,45 @@ set USBDM_ROOT=C:\Users\podonoghue\Documents\Development\USBDM
 set ECLIPSE_ROOT=%USBDM_ROOT%\usbdm-eclipse-makefiles-build
 
 set CW_Kinetis_ROOT=%HOME_DIR%
-set FLASH_DIR=%ECLIPSE_ROOT%\PackageFiles\FlashImages
-set MK_FLASH_DIR="%FLASH_DIR%\MKxxNew"
+set FLASH_IMAGES=%ECLIPSE_ROOT%\PackageFiles\FlashImages
+set MK_FLASH_DIR="%FLASH_IMAGES%\MKxxNew"
+set MK_FLASH_REFERENCE="%MK_FLASH_DIR%\Reference"
 
 echo ***  ****************************************
 echo ***  Do Firmware files
 echo ***  ****************************************
 
-if not exist "%FLASH_DIR%"        mkdir "%FLASH_DIR%"
-if not exist "%MK_FLASH_DIR%"     mkdir "%MK_FLASH_DIR%"
+if not exist "%FLASH_IMAGES%"       mkdir "%FLASH_IMAGES%"
+if not exist "%MK_FLASH_DIR%"       mkdir "%MK_FLASH_DIR%"
+if not exist "%MK_FLASH_REFERENCE%" mkdir "%MK_FLASH_REFERENCE%"
 
 echo ***  MKxx...
-set FIRMWARE_VERSIONS=OpenSDAv1 OpenSDAv1_Unique_ID OpenSDAv1_Power OpenSDAv1_Power_Unique_ID
-for %%f in (%FIRMWARE_VERSIONS%) do copy "%CW_Kinetis_ROOT%\%%f\*.sx"        "%MK_FLASH_DIR%"
-set FIRMWARE_VERSIONS=OpenSDAv2_0 OpenSDAv2_0_Unique_ID OpenSDAv2_1 OpenSDAv2_1_Unique_ID
-for %%f in (%FIRMWARE_VERSIONS%) do copy "%CW_Kinetis_ROOT%\%%f\*.bin"        "%MK_FLASH_DIR%"
+set FIRMWARE_VERSIONS=OpenSDAv1 OpenSDAv1_Unique_ID OpenSDAv1_Power OpenSDAv1_Unique_ID_Power
+for %%f in (%FIRMWARE_VERSIONS%) do copy "%CW_Kinetis_ROOT%\%%f\*.sx"        "%MK_FLASH_REFERENCE%"
+
+set FIRMWARE_VERSIONS=OpenSDAv2_0 OpenSDAv2_0_Power OpenSDAv2_0_Unique_ID OpenSDAv2_0_Unique_ID_Power OpenSDAv2_1_Power OpenSDAv2_1_Unique_ID_Power
+for %%f in (%FIRMWARE_VERSIONS%) do copy /B "%CW_Kinetis_ROOT%\%%f\*.bin"        "%MK_FLASH_REFERENCE%"
+
+set BOARD=FRDM-KE02Z FRDM-KE02Z40M FRDM-KE04Z FRDM-KE06Z FRDM-KL02Z FRDM-KL03Z FRDM-KL05Z FRDM-KL25Z FRDM-KL25Z
+set BOARD=%BOARD% FRDM-KL26Z, FRDM-KL27Z, FRDM-KL43Z, FRDM-KL46Z, FRDM-K20D50M
+for %%f in (%BOARD%) do copy "%CW_Kinetis_ROOT%\OpenSDAv1\*.sx"            %MK_FLASH_DIR%\%%f.sx
+for %%f in (%BOARD%) do copy "%CW_Kinetis_ROOT%\OpenSDAv1_Unique_ID\*.sx"  %MK_FLASH_DIR%\%%f_Unique_ID.sx
+
+set BOARD=FRDM-KEAZ64Q64 FRDM-KEAZN32Q64 FRDM-KEAZ128Q80  
+for %%f in (%BOARD%) do copy "%CW_Kinetis_ROOT%\OpenSDAv1_Power\*.sx"            %MK_FLASH_DIR%\%%f.sx
+for %%f in (%BOARD%) do copy "%CW_Kinetis_ROOT%\OpenSDAv1_Unique_ID_Power\*.sx"  %MK_FLASH_DIR%\%%f_Unique_ID.sx
+
+set BOARD=FRDM-KL82Z
+for %%f in (%BOARD%) do copy /B "%CW_Kinetis_ROOT%\OpenSDAv2_0\*.bin"            %MK_FLASH_DIR%\%%f.bin
+for %%f in (%BOARD%) do copy /B "%CW_Kinetis_ROOT%\OpenSDAv2_0_Unique_ID\*.bin"  %MK_FLASH_DIR%\%%f_Unique_ID.bin
+
+set BOARD=FRDM-K64F
+for %%f in (%BOARD%) do copy /B "%CW_Kinetis_ROOT%\OpenSDAv2_0_Power\*.bin"            %MK_FLASH_DIR%\%%f.bin
+for %%f in (%BOARD%) do copy /B "%CW_Kinetis_ROOT%\OpenSDAv2_0_Unique_ID_Power\*.bin"  %MK_FLASH_DIR%\%%f_Unique_ID.bin
+
+set BOARD=FRDM-K22F FRDM-K66F FRDM-K82F FRDM-KV10Z FRDM-KV31F FRDM-KE15Z
+for %%f in (%BOARD%) do copy /B "%CW_Kinetis_ROOT%\OpenSDAv2_1_Power\*.bin"            %MK_FLASH_DIR%\%%f.bin
+for %%f in (%BOARD%) do copy /B "%CW_Kinetis_ROOT%\OpenSDAv2_1_Unique_ID_Power\*.bin"  %MK_FLASH_DIR%\%%f_Unique_ID.bin
 
 goto allDone
 

@@ -89,7 +89,7 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="${usbdm_rm_command} -rf" description="OpenSDA Version 2 (as on FRDM-K64F)" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.115511992" name="OpenSDAv2_0" parent="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration" postannouncebuildStep="Create binary file for bootloader" postbuildStep="arm-none-eabi-objcopy  -O binary ${BuildArtifactFileBaseName}.elf ${BuildArtifactFileBaseName}.bin" preannouncebuildStep="" prebuildStep="">
+				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="${usbdm_rm_command} -rf" description="OpenSDA Version 2 (as on FRDM-KL82Z)" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.115511992" name="OpenSDAv2_0" parent="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration" postannouncebuildStep="Create binary file for bootloader" postbuildStep="arm-none-eabi-objcopy  -O binary ${BuildArtifactFileBaseName}.elf ${BuildArtifactFileBaseName}.bin" preannouncebuildStep="" prebuildStep="">
 					<folderInfo id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.115511992." name="/" resourcePath="">
 						<toolChain id="net.sourceforge.usbdm.cdt.arm.exe.debug.toolchain.1763236059" name="ARM-USBDM ToolChain" superClass="net.sourceforge.usbdm.cdt.arm.exe.debug.toolchain">
 							<option defaultValue="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel.max" id="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel.48274654" name="Debug level" superClass="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel" valueType="enumerated"/>
@@ -111,8 +111,7 @@
 								<option id="net.sourceforge.usbdm.gnu.c.compiler.option.preprocessor.def.symbols.2046080387" name="Defined symbols (-D)" superClass="net.sourceforge.usbdm.gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="TARGET_HARDWARE=H_USBDM_OPENSDA"/>
 									<listOptionValue builtIn="false" value="CPU=MK20D5"/>
-									<listOptionValue builtIn="false" value="OPEN_SDA_V2=1"/>
-									<listOptionValue builtIn="false" value="SDA_POWER=1"/>
+									<listOptionValue builtIn="false" value="OPEN_SDA_V2"/>
 								</option>
 								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.input.1154278500" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.input"/>
 							</tool>
@@ -123,8 +122,7 @@
 								<option id="net.sourceforge.usbdm.gnu.cpp.compiler.option.preprocessor.def.symbols.1142024331" name="Defined symbols (-D)" superClass="net.sourceforge.usbdm.gnu.cpp.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="TARGET_HARDWARE=H_USBDM_OPENSDA"/>
 									<listOptionValue builtIn="false" value="CPU=MK20D5"/>
-									<listOptionValue builtIn="false" value="OPEN_SDA_V2=1"/>
-									<listOptionValue builtIn="false" value="SDA_POWER=1"/>
+									<listOptionValue builtIn="false" value="OPEN_SDA_V2"/>
 								</option>
 								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.input.1110085778" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.input"/>
 							</tool>
@@ -243,7 +241,7 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="${usbdm_rm_command} -rf" description="OpenSDA Version 2 (as on FRDM-K64F) with semi-unique USB Serial number" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.115511992.1563576321" name="OpenSDAv2_0_Unique_ID" parent="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration" postannouncebuildStep="Create binary file for bootloader" postbuildStep="arm-none-eabi-objcopy  -O binary ${BuildArtifactFileBaseName}.elf ${BuildArtifactFileBaseName}.bin" preannouncebuildStep="" prebuildStep="">
+				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="${usbdm_rm_command} -rf" description="OpenSDA Version 2 (as on FRDM-KL82Z) with semi-unique USB Serial number" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.115511992.1563576321" name="OpenSDAv2_0_Unique_ID" parent="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration" postannouncebuildStep="Create binary file for bootloader" postbuildStep="arm-none-eabi-objcopy  -O binary ${BuildArtifactFileBaseName}.elf ${BuildArtifactFileBaseName}.bin" preannouncebuildStep="" prebuildStep="">
 					<folderInfo id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.115511992.1563576321." name="/" resourcePath="">
 						<toolChain id="net.sourceforge.usbdm.cdt.arm.exe.debug.toolchain.2073550527" name="ARM-USBDM ToolChain" superClass="net.sourceforge.usbdm.cdt.arm.exe.debug.toolchain">
 							<option defaultValue="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel.max" id="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel.1740649091" name="Debug level" superClass="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel" valueType="enumerated"/>
@@ -265,9 +263,8 @@
 								<option id="net.sourceforge.usbdm.gnu.c.compiler.option.preprocessor.def.symbols.662605175" name="Defined symbols (-D)" superClass="net.sourceforge.usbdm.gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="TARGET_HARDWARE=H_USBDM_OPENSDA"/>
 									<listOptionValue builtIn="false" value="CPU=MK20D5"/>
-									<listOptionValue builtIn="false" value="OPEN_SDA_V2=1"/>
-									<listOptionValue builtIn="false" value="UNIQUE_ID=1"/>
-									<listOptionValue builtIn="false" value="SDA_POWER=1"/>
+									<listOptionValue builtIn="false" value="OPEN_SDA_V2"/>
+									<listOptionValue builtIn="false" value="UNIQUE_ID"/>
 								</option>
 								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.input.2075519153" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.input"/>
 							</tool>
@@ -278,9 +275,8 @@
 								<option id="net.sourceforge.usbdm.gnu.cpp.compiler.option.preprocessor.def.symbols.10702516" name="Defined symbols (-D)" superClass="net.sourceforge.usbdm.gnu.cpp.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="TARGET_HARDWARE=H_USBDM_OPENSDA"/>
 									<listOptionValue builtIn="false" value="CPU=MK20D5"/>
-									<listOptionValue builtIn="false" value="OPEN_SDA_V2=1"/>
-									<listOptionValue builtIn="false" value="UNIQUE_ID=1"/>
-									<listOptionValue builtIn="false" value="SDA_POWER=1"/>
+									<listOptionValue builtIn="false" value="OPEN_SDA_V2"/>
+									<listOptionValue builtIn="false" value="UNIQUE_ID"/>
 								</option>
 								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.input.32463738" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.input"/>
 							</tool>
@@ -387,7 +383,7 @@
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
 		</cconfiguration>
 		<cconfiguration id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.115511992.1419787998">
-			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.115511992.1419787998" moduleId="org.eclipse.cdt.core.settings" name="OpenSDAv2_1">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.115511992.1419787998" moduleId="org.eclipse.cdt.core.settings" name="OpenSDAv2_1_Power">
 				<externalSettings/>
 				<extensions>
 					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
@@ -399,7 +395,7 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="${usbdm_rm_command} -rf" description="OpenSDA Version 2 (as on FRDM-K22F)" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.115511992.1419787998" name="OpenSDAv2_1" parent="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration" postannouncebuildStep="Create binary file for bootloader" postbuildStep="arm-none-eabi-objcopy  -O binary ${BuildArtifactFileBaseName}.elf ${BuildArtifactFileBaseName}.bin" preannouncebuildStep="" prebuildStep="">
+				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="${usbdm_rm_command} -rf" description="OpenSDA Version 2 (as on FRDM-K22F) with Power" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.115511992.1419787998" name="OpenSDAv2_1_Power" parent="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration" postannouncebuildStep="Create binary file for bootloader" postbuildStep="arm-none-eabi-objcopy  -O binary ${BuildArtifactFileBaseName}.elf ${BuildArtifactFileBaseName}.bin" preannouncebuildStep="" prebuildStep="">
 					<folderInfo id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.115511992.1419787998." name="/" resourcePath="">
 						<toolChain id="net.sourceforge.usbdm.cdt.arm.exe.debug.toolchain.1821117233" name="ARM-USBDM ToolChain" superClass="net.sourceforge.usbdm.cdt.arm.exe.debug.toolchain">
 							<option defaultValue="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel.max" id="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel.1110791632" name="Debug level" superClass="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel" valueType="enumerated"/>
@@ -421,8 +417,8 @@
 								<option id="net.sourceforge.usbdm.gnu.c.compiler.option.preprocessor.def.symbols.1872049025" name="Defined symbols (-D)" superClass="net.sourceforge.usbdm.gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="TARGET_HARDWARE=H_USBDM_OPENSDA"/>
 									<listOptionValue builtIn="false" value="CPU=MK20D5"/>
-									<listOptionValue builtIn="false" value="OPEN_SDA_V2=1"/>
-									<listOptionValue builtIn="false" value="SDA_POWER=1"/>
+									<listOptionValue builtIn="false" value="OPEN_SDA_V2_1"/>
+									<listOptionValue builtIn="false" value="SDA_POWER"/>
 								</option>
 								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.input.2102074270" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.input"/>
 							</tool>
@@ -433,8 +429,8 @@
 								<option id="net.sourceforge.usbdm.gnu.cpp.compiler.option.preprocessor.def.symbols.1178313255" name="Defined symbols (-D)" superClass="net.sourceforge.usbdm.gnu.cpp.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="TARGET_HARDWARE=H_USBDM_OPENSDA"/>
 									<listOptionValue builtIn="false" value="CPU=MK20D5"/>
-									<listOptionValue builtIn="false" value="OPEN_SDA_V2=1"/>
-									<listOptionValue builtIn="false" value="SDA_POWER=1"/>
+									<listOptionValue builtIn="false" value="OPEN_SDA_V2_1"/>
+									<listOptionValue builtIn="false" value="SDA_POWER"/>
 								</option>
 								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.input.889857843" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.input"/>
 							</tool>
@@ -464,7 +460,7 @@
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
 		</cconfiguration>
 		<cconfiguration id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.115511992.1563576321.1649641685">
-			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.115511992.1563576321.1649641685" moduleId="org.eclipse.cdt.core.settings" name="OpenSDAv2_1_Unique_ID">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.115511992.1563576321.1649641685" moduleId="org.eclipse.cdt.core.settings" name="OpenSDAv2_1_Unique_ID_Power">
 				<externalSettings/>
 				<extensions>
 					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
@@ -476,7 +472,7 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="${usbdm_rm_command} -rf" description="OpenSDA Version 2 (as on FRDM-K22F) with semi-unique USB Serial number" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.115511992.1563576321.1649641685" name="OpenSDAv2_1_Unique_ID" parent="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration" postannouncebuildStep="Create binary file for bootloader" postbuildStep="arm-none-eabi-objcopy  -O binary ${BuildArtifactFileBaseName}.elf ${BuildArtifactFileBaseName}.bin" preannouncebuildStep="" prebuildStep="">
+				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="${usbdm_rm_command} -rf" description="OpenSDA Version 2 (as on FRDM-K22F) with Power and semi-unique USB Serial number" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.115511992.1563576321.1649641685" name="OpenSDAv2_1_Unique_ID_Power" parent="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration" postannouncebuildStep="Create binary file for bootloader" postbuildStep="arm-none-eabi-objcopy  -O binary ${BuildArtifactFileBaseName}.elf ${BuildArtifactFileBaseName}.bin" preannouncebuildStep="" prebuildStep="">
 					<folderInfo id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.115511992.1563576321.1649641685." name="/" resourcePath="">
 						<toolChain id="net.sourceforge.usbdm.cdt.arm.exe.debug.toolchain.1748698142" name="ARM-USBDM ToolChain" superClass="net.sourceforge.usbdm.cdt.arm.exe.debug.toolchain">
 							<option defaultValue="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel.max" id="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel.676621727" name="Debug level" superClass="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel" valueType="enumerated"/>
@@ -498,9 +494,9 @@
 								<option id="net.sourceforge.usbdm.gnu.c.compiler.option.preprocessor.def.symbols.51015736" name="Defined symbols (-D)" superClass="net.sourceforge.usbdm.gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="TARGET_HARDWARE=H_USBDM_OPENSDA"/>
 									<listOptionValue builtIn="false" value="CPU=MK20D5"/>
-									<listOptionValue builtIn="false" value="OPEN_SDA_V2=1"/>
-									<listOptionValue builtIn="false" value="UNIQUE_ID=1"/>
-									<listOptionValue builtIn="false" value="SDA_POWER=1"/>
+									<listOptionValue builtIn="false" value="OPEN_SDA_V2_1"/>
+									<listOptionValue builtIn="false" value="UNIQUE_ID"/>
+									<listOptionValue builtIn="false" value="SDA_POWER"/>
 								</option>
 								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.input.1743970055" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.input"/>
 							</tool>
@@ -511,9 +507,9 @@
 								<option id="net.sourceforge.usbdm.gnu.cpp.compiler.option.preprocessor.def.symbols.156864508" name="Defined symbols (-D)" superClass="net.sourceforge.usbdm.gnu.cpp.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="TARGET_HARDWARE=H_USBDM_OPENSDA"/>
 									<listOptionValue builtIn="false" value="CPU=MK20D5"/>
-									<listOptionValue builtIn="false" value="OPEN_SDA_V2=1"/>
-									<listOptionValue builtIn="false" value="UNIQUE_ID=1"/>
-									<listOptionValue builtIn="false" value="SDA_POWER=1"/>
+									<listOptionValue builtIn="false" value="OPEN_SDA_V2_1"/>
+									<listOptionValue builtIn="false" value="UNIQUE_ID"/>
+									<listOptionValue builtIn="false" value="SDA_POWER"/>
 								</option>
 								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.input.158628322" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.input"/>
 							</tool>
@@ -577,9 +573,8 @@
 								<option id="net.sourceforge.usbdm.gnu.c.compiler.option.preprocessor.def.symbols.1733399267" name="Defined symbols (-D)" superClass="net.sourceforge.usbdm.gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="TARGET_HARDWARE=H_USBDM_OPENSDA"/>
 									<listOptionValue builtIn="false" value="CPU=MK20D5"/>
-									<listOptionValue builtIn="false" value="OPEN_SDA_V2=1"/>
-									<listOptionValue builtIn="false" value="UNIQUE_ID=1"/>
-									<listOptionValue builtIn="false" value="SDA_POWER=1"/>
+									<listOptionValue builtIn="false" value="OPEN_SDA_V1"/>
+									<listOptionValue builtIn="false" value="SDA_POWER"/>
 								</option>
 								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.input.761075251" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.input"/>
 							</tool>
@@ -591,7 +586,7 @@
 									<listOptionValue builtIn="false" value="TARGET_HARDWARE=H_USBDM_OPENSDA"/>
 									<listOptionValue builtIn="false" value="CPU=MK20D5"/>
 									<listOptionValue builtIn="false" value="OPEN_SDA_V1"/>
-									<listOptionValue builtIn="false" value="SDA_POWER=1"/>
+									<listOptionValue builtIn="false" value="SDA_POWER"/>
 								</option>
 								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.input.1163187814" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.input"/>
 							</tool>
@@ -621,7 +616,7 @@
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
 		</cconfiguration>
 		<cconfiguration id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.1303012057.740748135">
-			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.1303012057.740748135" moduleId="org.eclipse.cdt.core.settings" name="OpenSDAv1_Power_Unique_ID">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.1303012057.740748135" moduleId="org.eclipse.cdt.core.settings" name="OpenSDAv1_Unique_ID_Power">
 				<externalSettings/>
 				<extensions>
 					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
@@ -633,7 +628,7 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="${usbdm_rm_command} -rf" description="OpenSDA Version 1 (as on FRDM-KEAZ) with Power  with semi-unique USB Serial number" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.1303012057.740748135" name="OpenSDAv1_Power_Unique_ID" parent="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration" postannouncebuildStep="Create hex file for bootloader" postbuildStep="arm-none-eabi-objcopy -O srec ${BuildArtifactFileBaseName}.elf ${BuildArtifactFileBaseName}.sx" preannouncebuildStep="" prebuildStep="">
+				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="${usbdm_rm_command} -rf" description="OpenSDA Version 1 (as on FRDM-KEAZ) with Power and semi-unique USB Serial number" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.1303012057.740748135" name="OpenSDAv1_Unique_ID_Power" parent="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration" postannouncebuildStep="Create hex file for bootloader" postbuildStep="arm-none-eabi-objcopy -O srec ${BuildArtifactFileBaseName}.elf ${BuildArtifactFileBaseName}.sx" preannouncebuildStep="" prebuildStep="">
 					<folderInfo id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.1303012057.740748135." name="/" resourcePath="">
 						<toolChain id="net.sourceforge.usbdm.cdt.arm.exe.debug.toolchain.1142816959" name="ARM-USBDM ToolChain" superClass="net.sourceforge.usbdm.cdt.arm.exe.debug.toolchain">
 							<option defaultValue="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel.max" id="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel.22627233" name="Debug level" superClass="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel" valueType="enumerated"/>
@@ -656,6 +651,7 @@
 									<listOptionValue builtIn="false" value="TARGET_HARDWARE=H_USBDM_OPENSDA"/>
 									<listOptionValue builtIn="false" value="CPU=MK20D5"/>
 									<listOptionValue builtIn="false" value="OPEN_SDA_V1"/>
+									<listOptionValue builtIn="false" value="SDA_POWER"/>
 									<listOptionValue builtIn="false" value="UNIQUE_ID"/>
 								</option>
 								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.input.1970760565" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.input"/>
@@ -668,7 +664,7 @@
 									<listOptionValue builtIn="false" value="TARGET_HARDWARE=H_USBDM_OPENSDA"/>
 									<listOptionValue builtIn="false" value="CPU=MK20D5"/>
 									<listOptionValue builtIn="false" value="OPEN_SDA_V1"/>
-									<listOptionValue builtIn="false" value="SDA_POWER=1"/>
+									<listOptionValue builtIn="false" value="SDA_POWER"/>
 									<listOptionValue builtIn="false" value="UNIQUE_ID"/>
 								</option>
 								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.input.1346811618" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.input"/>
@@ -689,6 +685,162 @@
 							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.lister.1714590388" name="ARM Disassembler" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.lister"/>
 							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.sizer.697228500" name="ARM Sizer" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.sizer"/>
 							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.sym.1979044658" name="ARM Symbol Table" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.sym"/>
+						</toolChain>
+					</folderInfo>
+					<sourceEntries>
+						<entry excluding="Sources/Copy of USB.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+					</sourceEntries>
+				</configuration>
+			</storageModule>
+			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+		</cconfiguration>
+		<cconfiguration id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.115511992.342891613">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.115511992.342891613" moduleId="org.eclipse.cdt.core.settings" name="OpenSDAv2_0_Power">
+				<externalSettings/>
+				<extensions>
+					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
+				</extensions>
+			</storageModule>
+			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
+				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="${usbdm_rm_command} -rf" description="OpenSDA Version 2 (as on FRDM-K64F) with Power" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.115511992.342891613" name="OpenSDAv2_0_Power" parent="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration" postannouncebuildStep="Create binary file for bootloader" postbuildStep="arm-none-eabi-objcopy  -O binary ${BuildArtifactFileBaseName}.elf ${BuildArtifactFileBaseName}.bin" preannouncebuildStep="" prebuildStep="">
+					<folderInfo id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.115511992.342891613." name="/" resourcePath="">
+						<toolChain id="net.sourceforge.usbdm.cdt.arm.exe.debug.toolchain.1538388965" name="ARM-USBDM ToolChain" superClass="net.sourceforge.usbdm.cdt.arm.exe.debug.toolchain">
+							<option defaultValue="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel.max" id="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel.1776092597" name="Debug level" superClass="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel" valueType="enumerated"/>
+							<option defaultValue="net.sourceforge.usbdm.gnu.c.optimization.level.none" id="net.sourceforge.usbdm.cdt.toolchain.optimization.level.1011239227" name="Optimization level" superClass="net.sourceforge.usbdm.cdt.toolchain.optimization.level" valueType="enumerated"/>
+							<option id="net.sourceforge.usbdm.cdt.arm.toolchain.mcpu.1779424727" name="Cpu (-mcpu=)" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.mcpu" value="net.sourceforge.usbdm.cdt.arm.toolchain.mcpu.cortexM4" valueType="enumerated"/>
+							<option id="net.sourceforge.usbdm.cdt.arm.toolchain.mthumb.604323782" name="Thumb Instruction set (-mthumb)" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.mthumb" value="true" valueType="boolean"/>
+							<targetPlatform binaryParser="org.eclipse.cdt.core.ELF" id="net.sourceforge.usbdm.cdt.toolchain.targetPlatform.1642328254" name="USBDM common base platform" superClass="net.sourceforge.usbdm.cdt.toolchain.targetPlatform"/>
+							<builder buildPath="${workspace_loc:/USBDM_Kinetis}/OpenSDAv2_0" id="net.sourceforge.usbdm.cdt.toolchain.builder.1021015630" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" superClass="net.sourceforge.usbdm.cdt.toolchain.builder"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler.676434791" name="ARM Assembler" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler">
+								<option id="net.sourceforge.usbdm.cdt.toolchain.cppAssembler.Directories.includePaths.1022709388" name="Include paths (-I)" superClass="net.sourceforge.usbdm.cdt.toolchain.cppAssembler.Directories.includePaths" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Project_Headers&quot;"/>
+								</option>
+								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler.inputType.210457930" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler.inputType"/>
+							</tool>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.1676242856" name="ARM C Compiler" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler">
+								<option id="net.sourceforge.usbdm.gnu.c.compiler.option.include.paths.1959102254" name="Include paths (-I)" superClass="net.sourceforge.usbdm.gnu.c.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Project_Headers&quot;"/>
+								</option>
+								<option id="net.sourceforge.usbdm.gnu.c.compiler.option.preprocessor.def.symbols.634866889" name="Defined symbols (-D)" superClass="net.sourceforge.usbdm.gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
+									<listOptionValue builtIn="false" value="TARGET_HARDWARE=H_USBDM_OPENSDA"/>
+									<listOptionValue builtIn="false" value="CPU=MK20D5"/>
+									<listOptionValue builtIn="false" value="OPEN_SDA_V2"/>
+									<listOptionValue builtIn="false" value="SDA_POWER"/>
+								</option>
+								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.input.1779171173" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.input"/>
+							</tool>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.30118849" name="ARM C++ Compiler" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler">
+								<option id="net.sourceforge.usbdm.gnu.cpp.compiler.option.include.paths.1400085974" name="Include paths (-I)" superClass="net.sourceforge.usbdm.gnu.cpp.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Project_Headers&quot;"/>
+								</option>
+								<option id="net.sourceforge.usbdm.gnu.cpp.compiler.option.preprocessor.def.symbols.1382945187" name="Defined symbols (-D)" superClass="net.sourceforge.usbdm.gnu.cpp.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
+									<listOptionValue builtIn="false" value="TARGET_HARDWARE=H_USBDM_OPENSDA"/>
+									<listOptionValue builtIn="false" value="CPU=MK20D5"/>
+									<listOptionValue builtIn="false" value="OPEN_SDA_V2"/>
+									<listOptionValue builtIn="false" value="SDA_POWER"/>
+								</option>
+								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.input.2108681997" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.input"/>
+							</tool>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.archiver.1349175465" name="ARM Archiver" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.archiver"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.c.linker.338760877" name="ARM C Linker" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.c.linker"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.linker.578510601" name="ARM C++ Linker" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.linker">
+								<option id="gnu.cpp.link.option.paths.1375326645" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Project_Settings/Linker_Files&quot;"/>
+								</option>
+								<option id="net.sourceforge.usbdm.cdt.toolchain.cpp.linker.linkerFile.643354127" name="Linker File (-T option):" superClass="net.sourceforge.usbdm.cdt.toolchain.cpp.linker.linkerFile" value="OpenSDAv2_0.ld" valueType="string"/>
+								<option id="net.sourceforge.usbdm.cdt.toolchain.cpp.linker.mapFileEnable.363362603" name="Generate map file:" superClass="net.sourceforge.usbdm.cdt.toolchain.cpp.linker.mapFileEnable" value="${BuildArtifactFileBaseName}.map" valueType="string"/>
+								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.458110971" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
+									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
+									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
+								</inputType>
+							</tool>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.lister.230108870" name="ARM Disassembler" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.lister"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.sizer.1011830941" name="ARM Sizer" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.sizer"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.sym.1480383763" name="ARM Symbol Table" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.sym"/>
+						</toolChain>
+					</folderInfo>
+					<sourceEntries>
+						<entry excluding="Sources/Copy of USB.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+					</sourceEntries>
+				</configuration>
+			</storageModule>
+			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+		</cconfiguration>
+		<cconfiguration id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.115511992.1563576321.902826500">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.115511992.1563576321.902826500" moduleId="org.eclipse.cdt.core.settings" name="OpenSDAv2_0_Unique_ID_Power">
+				<externalSettings/>
+				<extensions>
+					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
+				</extensions>
+			</storageModule>
+			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
+				<configuration artifactName="${ConfigName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="${usbdm_rm_command} -rf" description="OpenSDA Version 2 (as on FRDM-K64F) with Power and semi-unique USB Serial number" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.115511992.1563576321.902826500" name="OpenSDAv2_0_Unique_ID_Power" parent="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration" postannouncebuildStep="Create binary file for bootloader" postbuildStep="arm-none-eabi-objcopy  -O binary ${BuildArtifactFileBaseName}.elf ${BuildArtifactFileBaseName}.bin" preannouncebuildStep="" prebuildStep="">
+					<folderInfo id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.115511992.1563576321.902826500." name="/" resourcePath="">
+						<toolChain id="net.sourceforge.usbdm.cdt.arm.exe.debug.toolchain.342723194" name="ARM-USBDM ToolChain" superClass="net.sourceforge.usbdm.cdt.arm.exe.debug.toolchain">
+							<option defaultValue="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel.max" id="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel.1703132155" name="Debug level" superClass="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel" valueType="enumerated"/>
+							<option defaultValue="net.sourceforge.usbdm.gnu.c.optimization.level.none" id="net.sourceforge.usbdm.cdt.toolchain.optimization.level.661354487" name="Optimization level" superClass="net.sourceforge.usbdm.cdt.toolchain.optimization.level" valueType="enumerated"/>
+							<option id="net.sourceforge.usbdm.cdt.arm.toolchain.mcpu.1167613012" name="Cpu (-mcpu=)" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.mcpu" value="net.sourceforge.usbdm.cdt.arm.toolchain.mcpu.cortexM4" valueType="enumerated"/>
+							<option id="net.sourceforge.usbdm.cdt.arm.toolchain.mthumb.1119949540" name="Thumb Instruction set (-mthumb)" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.mthumb" value="true" valueType="boolean"/>
+							<targetPlatform binaryParser="org.eclipse.cdt.core.ELF" id="net.sourceforge.usbdm.cdt.toolchain.targetPlatform.144012463" name="USBDM common base platform" superClass="net.sourceforge.usbdm.cdt.toolchain.targetPlatform"/>
+							<builder buildPath="${workspace_loc:/USBDM_Kinetis}/OpenSDAv2_0_Unique_ID" id="net.sourceforge.usbdm.cdt.toolchain.builder.315193788" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" superClass="net.sourceforge.usbdm.cdt.toolchain.builder"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler.82297420" name="ARM Assembler" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler">
+								<option id="net.sourceforge.usbdm.cdt.toolchain.cppAssembler.Directories.includePaths.1762413926" name="Include paths (-I)" superClass="net.sourceforge.usbdm.cdt.toolchain.cppAssembler.Directories.includePaths" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Project_Headers&quot;"/>
+								</option>
+								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler.inputType.1352111144" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler.inputType"/>
+							</tool>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.1818835552" name="ARM C Compiler" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler">
+								<option id="net.sourceforge.usbdm.gnu.c.compiler.option.include.paths.1071748791" name="Include paths (-I)" superClass="net.sourceforge.usbdm.gnu.c.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Project_Headers&quot;"/>
+								</option>
+								<option id="net.sourceforge.usbdm.gnu.c.compiler.option.preprocessor.def.symbols.1447694393" name="Defined symbols (-D)" superClass="net.sourceforge.usbdm.gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
+									<listOptionValue builtIn="false" value="TARGET_HARDWARE=H_USBDM_OPENSDA"/>
+									<listOptionValue builtIn="false" value="CPU=MK20D5"/>
+									<listOptionValue builtIn="false" value="OPEN_SDA_V2"/>
+									<listOptionValue builtIn="false" value="UNIQUE_ID"/>
+									<listOptionValue builtIn="false" value="SDA_POWER"/>
+								</option>
+								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.input.1942116947" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.input"/>
+							</tool>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.1441145722" name="ARM C++ Compiler" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler">
+								<option id="net.sourceforge.usbdm.gnu.cpp.compiler.option.include.paths.971645170" name="Include paths (-I)" superClass="net.sourceforge.usbdm.gnu.cpp.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Project_Headers&quot;"/>
+								</option>
+								<option id="net.sourceforge.usbdm.gnu.cpp.compiler.option.preprocessor.def.symbols.1640701250" name="Defined symbols (-D)" superClass="net.sourceforge.usbdm.gnu.cpp.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
+									<listOptionValue builtIn="false" value="TARGET_HARDWARE=H_USBDM_OPENSDA"/>
+									<listOptionValue builtIn="false" value="CPU=MK20D5"/>
+									<listOptionValue builtIn="false" value="OPEN_SDA_V2"/>
+									<listOptionValue builtIn="false" value="UNIQUE_ID"/>
+									<listOptionValue builtIn="false" value="SDA_POWER"/>
+								</option>
+								<inputType id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.input.665790126" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.input"/>
+							</tool>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.archiver.696523518" name="ARM Archiver" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.archiver"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.c.linker.735986625" name="ARM C Linker" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.c.linker"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.linker.1036829211" name="ARM C++ Linker" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.linker">
+								<option id="net.sourceforge.usbdm.cdt.toolchain.cpp.linker.linkerFile.208303171" name="Linker File (-T option):" superClass="net.sourceforge.usbdm.cdt.toolchain.cpp.linker.linkerFile" value="OpenSDAv2_0.ld" valueType="string"/>
+								<option id="gnu.cpp.link.option.paths.414739044" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Project_Settings/Linker_Files&quot;"/>
+								</option>
+								<option id="net.sourceforge.usbdm.cdt.toolchain.cpp.linker.mapFileEnable.39217845" name="Generate map file:" superClass="net.sourceforge.usbdm.cdt.toolchain.cpp.linker.mapFileEnable" value="${BuildArtifactFileBaseName}.map" valueType="string"/>
+								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1711261763" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
+									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
+									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
+								</inputType>
+							</tool>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.lister.470818870" name="ARM Disassembler" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.lister"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.sizer.790939244" name="ARM Sizer" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.sizer"/>
+							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.sym.494460041" name="ARM Symbol Table" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.sym"/>
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
