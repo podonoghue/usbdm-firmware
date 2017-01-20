@@ -1,2 +1,2 @@
-Firmware for JM16 based BDMs  
+Firmware for JM60 and JS16 based BDMs  
 Requires Codewarror V10.6.4
