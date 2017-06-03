@@ -338,7 +338,7 @@ void initdebugMessageBuffer(void);
 
 */
 void main(void) {
-#if !defined(SOPT1_BKGDPE_MASK) || defined(DISABLE_BKGD)
+#if !defined(SOPT1_BKGDPE_MASK)// || defined(DISABLE_BKGD)
 #undef SOPT1_BKGDPE_MASK
 #define SOPT1_BKGDPE_MASK (0) // Only exists on some CPUs or BKGD pin in use as GPIO
 #endif

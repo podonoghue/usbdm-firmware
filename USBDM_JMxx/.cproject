@@ -1249,7 +1249,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="Sources/SCI_Debug.c|Sources/JTAG.c|Sources/BDMCommon.c|Sources/CmdProcessingCFV1.c|Sources/BDM_CF.c|Sources/CmdProcessingCFVx.c|Sources/USB.c|Sources/BDM_RS08.c|Sources/UserVectorTable.c|Sources/SCI.c|Sources/CmdProcessing.c|Sources/BDM.c|Sources/main.c|Sources/CmdProcessingHCS.c|Lib/mc9s08jm16.c|Sources/JTAGSequence.c|Lib/mc9s08jm60.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="Sources/SCI_Debug.c|Sources/JTAG.c|Sources/BDMCommon.c|Sources/CmdProcessingCFV1.c|Sources/BDM_CF.c|Sources/CmdProcessingCFVx.c|Sources/USB.c|Sources/BDM_RS08.c|Sources/UserVectorTable.c|Sources/SCI.c|Sources/CmdProcessing.c|Sources/BDM.c|Sources/main.c|Lib/mc9s08jm16.c|Sources/CmdProcessingHCS.c|Lib/mc9s08jm60.c|Sources/JTAGSequence.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
