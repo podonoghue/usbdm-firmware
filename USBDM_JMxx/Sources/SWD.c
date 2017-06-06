@@ -520,8 +520,6 @@ static void swd_JTAGtoSWD(void) {
       ldhx   SPIxD16                                   // Discard last data
       mov    #SWCLK_OUT_MASK|SWD_OUT_EN_MASK,DATA_PORT // Setup for SWCLK=1, SWD=3-state
   L7:
-      brclr  SPIS_SPRF_BIT,SPIxS,L7                    // Wait until Tx complete
-      ldhx   SPIxD16                                   // Discard rx data
       clr    SPIC1                                     // Disable SPI (SWCLK=1)
       rts
       
