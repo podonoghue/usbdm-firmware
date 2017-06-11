@@ -72,12 +72,12 @@
 //!  @note Limited to ?? ms
 //!
 void fastTimerWait(uint32_t delay) {
-   PIT_LDVAL0 = delay;                  // Set up delay
-   PIT_TFLG0  = PIT_TFLG_TIF_MASK;      // Clear timer flag
-   PIT_TCTRL0 = PIT_TCTRL_TEN_MASK;     // Enable (and reset) timer
-   while ((PIT_TFLG0&PIT_TFLG_TIF_MASK) == 0) { // Wait for timeout
+   PIT->CHANNEL[0].LDVAL = delay;                  // Set up delay
+   PIT->CHANNEL[0].TFLG  = PIT_TFLG_TIF_MASK;      // Clear timer flag
+   PIT->CHANNEL[0].TCTRL = PIT_TCTRL_TEN_MASK;     // Enable (and reset) timer
+   while ((PIT->CHANNEL[0].TFLG&PIT_TFLG_TIF_MASK) == 0) { // Wait for timeout
    }
-   PIT_TCTRL0 = 0;                      // Disable timer
+   PIT->CHANNEL[0].TCTRL = 0;                      // Disable timer
 }
 
 //! Wait for given time in milliseconds
@@ -85,22 +85,22 @@ void fastTimerWait(uint32_t delay) {
 //!  @param delay Delay time in milliseconds
 //!
 void millisecondTimerWait(uint16_t delay) {
-   PIT_LDVAL0 = TIMER_MICROSECOND(1000); // Set up delay
-   PIT_TCTRL0 = PIT_TCTRL_TEN_MASK;      // Enable (and reset) timer
+   PIT->CHANNEL[0].LDVAL = TIMER_MICROSECOND(1000); // Set up delay
+   PIT->CHANNEL[0].TCTRL = PIT_TCTRL_TEN_MASK;      // Enable (and reset) timer
    while (delay-->0) {
-      PIT_TFLG0  = PIT_TFLG_TIF_MASK;              // Clear timer flag
-      while ((PIT_TFLG0&PIT_TFLG_TIF_MASK) == 0) { // Wait for timeout
+      PIT->CHANNEL[0].TFLG  = PIT_TFLG_TIF_MASK;              // Clear timer flag
+      while ((PIT->CHANNEL[0].TFLG&PIT_TFLG_TIF_MASK) == 0) { // Wait for timeout
       }
    }
-   PIT_TCTRL0 = 0;                       // Disable timer
+   PIT->CHANNEL[0].TCTRL = 0;                       // Disable timer
 }
 
 //! Initialises the timers, input captures and interrupts
 //!
 U8 initTimers(void) {
 	
-	SIM_SCGC6 |= SIM_SCGC6_PIT_MASK;
-	PIT_MCR    = PIT_MCR_FRZ_MASK; // Enable timers
+	SIM->SCGC6 |= SIM_SCGC6_PIT_MASK;
+	PIT->MCR    = PIT_MCR_FRZ_MASK; // Enable timers
 	return BDM_RC_OK;
 }
 

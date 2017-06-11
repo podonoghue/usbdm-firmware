@@ -32,7 +32,7 @@ extern uint32_t spiBaudValue;
 //!
 __forceinline
 static inline void spi_setCTAR0(uint32_t ctar) {
-   SPI0_CTAR0 = spiBaudValue|ctar;
+   SPI0->CTAR[0] = spiBaudValue|ctar;
 }
 
 //! Set SPI.CTAR1 value (non-persistent)
@@ -41,7 +41,7 @@ static inline void spi_setCTAR0(uint32_t ctar) {
 //!
 __forceinline
 static inline void spi_setCTAR1(uint32_t ctar) {
-   SPI0_CTAR1 = spiBaudValue|ctar;
+   SPI0->CTAR[1] = spiBaudValue|ctar;
 }
 
 #endif /* SPI_H_ */

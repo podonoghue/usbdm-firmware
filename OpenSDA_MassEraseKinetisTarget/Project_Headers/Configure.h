@@ -130,6 +130,7 @@ extern void dputs(char *msg);
 #define H_USBDM_TWR_HCS12       28  //!< TWR HCS12 boards
 
 #include "derivative.h"
+#include "utilities.h"
 
 //==========================================================================================
 //! Software Version Information
@@ -176,6 +177,8 @@ extern void dputs(char *msg);
 #include "USBDM_MK20D5.h"
 #elif TARGET_HARDWARE==H_USBDM_OPENSDA
 #include "USBDM_OpenSDA.h"
+#elif TARGET_HARDWARE==H_USBDM_TWR_HCS12
+#include "USBDM_TWR_HCS12.h"
 #else
 #error "Target Hardware not specified (see TARGET_HARDWARE)"
 // To stop lots of further errors!

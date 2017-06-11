@@ -6,7 +6,8 @@
 /* ---- <<< Use Configuration Wizard in Context Menu >>> ---- */
 
 /* <o> Stack Size
-   <i> Required amount of stack space  
+   <i> Required amount of stack space
+   <i> In CMSIS this will determine the ISR stack size
    <0x0-0x4000> 
 */
 __stack_size = 0x1000;
@@ -38,14 +39,31 @@ __sram_u_size = 0;
  */
 MEMORY
 {
-  flexNVM        (rx)  : ORIGIN = 0x10000000, LENGTH = 0x00008000
   bitband        (rw)  : ORIGIN = 0x22000000, LENGTH = 0x02000000
   aips0          (rw)  : ORIGIN = 0x40000000, LENGTH = 0x00080000
   aips1          (rw)  : ORIGIN = 0x40080000, LENGTH = 0x0007F000
   gpio           (rw)  : ORIGIN = 0x400FF000, LENGTH = 0x00001000
   gpioBitband    (rw)  : ORIGIN = 0x42000000, LENGTH = 0x02000000
   peripherals    (rw)  : ORIGIN = 0xE0000000, LENGTH = 0x00100000
-  rom            (rx)  : ORIGIN = 0x00000000, LENGTH = 0x00020000
+/*
+ *  <o>  Flex RAM address <constant>
+ *  <o1> Flex RAM size    <constant>
+ */
+  flexRAM        (rw)  : ORIGIN = 0x14000000, LENGTH = 0x00000800
+/*
+ *  <o>  Flex NVM address <constant>
+ *  <o1> Flex NVM size    <constant>
+ */
+  flexNVM        (rx)  : ORIGIN = 0x10000000, LENGTH = 0x00008000
+/*
+ *  <o>  FLASH  address <constant>
+ *  <o1> FLASH  size    <constant>
+ */
+  flash          (rx)  : ORIGIN = 0x00000000, LENGTH = 0x00020000
+/*
+ *  <o>  RAM    address <constant>
+ *  <o1> RAM    size    <constant>
+ */
   ram            (rwx) : ORIGIN = 0x1FFFE000, LENGTH = 0x00004000
   /* Guard region above stack for GDB */
   gdbGuard       (r)   : ORIGIN = 0x20002000, LENGTH = 0x00000020

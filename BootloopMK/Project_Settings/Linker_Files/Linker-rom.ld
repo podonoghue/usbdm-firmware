@@ -1,4 +1,4 @@
-/* ARMLtd_GCC-rom-mk.ld 
+/* ARMLtd_GCC-rom-mk-sramu.ld
  *
  * Kinetis version with optional SRAM_U allocation and bitband
  *
@@ -73,7 +73,7 @@ SECTIONS
       KEEP(*(.security_information))
       KEEP(*(.FlashConfig))    /* KDS Flash Configuration Field (FCF) */
       ASSERT (. == __flash_start + 0x410, "No Freescale security information");
-    } > rom
+    } > flash
 
 /* Size of RAM vector table (if needed) */
 M_VECTOR_RAM_SIZE = DEFINED(__ram_vector_table__) ? (__VECTOR_TABLE_END - __VECTOR_TABLE) : 0x0000;
@@ -126,23 +126,32 @@ M_VECTOR_RAM_SIZE = DEFINED(__ram_vector_table__) ? (__VECTOR_TABLE_END - __VECT
 
       KEEP(*(.jcr*))
 
+      *(.rodata*)
+
       KEEP(*(.eh_frame*))
-    } > rom
+    } > flash
 
    .ARM.extab : 
    {
       *(.ARM.extab* .gnu.linkonce.armextab.*)
-   } > rom
+   } > flash
 
    __exidx_start = .;
    .ARM.exidx :
    {
       *(.ARM.exidx* .gnu.linkonce.armexidx.*)
-   } > rom
+   } > flash
    __exidx_end = .;
 
    __etext = .;    /* define a global symbol at end of code */
    __DATA_ROM = .; /* Symbol is used by startup for data initialization */
+
+   /* Flash region for programming */
+   .flash (NOLOAD) : 
+   {
+      . = ALIGN(4);
+      KEEP(*(.flash))
+   } > flash
 
   /* reserve MTB memory at the beginning of data */
   .mtb : /* MTB buffer no0load */
@@ -180,7 +189,7 @@ M_VECTOR_RAM_SIZE = DEFINED(__ram_vector_table__) ? (__VECTOR_TABLE_END - __VECT
       __data_end__ = .;
    } > ram
    
-  /* KDS defines __DATA_END as the end of DATA in ROM */
+  /* KDS defines __DATA_END as the end of DATA in Flash */
   __DATA_END = __DATA_ROM + SIZEOF(.data);
 
    .bss :
@@ -207,6 +216,7 @@ M_VECTOR_RAM_SIZE = DEFINED(__ram_vector_table__) ? (__VECTOR_TABLE_END - __VECT
       __heap_addr = .;
       . = . + __heap_size__;
    } > ram
+
 
    /* STACK space - between HEAP and end of RAM (or bitband_bytes) */
    PROVIDE ( __sram_u_size = 0 );

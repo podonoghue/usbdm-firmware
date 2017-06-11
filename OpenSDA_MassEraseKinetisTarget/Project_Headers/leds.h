@@ -1,10 +1,8 @@
-/*
- * leds.h
- *
- *  Created on: 14/04/2013
- *      Author: pgo
+/**
+ * @file    leds.h
+ * @brief   Basic LED control for demo boards
+ * @date    13 June 2015
  */
-
 #ifndef LEDS_H_
 #define LEDS_H_
 
@@ -12,22 +10,76 @@
 extern "C" {
 #endif
 
-void greenLedOn(void);
-void greenLedOff(void);
-void greenLedToggle(void);
-void redLedOn(void);
-void redLedOff(void);
-void redLedToggle(void);
-void blueLedOn(void);
-void blueLedOff(void);
-void blueLedToggle(void);
-void blueLedEnable(void);
-void blueLedDisable(void);
-void orangeLedOn(void);
-void orangeLedOff(void);
-void orangeLedToggle(void);
+/**
+ * @addtogroup Demo_board_LED_control_group Demo board LED control
+ * @brief Basic functions for on-board LEDs
+ * @{
+ */
 
+/**
+ * Turn on green LED
+ */
+void greenLedOn(void);
+/**
+ * Turn off green LED
+ */
+void greenLedOff(void);
+/**
+ * Toggle green LED
+ */
+void greenLedToggle(void);
+/**
+ * Turn on red LED
+ */
+void redLedOn(void);
+/**
+ * Turn off red LED
+ */
+void redLedOff(void);
+/**
+ * Toggle red LED
+ */
+void redLedToggle(void);
+/**
+ * Turn on blue LED
+ */
+void blueLedOn(void);
+/**
+ * Turn off blue LED
+ */
+void blueLedOff(void);
+/**
+ * Toggle blue LED
+ */
+void blueLedToggle(void);
+/**
+ * Enable blue LED
+ */
+void blueLedEnable(void);
+/**
+ * Disable blue LED
+ */
+void blueLedDisable(void);
+/**
+ * Turn off orange LED
+ */
+void orangeLedOn(void);
+/**
+ * Turn off orange LED
+ */
+void orangeLedOff(void);
+/**
+ * Toggle orange LED
+ */
+void orangeLedToggle(void);
+/**
+ * Initialise all LED
+ */
 void led_initialise(void);
+
+/**
+ * @}
+ */ /* end of group Demo_board_LED_control_group */
 
 #ifdef __cplusplus
 }

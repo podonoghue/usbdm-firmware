@@ -1,8 +1,8 @@
 /**
- * @file     bme.h
+ * @file     bme.h (derived from bme-c.h)
  * @brief    Macros to access bit manipulation engine
- * @version  V4.11.1.70
- * @date     18 June 2015
+ * @version  V4.12.1.50
+ * @date     5 Dec 2015
  */
 #ifndef __BME_H
 #define __BME_H
@@ -27,30 +27,30 @@ extern "C" {
  * Examples:
  *
  * Setting a clock enable bit within SIM_SCGC
- * ~~~~~~~~~~~~~~~{.c}
+ * @code{.c}
  *    BME_BIT_TEST_AND_SETw(&SIM->SCGC6, SIM_SCGC6_ADC0_SHIFT); // Set SIM_SCGC6.ADC0 bit
- *~~~~~~~~~~~~~~~
+ * @endcode
  *
  * Clearing a clock enable bit within SIM_SCGC
- * ~~~~~~~~~~~~~~~{.c}
+ * @code{.c}
  *    BME_BIT_TEST_AND_CLEARw(&SIM->SCGC6, SIM_SCGC6_ADC0_SHIFT); // Clear SIM_SCGC6.ADC0 bit
- *~~~~~~~~~~~~~~~
+ * @endcode
  *
  * Settting multiple bits
- * ~~~~~~~~~~~~~~~{.c}
+ * @code{.c}
  *    BME_ORw(&SIM_SCGC,SIM_SCGC_ACMP0_MASK|SIM_SCGC_ACMP1_MASK);
- *~~~~~~~~~~~~~~~
+ * @endcode
  *
  * Clearing multiple bits
- * ~~~~~~~~~~~~~~~{.c}
+ * @code{.c}
  *    BME_ANDw(&SIM_SCGC,~(SIM_SCGC_ACMP0_MASK|SIM_SCGC_ACMP1_MASK));
- *~~~~~~~~~~~~~~~
+ * @endcode
  *
  * Spin-lock - Wait until successful at setting the bit i.e. the bit was 0 and now is 1
- * ~~~~~~~~~~~~~~~{.c}
+ * @code{.c}
  *    while(BME_BIT_TEST_AND_SET(&lock, 3) != 0) {
  *    }
- *~~~~~~~~~~~~~~~
+ * @endcode
  */
 
 // BME operation code

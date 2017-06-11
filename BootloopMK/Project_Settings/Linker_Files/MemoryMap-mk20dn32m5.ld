@@ -45,7 +45,15 @@ MEMORY
   gpio           (rw)  : ORIGIN = 0x400FF000, LENGTH = 0x00001000
   gpioBitband    (rw)  : ORIGIN = 0x42000000, LENGTH = 0x02000000
   peripherals    (rw)  : ORIGIN = 0xE0000000, LENGTH = 0x00100000
-  rom            (rx)  : ORIGIN = 0x00000000, LENGTH = 0x00008000
+/*
+ *  <o>  FLASH  address <constant>
+ *  <o1> FLASH  size    <constant>
+ */
+  flash          (rx)  : ORIGIN = 0x00000000, LENGTH = 0x00008000
+/*
+ *  <o>  RAM    address <constant>
+ *  <o1> RAM    size    <constant>
+ */
   ram            (rwx) : ORIGIN = 0x1FFFF000, LENGTH = 0x00002000
   /* Guard region above stack for GDB */
   gdbGuard       (r)   : ORIGIN = 0x20001000, LENGTH = 0x00000020

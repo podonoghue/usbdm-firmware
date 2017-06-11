@@ -41,6 +41,20 @@
 
 #endif
 
+#if defined(MCU_MKV31F51212)
+// FRDM_KV31F
+//==========================================================
+#define LED_RED_PORT               D   //!< LED pin register
+#define LED_RED_NUM                1   //!< LED Pin number
+
+#define LED_GREEN_PORT             D   //!< LED pin register
+#define LED_GREEN_NUM              7   //!< LED Pin number
+
+#define LED_BLUE_PORT              E   //!< LED pin register
+#define LED_BLUE_NUM               25  //!< LED Pin number
+
+#endif
+
 #if defined(MCU_MK20D5)
 // FRDM_K20D50M
 //==========================================================

@@ -171,7 +171,6 @@ extern "C" {
 //  <o> System Core Clock (Hz) <name=system_core_clock> <constant>
 //  <i> Clocks the ARM Cortex-M4 core
 //  <i> Derived from MCGOUT Clock after division by OUTDIV1
-//  <i> Must be less than or equal to 48 MHz.
 #define SYSTEM_CORE_CLOCK 41943040UL
 
 // SYSTEM_BUS_CLOCK =======================================
@@ -179,7 +178,7 @@ extern "C" {
 //  <o> System Bus and Flash Clock (Hz) <name=system_bus_clock> <constant>
 //  <i> Clocks the bus slaves & peripheral and flash
 //  <i> Derived from Core Clock after division by OUTDIV4
-//  <i> Must be less than or equal to 24 MHz and less than or equal to the Core Clock frequency.
+//  <i> Must be &lt;= Core Clock frequency.
 #define SYSTEM_BUS_CLOCK 20971520UL
 
 // SYSTEM_FLASH_CLOCK =======================================

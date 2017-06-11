@@ -12,7 +12,7 @@
 #include "utilities.h"
 #include "leds.h"
 #include "stdbool.h"
-#include "uart.h"
+#include "console.h"
 
 /*
  * Use PTB13 (= A5 on FRDM board) as self erase pin
@@ -147,7 +147,7 @@ int main(void) {
    for(int i=0; i<20; i++) {
       greenLedToggle();
       delay();
-      if (uart_getCh() == 'y') {
+      if (console_rxChar() == 'y') {
          doMassErase = true;
       }
       if (doMassErase) {

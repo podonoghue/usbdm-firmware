@@ -6,7 +6,8 @@
 /* ---- <<< Use Configuration Wizard in Context Menu >>> ---- */
 
 /* <o> Stack Size
-   <i> Required amount of stack space  
+   <i> Required amount of stack space
+   <i> In CMSIS this will determine the ISR stack size
    <0x0-0x4000> 
 */
 __stack_size = 0x1000;
@@ -25,13 +26,21 @@ MEMORY
   aips           (rw)  : ORIGIN = 0x40000000, LENGTH = 0x00080000
   gpio           (rw)  : ORIGIN = 0x400FF000, LENGTH = 0x00001000
   bme            (rw)  : ORIGIN = 0x44000000, LENGTH = 0x1C000000
-  peripheral     (rw)  : ORIGIN = 0xE0000000, LENGTH = 0x00100000
+  peripherals    (rw)  : ORIGIN = 0xE0000000, LENGTH = 0x00100000
   mtb            (rw)  : ORIGIN = 0xF0000000, LENGTH = 0x00001000
   mtbdwt         (rw)  : ORIGIN = 0xF0001000, LENGTH = 0x00001000
   romTable       (rw)  : ORIGIN = 0xF0002000, LENGTH = 0x00001000
   mcm            (rw)  : ORIGIN = 0xF0003000, LENGTH = 0x00001000
   fgpio          (rw)  : ORIGIN = 0xF8000000, LENGTH = 0x08000000
-  rom            (rx)  : ORIGIN = 0x00000000, LENGTH = 0x00020000
+/*
+ *  <o>  FLASH  address <constant>
+ *  <o1> FLASH  size    <constant>
+ */
+  flash          (rx)  : ORIGIN = 0x00000000, LENGTH = 0x00020000
+/*
+ *  <o>  RAM    address <constant>
+ *  <o1> RAM    size    <constant>
+ */
   ram            (rwx) : ORIGIN = 0x1FFFF000, LENGTH = 0x00004000
   /* Guard region above stack for GDB */
   gdbGuard       (r)   : ORIGIN = 0x20003000, LENGTH = 0x00000020

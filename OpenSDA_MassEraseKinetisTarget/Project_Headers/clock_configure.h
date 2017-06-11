@@ -33,9 +33,13 @@ extern "C" {
 //
 // PLL clock                                                                    pllOutMin pllOutMax
 // <validate=net.sourceforge.usbdm.annotationEditor.validators.PllClockValidate(48000000, 100000000)>
+//
 // FLL clock
 // <validate=net.sourceforge.usbdm.annotationEditor.validators.FllClockValidate>
-
+//
+// USB Clock divider
+// <validate=net.sourceforge.usbdm.annotationEditor.validators.ClockValidate_USB(48000000)>
+//
 // Convention
 // name_V = field value
 // name_M = field mask i.e. value in correct position for register
@@ -86,6 +90,12 @@ extern "C" {
 //   <o> Frequency of Fast Internal Reference Clock (Hz) <constant> <name=system_fast_irc_clock>
 //   <i> Dependent on device and clock Trim. [Typically ~4MHz]
 #define SYSTEM_FAST_IRC_CLOCK (4000000UL)
+
+// SYSTEM_USB_CLKIN ==============================
+//
+//   <o> Frequency of External USB Clock (Hz) <constant> <name=system_usb_clkin_clock>
+//   <i> Externally provided clock for USB on USB_CLKIN 
+#define SYSTEM_USB_CLKIN_CLOCK (48000000UL)
 
 //========================================================================================
 //========================================================================================
@@ -190,16 +200,14 @@ extern "C" {
 //  <o> System Core Clock (Hz) <name=system_core_clock> <constant>
 //  <i> Clocks the ARM Cortex-M4 core and bus masters
 //  <i> Derived from MCGOUT Clock after division by OUTDIV1
-//  <i> Must be less than or equal to 50 MHz.
 #define SYSTEM_CORE_CLOCK 41943040UL
 
 // SYSTEM_BUS_CLOCK =======================================
 //
 //  <o> System Bus Clock (Hz) <name=system_bus_clock> <constant>
-//  <i> Clocks the bus slaves and peripheral
+//  <i> Clocks the bus slaves and peripherals
 //  <i> Derived from MCGOUT Clock after division by OUTDIV2
-//  <i> Must be less than or equal to 50 MHz and less than or equal to the Core Clock frequency.
-//  <i> Must be an integer divisor of the Core Clock.
+//  <i> Must be &lt;= Core Clock frequency and an integer divisor.
 #define SYSTEM_BUS_CLOCK 41943040UL
 
 // SYSTEM_FLASH_CLOCK =======================================
@@ -207,8 +215,8 @@ extern "C" {
 //  <o> System Flash Clock (Hz) <name=system_flash_clock> <constant>
 //  <i> Clocks the flash memory
 //  <i> Derived from MCGOUT clock after division by OUTDIV4.
-//  <i> Must be less than or equal to 25 MHz and less than or equal to the Bus Clock frequency.
 //  <i> Must be an integer divisor of the Core Clock.
+//  <i> Must be &lt;= Bus Clock frequency.
 #define SYSTEM_FLASH_CLOCK 20971520UL
 
 // <h> System Clock dividers
@@ -268,35 +276,29 @@ extern "C" {
 #define OSC_CR_EREFSTEN_V 0
 #define OSC_CR_EREFSTEN_M (OSC_CR_EREFSTEN_V<<OSC_CR_EREFSTEN_SHIFT)
 
-// OSC_CR_SC2P ===============================
+// OSC_CR_SCxP ===============================
 //
-//   <q0> Oscillator Capacitor Load Configure
-//   <i> Configures the oscillator load capacitance [OSC_CR_SC2P]
-//     <0=>
-//     <1=> +2pF
+//   <o> Oscillator Capacitor Load Configure
+//   <i> Configures the oscillator load capacitance [OSC_CR_SCxP]
+//     <0=>   0 pF
+//     <8=>   2 pF
+//     <4=>   4 pF
+//     <12=>  6 pF
+//     <2=>   8 pF
+//     <10=> 10 pF
+//     <6=>  12 pF
+//     <14=> 14 pF
+//     <1=>  16 pF
+//     <9=>  18 pF
+//     <5=>  20 pF
+//     <13=> 22 pF
+//     <3=>  24 pF
+//     <11=> 26 pF
+//     <7=>  28 pF
+//     <15=> 30 pF
 
-// OSC_CR_SC4P ===============================
-//
-//   <q1> Oscillator Capacitor Load Configure
-//   <i> Configures the oscillator load capacitance [OSC_CR_SC4P]
-//     <0=>
-//     <1=> +4pF
-
-// OSC_CR_SC8P ===============================
-//
-//   <q2> Oscillator Capacitor Load Configure
-//   <i> Configures the oscillator load capacitance [OSC_CR_SC8P]
-//     <0=>
-//     <1=> +8pF
-
-// OSC_CR_SC16P ===============================
-//
-//   <q3> Oscillator Capacitor Load Configure
-//   <i> Configures the oscillator load capacitance [OSC_CR_SC16P]
-//     <0=>
-//     <1=> +16pF
-
-#define OSC_CR_SCP_M ((0<<OSC_CR_SC2P_SHIFT)|(0<<OSC_CR_SC4P_SHIFT)|(1<<OSC_CR_SC8P_SHIFT)|(0<<OSC_CR_SC16P_SHIFT))
+#define OSC_CR_SCP_V 0x1
+#define OSC_CR_SCP_M (OSC_CR_SCP_V<<OSC_CR_SC16P_SHIFT)
 // </h>
 
 //========================================================================================
@@ -305,7 +307,7 @@ extern "C" {
 
 // RTC_CR_OSCE ===============================
 //
-//   <q> RTC Oscillator Enable (OSCE)
+//   <q> RTC Oscillator Enable (OSCE) <name=rtc_cr_osce>
 //   <i> Enables 32.768 kHz RTC oscillator[RTC_CR_OSCE]
 //     <0=> Disabled
 //     <1=> Enabled
@@ -351,35 +353,29 @@ extern "C" {
 #define RTC_CR_WPE_V 0
 #define RTC_CR_WPE_M (RTC_CR_WPE_V<<RTC_CR_WPE_SHIFT)
 
-// RTC_CR_SC2P ===============================
+// RTC_CR_SCxP ===============================
 //
-//   <q0> Oscillator Capacitor Load Configure
-//   <i> Configures the oscillator load capacitance [RTC_CR_SC2P]
-//     <0=>
-//     <1=> +2pF
+//   <o> Oscillator Capacitor Load Configure
+//   <i> Configures the oscillator load capacitance [RTC_CR_SCxP]
+//     <0=>   0 pF
+//     <8=>   2 pF
+//     <4=>   4 pF
+//     <12=>  6 pF
+//     <2=>   8 pF
+//     <10=> 10 pF
+//     <6=>  12 pF
+//     <14=> 14 pF
+//     <1=>  16 pF
+//     <9=>  18 pF
+//     <5=>  20 pF
+//     <13=> 22 pF
+//     <3=>  24 pF
+//     <11=> 26 pF
+//     <7=>  28 pF
+//     <15=> 30 pF
 
-// RTC_CR_SC4P ===============================
-//
-//   <q1> Oscillator Capacitor Load Configure
-//   <i> Configures the oscillator load capacitance [RTC_CR_SC4P]
-//     <0=>
-//     <1=> +4pF
-
-// RTC_CR_SC8P ===============================
-//
-//   <q2> Oscillator Capacitor Load Configure
-//   <i> Configures the oscillator load capacitance [RTC_CR_SC8P]
-//     <0=>
-//     <1=> +8pF
-
-// RTC_CR_SC16P ===============================
-//
-//   <q3> Oscillator Capacitor Load Configure
-//   <i> Configures the oscillator load capacitance [RTC_CR_SC16P]
-//     <0=>
-//     <1=> +16pF
-
-#define RTC_CR_SCP_M ((0<<RTC_CR_SC2P_SHIFT)|(0<<RTC_CR_SC4P_SHIFT)|(1<<RTC_CR_SC8P_SHIFT)|(0<<RTC_CR_SC16P_SHIFT))
+#define RTC_CR_SCP_V 0x1
+#define RTC_CR_SCP_M (RTC_CR_SCP_V<<RTC_CR_SC16P_SHIFT)
 // </h>
 
 //========================================================================================
@@ -605,7 +601,7 @@ extern "C" {
 //   <o> VCO Divider (VDIV0) Multiply by: <constant> <name=mcg_c6_vdiv0> <#-24> <24-55>
 //   <i> Determines the multiplication factor for the reference clock of the PLL. [MCG_C6_VDIV0]
 //   <i> This value is calculated from PLL input and output clock frequencies
-#define MCG_C6_VDIV0_V    (0)
+#define MCG_C6_VDIV0_V    0
 #define MCG_C6_VDIV0_M   (MCG_C6_VDIV0_V<<MCG_C6_VDIV0_SHIFT)
 
 // </h>
@@ -627,7 +623,7 @@ extern "C" {
 //   <5=> Divide by 32
 //   <6=> Divide by 64
 //   <7=> Divide by 128
-#define MCG_SC_FCRDIV_V  1
+#define MCG_SC_FCRDIV_V  0
 #define MCG_SC_FCRDIV_M (MCG_SC_FCRDIV_V<<MCG_SC_FCRDIV_SHIFT)
 
 // </h>
@@ -676,7 +672,7 @@ extern "C" {
 
 // SIM_SOPT2_PLLFLLSEL =============================
 //
-//   <q> Peripheral clock source (PLL/FLL)
+//   <q> Peripheral clock source (PLL/FLL) <name=sim_sopt2_pllfllsel>
 //   <i> Source for clock used by some peripherals [SIM_SOPT2_PLLFLLSEL]
 //      <0=> FLL (MCGFLLCLK)
 //      <1=> PLL (MCGPLLCLK)
@@ -764,7 +760,7 @@ extern "C" {
 
 // SIM_SOPT2_USBSRC ================================
 //
-//   <o> USB clock source select (USBSRC)
+//   <q> USB clock source select (USBSRC) <name=sim_sopt2_usbsrc>
 //   <i> Selects the clock source for the USB 48 MHz clock [SIM_SOPT2_USBSRC]
 //   <i> MCGFLLCLK/MCGPLLCLK/IRC48M choice is divided by SIM_CLKDIV2[USBFRAC, USBDIV].
 //     <0=> External bypass clock (USB_CLKIN)
@@ -772,9 +768,9 @@ extern "C" {
 #define SIM_SOPT2_USBSRC_V 1
 #define SIM_SOPT2_USBSRC_M (SIM_SOPT2_USBSRC_V<<SIM_SOPT2_USBSRC_SHIFT)
 
-// SIM_CLKDIV2 ================================
+// SIM_CLKDIV2_USB =============================
 //
-//   <o> USB clock factor (USBFRAC, USBDIV)
+//   <o> USB clock factor (USBFRAC, USBDIV) <constant><name=sim_clkdiv2_usb>
 //   <i> This field sets the USBDIV && USBFRAC values for the fractional clock divider when
 //   <i> MCGFLLCLK/MCGPLLCLK is the USB clock source (SOPT2[USBSRC] = 1) [SIM_CLKDIV2_USBDIV]
 //     <1=> Multiply by 2 (USBFRAC=1, USBDIV=0)

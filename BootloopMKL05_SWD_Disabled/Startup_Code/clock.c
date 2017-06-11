@@ -13,7 +13,7 @@
 #include "utilities.h"
 #include "stdbool.h"
 
-// Some MCUs call OSC_CR0 just OSC->CR
+// Some MCUs call OSC0 just OSC
 #ifndef OSC0
 #define OSC0 OSC
 #endif

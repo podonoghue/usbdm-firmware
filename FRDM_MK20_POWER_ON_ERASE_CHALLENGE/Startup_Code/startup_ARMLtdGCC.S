@@ -150,13 +150,14 @@ Reset_Handler:
 #define __START _start
 #endif
 #ifndef __NO_SYSTEM_INIT
-    bl    SystemInit
+// Now done as constructor after __START
+//    bl    SystemInit
 #endif
 
     // Make sure hook is provided for CMSIS (fix for KDS compiler)
     bl	  	software_init_hook
 
-    bl    __START
+    b       __START
     .pool
     .size Reset_Handler, . - Reset_Handler
     

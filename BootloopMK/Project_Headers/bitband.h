@@ -1,9 +1,15 @@
 /**
- * @file     bitband.h
+ * @file     bitband.h (derived from bitband-c-mk.h)
  * @brief    Macros to access bit-band region
- * @version  V4.11.1.70
- * @date     18 June 2015
+ * @version  V4.12.1.50
+ * @date     5 Dec 2015
  */
+#ifndef BITBAND_H_
+#define BITBAND_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /*!
  * @addtogroup BITBAND_group Bit-band access
@@ -17,20 +23,25 @@
  *    - SRAM_U           (0x2000_0000-0x200F_FFFF) with bit-band alias (0x2200_0000-0x23FF_FFFF)
  *    - AIPS/GPIO        (0x4000_0000-0x400F_FFFF) with bit-band alias (0x4200_0000-0x43FF_FFFF)
  *
- * Most Global or Local Static variables end up in SRAM_L so are not usable
+ * Most Global or Local Static variables end up in SRAM_L so are not usable\n
  * Most Parameters and Local variables end up in SRAM_U
  *
  * Examples:
  *
  * Set bit-1 of location 0x20000000
- * ~~~~~~~~~~~~~~~{.c}
+ * @code{.c}
  * BIT_BAND_SET(0x20000000, 1); // Set bit 1 of fixed location
- * ~~~~~~~~~~~~~~~
+ * @endcode
+ *
+ * Set bit of register
+ * @code{.c}
+ * BIT_BAND_SET(&SIM->SCGC5, SIM_SCGC5_PORTA_SHIFT); // Enable clock to PORTA
+ * @endcode
  *
  * Assuming a local variable 'local'
- * ~~~~~~~~~~~~~~~{.c}
+ * @code{.c}
  * BIT_BAND_CLEAR(&local, 3); // Clear bit 3 of local
- * ~~~~~~~~~~~~~~~
+ * @endcode
  *
  * Note: The efficiency of this operation depends greatly on whether the address is a constant or can be pre-calculated.
  *       The code will usually be quite inefficient for local variables as the required address will be
@@ -42,27 +53,20 @@
  *       Fixed locations accessed by casts e.g. GPIOC etc will be very efficient since the calculation is a constant expression.
  */
 
-#ifndef BITBAND_H_
-#define BITBAND_H_
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
  * Set a bit
  *
  * @param Addr    Address to manipulate (in SRAM_U)
  * @param Bitnum  Bit number 0-7 (usually)
  */
-#define BIT_BAND_SET(Addr, Bitnum)   ((void)(*(volatile uint32_t *)((((uint32_t)(Addr))&0xF0000000) + 0x02000000 + (((uint32_t)(Addr))&0x7FFFF)*32 + ((uint32_t)(Bitnum))*4) = 1))
+#define BIT_BAND_SET(Addr, Bitnum)   ((void)(*(volatile uint32_t *)((((uint32_t)(Addr))&0xF0000000) + 0x02000000 + (((uint32_t)(Addr))&0x000FFFFF)*32 + ((uint32_t)(Bitnum))*4) = 1))
 /**
  * Clear a bit
  *
  * @param Addr    Address to manipulate (in SRAM_U)
  * @param Bitnum  Bit number 0-7 (usually)
  */
-#define BIT_BAND_CLEAR(Addr, Bitnum) ((void)(*(volatile uint32_t *)((((uint32_t)(Addr))&0xF0000000) + 0x02000000 + (((uint32_t)(Addr))&0x7FFFF)*32 + ((uint32_t)(Bitnum))*4) = 0))
+#define BIT_BAND_CLEAR(Addr, Bitnum) ((void)(*(volatile uint32_t *)((((uint32_t)(Addr))&0xF0000000) + 0x02000000 + (((uint32_t)(Addr))&0x000FFFFF)*32 + ((uint32_t)(Bitnum))*4) = 0))
 
 /*!
  * @}

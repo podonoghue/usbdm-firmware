@@ -14,8 +14,8 @@
 
 volatile uint8_t bitDelay;    //!< Required software delay used with SPI base Tx/Rx
 
-static const int ctas_8bit  = 0;
-static const int ctas_16bit = 1;
+//static const int ctas_8bit  = 0;
+//static const int ctas_16bit = 1;
 
 static uint32_t ctar0Value = 0;
 static uint32_t ctar1Value = 0;
@@ -34,7 +34,7 @@ void spi_init(uint32_t ctar0, uint32_t ctar1) {
    ctar1Value = ctar1;   
    // Configure SPI
    (void)spi_setSpeed(0);
-   SPI0_MCR   = SPI_MCR_CLR_RXF_MASK|SPI_MCR_ROOE_MASK|SPI_MCR_CLR_TXF_MASK|SPI_MCR_PCSIS((1<<0)|(1<<1))|
+   SPI0->MCR   = SPI_MCR_CLR_RXF_MASK|SPI_MCR_ROOE_MASK|SPI_MCR_CLR_TXF_MASK|SPI_MCR_PCSIS((1<<0)|(1<<1))|
                 SPI_MCR_MSTR_MASK|SPI_MCR_FRZ_MASK|SPI_MCR_DCONF(0)|SPI_MCR_SMPL_PT(0);
 }
 

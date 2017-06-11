@@ -21,7 +21,7 @@ extern int errno;
  * Overridden by actual routine if present
  */
 __attribute__((__weak__))
-void uart_txChar(int ch) {
+void console_txChar(int ch) {
    (void)ch;
 }
 
@@ -29,7 +29,7 @@ void uart_txChar(int ch) {
  * Overridden by actual routine if present
  */
 __attribute__((__weak__))
-int uart_rxChar(void) {
+int console_rxChar(void) {
    return 0;
 }
 
@@ -173,9 +173,12 @@ caddr_t _sbrk(int incr) {
    next_heap_end = (caddr_t)(((int)prev_heap_end + incr + 7) & ~7);
    if (next_heap_end > &__HeapLimit) {
       /* Heap and stack collision */
-//      __asm__("bkpt");
+#ifdef DEBUG_BUILD
+      __asm__("bkpt");
+#else
       errno = ENOMEM;
       return (caddr_t)-1;
+#endif
    }
    heap_end = next_heap_end;
    return prev_heap_end;
@@ -242,7 +245,9 @@ void os_tmr_call(uint16_t  info __attribute__((unused))) {
 __attribute__((__weak__))
 void _exit(int rc __attribute__((unused))) {
    for(;;) {
-	 // If you end up here it probably means you fell of the end of main()!
+      /*
+       * If you end up here it probably means you fell of the end of main()!
+       */
       __asm__("bkpt");
    }
 }
@@ -268,7 +273,7 @@ int _usbdm_read(int file, char *ptr, int len) {
    int done=0; // Characters read
    int ch;
    do {
-      ch = uart_rxChar();
+      ch = console_rxChar();
       *ptr++ = ch;
    } while ((++done<len) && (ch != '\n'));
    return done;
@@ -289,9 +294,9 @@ int _usbdm_write(int file, char *ptr, int len) {
    case STDERR_FILENO: /* stderr */
       for (n = 0; n < len; n++) {
          if (*ptr == '\n') {
-            uart_txChar('\r');
+            console_txChar('\r');
          }
-         uart_txChar(*ptr++);
+         console_txChar(*ptr++);
       }
       break;
    default:

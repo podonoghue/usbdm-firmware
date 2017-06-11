@@ -1,67 +1,16 @@
 /*
- *  Vectors-mke.c
+ *  @file vectors.c
  *
- *  Generic vectors and security for Kinetis MKExx
+ *  Generated from vectors-cm0.c
  *
- *  Created on: 07/12/2012
+ *  Generic vectors for Cortex-M0
+ *
+ *  Created on: 22/05/2017
  *      Author: podonoghue
  */
 #include <stdint.h>
 #include <string.h>
 #include "derivative.h"
-
-#define MKE02Z4
-
-/*
- * Security information
- */
-typedef struct {
-   uint8_t  backdoorKey[8];
-   uint32_t reseved;
-   uint8_t  eeprot;
-   uint8_t  fprot;
-   uint8_t  fsec;
-   uint8_t  fopt;
-} SecurityInfo;
-
-//-------- <<< Use Configuration Wizard in Context Menu >>> -----------------
-
-/*
-<h> Flash security value (NV_FTFA_FSEC)
-   <o0> Backdoor Key Security Access Enable (FSEC.KEYEN)
-      <i> Controls use of Backdoor Key access to unsecure device
-      <0=> 0: Access disabled
-      <1=> 1: Access disabled (preferred disabled value)
-      <2=> 2: Access enabled
-      <3=> 3: Access disabled
-   <o1> Flash Security (FSEC.SEC)
-      <i> Defines the security state of the MCU. 
-      <i> In the secure state, the MCU limits access to flash memory module resources. 
-      <i> If the flash memory module is unsecured using backdoor key access, SEC is forced to 10b.
-      <0=> 0: Secured
-      <1=> 1: Secured
-      <2=> 2: Unsecured
-      <3=> 3: Secured
-</h>
-*/
-#define FSEC_VALUE ((3<<NV_FSEC_KEYEN_SHIFT)|(2<<NV_FSEC_SEC_SHIFT)|0x3C)
-
-/*
-<h> Flash option Value (NV_FTFA_FOPT)
-   <o> The FOPT value is copied from Flash to FTMRH_FOPT on reset  <0-255>
-</h>
-*/
-#define FOPT_VALUE (0xFF)
-
-__attribute__ ((section(".security_information")))
-const SecurityInfo securityInfo = {
-    /* backdoor */ {0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF},
-    /* reseved  */ 0xFFFFFFFF,
-    /* eeprot   */ 0xFF,
-    /* fprot    */ 0xFF,
-    /* fsec     */ FSEC_VALUE,
-    /* fopt     */ FOPT_VALUE,
-};
 
 /*
  * Vector table related
@@ -70,16 +19,13 @@ typedef void( *const intfunc )( void );
 
 #define WEAK_DEFAULT_HANDLER __attribute__ ((__weak__, alias("Default_Handler")))
 
-#ifndef SCB_ICSR
-#define SCB_ICSR (*(volatile uint32_t*)(0xE000ED04))
-#endif
-
 /**
  * Default handler for interrupts
  *
  * Most of the vector table is initialised to point at this handler.
  *
  * If you end up here it probably means:
+ *   - Failed to enable the interrupt handler in the USBDM device configuration
  *   - You have accidently enabled an interrupt source in a peripheral
  *   - Enabled the wrong interrupt source
  *   - Failed to install or create a handler for an interrupt you intended using e.g. mis-spelled the name.
@@ -90,11 +36,13 @@ typedef void( *const intfunc )( void );
 __attribute__((__interrupt__))
 void Default_Handler(void) {
 
+#ifdef SCB
    __attribute__((unused))
-   volatile uint32_t vectorNum = (SCB_ICSR&SCB_ICSR_VECTACTIVE_Msk)>>SCB_ICSR_VECTACTIVE_Pos;
+   volatile uint32_t vectorNum = (SCB->ICSR&SCB_ICSR_VECTACTIVE_Msk)>>SCB_ICSR_VECTACTIVE_Pos;
+#endif
 
    while (1) {
-      __BKPT(0);
+      __asm__("bkpt");
    }
 }
 
@@ -124,21 +72,19 @@ void HardFault_Handler(void) {
     * and allows access to the saved processor state.
     * Other registers are unchanged and available in the usual register view
     */
-   __asm__ volatile (
-          "       mov r0,lr                                     \n"
-          "       mov r1,#4                                     \n"
-          "       and r0,r1                                     \n"
-          "       bne skip1                                     \n"
-          "       mrs r0,msp                                    \n"
-          "       b   skip2                                     \n"
-          "skip1:                                               \n"
-          "       mrs r0,psp                                    \n"
-          "skip2:                                               \n"
-          "       nop                                           \n"
-          "       ldr r2, handler_addr_const                    \n"
-          "       bx r2                                         \n"
-          "       handler_addr_const: .word _HardFault_Handler  \n"
-      );
+   __asm__ volatile ("       mov r0,lr                                     \n"); // Check mode
+   __asm__ volatile ("       mov r1,#4                                     \n");
+   __asm__ volatile ("       and r0,r1                                     \n");
+   __asm__ volatile ("       bne skip1                                     \n");
+   __asm__ volatile ("       mrs r0,msp                                    \n"); // Get active SP in r0
+   __asm__ volatile ("       b   skip2                                     \n");
+   __asm__ volatile ("skip1:                                               \n");
+   __asm__ volatile ("       mrs r0,psp                                    \n");
+   __asm__ volatile ("skip2:                                               \n");
+   __asm__ volatile ("       nop                                           \n");
+   __asm__ volatile ("       ldr r2, handler_addr_const                    \n"); // Go to C handler
+   __asm__ volatile ("       bx r2                                         \n");
+   __asm__ volatile ("       handler_addr_const: .word _HardFault_Handler  \n");
 }
 
 /******************************************************************************/
@@ -158,17 +104,18 @@ __attribute__((__naked__))
 void _HardFault_Handler(volatile ExceptionFrame *exceptionFrame __attribute__((__unused__))) {
    while (1) {
       // Stop here for debugger
-      __BKPT(0);
+      __asm__("bkpt");
    }
 }
 
 void __HardReset(void) __attribute__((__interrupt__));
+
 extern uint32_t __StackTop;
 
 /*
  * Each vector is assigned an unique name.  This is then 'weakly' assigned to the
  * default handler.
- * To install a handler, create a function with the name shown and it will override
+ * To install a handler, create a C linkage function with the name shown and it will override
  * the weak default.
  */
 void NMI_Handler(void)                        WEAK_DEFAULT_HANDLER;
@@ -189,10 +136,10 @@ void ACMP0_IRQHandler(void)                   WEAK_DEFAULT_HANDLER;
 void FTM0_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void FTM1_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void FTM2_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
-void RTC_IRQHandler(void)                     WEAK_DEFAULT_HANDLER;
+void RTC_Alarm_IRQHandler(void)               WEAK_DEFAULT_HANDLER;
 void ACMP1_IRQHandler(void)                   WEAK_DEFAULT_HANDLER;
-void PIT_CH0_IRQHandler(void)                 WEAK_DEFAULT_HANDLER;
-void PIT_CH1_IRQHandler(void)                 WEAK_DEFAULT_HANDLER;
+void PIT0_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
+void PIT1_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void KBI0_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void KBI1_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void ICS_IRQHandler(void)                     WEAK_DEFAULT_HANDLER;
@@ -200,8 +147,10 @@ void WDOG_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 
 typedef struct {
    uint32_t *initialSP;
-   intfunc  handlers[];
+   intfunc  handlers[44];
 } VectorTable;
+
+extern VectorTable const __vector_table;
 
 __attribute__ ((section(".interrupt_vectors")))
 VectorTable const __vector_table = {
@@ -230,30 +179,30 @@ VectorTable const __vector_table = {
       Default_Handler,               /*   18,    2                                                                                   */
       Default_Handler,               /*   19,    3                                                                                   */
       Default_Handler,               /*   20,    4                                                                                   */
-      FTMRH_IRQHandler,              /*   21,    5  FTMRH Command complete or error                                                  */
-      PMC_IRQHandler,                /*   22,    6  PMC Low-voltage detect, low-voltage warning                                      */
+      FTMRH_IRQHandler,              /*   21,    5  Flash Memory                                                                     */
+      PMC_IRQHandler,                /*   22,    6  Power Management Controller                                                      */
       IRQ_IRQHandler,                /*   23,    7  External Interrupt                                                               */
-      I2C0_IRQHandler,               /*   24,    8  I2C Interface 0                                                                  */
+      I2C0_IRQHandler,               /*   24,    8  Inter-Integrated Circuit                                                         */
       Default_Handler,               /*   25,    9                                                                                   */
-      SPI0_IRQHandler,               /*   26,   10  Serial Peripheral Interface 0                                                    */
-      SPI1_IRQHandler,               /*   27,   11  Serial Peripheral Interface 1                                                    */
-      UART0_IRQHandler,              /*   28,   12  UART0 Status and error                                                           */
-      UART1_IRQHandler,              /*   29,   13  UART1 Status and error                                                           */
-      UART2_IRQHandler,              /*   30,   14  UART2 Status and error                                                           */
-      ADC0_IRQHandler,               /*   31,   15  Analogue to Digital Converter 0                                                  */
-      ACMP0_IRQHandler,              /*   32,   16  Analogue comparator 0                                                            */
-      FTM0_IRQHandler,               /*   33,   17  Flexible Timer Module 0                                                          */
-      FTM1_IRQHandler,               /*   34,   18  Flexible Timer Module 1                                                          */
-      FTM2_IRQHandler,               /*   35,   19  Flexible Timer Module 2                                                          */
-      RTC_IRQHandler,                /*   36,   20  Real Time Clock overflow                                                         */
-      ACMP1_IRQHandler,              /*   37,   21  Analogue comparator 0                                                            */
-      PIT_CH0_IRQHandler,            /*   38,   22  Programmable Interrupt Timer Channel 0                                           */
-      PIT_CH1_IRQHandler,            /*   39,   23  Programmable Interrupt Timer Channel 1                                           */
-      KBI0_IRQHandler,               /*   40,   24  Keyboard Interrupt 0                                                             */
-      KBI1_IRQHandler,               /*   41,   25  Keyboard Interrupt 1                                                             */
+      SPI0_IRQHandler,               /*   26,   10  Serial Peripheral Interface                                                      */
+      SPI1_IRQHandler,               /*   27,   11  Serial Peripheral Interface                                                      */
+      UART0_IRQHandler,              /*   28,   12  Serial Communication Interface                                                   */
+      UART1_IRQHandler,              /*   29,   13  Serial Communication Interface                                                   */
+      UART2_IRQHandler,              /*   30,   14  Serial Communication Interface                                                   */
+      ADC0_IRQHandler,               /*   31,   15  Analogue to Digital Converter                                                    */
+      ACMP0_IRQHandler,              /*   32,   16  Analogue comparator                                                              */
+      FTM0_IRQHandler,               /*   33,   17  FlexTimer Module                                                                 */
+      FTM1_IRQHandler,               /*   34,   18  FlexTimer Module                                                                 */
+      FTM2_IRQHandler,               /*   35,   19  FlexTimer Module                                                                 */
+      RTC_Alarm_IRQHandler,          /*   36,   20  Real Time Clock                                                                  */
+      ACMP1_IRQHandler,              /*   37,   21  Analogue comparator                                                              */
+      PIT0_IRQHandler,               /*   38,   22  Periodic Interrupt Timer                                                         */
+      PIT1_IRQHandler,               /*   39,   23  Periodic Interrupt Timer                                                         */
+      KBI0_IRQHandler,               /*   40,   24  Keyboard Interrupt                                                               */
+      KBI1_IRQHandler,               /*   41,   25  Keyboard Interrupt                                                               */
       Default_Handler,               /*   42,   26                                                                                   */
-      ICS_IRQHandler,                /*   43,   27  ICS                                                                              */
-      WDOG_IRQHandler,               /*   44,   28  Watch dog                                                                        */
+      ICS_IRQHandler,                /*   43,   27  Clock Management                                                                 */
+      WDOG_IRQHandler,               /*   44,   28  Watchdog Timer                                                                   */
    }
 };
 
