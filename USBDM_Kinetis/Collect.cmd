@@ -50,7 +50,7 @@ set BOARD=FRDM-K64F
 for %%f in (%BOARD%) do copy /B "%CW_Kinetis_ROOT%\OpenSDAv2_0_Power\*.bin"            %MK_FLASH_DIR%\%%f.bin
 for %%f in (%BOARD%) do copy /B "%CW_Kinetis_ROOT%\OpenSDAv2_0_Unique_ID_Power\*.bin"  %MK_FLASH_DIR%\%%f_Unique_ID.bin
 
-set BOARD=FRDM-K22F FRDM-K66F FRDM-K82F FRDM-KV10Z FRDM-KV31F FRDM-KE15Z
+set BOARD=FRDM-K22F FRDM-K28F FRDM-K66F FRDM-K82F FRDM-KV10Z FRDM-KV31F FRDM-KE15Z 
 for %%f in (%BOARD%) do copy /B "%CW_Kinetis_ROOT%\OpenSDAv2_1_Power\*.bin"            %MK_FLASH_DIR%\%%f.bin
 for %%f in (%BOARD%) do copy /B "%CW_Kinetis_ROOT%\OpenSDAv2_1_Unique_ID_Power\*.bin"  %MK_FLASH_DIR%\%%f_Unique_ID.bin
 
