@@ -117,41 +117,46 @@ static char txBuffer[SCI_TX_BUFFER_SIZE];
 static uint8_t txHead        = 0;
 static uint8_t txBufferCount = 0;
 static uint8_t breakCount    = 0;
-#define SCI_RX_BUFFER_SIZE (16)  // Should less than or equal to end-point buffer size 
+
+#define SCI_RX_BUFFER_SIZE (16)  // Should be less than or equal to end-point buffer size 
 static char *rxBuffer;
 static uint8_t rxBufferCount = 0;
 static uint8_t sciStatus = SERIAL_STATE_CHANGE;
 
-// The following routines are assumed to be called from interrupt code - I masked
+// The following routines are assumed to be called from interrupt code - IRQ masked
 //
 
 //
 // Simple double-buffering for Rx (in conjunction with USB buffer)
 //
 
-//! putRxBuffer() -  Add a char to the SCI-Rx buffer
-//!
-//! @param ch - char to add
-//!
-//! @note Overun flag is set on buffer full
-//!
+/**
+ * Add a char to the SCI-Rx buffer
+ *
+ * @param ch Character to add
+ *
+ * @note Overrun flag is set on buffer full
+ */
 void putRxBuffer(char ch) {
    if (rxBufferCount >= SCI_RX_BUFFER_SIZE) {
+	   // Discard char and record overrun
       sciStatus |= SCIS1_OR_MASK;
       return;
    }
+   // Save character
    rxBuffer[rxBufferCount++] = ch;
 //   if (rxBufferCount == SCI_RX_BUFFER_SIZE) {
 //      checkUsbCdcRxData();
 //   }
 }
 
-//! getRxBuffer() - Sets SCI-Rx buffer
-//!
-//! @param buffer - buffer to write future data to
-//!
-//! @return -  number of characters in existing buffer
-//!
+/**
+ *  Sets SCI-Rx buffer
+ * 
+ *  @param buffer Buffer to write future data to
+ * 
+ *  @return Number of characters in existing buffer
+ */
 uint8_t setRxBuffer(char *buffer) {
    uint8_t temp;
 #ifdef LOG   
@@ -163,11 +168,12 @@ uint8_t setRxBuffer(char *buffer) {
    return temp;
 }
 
-//! RxBufferEmpty() - Check if Rx buffer is empty
-//!
-//! @return -  1 => buffer is empty
-//!            0 => buffer is not empty
-//!
+/**
+ *  Check if Rx buffer is empty
+ * 
+ *  @return !=0 => buffer is empty
+ *  @return ==0 => buffer is not empty
+ */ 
 uint8_t rxBufferItems(void) {
 	return rxBufferCount;
 }
@@ -176,15 +182,16 @@ uint8_t rxBufferItems(void) {
 // Simple double-buffering for SCI-Tx (in conjunction with USB end-point buffer)
 //
 
-//! putTxBuffer() -  Copy characters to the SCI-Tx buffer
-//! SCI interrupts are enabled.
-//!
-//! @param source - buffer of source chars
-//! @param size   - number of source characters in buffer
-//!
-//! @return - 0 - OK
-//!           1 - Buffer is busy (overrun)
-//!
+/**
+ *  Copy characters to the SCI-Tx buffer
+ *  SCI interrupts are enabled.
+ * 
+ *  @param source Buffer of source chars
+ *  @param size   Number of source characters in buffer
+ * 
+ *  @return - 0 - OK
+ *            1 - Buffer is busy (overrun)
+ */ 
 uint8_t putTxBuffer(char *source, uint8_t size) {
    if (txBufferCount > 0) {
 	   return 1; // Busy
@@ -196,12 +203,13 @@ uint8_t putTxBuffer(char *source, uint8_t size) {
    return 0;
 }
 
-//! getTx() -  Gets a character from the SCI-Tx queue.
-//!
-//! @return 
-//!  -  -ve => queue is empty \n
-//!  -  +ve => char from queue
-//!
+/**
+ *  Gets a character from the SCI-Tx queue.
+ * 
+ *  @return 
+ *   -  -ve => queue is empty \n
+ *   -  +ve => char from queue
+ */
 static int getTxBuffer(void) {
    uint8_t ch;
    if (txBufferCount == 0) {
@@ -218,15 +226,21 @@ static int getTxBuffer(void) {
    return ch;
 }
 
-//! sciTxSpace - check if SCI-Tx buffer is free
-//!
-//! @return 0 => buffer is occupied
-//!         1 => buffer is free
-//!
+/**
+ *  Check if SCI-Tx buffer is free
+ * 
+ *  @return 0 => buffer is occupied
+ *          1 => buffer is free
+ */
 uint8_t sciTxBufferFree(void) {
    return (txBufferCount == 0);
 }
 
+/**
+ * Get and clear status of serial interface
+ * 
+ * @return 8-bit status value
+ */
 uint8_t getSerialState(void) {
    uint8_t status = 0x3;
    static uint8_t lastSciStatus = 0x00;
@@ -252,11 +266,12 @@ void sciErrorHandler(void) {
    (void)SCID;
 }
 
-//! Interrupt handler for SCI-Tx \n
-//! Transfers a char from the SCI-Tx queue to SCID
-//!
-//! @note Interrupts are disabled on empty queue
-//!
+/**
+ *  Interrupt handler for SCI-Tx \n
+ *  Transfers a char from the SCI-Tx queue to SCID
+ * 
+ *  @note SCI interrupts are disabled on empty queue
+ */
 #pragma TRAP_PROC
 void sciTxHandler(void) {
 int ch;
@@ -274,15 +289,16 @@ int ch;
       }
    }
    else {
-      SCIC2_TIE = 0; // Disable future interrupts
+      SCIC2_TIE = 0; // Disable future SCI interrupts
    }
 }
 
-//! Interrupt handler for SCI Rx \n
-//! Transfers a char from the SCI Rx to USB IN queue
-//! 
-//! @note Overruns are ignored
-//!
+/**
+ *  Interrupt handler for SCI Rx \n
+ *  Transfers a char from the SCI Rx to USB IN queue
+ *  
+ *  @note Overruns are ignored
+ */
 #pragma TRAP_PROC
 void sciRxHandler(void) {
    (void)SCIS1; // Dummy read
@@ -306,14 +322,15 @@ void sciRxHandler(void) {
 //static const LineCodingStructure defaultLineCoding = {CONST_NATIVE_TO_LE32(9600UL),0,1,8};
 static LineCodingStructure lineCoding              = {CONST_NATIVE_TO_LE32(9600UL),0,1,8};
 
-//! Set SCI Tx characteristics
-//!
-//! @param lineCodingStructure - Structure describing desired settings
-//!
-//! The SCI is quite limited when compared to the serial interface implied by
-//! LineCodingStructure.
-//! It does not support many of the combinations available.
-//!
+/**
+ *  Set SCI Tx characteristics
+ * 
+ *  @param lineCodingStructure - Structure describing desired settings
+ * 
+ *  The SCI is quite limited when compared to the serial interface implied by
+ *  LineCodingStructure.
+ *  It does not support many of the combinations available.
+ */
 void sciSetLineCoding(const LineCodingStructure *lineCodingStructure) {
    uint32_t baudrate;
    uint8_t SCIC1Value = 0x00;
@@ -384,18 +401,20 @@ void sciSetLineCoding(const LineCodingStructure *lineCodingStructure) {
    txBufferCount = 0;
 }
 
-//! Get SCI Tx characteristics
-//!
-//! @param lineCodingStructure - Structure describing desired settings
-//!
+/**
+ *  Get SCI Tx characteristics
+ * 
+ *  @param lineCodingStructure - Structure describing desired settings
+ */
 const LineCodingStructure *sciGetLineCoding(void) {
    return &lineCoding;	
 }
 
-//! Set SCI Line values
-//!
-//! @param value - Describing desired settings
-//!
+/**
+ *  Set SCI Line values
+ * 
+ *  @param value - Describing desired settings
+ */
 void sciSetControlLineState(uint8_t value) {
 #define LINE_CONTROL_DTR (1<<0)
 #define LINE_CONTROL_RTS (1<<1) // Ignored
@@ -411,16 +430,17 @@ void sciSetControlLineState(uint8_t value) {
 //	}
 }
 
-//! Send SCI break
-//! 
-//! @param length - length of break in milliseconds (see note)\n
-//!  - 0x0000 => End BREAK
-//!  - 0xFFFF => Start indefinite BREAK
-//!  - else   => Send a 10 BREAK 'chars'
-//!
-//! @note - only partially implemented
-//!       - breaks are sent after currently queued characters
-//!
+/**
+ *  Send SCI break
+ *  
+ *  @param length - length of break in milliseconds (see note)\n
+ *   - 0x0000 => End BREAK
+ *   - 0xFFFF => Start indefinite BREAK
+ *   - else   => Send a 10 BREAK 'chars'
+ * 
+ *  @note - only partially implemented
+ *        - breaks are sent after currently queued characters
+ */
 void sciSendBreak(uint16_t length) {
    if (length == 0xFFFF) {
 	  // Send indefinite BREAKs
