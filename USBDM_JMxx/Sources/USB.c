@@ -2067,6 +2067,7 @@ static void handleSOFToken( void ) {
    cdcNotifyStartTxTransactionIfIdle();
 #endif
 }
+
 #pragma MESSAGE DEFAULT C4003
 #if (HW_CAPABILITY&CAP_CDC)
 /**
@@ -2149,20 +2150,19 @@ static void handleUSBResume( void ) {
    // power up BDM interface?
 }
 
+//! Token status
+static uint8_t stat;
+
 /**
  * Handler for USB interrupt
  *
  * Determines source and dispatches to appropriate routine.
  */
-//interrupt //VectorNumber_Vusb 
 #pragma TRAP_PROC
-//! Handler for USB interrupts
-static uint8_t stat; // Capture Token status 
 void USBInterruptHandler( void ) {
-//uint8_t interruptFlags;
-
    while (INTSTAT != 0) {
-      if ((INTSTAT&INTSTAT_TOKDNEF_MASK) != 0) { // Token complete int?
+      if ((INTSTAT&INTSTAT_TOKDNEF_MASK) != 0) { 
+         // Token complete
          stat = STAT; // Capture Token status 
          INTSTAT = INTSTAT_TOKDNEF_MASK; // Clear source
          handleTokenComplete(stat);
@@ -2170,30 +2170,30 @@ void USBInterruptHandler( void ) {
       else if ((USBCTL0_LPRESF) && (deviceState.state==USBsuspended)) {
          USBCTL0_USBRESMEN = 0;
       }
-      else if ((INTSTAT&INTSTAT_RESUMEF_MASK) != 0) { // Resume signalled on Bus?
+      else if ((INTSTAT&INTSTAT_RESUMEF_MASK) != 0) { 
+         // Resume signaled on Bus?
          handleUSBResume();
          INTSTAT = INTSTAT_RESUMEF_MASK; // Clear source
       }
       else if ((INTSTAT&INTSTAT_USBRSTF_MASK) != 0) {
+         // Bus reset
          handleUSBReset();
          INTSTAT = INTSTAT_USBRSTF_MASK; // Clear source
       }
-      else if ((INTSTAT&INTSTAT_STALLF_MASK) != 0) { // Stall sent?
+      else if ((INTSTAT&INTSTAT_STALLF_MASK) != 0) { 
+         // Stall sent?
          ep0HandleStallComplete();
          INTSTAT = INTSTAT_STALLF_MASK; // Clear source
       }
-      else if ((INTSTAT&INTSTAT_SOFTOKF_MASK) != 0) { // SOF Token?
+      else if ((INTSTAT&INTSTAT_SOFTOKF_MASK) != 0) { 
+         // SOF Token?
          handleSOFToken();
          INTSTAT = INTSTAT_SOFTOKF_MASK; // Clear source
       }
-      else if ((INTSTAT&INTSTAT_SLEEPF_MASK) != 0) { // Bus Idle 3ms? => sleep
+      else if ((INTSTAT&INTSTAT_SLEEPF_MASK) != 0) { 
+         // Bus Idle 3ms? => sleep
          handleUSBSuspend();
          INTSTAT = INTSTAT_SLEEPF_MASK; // Clear source
       }
-
-      //      else  {
-      //         // unexpected int
-      //         INTSTAT = INTSTAT; // Clear & ignore
-      //      }
    }
 }
