@@ -214,7 +214,7 @@ void init() {
 
 int main(void) {
 
-   PUTS("Starting\n");
+   PUTS("Starting");
    
 #ifdef DEBUG_TEST_LOOP
    testMode();

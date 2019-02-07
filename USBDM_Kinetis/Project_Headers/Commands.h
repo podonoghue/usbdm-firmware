@@ -296,8 +296,8 @@ typedef enum  {
    BDM_TARGET_VDD_OFF       = 0,     //!< Target Vdd Off
    BDM_TARGET_VDD_3V3       = 1,     //!< Target Vdd internal 3.3V
    BDM_TARGET_VDD_5V        = 2,     //!< Target Vdd internal 5.0V
-   BDM_TARGET_VDD_ENABLE    = 0x10,  //!< Target Vdd internal at last set level
-   BDM_TARGET_VDD_DISABLE   = 0x11,  //!< Target Vdd Off but previously set level unchanged
+//   BDM_TARGET_VDD_ENABLE    = 0x10,  //!< Target Vdd internal at last set level (NOT USE IN FIRMWARE)
+//   BDM_TARGET_VDD_DISABLE   = 0x11,  //!< Target Vdd Off but previously set level unchanged (NOT USE IN FIRMWARE)
 } TargetVddSelect_t;
 
 //! Internal Programming Voltage supply selection

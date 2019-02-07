@@ -151,21 +151,23 @@ enum {EP_OUT=0x00, //!< Endpoint is OUT (host -> node)
 #define DT_INTERFACEASSOCIATION     0xB
 
 /*----------------------------------------------------------------------------
-** USB Tokens
-*/
-#define SOFToken     (0x5) //!< Start of Frame token
-#define SETUPToken   (0xD) //!< Setup token
-#define OUTToken     (0x1) //!< Out token
-#define INToken      (0x9) //!< In token
-#define DATA0Token   (0x3) //!< Data 0
-#define DATA1Token   (0xB) //!< Data 1
-#define DATA2Token   (0x7) //!< Data 2
-#define MDATAToken   (0xF) //!< M data
-#define ACKToken     (0x2) //!< Acknowledge
-#define NAKToken     (0xA) //!< Negative Acknowledge
-#define NYETToken    (0x6) //!< No Response Yet
-#define STALLToken   (0xE) //!< Stall
-#define PREToken     (0xC) //!< Preamble
+ ** USB Tokens
+ */
+typedef enum {
+   SOFToken     = 0x5, //!< Start of Frame token
+   SETUPToken   = 0xD, //!< Setup token
+   OUTToken     = 0x1, //!< Out token
+   INToken      = 0x9, //!< In token
+   DATA0Token   = 0x3, //!< Data 0
+   DATA1Token   = 0xB, //!< Data 1
+   DATA2Token   = 0x7, //!< Data 2
+   MDATAToken   = 0xF, //!< M data
+   ACKToken     = 0x2, //!< Acknowledge
+   NAKToken     = 0xA, //!< Negative Acknowledge
+   NYETToken    = 0x6, //!< No Response Yet
+   STALLToken   = 0xE, //!< Stall
+   PREToken     = 0xC, //!< Preamble
+} UsbPids ;
 
 /*----------------------------------------------------------------------------
  ** Feature selector values (for Clear/Set feature)

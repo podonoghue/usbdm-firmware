@@ -61,12 +61,12 @@ typedef union {
 #define __forceinline __attribute__((always_inline))
 #endif
 
-#if defined(DEBUG_BUILD)
-#define PUTS(x) puts(x)
-#define PRINTF(...) printf (__VA_ARGS__)
-#else
-#define PUTS(x)
-#define PRINTF(...)
-#endif
+//#if defined(DEBUG_BUILD)
+//#define PUTS(x) puts(x)
+//#define PRINTF(...) printf (__VA_ARGS__)
+//#else
+//#define PUTS(x)
+//#define PRINTF(...)
+//#endif
 
 #endif //_COMMON_H_
