@@ -96,10 +96,16 @@ uint8_t commandBuffer[300];
 
 //======================================================================
 // Data packet odd/even indicator
-enum {
+typedef enum {
    DATA0=0, //!< DATA0 indicator
    DATA1=1  //!< DATA1 indicator
-};
+} DataToggle;
+
+// BDT ownership indicator
+typedef enum {
+   BdtOwner_MCU = false, //!< BDT available for modification bye MCU
+   BdtOwner_SIE = true,  //!< BDT being used by SIE
+} BdtOwner;
 
 /**
  * Structure representing a BDT entry in USB controller
@@ -109,26 +115,29 @@ enum {
 // Little-endian on Kinetis
 typedef struct {
    union {
-      volatile uint8_t bits:8;   // Access a bit masks
-      volatile struct {          // BDT setup access
-         uint8_t :2;
-         uint8_t bdt_stall:1;
-         uint8_t dts:1;
-         uint8_t ninc:1;
-         uint8_t keep:1;
-         uint8_t data0_1:1;
-         uint8_t own:1;
+      volatile uint8_t raw:8;    //!< Access as bit masks
+      volatile struct {          //!< BDT setup access
+         uint8_t     :2;
+         bool        bdt_stall:1;  //!< Stall End point
+         bool        dts:1;        //!< Enable Data toggle
+         bool        ninc:1;       //!< Disable DMA address increment
+         bool        keep:1;       //!< BDT is 'kept' by SIE, used for FIFO w/o MCU intervention
+         uint8_t     :2;
       } setup;
-      volatile struct {          // BDT result access
-         uint8_t :2;
-         uint8_t tok_pid:4;
-         uint8_t data0_1:1;
-         uint8_t own:1;
+      volatile struct {          //!< BDT result access
+         uint8_t     :2;
+         UsbPids     tok_pid:4;  //!< Token PID is written back by SIE
+         uint8_t     :2;
       } result;
-   } u;
+      volatile struct {          //!< BDT common access
+         uint8_t     :6;
+         DataToggle  data0_1:1;  //!< Data 0/1 toggle
+         BdtOwner    own:1;      //!< Ownership of the BDT.  MCU only modifies BDT if owned.
+      };
+   };
    volatile uint8_t  :8;
-   volatile uint16_t bc;          // Byte count
-   volatile uint32_t addr;        // Buffer address
+   volatile uint16_t bc;          //!< Byte count for transaction
+   volatile uint32_t addr;        //!< Buffer address for transaction
 } BdtEntry ;
 #else
 // Big-endian (Used on Coldfire)
@@ -763,11 +772,11 @@ static void ep0InitialiseBdtRx( uint8_t data0_1 ) {
    BdtEntry *bdt = epHardwareState[0].rxOdd?&endPointBdts[0].rxOdd:&endPointBdts[0].rxEven;
    bdt->bc = CONTROL_EP_MAXSIZE; // Always use CONTROL_EP_MAXSIZE so can accept SETUP pkt
    if (data0_1) {
-      bdt->u.bits = BDTEntry_OWN_MASK|BDTEntry_DATA1_MASK|BDTEntry_DTS_MASK;
+      bdt->raw = BDTEntry_OWN_MASK|BDTEntry_DATA1_MASK|BDTEntry_DTS_MASK;
       PUTS("ep0InitialiseBdtRx.1");
    }
    else {
-      bdt->u.bits = BDTEntry_OWN_MASK|BDTEntry_DATA0_MASK|BDTEntry_DTS_MASK;
+      bdt->raw = BDTEntry_OWN_MASK|BDTEntry_DATA0_MASK|BDTEntry_DTS_MASK;
       PUTS("ep0InitialiseBdtRx.0");
    }
 }
@@ -881,11 +890,11 @@ static void ep0InitialiseBdtTx( void ) {
    BdtEntry *bdt = epHardwareState[0].txOdd?&endPointBdts[0].txOdd:&endPointBdts[0].txEven;
    bdt->bc = size;
    if (epHardwareState[0].data0_1) {
-      bdt->u.bits = BDTEntry_OWN_MASK|BDTEntry_DATA1_MASK|BDTEntry_DTS_MASK;
+      bdt->raw = BDTEntry_OWN_MASK|BDTEntry_DATA1_MASK|BDTEntry_DTS_MASK;
       PRINTF("ep0BdtTx %d.1\n", size);
    }
    else {
-      bdt->u.bits = BDTEntry_OWN_MASK|BDTEntry_DATA0_MASK|BDTEntry_DTS_MASK;
+      bdt->raw = BDTEntry_OWN_MASK|BDTEntry_DATA0_MASK|BDTEntry_DTS_MASK;
       PRINTF("ep0BdtTx %d.0\n", size);
    }
 }
@@ -928,10 +937,10 @@ static void ep1InitialiseBdtRx( void ) {
    // Set up to Rx packet
    bdt->bc = BDM_OUT_EP_MAXSIZE;
    if (epHardwareState[1].data0_1) {
-      bdt->u.bits  = BDTEntry_OWN_MASK|BDTEntry_DATA1_MASK|BDTEntry_DTS_MASK;
+      bdt->raw  = BDTEntry_OWN_MASK|BDTEntry_DATA1_MASK|BDTEntry_DTS_MASK;
    }
    else {
-      bdt->u.bits  = BDTEntry_OWN_MASK|BDTEntry_DATA0_MASK|BDTEntry_DTS_MASK;
+      bdt->raw  = BDTEntry_OWN_MASK|BDTEntry_DATA0_MASK|BDTEntry_DTS_MASK;
    }
 }
 
@@ -996,10 +1005,10 @@ static void ep2InitialiseBdtTx( void ) {
    // Set up to Tx packet
    bdt->bc     = (uint8_t)size;
    if (epHardwareState[2].data0_1) {
-      bdt->u.bits  = BDTEntry_OWN_MASK|BDTEntry_DATA1_MASK|BDTEntry_DTS_MASK;
+      bdt->raw  = BDTEntry_OWN_MASK|BDTEntry_DATA1_MASK|BDTEntry_DTS_MASK;
    }
    else {
-      bdt->u.bits  = BDTEntry_OWN_MASK|BDTEntry_DATA0_MASK|BDTEntry_DTS_MASK;
+      bdt->raw  = BDTEntry_OWN_MASK|BDTEntry_DATA0_MASK|BDTEntry_DTS_MASK;
    }
 }
 
@@ -1119,10 +1128,10 @@ static void ep3StartTxTransaction( void ) {
    BdtEntry *bdt = epHardwareState[3].txOdd?&endPointBdts[3].txOdd:&endPointBdts[3].txEven;
    bdt->bc = sizeof(cdcNotification)+2;
    if (epHardwareState[3].data0_1) {
-      bdt->u.bits = BDTEntry_OWN_MASK|BDTEntry_DATA1_MASK|BDTEntry_DTS_MASK;
+      bdt->raw = BDTEntry_OWN_MASK|BDTEntry_DATA1_MASK|BDTEntry_DTS_MASK;
    }
    else {
-      bdt->u.bits = BDTEntry_OWN_MASK|BDTEntry_DATA0_MASK|BDTEntry_DTS_MASK;
+      bdt->raw = BDTEntry_OWN_MASK|BDTEntry_DATA0_MASK|BDTEntry_DTS_MASK;
    }
    epHardwareState[3].state = EPLastIn;    // Sending one and only pkt
 }
@@ -1137,10 +1146,10 @@ static void ep4InitialiseBdtRx( void ) {
    // Set up to Rx packet
    bdt->bc = CDC_DATA_OUT_EP_MAXSIZE;
    if (epHardwareState[4].data0_1) {
-      bdt->u.bits  = BDTEntry_OWN_MASK|BDTEntry_DATA1_MASK|BDTEntry_DTS_MASK;
+      bdt->raw  = BDTEntry_OWN_MASK|BDTEntry_DATA1_MASK|BDTEntry_DTS_MASK;
    }
    else {
-      bdt->u.bits  = BDTEntry_OWN_MASK|BDTEntry_DATA0_MASK|BDTEntry_DTS_MASK;
+      bdt->raw  = BDTEntry_OWN_MASK|BDTEntry_DATA0_MASK|BDTEntry_DTS_MASK;
    }
 }
 
@@ -1168,13 +1177,13 @@ static void ep5InitialiseBdtTx(void) {
       // Set to write to other buffer & get count in current buffer
       endPointBdts[5].txOdd.bc     = cdc_setRxBuffer((char*)ep5DataBuffer0);
       //       ep5DataBuffer1[0]       = '|';
-      endPointBdts[5].txOdd.u.bits = BDTEntry_OWN_MASK|BDTEntry_DATA1_MASK;
+      endPointBdts[5].txOdd.raw = BDTEntry_OWN_MASK|BDTEntry_DATA1_MASK;
    }
    else {
       // Set to write to other buffer & get count in current buffer
       endPointBdts[5].txEven.bc    = cdc_setRxBuffer((char*)ep5DataBuffer1);
       //       ep5DataBuffer0[0]       = '^';
-      endPointBdts[5].txEven.u.bits = BDTEntry_OWN_MASK|BDTEntry_DATA0_MASK;
+      endPointBdts[5].txEven.raw = BDTEntry_OWN_MASK|BDTEntry_DATA0_MASK;
    }
    //   epHardwareState[5].data0_1 = !epHardwareState[5].data0_1; // Toggle data0/1
    epHardwareState[5].txOdd     = !epHardwareState[5].txOdd;
@@ -1349,7 +1358,7 @@ static void epStall(uint8_t epNum) {
       // Stall Tx only
       PUTS("epStall.ep0");
       BdtEntry *bdt = epHardwareState[0].txOdd?&endPointBdts[0].txOdd:&endPointBdts[0].txEven;
-      bdt->u.bits = BDTEntry_OWN_MASK|BDTEntry_STALL_MASK|BDTEntry_DTS_MASK;
+      bdt->raw = BDTEntry_OWN_MASK|BDTEntry_STALL_MASK|BDTEntry_DTS_MASK;
    }
    else {
       if (epNum==1) {
@@ -2196,6 +2205,24 @@ static void ep2HandleInToken( void ) {
       break;
    }
 }
+// Data packet odd/even indicator
+typedef enum  {
+   BufferToggle_Even = false, //!< Even Buffer
+   BufferToggle_Odd  = true,  //!< Odd Buffer
+} BufferToggle;
+
+/**
+ * Structure representing USB STAT register value
+ */
+typedef union {
+      uint8_t raw;
+      struct {
+         unsigned      :2;
+         BufferToggle  odd:1;
+         bool          tx:1;
+         unsigned      endp:4;
+      };
+} UsbStat;
 
 /**
  * Handler for Token Complete USB interrupt
@@ -2208,28 +2235,35 @@ static void ep2HandleInToken( void ) {
  * Handles ep5 [In]
  *
  */
-static void handleTokenComplete(void) {
-   uint8_t   usbStat  = USB0->STAT;
-   uint8_t   endPoint = ((uint8_t)usbStat)>>4;        // Endpoint number
-   uint8_t   isTx     = usbStat&USB_STAT_TX_MASK;     // Direction of T/F 0=>OUT, (!=0)=>IN
-   uint8_t   isOdd    = usbStat&USB_STAT_ODD_MASK;    // Odd/even buffer
-   BdtEntry *bdt      = &bdts[usbStat>>2];
-   if (isTx) {
-      epHardwareState[endPoint].txOdd = !isOdd; // Buffer to use next
+static void handleTokenComplete(UsbStat usbStat) {
+   uint8_t   endPoint = usbStat.endp;   // Endpoint number
+   BdtEntry *bdt      = &bdts[usbStat.raw>>2];
+
+   if (usbStat.tx) {
+      // Flip Transmit buffer
+      epHardwareState[endPoint].txOdd = !usbStat.odd;
    }
    else {
-      epHardwareState[endPoint].rxOdd = !isOdd; // Buffer to use next
+      // Flip Receive buffer
+      epHardwareState[endPoint].rxOdd = !usbStat.odd;
    }
    switch (endPoint) {
    case 0: // Control - Accept IN, OUT or SETUP token
-      if (isTx) { // IN Transaction complete
-         ep0HandleInToken();
-      }
-      else if (bdt->u.result.tok_pid == SETUPToken) { // SETUP transaction complete
-         handleSetupToken();
-      }
-      else { // OUT Transaction
-         ep0HandleOutToken();
+      switch (bdt->result.tok_pid) {
+         case SETUPToken:
+            handleSetupToken();
+   //          PRINTF(" Ep0.Set");
+            break;
+         case INToken:
+            ep0HandleInToken();
+   //          PRINTF(" Ep0.In");
+            break;
+         case OUTToken:
+            ep0HandleOutToken();
+   //          PRINTF(" Ep0.Out");
+            break;
+         default:
+            break;
       }
       return;
    case 1: // USBDM BDM - Accept OUT token
@@ -2370,7 +2404,7 @@ static void handleUSBSuspend( void ) {
    do {
       USB0->ISTAT = USB_ISTAT_RESUME_MASK;       // Clear resume interrupt flag
 
-      __WFI();  // Processor stop for low power
+//      __WFI();  // Processor stop for low power
 
       // The CPU has woken up!
 
@@ -2409,7 +2443,7 @@ static void handleUSBResume( void ) {
       return;
    }
    // Mask further resume interrupts
-//   USB0->USBTRC0 &= ~USB_USBTRC0_USBRESMEN_MASK;
+   USB0->USBTRC0 &= ~USB_USBTRC0_USBRESMEN_MASK;
 
    // Clear the sleep and resume interrupt flags
    USB0->ISTAT = USB_ISTAT_SLEEP_MASK|USB_ISTAT_RESUME_MASK;
@@ -2434,20 +2468,21 @@ void USB0_IRQHandler( void ) {
    // Get active and enabled interrupt flags
    uint8_t enabledInterruptFlags = interruptFlags & USB0->INTEN;
 
-   if ((enabledInterruptFlags&USB_ISTAT_TOKDNE_MASK) != 0) {
+   if ((enabledInterruptFlags&USB_ISTAT_USBRST_MASK) != 0) {
+      // Reset signaled on Bus
+      handleUSBReset();
+      USB0->ISTAT = USB_ISTAT_USBRST_MASK; // Clear source
+   }
+   else if ((enabledInterruptFlags&USB_ISTAT_TOKDNE_MASK) != 0) {
       // Token complete interrupt?
-      handleTokenComplete();
+      UsbStat   usbStat = {USB0->STAT};
+      handleTokenComplete(usbStat);
       USB0->ISTAT = USB_ISTAT_TOKDNE_MASK; // Clear source
    }
    else if ((enabledInterruptFlags&USB_ISTAT_RESUME_MASK) != 0) {
       // Resume signaled on Bus?
       handleUSBResume();
       USB0->ISTAT = USB_ISTAT_RESUME_MASK; // Clear source
-   }
-   else if ((enabledInterruptFlags&USB_ISTAT_USBRST_MASK) != 0) {
-      // Reset signaled on Bus
-      handleUSBReset();
-      USB0->ISTAT = USB_ISTAT_USBRST_MASK; // Clear source
    }
    else if ((enabledInterruptFlags&USB_ISTAT_STALL_MASK) != 0) {
       // Stall sent?
