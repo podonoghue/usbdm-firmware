@@ -64,18 +64,17 @@ typedef struct {
 
 //! Target interface options
 typedef struct {
-   uint8_t  cycleVddOnReset:1;     //!< Cycle target Power  when resetting
-   uint8_t  cycleVddOnConnect:1;   //!< Cycle target Power if connection problems (when resetting?)
-   uint8_t  leaveTargetPowered:1;  //!< Leave target power on exit
-   uint8_t  guessSpeed:1;          //!< Guess speed for target w/o ACKN
-   uint8_t  useResetSignal:1;      //!< Use RESET signal on BDM interface
-   uint8_t  targetVdd;             //!< Target Vdd (off, 3.3V or 5V)
-   uint8_t  useAltBDMClock;        //!< Use alternative BDM clock source in target (HCS08)
-   uint8_t  autoReconnect;         //!< Automatically re-connect method (for speed change)
-   uint16_t SBDFRaddress;          //!< Address of HCS08_SBDFR register
-   uint8_t  reserved[3];
+   bool               cycleVddOnReset:1;      //!< Cycle target Power  when resetting
+   bool               cycleVddOnConnect:1;    //!< Cycle target Power if connection problems (when resetting?)
+   bool               leaveTargetPowered:1;   //!< Leave target power on exit
+   bool               guessSpeed:1;           //!< Guess speed for target w/o ACKN
+   bool               useResetSignal:1;       //!< Use RESET signal on BDM interface
+   TargetVddSelect_t  targetVdd;              //!< Selected target Vdd (off, 3.3V or 5V)
+   ClkSwValues_t      useAltBDMClock:8;       //!< Use alternative BDM clock source in target (HCS08)
+   AutoConnect_t      autoReconnect:8;        //!< Automatically re-connect method (for speed change)
+   uint16_t           SBDFRaddress;           //!< Address of HCS08_SBDFR register
+   uint8_t            reserved[3];
 } BDM_Option_t;
-
 
 extern void bdm_txEmpty(uint8_t data);
 extern uint8_t   bdm_rxEmpty(void);

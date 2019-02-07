@@ -437,11 +437,11 @@ uint8_t f_CMD_SET_OPTIONS(void) {
    // Save BDM Options
    int sub=2;
    uint8_t value = commandBuffer[sub++];
-   bdm_option.cycleVddOnReset    = value&(1<<0);
-   bdm_option.cycleVddOnConnect  = value&(1<<1);
-   bdm_option.leaveTargetPowered = value&(1<<2);
-   bdm_option.guessSpeed         = value&(1<<3);
-   bdm_option.useResetSignal     = value&(1<<4);
+   bdm_option.cycleVddOnReset    = (bool)(value&(1<<0));
+   bdm_option.cycleVddOnConnect  = (bool)(value&(1<<1));
+   bdm_option.leaveTargetPowered = (bool)(value&(1<<2));
+   bdm_option.guessSpeed         = (bool)(value&(1<<3));
+   bdm_option.useResetSignal     = (bool)(value&(1<<4));
    bdm_option.targetVdd          = commandBuffer[sub++];
    bdm_option.useAltBDMClock     = commandBuffer[sub++];
    bdm_option.autoReconnect      = commandBuffer[sub++];
