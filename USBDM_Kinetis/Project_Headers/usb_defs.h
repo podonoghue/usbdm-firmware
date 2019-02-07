@@ -6,41 +6,41 @@
 
 #pragma pack(push)
 #pragma pack(1)
-//! Device Descriptor 
+//! Device Descriptor
 typedef struct {
    uint8_t           bLength;             //!<  Size of this Descriptor in Bytes
    uint8_t           bDescriptorType;     //!<  Descriptor Type (=1)
    uint16_t          bcdUSB;              //!<  USB Spec Release Number in BCD
    uint8_t           bDeviceClass;        //!<  Device Class Code
-   uint8_t           bDeviceSubClass;     //!<  Device Subclass Code      
+   uint8_t           bDeviceSubClass;     //!<  Device Subclass Code
    uint8_t           bDeviceProtocol;     //!<  Device Protocol Code
    uint8_t           bMaxPacketSize0;     //!<  Maximum Packet Size for EP0
-   uint16_t          idVendor;            //!<  Vendor ID 
+   uint16_t          idVendor;            //!<  Vendor ID
    uint16_t          idProduct;           //!<  Product ID
    uint16_t          bcdDevice;           //!<  Device Release Number in BCD
    uint8_t           iManufacturer;       //!<  Index of String Desc for Manufacturer
    uint8_t           iProduct;            //!<  Index of String Desc for Product
    uint8_t           iSerialNumber;       //!<  Index of String Desc for SerNo
    uint8_t           bNumConfigurations;  //!<  Number of possible Configurations
-} DeviceDescriptor;                
+} DeviceDescriptor;
 
 //! USB Configuration Descriptor
 typedef struct {
    uint8_t           bLength;             //!<  Size of this Descriptor in Bytes
    uint8_t           bDescriptorType;     //!<  Descriptor Type (=2)
-   uint16_t          wTotalLength;        //!<  Total Length of Data for this Configuration 
-   uint8_t           bNumInterfaces;      //!<  No of Interfaces supported by this Configuration 
-   uint8_t           bConfigurationValue; //!<  Designator Value for this Configuration 
-   uint8_t           iConfiguration;      //!<  Index of String Desc for this Configuration 
-   uint8_t           bmAttributes;        //!<  Configuration Characteristics 
+   uint16_t          wTotalLength;        //!<  Total Length of Data for this Configuration
+   uint8_t           bNumInterfaces;      //!<  No of Interfaces supported by this Configuration
+   uint8_t           bConfigurationValue; //!<  Designator Value for this Configuration
+   uint8_t           iConfiguration;      //!<  Index of String Desc for this Configuration
+   uint8_t           bmAttributes;        //!<  Configuration Characteristics
    uint8_t           bMaxPower;           //!<  Max. Power Consumption in this Configuration (in 2mA steps)
 } ConfigurationDescriptor;
 
 //! USB Interface Descriptor
 typedef struct {
    uint8_t           bLength;             //!<  Size of this Descriptor in Bytes
-   uint8_t           bDescriptorType;     //!<  Descriptor Type (=4)            
-   uint8_t           bInterfaceNumber;    //!<  Number of this Interface (0..)  
+   uint8_t           bDescriptorType;     //!<  Descriptor Type (=4)
+   uint8_t           bInterfaceNumber;    //!<  Number of this Interface (0..)
    uint8_t           bAlternateSetting;   //!<  Alternative for this Interface (if any)
    uint8_t           bNumEndpoints;       //!<  No of EPs used by this IF (excl. EP0)
    uint8_t           bInterfaceClass;     //!<  Interface Class Code
@@ -60,7 +60,6 @@ typedef struct {
 } EndpointDescriptor;
 
 //! Structure of Setup Packet sent during SETUP Stage of Standard Device Requests
-//! @note Shuffled fields for MCFJM128 
 typedef struct {
    uint8_t      bmRequestType;       //!<  Characteristics (Direction,Type,Recipient)
    uint8_t      bRequest;            //!<  Standard Request Code
@@ -75,7 +74,7 @@ typedef struct {
    uint8_t           bDescriptorType;     //!<  Descriptor Type (=6)
    uint16_t          bcdUSB;              //!<  USB Spec Release Number in BCD
    uint8_t           bDeviceClass;        //!<  Device Class Code
-   uint8_t           bDeviceSubClass;     //!<  Device Subclass Code      
+   uint8_t           bDeviceSubClass;     //!<  Device Subclass Code
    uint8_t           bDeviceProtocol;     //!<  Device Protocol Code
    uint8_t           bMaxPacketSize0;     //!<  Maximum Packet Size for EP0
    uint8_t           bNumConfigurations;  //!<  Number of possible Configurations
@@ -169,23 +168,23 @@ enum {EP_OUT=0x00, //!< Endpoint is OUT (host -> node)
 #define PREToken     (0xC) //!< Preamble
 
 /*----------------------------------------------------------------------------
-** Feature selector values (for Clear/Set feature)
-*/
+ ** Feature selector values (for Clear/Set feature)
+ */
 #define ENDPOINT_HALT         (0x00)
 #define DEVICE_REMOTE_WAKEUP  (0x01)
 #define TEST_MODE             (0x02)
 
 /*----------------------------------------------------------------------------
-** bmRequest types
-*/
+ ** bmRequest types
+ */
 #define RT_DEVICE          (0x00)
 #define RT_INTERFACE       (0x01)
 #define RT_ENDPOINT        (0x02)
 
 /*----------------------------------------------------------------------------
-** bmAttributes types
-*/
-#define ATTR_CONTROL	      (0x00)
+ ** bmAttributes types
+ */
+#define ATTR_CONTROL	    (0x00)
 #define ATTR_ISOCHRONOUS 	(0x01)
 #define ATTR_BULK  			(0x02)
 #define ATTR_INTERRUPT  	(0x03)
@@ -200,11 +199,11 @@ typedef struct {
    uint8_t bLength;                //!< Size of this Descriptor in Bytes
    uint8_t bDescriptorType;        //!< Descriptor Type (=0B)
    uint8_t bFirstInterface;        //!< First interface #
-   uint8_t bInterfaceCount;		  //!< Number of interfaces
-	uint8_t bFunctionClass;         //!< bInterfaceClass;
-	uint8_t bFunctionSubClass;      //!< bInterfaceSubClass;
-	uint8_t bFunctionProtocol;      //!< Protocol
-	uint8_t iFunction;			     //!< Function
+   uint8_t bInterfaceCount;		   //!< Number of interfaces
+   uint8_t bFunctionClass;         //!< bInterfaceClass;
+   uint8_t bFunctionSubClass;      //!< bInterfaceSubClass;
+   uint8_t bFunctionProtocol;      //!< Protocol
+   uint8_t iFunction;			   //!< Function
 } InterfaceAssociationDescriptor;
 
 //============================================================================
@@ -227,41 +226,41 @@ typedef struct {
 
 //! USB CDC Header Functional Descriptor
 typedef struct {
-	uint8_t  bFunctionLength;		//!< Size
-	uint8_t  bDescriptorType;		//!< Type
-	uint8_t  bDescriptorSubtype;	//!< Sub-type
-	uint16_t bcdCDC;					//!< ??
+   uint8_t  bFunctionLength;		//!< Size
+   uint8_t  bDescriptorType;		//!< Type
+   uint8_t  bDescriptorSubtype;	    //!< Sub-type
+   uint16_t bcdCDC;					//!< ??
 } CDCHeaderFunctionalDescriptor;
 
 //! USB CDC Call Management Functional Descriptor
 typedef struct {
-	uint8_t  bFunctionLength;		//!< Length
-	uint8_t  bDescriptorType;		//!< Type
-	uint8_t  bDescriptorSubtype;	//!< Sub-type
-   uint8_t  bmCapabilities;		//!< Capabilities
-   uint8_t  bDataInterface;		//!< Data interface
+   uint8_t  bFunctionLength;		//!< Length
+   uint8_t  bDescriptorType;		//!< Type
+   uint8_t  bDescriptorSubtype;	    //!< Sub-type
+   uint8_t  bmCapabilities;		    //!< Capabilities
+   uint8_t  bDataInterface;		    //!< Data interface
 } CDCCallManagementFunctionalDescriptor;
 
 //! USB CDC Abstract Control Management Descriptor
 typedef struct {
-	uint8_t  bFunctionLength;		//!< Length
-	uint8_t  bDescriptorType;		//!< Type
-	uint8_t  bDescriptorSubtype;	//!< Sub-type
-	uint8_t  bmCapabilities;		//!< Capabilities
+   uint8_t  bFunctionLength;		//!< Length
+   uint8_t  bDescriptorType;		//!< Type
+   uint8_t  bDescriptorSubtype;	//!< Sub-type
+   uint8_t  bmCapabilities;		//!< Capabilities
 } CDCAbstractControlManagementDescriptor;
 
 //! USB CDC Union Functional Descriptor
 typedef struct {
-	uint8_t  bFunctionLength;     //!< Length
-	uint8_t  bDescriptorType;	   //!< Type
-	uint8_t  bDescriptorSubtype;  //!< Sub-type
-	uint8_t  bMasterInterface;		//!< Interface
-	uint8_t  bSlaveInterface[1];	//!< Slave interface
+   uint8_t  bFunctionLength;     //!< Length
+   uint8_t  bDescriptorType;	   //!< Type
+   uint8_t  bDescriptorSubtype;  //!< Sub-type
+   uint8_t  bMasterInterface;	   //!< Interface
+   uint8_t  bSlaveInterface[1];	//!< Slave interface
 } CDCUnionFunctionalDescriptor;
 
 /*----------------------------------------------------------------------------
-** CDC Class requests
-*/
+ ** CDC Class requests
+ */
 #define SEND_ENCAPSULATED_COMMAND  (0x00)
 #define GET_ENCAPSULATED_COMMAND   (0x01)
 #define SET_LINE_CODING            (0x20)
@@ -271,11 +270,11 @@ typedef struct {
 
 //! USB CDC Notification
 typedef struct {
-	uint8_t  bmRequestType;	//!< Request type
-	uint8_t  bNotification;	//!< Notification
-	uint16_t wValue;			//!< Value
-	uint16_t wIndex;			//!< Index
-	uint16_t wLength;		   //!< Length
+   uint8_t  bmRequestType;	//!< Request type
+   uint8_t  bNotification;	//!< Notification
+   uint16_t wValue;		   //!< Value
+   uint16_t wIndex;	      //!< Index
+   uint16_t wLength;       //!< Length
 } CDCNotification;
 
 #define CDC_NOTIFICATION   (0xA1)

@@ -20,17 +20,17 @@
 <booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Download.SVuninitialized" value="false"/>
 <intAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.coreIndex" value="0"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.homogeneousMulticore" value="false"/>
-<stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.initPath" value=""/>
-<stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.memConfigPath" value="${ProjDirPath}/Project_Settings/Debugger/MC9S08JM32.mem"/>
+<stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.initPath" value="${workspace_loc:/USBDM_JMxx/Project_Settings/Debugger/MC9S08JS16.tcl}"/>
+<stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.memConfigPath" value="${workspace_loc:/USBDM_JMxx/Project_Settings/Debugger/MC9S08JS16.mem}"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.simulator" value=""/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.smp" value="false"/>
-<stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.systemType" value="com.freescale.cw.system.hcs08.HCS08JM.MC9S08JM32"/>
-<booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.useInitFile" value="false"/>
+<stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.systemType" value="com.freescale.cw.system.hcs08.HCS08JS.MC9S08JS16"/>
+<booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.useInitFile" value="true"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.Embedded Initialization.useMemoryConfigFile" value="true"/>
-<stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.HC08 Debugger.processor" value="MC9S08JM32"/>
+<stringAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.HC08 Debugger.processor" value="MC9S08JS16"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.HC08 Interrupt.interrupt_disabled" value="true"/>
 <listAttribute key="com.freescale.cdt.debug.cw.CoreNameList">
-<listEntry value="MC9S08JM32#0"/>
+<listEntry value="MC9S08JS16#0"/>
 </listAttribute>
 <listAttribute key="com.freescale.cdt.debug.cw.Debug"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.Embedded Download.ExecuteTasks" value="true"/>
@@ -75,7 +75,8 @@
 <stringAttribute key="com.freescale.cdt.debug.cw.core.settings.DebuggerCommonData.Connection Type" value="net.sourceforge.usbdm.connections.usbdm.hcs08"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.core.settings.DebuggerCommonData.Processor Attr Name" value="com.freescale.cdt.debug.cw.CW_SHADOWED_PREF.HC08 Debugger.processor"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.core.settings.GdiConnection.Common.PhysicalConnectionAttributeBase" value="net.sourceforge.usbdm.connections.usbdm."/>
-<booleanAttribute key="com.freescale.cdt.debug.cw.core.settings.GdiConnection.Common.logData" value="false"/>
+<stringAttribute key="com.freescale.cdt.debug.cw.core.settings.GdiConnection.Common.SimulatorConnectionAttributeBase" value=""/>
+<booleanAttribute key="com.freescale.cdt.debug.cw.core.settings.GdiConnection.Common.logData" value="true"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.core.settings.rseSystemId" value="com.freescale.cdt.debug.cw.core.ui.rse.systemtype.bareboard.hardware.151224173314+1100"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.core.settings.wizardSystemNameHint" value="USBDM"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.debuggerAddress" value="127.0.0.1"/>
@@ -88,11 +89,11 @@
 <booleanAttribute key="com.freescale.cdt.debug.cw.executeResetSequence" value="true"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.gateway" value="127.0.0.1"/>
 <listAttribute key="com.freescale.cdt.debug.cw.initPathList">
-<listEntry value=""/>
+<listEntry value="${workspace_loc:/USBDM_JMxx/Project_Settings/Debugger/MC9S08JS16.tcl}"/>
 </listAttribute>
 <stringAttribute key="com.freescale.cdt.debug.cw.macAddress" value="**-**-**-**-**-**"/>
 <listAttribute key="com.freescale.cdt.debug.cw.memConfigPathList">
-<listEntry value="${ProjDirPath}/Project_Settings/Debugger/MC9S08JM32.mem"/>
+<listEntry value="${workspace_loc:/USBDM_JMxx/Project_Settings/Debugger/MC9S08JS16.mem}"/>
 </listAttribute>
 <stringAttribute key="com.freescale.cdt.debug.cw.netMask" value="255.255.255.255"/>
 <stringAttribute key="com.freescale.cdt.debug.cw.osawareness.osContributorID" value="None"/>
@@ -109,7 +110,7 @@
 <booleanAttribute key="com.freescale.cdt.debug.cw.useGateway" value="false"/>
 <booleanAttribute key="com.freescale.cdt.debug.cw.useHSSTIO" value="false"/>
 <listAttribute key="com.freescale.cdt.debug.cw.useInitPathList">
-<listEntry value="false"/>
+<listEntry value="true"/>
 </listAttribute>
 <booleanAttribute key="com.freescale.cdt.debug.cw.useMacAddress" value="false"/>
 <listAttribute key="com.freescale.cdt.debug.cw.useMemConfigPathList">
@@ -151,16 +152,28 @@
 <intAttribute key="com.freescale.sa.mcu.launch.VAL_DBGCC" value="0"/>
 <intAttribute key="com.freescale.sa.mcu.launch.VAL_DBGCCX" value="0"/>
 <intAttribute key="com.freescale.sa.mcu.launch.VAL_DBGCT" value="0"/>
-<stringAttribute key="net.sourceforge.usbdm.connections.usbdm.Library" value="usbdm-gdi-hcs08.4"/>
+<stringAttribute key="net.sourceforge.usbdm.connections.usbdm.CommandLineArgs" value=""/>
+<stringAttribute key="net.sourceforge.usbdm.connections.usbdm.ConfigFile" value=""/>
+<stringAttribute key="net.sourceforge.usbdm.connections.usbdm.Library" value="usbdm-gdi-hcs08-debug.4"/>
 <stringAttribute key="net.sourceforge.usbdm.connections.usbdm.automaticReconnect" value="1"/>
+<stringAttribute key="net.sourceforge.usbdm.connections.usbdm.clockTrimFrequency" value="0"/>
+<stringAttribute key="net.sourceforge.usbdm.connections.usbdm.clockTrimNVAddress" value="0"/>
+<stringAttribute key="net.sourceforge.usbdm.connections.usbdm.cycleTargetVddOnConnect" value="0"/>
 <stringAttribute key="net.sourceforge.usbdm.connections.usbdm.cycleTargetVddOnReset" value="0"/>
 <stringAttribute key="net.sourceforge.usbdm.connections.usbdm.cycleTargetVddonConnect" value="0"/>
-<stringAttribute key="net.sourceforge.usbdm.connections.usbdm.defaultBdmSerialNumber" value="Any connected USBDM"/>
+<stringAttribute key="net.sourceforge.usbdm.connections.usbdm.defaultBdmSerialNumber" value="USBDM-JS16-0001"/>
+<stringAttribute key="net.sourceforge.usbdm.connections.usbdm.eraseMethod" value="TargetDefault"/>
 <stringAttribute key="net.sourceforge.usbdm.connections.usbdm.leaveTargetPowered" value="0"/>
+<stringAttribute key="net.sourceforge.usbdm.connections.usbdm.powerOffDuration" value="1000"/>
+<stringAttribute key="net.sourceforge.usbdm.connections.usbdm.powerOnRecoveryInterval" value="1000"/>
+<stringAttribute key="net.sourceforge.usbdm.connections.usbdm.resetDuration" value="500"/>
+<stringAttribute key="net.sourceforge.usbdm.connections.usbdm.resetRecoveryInterval" value="500"/>
+<stringAttribute key="net.sourceforge.usbdm.connections.usbdm.resetReleaseInterval" value="500"/>
+<stringAttribute key="net.sourceforge.usbdm.connections.usbdm.securityOption" value="0"/>
 <stringAttribute key="net.sourceforge.usbdm.connections.usbdm.setTargetVdd" value="0"/>
 <stringAttribute key="net.sourceforge.usbdm.connections.usbdm.trimTargetClock" value="0"/>
 <stringAttribute key="net.sourceforge.usbdm.connections.usbdm.useAltBDMClock" value="255"/>
-<stringAttribute key="net.sourceforge.usbdm.connections.usbdm.useDebugBuild" value="false"/>
+<stringAttribute key="net.sourceforge.usbdm.connections.usbdm.useDebugBuild" value="1"/>
 <stringAttribute key="net.sourceforge.usbdm.connections.usbdm.useResetSignal" value="0"/>
 <intAttribute key="org.eclipse.cdt.launch.ATTR_BUILD_BEFORE_LAUNCH_ATTR" value="2"/>
 <stringAttribute key="org.eclipse.cdt.launch.DEBUGGER_ID" value="com.freescale.cdt.debug.cw.hc08.HC08Debugger"/>
