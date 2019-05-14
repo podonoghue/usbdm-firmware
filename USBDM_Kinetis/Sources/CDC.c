@@ -256,10 +256,6 @@ static LineCodingStructure lineCoding = {CONST_NATIVE_TO_LE32(9600UL),0,1,8};
  * BAUD > 300
  */
 void cdc_setLineCoding(const LineCodingStructure *lineCodingStructure) {
-   uint32_t baudrate;
-   uint16_t ubd;
-   uint8_t  UARTC1Value = 0x00;
-   uint8_t  UARTC3Value = 0x00;
 
    cdcStatus  = SERIAL_STATE_CHANGE;
    breakCount = 0; // Clear any current BREAKs
@@ -273,8 +269,8 @@ void cdc_setLineCoding(const LineCodingStructure *lineCodingStructure) {
    SIM->SCGC5  |= SIM_SCGC5_PORTA_MASK;
 
    // Configure shared pins
-//   PORTB_PCR16  = PORT_PCR_MUX(3); // Rx (PFE?)
-//   PORTB_PCR17  = PORT_PCR_MUX(3) | PORT_PCR_DSE_MASK| PORT_PCR_SRE_MASK; // Tx
+   //   PORTB_PCR16  = PORT_PCR_MUX(3); // Rx (PFE?)
+   //   PORTB_PCR17  = PORT_PCR_MUX(3) | PORT_PCR_DSE_MASK| PORT_PCR_SRE_MASK; // Tx
 
    RX_OUT_EN_PCR = PORT_PCR_MUX(RX_ALT_FN);
    TX_OUT_EN_PCR = PORT_PCR_MUX(TX_ALT_FN)|PORT_PCR_DSE_MASK|PORT_PCR_PE_MASK|PORT_PCR_PS_MASK;
@@ -285,64 +281,68 @@ void cdc_setLineCoding(const LineCodingStructure *lineCodingStructure) {
    // Disable the transmitter and receiver while changing settings.
    UARTx_C2 &= ~(UART_C2_TE_MASK | UART_C2_RE_MASK );
 
-   // Determine baud rate divider
-   baudrate = leToNative32(lineCoding.dwDTERate);
+   /*
+    * Baudrate = clockFrequency / (OSR x (SBR + BRFD))
+    * Fixed OSR = 16
+    *
+    * (OSR x (SBR + BRFD/32)) = clockFrequency/Baudrate
+    * (SBR + BRFD/32) = clockFrequency/(Baudrate*OSR)
+    * 32*SBR + BRFD = 2*clockFrequency/Baudrate
+    * SBR  = (2*clockFrequency/Baudrate)>>5
+    * BRFD = (2*clockFrequency/Baudrate)&0x1F
+    */
+   // Disable UART before changing registers
+   UARTx_C2 = 0;
 
-   // Calculate baud settings
-   ubd = (uint16_t)(SystemCoreClock/(baudrate * 16));
+   // Calculate UART clock setting (5-bit fraction at right)
+   //   int divider = (2*SystemCoreClock)/leToNative32(lineCoding.dwDTERate);
+   int divider = (2*SystemCoreClock)/leToNative32(lineCoding.dwDTERate);
 
    // Set Baud rate register
-   UARTx_BDH = (UARTx_BDH&~UART_BDH_SBR_MASK) | UART_BDH_SBR((ubd>>8));
-   UARTx_BDL = UART_BDL_SBR(ubd);
+   UARTx_BDH = (UARTx_BDH&~UART_BDH_SBR_MASK) | UART_BDH_SBR((divider>>(8+5)));
+   UARTx_BDL = UART_BDL_SBR(divider>>5);
 
-#if defined(UART_C4_BRFA_MASK) && 0
-   // Determine fractional divider to get closer to the baud rate
-   uint16_t brfa;
-   brfa     = (uint8_t)(((SystemCoreClock*(32000/16))/baudrate) - (ubd * 32));
-   UART1_C4 = (UART1_C4&~UART_C4_BRFA_MASK) | UART_C4_BRFA(brfa);
+#if defined(UART_C4_BRFA_MASK)
+   // Fractional divider to get closer to the baud rate
+   UARTx_C4 = (UARTx_C4&~UART_C4_BRFA_MASK) | UART_C4_BRFA(divider);
 #endif
 
-// Note: lineCoding.bCharFormat is ignored (always 1 stop bit)
-//   switch (lineCoding.bCharFormat) {
-//      case 0:  // 1 bits
-//      case 1:  // 1.5 bits
-//      case 2:  // 2 bits
-//   }
+   // Note: lineCoding.bCharFormat is ignored (always 1 stop bit)
+   //   switch (lineCoding.bCharFormat) {
+   //      case 0:  // 1 bits
+   //      case 1:  // 1.5 bits
+   //      case 2:  // 2 bits
+   //   }
 
    // Available combinations
    //============================================
-   // Data bits  Parity   Stop |  M   PE  PT  T8
+   // Data bits  Parity   Stop |  M   T8 PE  PT
    //--------------------------------------------
-   //     7      Odd       1   |  0   1   1   X
-   //     7      Even      1   |  0   1   0   X
-   //     8      None      1   |  0   0   X   X
-   //     8      Odd       1   |  1   1   1   X
-   //     8      Even      1   |  1   1   0   X
-   //     8      Mark      1   |  1   0   X   0
-   //     8      Space     1   |  1   0   X   1
+   //     8      Odd       1   |  0   X   1   1
+   //     8      Even      1   |  0   X   1   0
+   //     8      None      1   |  0   X   0   X
+   //     8      Mark      1   |  1   1   0   X
+   //     8      Space     1   |  1   0   0   X
    //--------------------------------------------
    //   All other values default to 8-None-1
 
+   uint8_t  UARTC1Value = 0x00;
+   uint8_t  UARTC3Value = 0x00;
+
    switch (lineCoding.bDataBits) {
-     // 5,6,7,8,16
-      case 7  :
-         switch (lineCoding.bParityType) {
-            case 1:  UARTC1Value = UART_C1_PE_MASK|UART_C1_PT_MASK; break; // Odd
-            case 2:  UARTC1Value = UART_C1_PE_MASK;                 break; // Even
-         }
-           break;
+      // Only supporsts 8-bit
       case 8  :
-        UARTC1Value = UART_C1_M_MASK; // 9-data or 8-data+parity
+      default :
          switch (lineCoding.bParityType) {
             case 0:  UARTC1Value  = 0;                               break; // None
-            case 1:  UARTC1Value |= UART_C1_PE_MASK|UART_C1_PT_MASK; break; // Odd
-            case 2:  UARTC1Value |= UART_C1_PE_MASK;                 break; // Even
-            case 3:  UARTC3Value  = UART_C3_T8_MASK;                 break; // Mark
-            case 4:                                                  break; // Space
+            case 1:  UARTC1Value  = UART_C1_PE_MASK|UART_C1_PT_MASK; break; // Odd
+            case 2:  UARTC1Value  = UART_C1_PE_MASK;                 break; // Even
+            case 3:  UARTC1Value  = UART_C1_M_MASK;
+                     UARTC3Value  = UART_C3_T8_MASK;                 break; // Mark
+            case 4:  UARTC1Value  = UART_C1_M_MASK;
+                     UARTC3Value  = 0;                               break; // Space
          }
          break;
-     default :
-        break;
    }
    UARTx_C1 = UARTC1Value;
    UARTx_C3 = UARTC3Value;
