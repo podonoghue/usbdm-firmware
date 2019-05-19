@@ -316,11 +316,13 @@ void cdc_setLineCoding(const LineCodingStructure *lineCodingStructure) {
 
    // Available combinations
    //============================================
-   // Data bits  Parity   Stop |  M   T8 PE  PT
+   // Data bits  Parity   Stop |  M   T8  PE  PT
    //--------------------------------------------
-   //     8      Odd       1   |  0   X   1   1
-   //     8      Even      1   |  0   X   1   0
+   //     7      Odd       1   |  0   X   1   1
+   //     7      Even      1   |  0   X   1   0
    //     8      None      1   |  0   X   0   X
+   //     8      Odd       1   |  1   X   1   1
+   //     8      Even      1   |  1   X   1   0
    //     8      Mark      1   |  1   1   0   X
    //     8      Space     1   |  1   0   0   X
    //--------------------------------------------
@@ -329,29 +331,68 @@ void cdc_setLineCoding(const LineCodingStructure *lineCodingStructure) {
    uint8_t  UARTC1Value = 0x00;
    uint8_t  UARTC3Value = 0x00;
 
+#if 0
+   // Force 8-N-1
    switch (lineCoding.bDataBits) {
-      // Only supporsts 8-bit
-      case 8  :
-      default :
+      case 7  : // 8-bit
          switch (lineCoding.bParityType) {
-            case 0:  UARTC1Value  = 0;                               break; // None
-            case 1:  UARTC1Value  = UART_C1_PE_MASK|UART_C1_PT_MASK; break; // Odd
-            case 2:  UARTC1Value  = UART_C1_PE_MASK;                 break; // Even
-            case 3:  UARTC1Value  = UART_C1_M_MASK;
-                     UARTC3Value  = UART_C3_T8_MASK;                 break; // Mark
-            case 4:  UARTC1Value  = UART_C1_M_MASK;
-                     UARTC3Value  = 0;                               break; // Space
+            case 1:  // Odd
+               UARTC1Value  = UART_C1_PE_MASK|UART_C1_PT_MASK;
+               break;
+            case 2:  // Even
+               UARTC1Value  = UART_C1_PE_MASK;
+               break;
+            default:
+               break;
          }
          break;
+
+      case 8  : // 8-bit
+         switch (lineCoding.bParityType) {
+            default:
+            case 0:  // None
+               break;
+            case 1:  // Odd
+               UARTC1Value  = UART_C1_M_MASK|UART_C1_PE_MASK|UART_C1_PT_MASK;
+               break;
+            case 2:  // Even
+               UARTC1Value  = UART_C1_M_MASK|UART_C1_PE_MASK;
+               break;
+            case 3:  // Mark
+               UARTC1Value  = UART_C1_M_MASK;
+               UARTC3Value  = UART_C3_T8_MASK;
+               break;
+            case 4:  // Space
+               UARTC1Value  = UART_C1_M_MASK;
+               UARTC3Value  = 0;
+               break;
+         }
+         break;
+
+      default : // Force 8-N-1
+         break;
    }
+#endif
+
    UARTx_C1 = UARTC1Value;
    UARTx_C3 = UARTC3Value;
    UARTx_C2 = UART_C2_RIE_MASK|UART_C2_RE_MASK|UART_C2_TE_MASK; // Enable Rx/Tx with interrupts
    UARTx_C3 = UART_C3_FEIE_MASK|UART_C3_NEIE_MASK|UART_C3_ORIE_MASK|UART_C3_PEIE_MASK;
+   UARTx_C4 &= ~(UART_C4_MAEN1_MASK|UART_C4_MAEN2_MASK|UART_C4_M10_MASK);
 
    // Discard any data in buffers
    rxBufferCount = 0;
    txBufferCount = 0;
+
+//   cdc_putRxBuffer('b');
+//   cdc_putRxBuffer('0'+lineCoding.bDataBits);
+//   cdc_putRxBuffer(',');
+//   cdc_putRxBuffer('p');
+//   cdc_putRxBuffer('0'+lineCoding.bParityType);
+//   cdc_putRxBuffer(',');
+//   cdc_putRxBuffer('s');
+//   cdc_putRxBuffer('0'+lineCoding.bCharFormat);
+//   cdc_putRxBuffer(',');
 
    enableUartIrq();
 }
