@@ -40,7 +40,7 @@ Change History
 //#include "CmdProcessing.h"
 #include "usb_defs.h"
 #include "USB.h"
-#include "ICP.h"
+#include "icp.h"
 #include "CDC.h"
 
 //#define MS_COMPATIBLE_ID_FEATURE

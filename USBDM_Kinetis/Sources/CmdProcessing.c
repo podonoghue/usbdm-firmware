@@ -77,7 +77,7 @@
 #include "SWD.h"
 //#include "ARM.h"
 #include "USB.h"
-#include "ICP.h"
+#include "icp.h"
 #include "CmdProcessing.h"
 //#include "CmdProcessingHCS.h"
 //#include "CmdProcessingCFVx.h"

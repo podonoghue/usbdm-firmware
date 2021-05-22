@@ -9,7 +9,7 @@
 #include "Common.h"
 #include "system.h"
 #include "CDC.h"
-#include "usb.h"
+#include "USB.h"
 
 #if (HW_CAPABILITY&CAP_CDC)
 

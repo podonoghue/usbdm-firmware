@@ -20,9 +20,10 @@
 	</buildSpec>
 	<natures>
 		<nature>org.eclipse.cdt.core.cnature</nature>
+		<nature>net.sourceforge.usbdm.cdt.tools.cnature</nature>
 		<nature>org.eclipse.cdt.core.ccnature</nature>
+		<nature>net.sourceforge.usbdm.cdt.tools.ccnature</nature>
 		<nature>org.eclipse.cdt.managedbuilder.core.managedBuildNature</nature>
 		<nature>org.eclipse.cdt.managedbuilder.core.ScannerConfigNature</nature>
-		<nature>net.sourceforge.usbdm.cdt.tools.ArmProjectNature</nature>
 	</natures>
 </projectDescription>

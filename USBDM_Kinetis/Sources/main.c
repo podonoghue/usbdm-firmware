@@ -3,7 +3,7 @@
 #include "derivative.h" /* include peripheral declarations */
 #include "Configure.h"
 #include "USB.h"
-#include "System.h"
+#include "system.h"
 #include "CmdProcessing.h"
 #include "BDMCommon.h"
 

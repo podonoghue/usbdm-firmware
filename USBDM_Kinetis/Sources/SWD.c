@@ -74,7 +74,7 @@
  *
  * @param  dataptr   Data value
  *
- * @return parity value
+ * @return parity value (0/1)
  */
 __forceinline
 static inline uint8_t calcParity(const uint8_t dataptr[]) {
