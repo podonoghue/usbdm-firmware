@@ -19,7 +19,7 @@ __stack_size = 0x1000;
 */
 __heap_size  = 0x1000;
 
-/* <o0> Size of RAM region reserved for bit-band or bit-manipulation-engine (bytes) 
+/* <o0> Size of RAM region reserved for bit-band or BME (bytes) 
    <i>  Space is allocated in SRAM_U memory region
    <i>  Each byte as also mapped to 8 words in .bitband memory region (if present)
    <i>
@@ -41,6 +41,8 @@ __sram_u_size = 0;
  * Modified to accommodate bootloader
  
     <o>  Bootloader size <constant>
+    <i>  The bootloader is located at the bottom of the flash region
+    <i>  This value is used to automatically adjust the available flash area 
  */
  
 BOOT_LOADER_SIZE  = DEFINED(BOOT_LOADER_SIZE)  ? BOOT_LOADER_SIZE : 0x0000;
@@ -54,18 +56,20 @@ MEMORY
   gpioBitband    (rw)  : ORIGIN = 0x42000000, LENGTH = 0x02000000
   peripherals    (rw)  : ORIGIN = 0xE0000000, LENGTH = 0x00100000
 /*
-    <o>  flexRAM address <constant>
-    <o1> flexRAM size    <constant>
+    <o>  FlexRAM address <constant>
+    <o1> FlexRAM size    <constant>
  */
   flexRAM        (rw)  : ORIGIN = 0x14000000, LENGTH = 0x00000800
 /*
-    <o>  Flex NVM address <constant>
-    <o1> Flex NVM size    <constant>
+    <o>  FlexNVM address <constant>
+    <o1> FlexNVM size    <constant>
  */
   flexNVM        (rx)  : ORIGIN = 0x10000000, LENGTH = 0x00008000
 /*
     <o>  FLASH  address <constant>
+    <i>  Note: Bootloader size is used to adjust this value
     <o1> FLASH  size    <constant>
+    <i>  Note: Bootloader size is used to adjust this value
  */
   flash          (rx)  : ORIGIN = 0x00000000+BOOT_LOADER_SIZE, LENGTH = 0x00020000-BOOT_LOADER_SIZE
 /*
@@ -91,6 +95,7 @@ REGION_ALIAS("ram","ram_low");
   <h> Section placement in RAM
   <i> The RAM on Cortex-M4 Kinetis devices is divided into upper and lower memory regions.
   <i> These settings control which region is used for various linker sections.
+  <i> These sections cannot cross regions as unaligned half-word and long-word accesses are not supported.
 */
 /*  <s1>  Micro Trace Buffer                <"ram_low"=> ram_low <"ram_high"=> ram_high <i> mtb_ram        */
 REGION_ALIAS("mtb_ram", 	   "ram_low");
