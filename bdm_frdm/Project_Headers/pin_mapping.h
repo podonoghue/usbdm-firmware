@@ -321,12 +321,12 @@ public:
 
    //! Oscillator control register
    static constexpr uint32_t cr =
-      RTC_CR_OSCE(1) | // Enables 32kHz oscillator [RTC_32K]
+      RTC_CR_OSCE(0) | // Enables 32kHz oscillator [RTC_32K]
       RTC_CR_CLKO(0) | // Disables RTC 32kHz Clock Output
       RTC_CR_UM(0)   | // Update Mode
       RTC_CR_SUP(0)  | // Supervisor access
       RTC_CR_WPE(0)  | // Wakeup Pin Enable
-      RTC_CR_SCP(2);   // RTC Oscillator load capacitance
+      RTC_CR_SCP(0);   // RTC Oscillator load capacitance
 
    //! RTC Time Compensation Register
    static constexpr uint32_t tcr =

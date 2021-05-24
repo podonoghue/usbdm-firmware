@@ -150,6 +150,9 @@ int main(void) {
       if (console_rxChar() == 'y') {
          doMassErase = true;
       }
+      if (((PDIR(SELF_ERASE_PORT)) & SELF_ERASE_MASK) == 0) {
+         doMassErase = true;
+      }
       if (doMassErase) {
          printf("\n\nDoing mass erase\n");
          printf("Wait a while and then remove and replace board to complete unlock\n");

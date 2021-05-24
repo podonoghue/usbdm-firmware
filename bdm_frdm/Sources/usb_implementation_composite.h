@@ -28,7 +28,8 @@
 #include "usb_cdc_uart.h"
 
 /** Causes a semi-unique serial number to be generated for each USB device */
-#define UNIQUE_ID 1
+// Done on command line where needed
+//#define UNIQUE_ID 1
 
 #include "configure.h"
 
@@ -61,7 +62,7 @@ namespace USBDM {
 #define PRODUCT_ID            (0xFFFF)    // Product ID
 #endif
 #ifndef VERSION_ID
-#define VERSION_ID (0x0100)
+#define VERSION_ID (0x0200)
 #endif
 
 //======================================================================

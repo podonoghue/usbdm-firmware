@@ -72,6 +72,7 @@
    <item key="/MCG/pll0OutputFrequency[0]"                 value="96000000" />
    <item key="/MCG/system_mcgfllclk_clock[1]"              value="80000000" />
    <item key="/MCG/system_mcgfllclk_clock[2]"              value="80000000" />
+   <item key="/RTC/rtc_cr_osce"                            value="false" />
    <item key="/SIM/sim_clkdiv2_usb"                        value="2" />
    <item key="/SIM/sim_sopt2_pllfllsel[0]"                 value="1" />
    <item key="/SIM/system_bus_clock[1]"                    value="4000000" />

@@ -111,18 +111,33 @@
 //==========================================================================================
 // USB Serial Number
 #ifdef UNIQUE_ID
-#define SERIAL_NO           "USBDM-MK-"
+#define SERIAL_NO           "USBDM-OPENSDA-"
 #else
-#define SERIAL_NO           "USBDM-MK-0001"
+#define SERIAL_NO           "USBDM-OPENSDA-0001"
 #endif
+
+#if defined(OPEN_SDA_V2_1)
+#define PRODUCT_DESCRIPTION "USBDM ARM-SWD for OpenSDAv2.1"
+#elif defined(OPEN_SDA_V2_0)
+#define PRODUCT_DESCRIPTION "USBDM ARM-SWD for OpenSDAv2.0"
+#elif defined(OPEN_SDA_V1)
+#define PRODUCT_DESCRIPTION "USBDM ARM-SWD for OpenSDAv1"
+#else
 #define PRODUCT_DESCRIPTION "USBDM ARM-SWD for FRDM"
+#endif
+
 #define MANUFACTURER        "pgo"
 
 //==========================================================================================
 // Capabilities of the hardware - used to enable/disable appropriate code
 //
+#if defined SDA_POWER
 #define HW_CAPABILITY       (CAP_RST_OUT|CAP_CDC|CAP_SWD_HW|CAP_CORE_REGS|CAP_VDDCONTROL)
 #define TARGET_CAPABILITY   (CAP_RST    |CAP_CDC|CAP_ARM_SWD|CAP_VDDCONTROL)
+#else
+#define HW_CAPABILITY       (CAP_RST_OUT|CAP_CDC|CAP_SWD_HW|CAP_CORE_REGS)
+#define TARGET_CAPABILITY   (CAP_RST    |CAP_CDC|CAP_ARM_SWD)
+#endif
 
 #define CPU  MK20D5
 
@@ -132,7 +147,7 @@
 //! Software Version Information
 //
 #define VERSION_MAJOR 5
-#define VERSION_MINOR 2
+#define VERSION_MINOR 3
 #define VERSION_MICRO 0
 #define VERSION_SW  ((VERSION_MAJOR<<4)+VERSION_MINOR)
 

@@ -46,10 +46,10 @@
     <booleanAttribute key="net.sourceforge.usbdm.gdb.useSemiHosting" value="false"/>
     <stringAttribute key="org.eclipse.cdt.dsf.gdb.DEBUG_NAME" value="${usbdm_armLtd_arm_path}/${usbdm_armLtd_arm_prefix}gdb"/>
     <intAttribute key="org.eclipse.cdt.launch.ATTR_BUILD_BEFORE_LAUNCH_ATTR" value="2"/>
-    <stringAttribute key="org.eclipse.cdt.launch.PROGRAM_NAME" value="Debug/bdm_frdm.elf"/>
+    <stringAttribute key="org.eclipse.cdt.launch.PROGRAM_NAME" value="Debug/Debug.elf"/>
     <stringAttribute key="org.eclipse.cdt.launch.PROJECT_ATTR" value="bdm_frdm"/>
     <booleanAttribute key="org.eclipse.cdt.launch.PROJECT_BUILD_CONFIG_AUTO_ATTR" value="true"/>
-    <stringAttribute key="org.eclipse.cdt.launch.PROJECT_BUILD_CONFIG_ID_ATTR" value="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.910839733"/>
+    <stringAttribute key="org.eclipse.cdt.launch.PROJECT_BUILD_CONFIG_ID_ATTR" value="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.262006593"/>
     <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
         <listEntry value="/bdm_frdm"/>
     </listAttribute>

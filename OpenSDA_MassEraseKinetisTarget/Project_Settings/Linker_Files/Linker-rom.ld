@@ -1,4 +1,4 @@
-/* ARMLtd_GCC-rom-mk-sramu.ld
+/* ARMLtd_GCC-rom-mk-sramu.ld (Packages\100.ARM_DeviceOptions\Project_Settings\Linker_Files)
  *
  * Kinetis version with optional SRAM_U allocation and bitband
  *
@@ -13,13 +13,13 @@
  *      __exidx_start
  *      __exidx_end
  *      __etext
- *      __data_start__
  *      __preinit_array_start
  *      __preinit_array_end
  *      __init_array_start
  *      __init_array_end
  *      __fini_array_start
  *      __fini_array_end
+ *      __data_start__
  *      __data_end__
  *      __bss_start__
  *      __bss_end__
@@ -36,7 +36,7 @@ OUTPUT_FORMAT ("elf32-littlearm", "elf32-bigarm", "elf32-littlearm")
 SEARCH_DIR(.)
 
 /* Include external memory map defining ram and Flash memory etc */
-INCLUDE "MemoryMap-frdm_k20d50m.ld"
+INCLUDE "MemoryMap-mk20dx128m5.ld"
 
 ENTRY(Reset_Handler)
 
@@ -143,15 +143,15 @@ M_VECTOR_RAM_SIZE = DEFINED(__ram_vector_table__) ? (__VECTOR_TABLE_END - __VECT
    } > flash
    __exidx_end = .;
 
-   __etext = .;    /* define a global symbol at end of code */
-   __DATA_ROM = .; /* Symbol is used by startup for data initialization */
-
    /* Flash region for programming */
    .flash (NOLOAD) : 
    {
       . = ALIGN(4);
       KEEP(*(.flash))
    } > flash
+
+   __etext = .;    /* define a global symbol at end of code */
+   __DATA_ROM = .; /* Symbol is used by startup for data initialization */
 
   /* reserve MTB memory at the beginning of data */
   .mtb : /* MTB buffer no0load */
@@ -161,7 +161,7 @@ M_VECTOR_RAM_SIZE = DEFINED(__ram_vector_table__) ? (__VECTOR_TABLE_END - __VECT
     KEEP(*(.mtb_buf)) /* May not referenced by application */
     . = ALIGN(8);
     _mtb_end = .;
-  } > ram
+  } > mtb_ram
 
   .interrupts_ram :
   {
@@ -172,10 +172,15 @@ M_VECTOR_RAM_SIZE = DEFINED(__ram_vector_table__) ? (__VECTOR_TABLE_END - __VECT
     . += M_VECTOR_RAM_SIZE;
     . = ALIGN(4);
     __interrupts_ram_end__ = .; 
-  } > ram
+  } > interrupts_ram
 
   __VECTOR_RAM = DEFINED(__ram_vector_table__) ? __VECTOR_RAM__ : __VECTOR_TABLE;
   __RAM_VECTOR_TABLE_SIZE_BYTES = __interrupts_ram_end__ - __interrupts_ram_start__;
+  
+   .bdts :
+   {
+      *(.bss*endPointBdts*) /* Load USB BDTs here as they are aligned */
+   } > bdts_ram
   
    .data : AT (__etext)
    {
@@ -187,11 +192,19 @@ M_VECTOR_RAM_SIZE = DEFINED(__ram_vector_table__) ? (__VECTOR_TABLE_END - __VECT
       . = ALIGN(4);
       /* All data end */
       __data_end__ = .;
-   } > ram
+   } > data_ram
    
   /* KDS defines __DATA_END as the end of DATA in Flash */
   __DATA_END = __DATA_ROM + SIZEOF(.data);
 
+   /* Start of not initialised region */
+   .noinit :
+   {
+      . = ALIGN(4);
+      *(.noinit)
+   } > noinit_ram
+   
+   /* Start of BSS */
    .bss :
    {
       . = ALIGN(4);
@@ -203,9 +216,9 @@ M_VECTOR_RAM_SIZE = DEFINED(__ram_vector_table__) ? (__VECTOR_TABLE_END - __VECT
       . = ALIGN(4);
       __bss_end__ = .;
       __END_BSS = .;
-   } > ram
+   } > bss_ram
     
-   /* Minimum HEAP - from top of BSS */
+   /* Start of HEAP - usually from top of BSS */
    .heap :
    {
       . = ALIGN(4);
@@ -215,7 +228,21 @@ M_VECTOR_RAM_SIZE = DEFINED(__ram_vector_table__) ? (__VECTOR_TABLE_END - __VECT
       __HeapBase = .;
       __heap_addr = .;
       . = . + __heap_size__;
-   } > ram
+      /* Heap limit is at Top of ram_low or bottom of stack */
+      __HeapLimit = MIN( ABSOLUTE(ORIGIN(heap_ram)+LENGTH(heap_ram)-1), __StackLimit);
+   } > heap_ram
+
+   /* STACK space - between HEAP and end of RAM (or bitband_bytes) */
+   PROVIDE ( __sram_u_size = 0 );
+   .stack :
+   {
+      /* Make sure location doesn't move backwards as causes cryptic messages */
+      . = MAX( ., ABSOLUTE(ORIGIN(stack_ram) + LENGTH(stack_ram) - __stack_size__ - __sram_u_size - 3));
+      . = ALIGN(4);
+      __StackLimit = .;
+      . = . + __stack_size__;
+      __StackTop = .;
+   } > stack_ram
 
    /* FlexRAM region for non-volatile variables */
    .flexRAM (NOLOAD) :
@@ -232,19 +259,6 @@ M_VECTOR_RAM_SIZE = DEFINED(__ram_vector_table__) ? (__VECTOR_TABLE_END - __VECT
    } > flexNVM
 
 
-   /* STACK space - between HEAP and end of RAM (or bitband_bytes) */
-   PROVIDE ( __sram_u_size = 0 );
-   .stack :
-   {
-      /* Make sure location doesn't move backwards as causes cryptic messages */
-      . = MAX( ., ABSOLUTE(ORIGIN(ram) + LENGTH(ram) - __stack_size__ - __sram_u_size - 3));
-      . = ALIGN(4);
-      __HeapLimit = .;
-      __StackLimit = .;
-      . = . + __stack_size__;
-      __StackTop = .;
-   } > ram
-
    /* 
     * SRAM_U region
     *
@@ -256,7 +270,7 @@ M_VECTOR_RAM_SIZE = DEFINED(__ram_vector_table__) ? (__VECTOR_TABLE_END - __VECT
    .sram_u (NOLOAD) :
    {
       *(.sram_u)
-   } > ram
+   } > sram_u_ram
 
    /*
     * Bitband region
@@ -266,7 +280,7 @@ M_VECTOR_RAM_SIZE = DEFINED(__ram_vector_table__) ? (__VECTOR_TABLE_END - __VECT
    .bitband (NOLOAD) :
    {
       /* Allocate variables from top of region */
-      . = ORIGIN(bitband) + ((ORIGIN(ram) + LENGTH(ram) - __sram_u_size) & 0xFFFFFF) * 32;
+      . = ORIGIN(bitband) + ((ORIGIN(sram_u_ram) + LENGTH(sram_u_ram) - __sram_u_size) & 0xFFFFFF) * 32;
       *(.bitband)
    } > bitband
     
@@ -281,7 +295,7 @@ M_VECTOR_RAM_SIZE = DEFINED(__ram_vector_table__) ? (__VECTOR_TABLE_END - __VECT
   PROVIDE(_read  = _usbdm_read);
 
   /*
-   RAM Memory map                                            Example
+   Typcal RAM Memory map                                     Example
   +----------------------+                                   0x1FFFFF00
   | Micro Trace Buffer   |
   | (if declared)        |
@@ -298,6 +312,8 @@ M_VECTOR_RAM_SIZE = DEFINED(__ram_vector_table__) ? (__VECTOR_TABLE_END - __VECT
   | Heap                 |
   | (__heap_size__)      |  (minimum heap)                   (size=0x120)
   +----------------------+                                   0x200000A4
+  |//////////////////////|
+  |----------------------| <-- RAM Lower/Upper boundary
   |//////////////////////|
   +----------------------+ __HeapLimit = __StackLimit        0x200001fc
   | Stack                |

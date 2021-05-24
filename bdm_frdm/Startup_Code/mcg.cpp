@@ -604,7 +604,12 @@ void Mcg::SystemCoreClockUpdate(void) {
  */
 void Mcg::defaultConfigure() {
 
-   currentClockMode = McgInfo::ClockMode::ClockMode_None;
+#if !defined(INITIAL_CLOCK_STATE)
+// Needed for use with a boot-loader that changes the clock
+#define INITIAL_CLOCK_STATE ClockMode_None;
+#endif
+
+   currentClockMode = McgInfo::ClockMode::INITIAL_CLOCK_STATE;
 
    // Transition to desired clock mode
    clockTransition(clockInfo[ClockConfig_default]);

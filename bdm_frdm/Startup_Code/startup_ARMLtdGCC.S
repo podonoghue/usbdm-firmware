@@ -154,7 +154,8 @@ Reset_Handler:
 #define __START _start
 #endif
 #ifndef __NO_SYSTEM_INIT
-    bl    SystemInit
+// Now done as constructor after __START
+//    bl    SystemInit
 #endif
 
     // Make sure hook is provided for CMSIS (fix for KDS compiler)

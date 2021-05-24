@@ -115,6 +115,24 @@ for file in "${WORKSPACE}/BootLoop"*"/Debug/"*.elf; do
   cp -p "${file}"           "${MK_FLASH_DIR}"   
 done
 
+if [ -f "${WORKSPACE}/BootLoopMKL05_SWD_Disabled/"*.md ]; then
+   cp -p "${WORKSPACE}/BootLoopMKL05_SWD_Disabled/"*.md "${MK_FLASH_DIR}/ReadMe_BootLoopMKL05_Disable_SWD.txt"
+fi
+
+echo "***  Doing bootloader mass erase examples"
+for file in "${WORKSPACE}/OpenSDA_MassEraseKinetisTarget/"*/*.sx; do
+   cp -p "${WORKSPACE}/OpenSDA_MassEraseKinetisTarget/"*/*.sx "${MK_FLASH_DIR}"
+done
+
+for file in "${WORKSPACE}/OpenSDA_MassEraseKinetisTarget/"*/*.bin; do
+   cp -p "${WORKSPACE}/OpenSDA_MassEraseKinetisTarget/"*/*.bin "${MK_FLASH_DIR}"
+done
+
+if [ -f "${WORKSPACE}/OpenSDA_MassEraseKinetisTarget/"*.md ]; then
+   cp -p "${WORKSPACE}/OpenSDA_MassEraseKinetisTarget/"*.md "${MK_FLASH_DIR}/ReadMe_OpenSDA_MassEraseKinetisTarget.txt"
+fi
+
+
 }
 
 clear
