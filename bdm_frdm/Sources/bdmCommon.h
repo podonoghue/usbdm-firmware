@@ -10,7 +10,6 @@
 
 #include <stdint.h>
 
-//#include "targetVddInterface.h"
 #include "commands.h"
 
 USBDM_ErrorCode setTarget(TargetType_t target);

@@ -24,6 +24,7 @@ private:
    static LineCodingStructure lineCoding;
    static uint8_t             breakCount;
    static bool              (*inCallback)(uint8_t);
+   static Uart_brfa_T<UartInfo>      uart;
 
 public:
    static constexpr uint8_t CDC_STATE_DCD_MASK        = 1<<0;
@@ -113,24 +114,22 @@ public:
       uint8_t  UARTC1Value = 0x00;
       uint8_t  UARTC3Value = 0x00;
 
-      // Initialise UART and set baud rate
-      Uart_brfa_T<UartInfo> uart;
+      lineCoding = *lineCodingStructure;
+
+      Uart_T<UartInfo>::setRxTxCallback(uartCallback);
+
+      // Disable the transmitter and receiver while changing settings.
+      UartInfo::uart().C2 &= ~(UART_C2_TE_MASK | UART_C2_RE_MASK);
       uart.setBaudRate(leToNative32(lineCoding.dwDTERate));
-      USBDM::Uart_T<UartInfo>::setRxTxCallback(uartCallback);
 
       cdcStatus  = CDC_STATE_CHANGE_MASK;
       breakCount = 0; // Clear any current BREAKs
-
-      lineCoding = *lineCodingStructure;
 
       //! Note - for a 48MHz bus speed the useful baud range is ~300 to ~115200 for 0.5% error
       //  230400 & 460800 have a 8.5% error
 
       // Configure pins
       UartInfo::initPCRs();
-
-      // Disable the transmitter and receiver while changing settings.
-      UartInfo::uart().C2 &= ~(UART_C2_TE_MASK | UART_C2_RE_MASK );
 
       // Note: lineCoding.bCharFormat is ignored (always 1 stop bit)
       //   switch (lineCoding.bCharFormat) {
@@ -289,6 +288,9 @@ Queue<char, 100> CdcUart<UartInfo>::outQueue;
 
 template<class UartInfo>
 bool (*CdcUart<UartInfo>::inCallback)(uint8_t ch);
+
+template<class UartInfo>
+Uart_brfa_T<UartInfo>      CdcUart<UartInfo>::uart;
 
 }; // end namespace USBDM
 

@@ -836,7 +836,7 @@ template<class Info, int EP0_SIZE>
 void UsbBase_T<Info, EP0_SIZE>::handleSetupToken() {
 
    // Save data from SETUP transaction
-   Endpoint::safeCopy(&fEp0SetupBuffer, fControlEndpoint.getBuffer(), sizeof(fEp0SetupBuffer));
+   Endpoint::safeCopy(&fEp0SetupBuffer, fControlEndpoint.getRxBuffer(), sizeof(fEp0SetupBuffer));
 
    // Tell endpoint about the SETUP transaction
    fControlEndpoint.setupReceived();
@@ -1423,14 +1423,14 @@ void UsbBase_T<Info, EP0_SIZE>::handleGetDescriptor() {
             sf.setPadding(Padding_LeadingZeroes).setWidth(6).write(SERIAL_NO).write(uid, Radix_16).write('\0');
 
             // Use end-point internal buffer directly - may result in truncation
-            dataPtr = fControlEndpoint.getBuffer();
-            utf8ToStringDescriptor(fControlEndpoint.getBuffer(), (uint8_t *)utf8Buff, fControlEndpoint.BUFFER_SIZE);
+            dataPtr = fControlEndpoint.getTxBuffer();
+            utf8ToStringDescriptor(fControlEndpoint.getTxBuffer(), (uint8_t *)utf8Buff, fControlEndpoint.BUFFER_SIZE);
          }
 #endif
          else {
             // Use end-point internal buffer directly - may result in truncation
-            dataPtr = fControlEndpoint.getBuffer();
-            utf8ToStringDescriptor(fControlEndpoint.getBuffer(), UsbImplementation::stringDescriptors[descriptorIndex], fControlEndpoint.BUFFER_SIZE);
+            dataPtr = fControlEndpoint.getTxBuffer();
+            utf8ToStringDescriptor(fControlEndpoint.getTxBuffer(), UsbImplementation::stringDescriptors[descriptorIndex], fControlEndpoint.BUFFER_SIZE);
          }
          dataSize = *dataPtr;
          break;

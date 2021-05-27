@@ -28,14 +28,14 @@
    +=========================================================================================================
    \endverbatim
  */
-#include "interface.h"
 #include "delay.h"
+#include "utilities.h"
+#include "interface.h"
 #include "resetInterface.h"
 #include "spi.h"
-#include "swd.h"
 #include "commands.h"
-#include "utilities.h"
 #include "console.h"
+#include "swd.h"
 
 using namespace USBDM;
 

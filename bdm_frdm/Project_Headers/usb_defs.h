@@ -298,10 +298,10 @@ enum {
 /*----------------------------------------------------------------------------
  ** bmAttributes types
  */
-#define ATTR_CONTROL	    (0x00)
-#define ATTR_ISOCHRONOUS 	(0x01)
-#define ATTR_BULK  			(0x02)
-#define ATTR_INTERRUPT  	(0x03)
+#define ATTR_CONTROL       (0x00)
+#define ATTR_ISOCHRONOUS   (0x01)
+#define ATTR_BULK          (0x02)
+#define ATTR_INTERRUPT     (0x03)
 
 #define USBMilliamps(x)     ((x)/2)
 #define USBMilliseconds(x)  (x)
@@ -313,11 +313,11 @@ typedef struct {
    uint8_t bLength;                //!< Size of this Descriptor in Bytes
    uint8_t bDescriptorType;        //!< Descriptor Type (=0B)
    uint8_t bFirstInterface;        //!< First interface #
-   uint8_t bInterfaceCount;		   //!< Number of interfaces
+   uint8_t bInterfaceCount;        //!< Number of interfaces
    uint8_t bFunctionClass;         //!< bInterfaceClass;
    uint8_t bFunctionSubClass;      //!< bInterfaceSubClass;
    uint8_t bFunctionProtocol;      //!< Protocol
-   uint8_t iFunction;			   //!< Function
+   uint8_t iFunction;              //!< Function
 } InterfaceAssociationDescriptor;
 
 //============================================================================
@@ -340,45 +340,45 @@ typedef struct {
 
 //! USB CDC Header Functional Descriptor
 typedef struct {
-   uint8_t  bFunctionLength;		//!< Size
-   uint8_t  bDescriptorType;		//!< Type
-   uint8_t  bDescriptorSubtype;	    //!< Sub-type
-   uint16_t bcdCDC;					//!< ??
+   uint8_t  bFunctionLength;      //!< Size
+   uint8_t  bDescriptorType;      //!< Type
+   uint8_t  bDescriptorSubtype;   //!< Sub-type
+   uint16_t bcdCDC;               //!< ??
 } CDCHeaderFunctionalDescriptor;
 
 //! USB CDC Call Management Functional Descriptor
 typedef struct {
-   uint8_t  bFunctionLength;		//!< Length
-   uint8_t  bDescriptorType;		//!< Type
-   uint8_t  bDescriptorSubtype;	    //!< Sub-type
-   uint8_t  bmCapabilities;		    //!< Capabilities
-   uint8_t  bDataInterface;		    //!< Data interface
+   uint8_t  bFunctionLength;      //!< Length
+   uint8_t  bDescriptorType;      //!< Type
+   uint8_t  bDescriptorSubtype;   //!< Sub-type
+   uint8_t  bmCapabilities;       //!< Capabilities
+   uint8_t  bDataInterface;       //!< Data interface
 } CDCCallManagementFunctionalDescriptor;
 
 //! USB CDC Abstract Control Management Descriptor
 typedef struct {
-   uint8_t  bFunctionLength;		//!< Length
-   uint8_t  bDescriptorType;		//!< Type
-   uint8_t  bDescriptorSubtype;	    //!< Sub-type
-   uint8_t  bmCapabilities;		    //!< Capabilities
+   uint8_t  bFunctionLength;      //!< Length
+   uint8_t  bDescriptorType;      //!< Type
+   uint8_t  bDescriptorSubtype;   //!< Sub-type
+   uint8_t  bmCapabilities;       //!< Capabilities
 } CDCAbstractControlManagementDescriptor;
 
 //! USB CDC Union Functional Descriptor
 typedef struct {
    uint8_t  bFunctionLength;       //!< Length
-   uint8_t  bDescriptorType;	   //!< Type
+   uint8_t  bDescriptorType;       //!< Type
    uint8_t  bDescriptorSubtype;    //!< Sub-type
-   uint8_t  bMasterInterface;	   //!< Interface
-   uint8_t  bSlaveInterface[1];	   //!< Slave interface
+   uint8_t  bMasterInterface;      //!< Interface
+   uint8_t  bSlaveInterface[1];    //!< Slave interface
 } CDCUnionFunctionalDescriptor;
 
 //! USB CDC Notification
 typedef struct {
-   uint8_t  bmRequestType;	//!< Request type
-   uint8_t  bNotification;	//!< Notification
-   uint16_t wValue;		    //!< Value
-   uint16_t wIndex;	        //!< Index
-   uint16_t wLength;        //!< Length
+   uint8_t  bmRequestType; //!< Request type
+   uint8_t  bNotification; //!< Notification
+   uint16_t wValue;        //!< Value
+   uint16_t wIndex;        //!< Index
+   uint16_t wLength;       //!< Length
 } CDCNotification;
 
 #define CDC_NOTIFICATION   (0xA1)

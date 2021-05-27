@@ -311,9 +311,13 @@ void Usb0::epCdcSendNotification() {
 //      // Only send notifications if configured.
 //      return;
 //   }
-   static const CDCNotification cdcNotification = {
-         CDC_NOTIFICATION, SERIAL_STATE, 0, RT_INTERFACE, nativeToLe16(2)
-   };
+   static const struct CDCNotificationData {
+      CDCNotification notification;
+      uint8_t         data[2];
+   } cdcNotification = {
+      { CDC_NOTIFICATION, SERIAL_STATE, 0, RT_INTERFACE, nativeToLe16(2) },
+      {0,0}};
+
    uint8_t status = Uart::getSerialState().bits;
 
    if ((status & Uart::CDC_STATE_CHANGE_MASK) == 0) {
@@ -324,16 +328,17 @@ void Usb0::epCdcSendNotification() {
       // Busy with previous
       return;
    }
-   static_assert(epCdcNotification.BUFFER_SIZE>=sizeof(CDCNotification), "Buffer size insufficient");
+   static_assert(epCdcNotification.BUFFER_SIZE>=sizeof(cdcNotification), "Buffer size insufficient");
 
    // Copy the data to Tx buffer
-   Endpoint::safeCopy(epCdcNotification.getBuffer(), &cdcNotification, sizeof(cdcNotification));
-   epCdcNotification.getBuffer()[sizeof(cdcNotification)+0] = status&~Uart::CDC_STATE_CHANGE_MASK;
-   epCdcNotification.getBuffer()[sizeof(cdcNotification)+1] = 0;
+   CDCNotificationData *buff = (CDCNotificationData*)epCdcNotification.getTxBuffer();
+   Endpoint::safeCopy(buff, &cdcNotification, sizeof(cdcNotification));
+   buff->data[0] = status&~Uart::CDC_STATE_CHANGE_MASK;
+   buff->data[1] = 0;
 
    // Set up to Tx packet
 //   console.write("epCdcSendNotification() 0x").writeln(epCdcNotification.getBuffer()[sizeof(cdcNotification)+0], USBDM::Radix_16);
-   epCdcNotification.startTxStage(EPDataIn, sizeof(cdcNotification)+2);
+   epCdcNotification.startTxStage(EPDataIn, sizeof(cdcNotification));
 }
 
 /**
@@ -389,7 +394,7 @@ EndpointState Usb0::cdcOutTransactionCallback(EndpointState state) {
    (void)state;
    usbdm_assert(state == EPDataOut, "Incorrect endpoint state");
    
-   volatile uint8_t *buff = epCdcDataOut.getBuffer();
+   volatile const uint8_t *buff = epCdcDataOut.getRxBuffer();
    for (int i=epCdcDataOut.getDataTransferredSize(); i>0; i--) {
       if (!Uart::putChar(*buff++)) {
          // Discard further data from this transfer
@@ -417,7 +422,7 @@ EndpointState Usb0::cdcInTransactionCallback(EndpointState state) {
    (void)state;
 
    unsigned charCount     = 0;
-   volatile uint8_t *buff = epCdcDataIn.getBuffer();
+   volatile uint8_t *buff = epCdcDataIn.getTxBuffer();
 
    // Copy characters from UART to end-point buffer
    while(!inQueue.isEmpty()) {
@@ -552,7 +557,7 @@ void Usb0::handleSetLineCoding() {
    // Call-back to do after transaction complete
    static auto callback = [](EndpointState) {
       // The controlEndpoint buffer will contain the LineCodingStructure data at call-back time
-      Uart::setLineCoding((LineCodingStructure *)fControlEndpoint.getBuffer());
+      Uart::setLineCoding((LineCodingStructure *)fControlEndpoint.getRxBuffer());
       fControlEndpoint.setCallback(nullptr);
       return EPIdle;
    };

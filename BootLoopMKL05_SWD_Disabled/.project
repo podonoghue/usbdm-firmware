@@ -21,7 +21,15 @@
 	<natures>
 		<nature>org.eclipse.cdt.core.cnature</nature>
 		<nature>net.sourceforge.usbdm.cdt.tools.cnature</nature>
+		<nature>org.eclipse.cdt.core.ccnature</nature>
+		<nature>net.sourceforge.usbdm.cdt.tools.ccnature</nature>
 		<nature>org.eclipse.cdt.managedbuilder.core.managedBuildNature</nature>
 		<nature>org.eclipse.cdt.managedbuilder.core.ScannerConfigNature</nature>
 	</natures>
+	<variableList>
+		<variable>
+			<name>copy_PROJECT_LOC</name>
+			<value>$%7BPARENT-1-PROJECT_LOC%7D/kl05_Test</value>
+		</variable>
+	</variableList>
 </projectDescription>

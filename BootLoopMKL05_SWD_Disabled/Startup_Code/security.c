@@ -76,25 +76,25 @@ typedef struct {
    <info>NV_FSEC
    <o0> Backdoor Key Security Access Enable
       <i> Controls use of Backdoor Key access to unsecure device
-      <info>KEYEN
+      <info>[7,6] KEYEN
       <2=> 2: Access enabled
       <3=> 3: Access disabled
    <o1> Mass Erase Enable Bits
       <i> Controls mass erase capability of the flash memory module.
       <i> Only relevant when FSEC.SEC is set to secure.
-      <info>MEEN
+      <info>[5,4] MEEN
       <2=> 2: Mass erase disabled
       <3=> 3: Mass erase enabled
    <o2> Freescale Failure Analysis Access
       <i> Controls access to the flash memory contents during returned part failure analysis
-      <info>FSLACC
+      <info>[3,2] FSLACC
       <2=> 2: Factory access denied
       <3=> 3: Factory access granted
    <o3> Flash Security
       <i> Defines the security state of the MCU.
       <i> In the secure state, the MCU limits access to flash memory module resources.
       <i> If the flash memory module is unsecured using backdoor key access, SEC is forced to 10b.
-      <info>SEC
+      <info>[1,0] SEC
       <2=> 2: Unsecured
       <3=> 3: Secured
 </h>
@@ -113,17 +113,17 @@ Control extended Boot features on these devices
 
    <q2.5> Fast initialisation control
       <i> Selects initialization speed on POR, VLLSx, and system reset.
-	  <info>FAST_INIT
+	  <info>[5] FAST_INIT
       <0=> Slow - Slower initialization and reduced average current.
       <1=> Fast - Faster initialization and higher average current.
    <q2.3> RESET pin control
       <i> Enables or disables the RESET pin dedicated operation
-	  <info>RESET_PIN_CFG
+	  <info>[3] RESET_PIN_CFG
       <0=> Disabled (available as port pin)
       <1=> Enabled (PUP, open-drain, filtered)
    <q2.2> NMI pin control
       <i> Enables or disables the NMI function
-      <info>NMI_DIS
+      <info>[2] NMI_DIS
       <0=> NMI interrupts are always blocked.
       <1=> NMI interrupts default to enabled
    <o3> Low power boot control
@@ -132,7 +132,7 @@ Control extended Boot features on these devices
       <i> Larger divide value selections produce lower average power consumption
       <i> during POR and reset sequencing and after reset exit.
       <i> The recovery times are also extended.
-      <info>LPBOOT
+      <info>[4,0] LPBOOT
       <0=> OUTDIV1 = /8, RUNM = VLPR
       <1=> OUTDIV1 = /4, RUNM = VLPR
       <16=> OUTDIV1 = /2, RUNM = RUN
@@ -141,7 +141,7 @@ Control extended Boot features on these devices
  */
 #define RESERVED1      (0)      // -0
 #define RESERVED2      (0)      // -1
-#define FOPT_MISC      (0x2C)   // q2
+#define FOPT_MISC      (0x24)   // q2
 #define FOPT_LPBOOT    (0x11)   // o3
 #define FOPT_RESERVED  (0xC2)   // Bits not controlled by above
 

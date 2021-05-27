@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Configure.usbdmProject -->
+<!-- 
+   Settings
+-->
+
+<section name="USBDM">
+   <item key="$$DeviceInfo_Device_Variant"                 value="FRDM_K22F" />
+   <item key="$$DeviceInfo_SubFamily"                      value="MK22F51212" />
+   <item key="$$Hardware_Source_Filename"                  value="MK22F51212.usbdmHardware" />
+   <item key="$signal$EXTAL32_descriptionSetting"          value="Reserved(Crystal)" />
+   <item key="$signal$PTA0_descriptionSetting"             value="Reserved(SWD)" />
+   <item key="$signal$PTA0_muxSetting"                     value="mux7" />
+   <item key="$signal$PTA12_muxSetting"                    value="mux1" />
+   <item key="$signal$PTA13_muxSetting"                    value="mux1" />
+   <item key="$signal$PTA18_descriptionSetting"            value="Reserved(Crystal)" />
+   <item key="$signal$PTA18_muxSetting"                    value="mux0" />
+   <item key="$signal$PTA19_descriptionSetting"            value="Reserved(Crystal)" />
+   <item key="$signal$PTA19_muxSetting"                    value="mux0" />
+   <item key="$signal$PTA1_descriptionSetting"             value="Red LED" />
+   <item key="$signal$PTA1_muxSetting"                     value="mux1" />
+   <item key="$signal$PTA2_descriptionSetting"             value="Green LED" />
+   <item key="$signal$PTA2_muxSetting"                     value="mux1" />
+   <item key="$signal$PTA3_descriptionSetting"             value="Reserved(SWD)" />
+   <item key="$signal$PTA3_muxSetting"                     value="mux7" />
+   <item key="$signal$PTA4_muxSetting"                     value="mux1" />
+   <item key="$signal$PTA5_muxSetting"                     value="mux1" />
+   <item key="$signal$PTB0_muxSetting"                     value="mux0" />
+   <item key="$signal$PTB17_descriptionSetting"            value="SW3" />
+   <item key="$signal$PTB17_muxSetting"                    value="mux1" />
+   <item key="$signal$PTB18_muxSetting"                    value="mux1" />
+   <item key="$signal$PTB19_muxSetting"                    value="mux1" />
+   <item key="$signal$PTB1_muxSetting"                     value="mux0" />
+   <item key="$signal$PTB2_descriptionSetting"             value="Accelerometer, Magnetometer_scl" />
+   <item key="$signal$PTB2_muxSetting"                     value="mux0" />
+   <item key="$signal$PTB3_descriptionSetting"             value="Accelerometer, Magnetometer_sda" />
+   <item key="$signal$PTB3_muxSetting"                     value="mux0" />
+   <item key="$signal$PTC10_muxSetting"                    value="mux1" />
+   <item key="$signal$PTC11_descriptionSetting"            value="RF_ce*" />
+   <item key="$signal$PTC11_muxSetting"                    value="mux0" />
+   <item key="$signal$PTC1_descriptionSetting"             value="SW2" />
+   <item key="$signal$PTC1_muxSetting"                     value="mux0" />
+   <item key="$signal$PTC2_muxSetting"                     value="mux4" />
+   <item key="$signal$PTC3_muxSetting"                     value="mux1" />
+   <item key="$signal$PTC5_muxSetting"                     value="mux1" />
+   <item key="$signal$PTC6_muxSetting"                     value="mux1" />
+   <item key="$signal$PTC7_muxSetting"                     value="mux1" />
+   <item key="$signal$PTC8_muxSetting"                     value="mux1" />
+   <item key="$signal$PTC9_muxSetting"                     value="mux1" />
+   <item key="$signal$PTD0_descriptionSetting"             value="Accelerometer, Magnetometer &amp; RF IRQ" />
+   <item key="$signal$PTD1_descriptionSetting"             value="RF_sck" />
+   <item key="$signal$PTD2_descriptionSetting"             value="RF_mosi, Bluetooth_tx" />
+   <item key="$signal$PTD2_muxSetting"                     value="mux1" />
+   <item key="$signal$PTD3_descriptionSetting"             value="RF_miso, Bluetooth_rx" />
+   <item key="$signal$PTD3_muxSetting"                     value="mux1" />
+   <item key="$signal$PTD4_descriptionSetting"             value="RF_cs*" />
+   <item key="$signal$PTD4_muxSetting"                     value="mux1" />
+   <item key="$signal$PTD5_descriptionSetting"             value="Blue LED" />
+   <item key="$signal$PTD5_muxSetting"                     value="mux7" />
+   <item key="$signal$PTD6_muxSetting"                     value="mux7" />
+   <item key="$signal$PTD7_muxSetting"                     value="mux7" />
+   <item key="$signal$PTE0_descriptionSetting"             value="USB Serial Tx" />
+   <item key="$signal$PTE0_muxSetting"                     value="mux3" />
+   <item key="$signal$PTE1_descriptionSetting"             value="USB Serial Rx" />
+   <item key="$signal$PTE1_muxSetting"                     value="mux3" />
+   <item key="$signal$RESET_b_descriptionSetting"          value="Reserved(Reset*)" />
+   <item key="$signal$USB0_DM_descriptionSetting"          value="Reserved(USB_DM)" />
+   <item key="$signal$USB0_DP_descriptionSetting"          value="Reserved(USB_DP)" />
+   <item key="$signal$XTAL32_descriptionSetting"           value="Reserved(Crystal)" />
+   <item key="/Console/consoleDevice"                      value="USBDM::Uart1" />
+   <item key="/FTFA/peripheral_file"                       value="ftfa" />
+   <item key="/LPTMR0/lptmr_cmr"                           value="0" />
+   <item key="/MCG/ClockConfig[0]"                         value="ClockConfig_FEI_84MHz" />
+   <item key="/MCG/ClockConfig[1]"                         value="ClockConfig_FBI_4MHz" />
+   <item key="/MCG/ClockConfig[2]"                         value="ClockConfig_FBE_8MHz" />
+   <item key="/MCG/ClockConfig[3]"                         value="ClockConfig_FEE_80MHz" />
+   <item key="/MCG/ClockConfig[4]"                         value="ClockConfig_BLPI_4MHz" />
+   <item key="/MCG/ClockConfig[5]"                         value="ClockConfig_BLPE_8MHz" />
+   <item key="/MCG/ClockConfig[6]"                         value="ClockConfig_PBE_8MHz" />
+   <item key="/MCG/ClockConfig[7]"                         value="ClockConfig_PEE_48M" />
+   <item key="/MCG/clock_mode[1]"                          value="ClockMode_FBI" />
+   <item key="/MCG/clock_mode[2]"                          value="ClockMode_FBE" />
+   <item key="/MCG/clock_mode[3]"                          value="ClockMode_FEE" />
+   <item key="/MCG/clock_mode[4]"                          value="ClockMode_BLPI" />
+   <item key="/MCG/clock_mode[5]"                          value="ClockMode_BLPE" />
+   <item key="/MCG/clock_mode[6]"                          value="ClockMode_PBE" />
+   <item key="/MCG/clock_mode[7]"                          value="ClockMode_PEE" />
+   <item key="/MCG/pll0OutputFrequency[0]"                 value="80000000" />
+   <item key="/MCG/pll0OutputFrequency[7]"                 value="96000000" />
+   <item key="/MCG/system_mcgfllclk_clock[0]"              value="83886080" />
+   <item key="/MCG/system_mcgfllclk_clock[1]"              value="83886080" />
+   <item key="/MCG/system_mcgfllclk_clock[2]"              value="80000000" />
+   <item key="/MCG/system_mcgfllclk_clock[3]"              value="80000000" />
+   <item key="/OSC0/osc_cr_scp"                            value="4" />
+   <item key="/SIM/ClockConfig[0]"                         value="" />
+   <item key="/SIM/ClockConfig[1]"                         value="" />
+   <item key="/SIM/ClockConfig[2]"                         value="" />
+   <item key="/SIM/ClockConfig[3]"                         value="" />
+   <item key="/SIM/ClockConfig[4]"                         value="" />
+   <item key="/SIM/ClockConfig[5]"                         value="" />
+   <item key="/SIM/ClockConfig[6]"                         value="" />
+   <item key="/SIM/ClockConfig[7]"                         value="" />
+   <item key="/SIM/busFreq"                                value="60MHz" />
+   <item key="/SIM/coreFreq"                               value="120MHz" />
+   <item key="/SIM/flashFreq"                              value="25MHz" />
+   <item key="/SIM/flexFreq"                               value="50MHz" />
+   <item key="/SIM/sim_clkdiv2_usb"                        value="0" />
+   <item key="/SIM/sim_sopt2_clkoutsel"                    value="6" />
+   <item key="/SIM/sim_sopt2_lpuartsrc"                    value="2" />
+   <item key="/SIM/sim_sopt2_pllfllsel[0]"                 value="3" />
+   <item key="/SIM/sim_sopt2_pllfllsel[1]"                 value="3" />
+   <item key="/SIM/sim_sopt2_pllfllsel[3]"                 value="1" />
+   <item key="/SIM/system_bus_clock[0]"                    value="41943040" />
+   <item key="/SIM/system_bus_clock[1]"                    value="4000000" />
+   <item key="/SIM/system_bus_clock[2]"                    value="8000000" />
+   <item key="/SIM/system_bus_clock[4]"                    value="4000000" />
+   <item key="/SIM/system_bus_clock[5]"                    value="8000000" />
+   <item key="/SIM/system_bus_clock[6]"                    value="8000000" />
+   <item key="/SIM/system_bus_clock[7]"                    value="48000000" />
+   <item key="/SIM/system_core_clock[0]"                   value="83886080" />
+   <item key="/SIM/system_core_clock[1]"                   value="4000000" />
+   <item key="/SIM/system_core_clock[2]"                   value="8000000" />
+   <item key="/SIM/system_core_clock[4]"                   value="4000000" />
+   <item key="/SIM/system_core_clock[5]"                   value="8000000" />
+   <item key="/SIM/system_core_clock[6]"                   value="8000000" />
+   <item key="/SIM/system_core_clock[7]"                   value="48000000" />
+   <item key="/SIM/system_flash_clock[0]"                  value="20971520" />
+   <item key="/SIM/system_flash_clock[1]"                  value="4000000" />
+   <item key="/SIM/system_flash_clock[2]"                  value="8000000" />
+   <item key="/SIM/system_flash_clock[4]"                  value="4000000" />
+   <item key="/SIM/system_flash_clock[5]"                  value="8000000" />
+   <item key="/SIM/system_flash_clock[6]"                  value="8000000" />
+   <item key="/SIM/system_flash_clock[7]"                  value="24000000" />
+   <item key="/SIM/system_flexbus_clock[0]"                value="27962026" />
+   <item key="/SIM/system_flexbus_clock[1]"                value="4000000" />
+   <item key="/SIM/system_flexbus_clock[2]"                value="8000000" />
+   <item key="/SIM/system_flexbus_clock[4]"                value="4000000" />
+   <item key="/SIM/system_flexbus_clock[5]"                value="8000000" />
+   <item key="/SIM/system_flexbus_clock[6]"                value="8000000" />
+   <item key="/SIM/system_flexbus_clock[7]"                value="24000000" />
+</section>

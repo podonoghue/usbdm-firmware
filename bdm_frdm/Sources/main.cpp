@@ -333,6 +333,9 @@ void coldStart() {
 
    TargetVddInterface::initialise(targetVddSense);
 
+   // Board starts with Target Vdd on
+   TargetVddInterface::vddOn();
+
    // Wait for Vbdm stable
    wait(10*ms);
 

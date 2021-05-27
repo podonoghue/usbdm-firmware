@@ -72,6 +72,4 @@ extern CableStatus_t cable_status;
 /** Options for cable operation */
 extern BDM_Option_t  bdm_option;
 
-void commandLoop();
-
 #endif
