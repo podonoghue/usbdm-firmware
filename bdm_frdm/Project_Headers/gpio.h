@@ -91,10 +91,10 @@ private:
    GpioBase_T(const GpioBase_T&) = delete;
    GpioBase_T(GpioBase_T&&) = delete;
 
+public:
    /** PCR associated with this GPIO pin */
    using Pcr = Pcr_T<clockInfo, portAddress, irqNum, bitNum, GPIO_DEFAULT_PCR>;
 
-public:
    /** Port associated with this GPIO */
    using Port = PcrBase_T<portAddress, irqNum>;
 

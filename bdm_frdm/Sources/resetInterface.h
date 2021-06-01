@@ -8,7 +8,6 @@
 #ifndef SOURCES_RESETINTERFACE_H_
 #define SOURCES_RESETINTERFACE_H_
 
-//#include "USBDM_MK.h"
 #include "hardware.h"
 
 /**

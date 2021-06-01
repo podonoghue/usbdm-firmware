@@ -502,8 +502,7 @@ public:
    //! Indicates need for special handling of CLKDIV1 register
    static constexpr int ERRATA_E2448 = 0;
 
-   enum ClockMode {
-      ClockMode_None     = -1,
+   enum ClockMode : uint8_t {
       ClockMode_FEI      = 0,
       ClockMode_FEE,
       ClockMode_FBI,

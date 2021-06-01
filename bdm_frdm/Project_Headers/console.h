@@ -27,6 +27,37 @@
 
 #define USE_CONSOLE 1
 
+// The following macros allow the selective use of the console routines
+// In release versions of the code the macros are null.
+
+// Variable Argument Macro (VA_MACRO) up to 6 arguments
+#define NUM_ARGS_(_1, _2, _3, _4, _5, _6, TOTAL, ...) TOTAL
+#define NUM_ARGS(...) NUM_ARGS_(__VA_ARGS__, 6, 5, 4, 3, 2, 1)
+
+#define CONCATE_(X, Y) X##Y  // Fixed the double '_' from previous code
+#define CONCATE(MACRO, NUMBER) CONCATE_(MACRO, NUMBER)
+#define VA_MACRO(MACRO, ...) CONCATE(MACRO, NUM_ARGS(__VA_ARGS__))(__VA_ARGS__)
+
+// This is how user may define own set of variadic macros
+#define WRITE(...)   VA_MACRO(WRITE, __VA_ARGS__)
+#define WRITELN(...) VA_MACRO(WRITELN, __VA_ARGS__)
+
+#if defined(DEBUG_BUILD) && USE_CONSOLE
+#define WRITE1(_1)           write(_1)
+#define WRITE2(_1, _2)       write(_1,_2)
+#define WRITE3(_1, _2, _3)   write(_1,_2,_3)
+#define WRITELN1(_1)         writeln(_1)
+#define WRITELN2(_1, _2)     writeln(_1,_2)
+#define WRITELN3(_1, _2, _3) writeln(_1,_2,_3)
+#else
+#define WRITE1(_1)           null()
+#define WRITE2(_1, _2)       null()
+#define WRITE3(_1, _2, _3)   null()
+#define WRITELN1(_1)         null()
+#define WRITELN2(_1, _2)     null()
+#define WRITELN3(_1, _2, _3) null()
+#endif
+
 #if USE_CONSOLE
 
 #ifdef __cplusplus
@@ -46,6 +77,16 @@ using  Console = USBDM::Uart0;
 
 //! Console instance
 extern Console console;
+
+/**
+ * Print simple log message to console
+ *
+ * @param msg Message to print
+ */
+inline void log_error(const char *msg) {
+   (void)msg;
+   console.WRITELN(msg);
+}
 
 /**
  * @}
@@ -88,6 +129,19 @@ int  console_rxChar(void);
 #ifdef __cplusplus
 }
 #endif
+
+#else
+
+namespace USBDM {
+class Console {
+public:
+   inline Console &null() { return *this; }
+};
+
+extern Console console;
+
+inline void log_error(const char *) {}
+} // End namespace USBDM
 
 #endif /* USE_CONSOLE */
 

@@ -62,7 +62,7 @@ namespace USBDM {
 #define PRODUCT_ID            (0xFFFF)    // Product ID
 #endif
 #ifndef VERSION_ID
-#define VERSION_ID (0x0200)
+#define VERSION_ID            (0x0200)
 #endif
 
 //======================================================================

@@ -120,14 +120,15 @@ inline void clearError() {
    errorCode = E_NO_ERROR;
 }
 
+extern void log_error(const char *);
+
 /**
  * Print simple log message to console
  *
  * @param msg Message to print
  */
-extern void log_error(const char *msg);
-
 inline void _usbdm_assert(const char *msg) {
+
    USBDM::log_error(msg);
    ::_exit(-1);
 }

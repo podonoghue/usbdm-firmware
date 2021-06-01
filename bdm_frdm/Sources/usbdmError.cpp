@@ -6,6 +6,7 @@
  * @date     13 April 2016
  */
 #include "hardware.h"
+#include "utilities.h"
 
 namespace USBDM {
 
@@ -63,7 +64,7 @@ const char *getErrorMessage(ErrorCode err) {
 #ifdef DEBUG_BUILD
 void abort(const char *msg __attribute__((unused))) {
 #if USE_CONSOLE
-   console.writeln(msg);
+   console.WRITELN(msg);
 #endif
    while(true) {
       __BKPT();
@@ -80,7 +81,7 @@ ErrorCode checkError() {
       const char *msg = getErrorMessage();
       __attribute__((unused))
       int cmsisErrorCode = errorCode & ~E_CMSIS_ERR_OFFSET;
-      console.writeln(msg);
+      console.WRITELN(msg);
 #endif
       // If you arrive here then an error has been detected.
       // If a CMSIS error, check the 'cmsisErrorCode' above and refer to the CMSIS error codes

@@ -19,9 +19,9 @@
   * Any manual changes will be lost.
   */
 
-#if USE_CONSOLE
-
 namespace USBDM {
+
+#if USE_CONSOLE
 
 /**
  * @addtogroup CONSOLE_Group Console
@@ -73,17 +73,12 @@ int console_rxChar(void) {
 }
 
 /**
- * Print simple log message to console
- *
- * @param msg Message to print
- */
-void log_error(const char *msg) {
-   console.writeln(msg);
-}
-/**
  * @}
  */
+#else
 
-} // End namespace USBDM
+Console console;
 
 #endif /* USE_CONSOLE */
+
+} // End namespace USBDM
