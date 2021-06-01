@@ -111,7 +111,8 @@ public:
       VddPowerFaultMonitor::enableNvicInterrupts();
 
       vddState = VddState_None;
-      if (isVddOK_3V3()) {
+
+      if (isVddOK()) {
          vddState = VddState_External;
       }
    }
@@ -157,7 +158,7 @@ public:
    static void vddOff() {
       Control::off();
       vddState  = VddState_None;
-      if (isVddOK_3V3()) {
+      if (isVddOK()) {
          vddState = VddState_External;
       }
    }
@@ -169,12 +170,8 @@ public:
     */
    static int readRawVoltage() {
       static constexpr int NominalVoltage = round(3.3*255/5.0);
-      if ((vddState == VddState_External) || (vddState == VddState_Internal)) {
-         return NominalVoltage;
-      }
-      else {
-         return 0;
-      }
+
+      return isVddOK()?NominalVoltage:0;
    }
 
    /**
@@ -184,12 +181,8 @@ public:
     */
    static float readVoltage() {
       static constexpr float NominalVoltage = 3.3;
-      if ((vddState == VddState_External) || (vddState == VddState_Internal)) {
-         return NominalVoltage;
-      }
-      else {
-         return 0;
-      }
+
+      return isVddOK()?NominalVoltage:0;
    }
 
    /**
@@ -202,13 +195,9 @@ public:
     * @return false => Target Vdd < voltage
     */
    static bool isVddOK() {
-      if ((vddState == VddState_External) || (vddState == VddState_Internal)) {
-         return true;
-      }
-      else {
-         return 0;
-      }
+      return (vddState == VddState_External) || (vddState == VddState_Internal);
    }
+
    /**
     * Check if target Vdd is present \n
     * Also updates Target Vdd LED
@@ -267,7 +256,7 @@ public:
             break;
 
          case VddState_Internal :
-            if (!isVddOK_3V3()) {
+            if (!isVddOK()) {
                // Power should be present!
                vddState = VddState_Error;
             }
@@ -275,7 +264,7 @@ public:
 
          case VddState_External :
          case VddState_None     :
-            if (isVddOK_3V3()) {
+            if (isVddOK()) {
                vddState = VddState_External;
             }
             else {

@@ -108,7 +108,7 @@ uint16_t makeStatusWord(void) {
       status |= S_RESET_DETECT;  // The target was recently reset externally
    }
 #endif // (HW_CAPABILITY&CAP_RST_IN)
-#if (HW_CAPABILITY&CAP_VDDSENSE)
+#if (HW_CAPABILITY&(CAP_VDDSENSE|CAP_VDDCONTROL))
    switch (TargetVddInterface::checkVddState()) {    // Target has power ?
       case VddState_None     : break;
       case VddState_Error    : status |= S_POWER_ERR;  break;
@@ -304,7 +304,7 @@ USBDM_ErrorCode f_CMD_DEBUG(void) {
       case BDM_DBG_CYCLE_POWER: // Cycle power to target
          return cycleTargetVdd(RESET_SPECIAL);
 #endif
-#if (HW_CAPABILITY & CAP_VDDSENSE)
+#if (HW_CAPABILITY & (CAP_VDDSENSE|CAP_VDDCONTROL))
       case BDM_DBG_MEASURE_VDD: // Measure Target Vdd
       {
          uint16_t voltage = targetVddMeasure(); // return the value

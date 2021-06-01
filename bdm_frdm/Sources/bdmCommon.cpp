@@ -69,7 +69,7 @@ static constexpr uint32_t RESET_RECOVERYms = 10;
  * @return BDM_RC_VDD_NOT_PRESENT Target Vdd missing
  */
 USBDM_ErrorCode checkTargetVdd(void) {
-#if (HW_CAPABILITY&CAP_VDDSENSE)
+#if (HW_CAPABILITY&(CAP_VDDSENSE|CAP_VDDCONTROL))
    switch(TargetVddInterface::checkVddState()) {
       case VddState_Error:
       case VddState_None:
