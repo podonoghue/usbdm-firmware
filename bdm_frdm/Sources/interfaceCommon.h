@@ -1,5 +1,5 @@
 /**
- * @file     bdmCommon.h
+ * @file     interfaceCommon.h
  * @brief    Low power timer interface
  *
  * @version  V4.12.1.80

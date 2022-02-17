@@ -16,7 +16,7 @@
  * This file is generated automatically.
  * Any manual changes will be lost.
  */
-#include "hardware.h"
+#include "pin_mapping.h"
 
 namespace USBDM {
 
@@ -39,7 +39,7 @@ enum PmcInterruptReason {
  *
  * @param pmcInterruptReason Reason for interrupt leading to call-back
  */
-typedef void (*PMCCallbackFunction)(PmcInterruptReason pmcInterruptReason);
+typedef void (*PmcCallbackFunction)(PmcInterruptReason pmcInterruptReason);
 
 /**
  * Action to take on Low Voltage Detect
@@ -122,7 +122,7 @@ class PmcBase_T {
 
 protected:
    /** Callback function for ISR */
-   static PMCCallbackFunction sCallback;
+   static PmcCallbackFunction sCallback;
 
    /** Handler for unexpected interrupts */
    static void unhandledCallback(PmcInterruptReason) {
@@ -134,19 +134,19 @@ public:
     */
    static void irqHandler(void) {
 
-      if ((PmcBase_T<Info>::pmc().LVDSC1 & (PMC_LVDSC1_LVDF_MASK|PMC_LVDSC1_LVDIE_MASK)) ==
+      if ((PmcBase_T<Info>::pmc->LVDSC1 & (PMC_LVDSC1_LVDF_MASK|PMC_LVDSC1_LVDIE_MASK)) ==
             (PMC_LVDSC1_LVDF_MASK|PMC_LVDSC1_LVDIE_MASK)) {
 
          // LVDF enabled and detected
-         PmcBase_T<Info>::pmc().LVDSC1 |= PMC_LVDSC1_LVDF_MASK;
+         PmcBase_T<Info>::pmc->LVDSC1 = PmcBase_T<Info>::pmc->LVDSC1 | PMC_LVDSC1_LVDF_MASK;
          sCallback(PmcInterruptReason_LowVoltageDetect);
          return;
       }
-      if ((PmcBase_T<Info>::pmc().LVDSC2 & (PMC_LVDSC2_LVWF_MASK|PMC_LVDSC2_LVWIE_MASK)) ==
+      if ((PmcBase_T<Info>::pmc->LVDSC2 & (PMC_LVDSC2_LVWF_MASK|PMC_LVDSC2_LVWIE_MASK)) ==
             (PMC_LVDSC2_LVWF_MASK|PMC_LVDSC2_LVWIE_MASK)) {
 
          // LVWF enabled and detected
-         PmcBase_T<Info>::pmc().LVDSC2 |= PMC_LVDSC2_LVWF_MASK;
+         PmcBase_T<Info>::pmc->LVDSC2 = PmcBase_T<Info>::pmc->LVDSC2 | PMC_LVDSC2_LVWF_MASK;
          sCallback(PmcInterruptReason_LowVoltageWarning);
          return;
       }
@@ -157,12 +157,91 @@ public:
    }
 
    /**
+    * Wrapper to allow the use of a class member as a callback function
+    * @note Only usable with static objects.
+    *
+    * @tparam T         Type of the object containing the callback member function
+    * @tparam callback  Member function pointer
+    * @tparam object    Object containing the member function
+    *
+    * @return  Pointer to a function suitable for the use as a callback
+    *
+    * @code
+    * class AClass {
+    * public:
+    *    int y;
+    *
+    *    // Member function used as callback
+    *    // This function must match PmcCallbackFunction
+    *    void callback() {
+    *       ...;
+    *    }
+    * };
+    * ...
+    * // Instance of class containing callback member function
+    * static AClass aClass;
+    * ...
+    * // Wrap member function
+    * auto fn = Cmp0::wrapCallback<AClass, &AClass::callback, aClass>();
+    * // Use as callback
+    * Cmp0::setCallback(fn);
+    * @endcode
+    */
+   template<class T, void(T::*callback)(PmcInterruptReason reason), T &object>
+   static PmcCallbackFunction wrapCallback() {
+      static PmcCallbackFunction fn = [](PmcInterruptReason reason) {
+         (object.*callback)(reason);
+      };
+      return fn;
+   }
+
+   /**
+    * Wrapper to allow the use of a class member as a callback function
+    * @note There is a considerable space and time overhead to using this method
+    *
+    * @tparam T         Type of the object containing the callback member function
+    * @tparam callback  Member function pointer
+    * @tparam object    Object containing the member function
+    *
+    * @return  Pointer to a function suitable for the use as a callback
+    *
+    * @code
+    * class AClass {
+    * public:
+    *    int y;
+    *
+    *    // Member function used as callback
+    *    // This function must match PmcCallbackFunction
+    *    void callback() {
+    *       ...;
+    *    }
+    * };
+    * ...
+    * // Instance of class containing callback member function
+    * AClass aClass;
+    * ...
+    * // Wrap member function
+    * auto fn = Cmp0::wrapCallback<AClass, &AClass::callback>(aClass);
+    * // Use as callback
+    * Cmp0::setCallback(fn);
+    * @endcode
+    */
+   template<class T, void(T::*callback)(PmcInterruptReason reason)>
+   static PmcCallbackFunction wrapCallback(T &object) {
+      static T &obj = object;
+      static PmcCallbackFunction fn = [](PmcInterruptReason reason) {
+         (obj.*callback)(reason);
+      };
+      return fn;
+   }
+
+   /**
     * Set Callback function
     *
     *  @param[in]  callback  Callback function to be executed on interrupt.\n
     *                        Use nullptr to remove callback.
     */
-   static void setCallback(PMCCallbackFunction callback) {
+   static void setCallback(PmcCallbackFunction callback) {
       static_assert(Info::irqHandlerInstalled, "PMC not configure for interrupts");
       if (callback == nullptr) {
          callback = unhandledCallback;
@@ -173,7 +252,7 @@ public:
 
 protected:
    /** Hardware instance */
-   static __attribute__((always_inline)) volatile PMC_Type &pmc() { return Info::pmc(); }
+   static constexpr HardwarePtr<PMC_Type> pmc = Info::baseAddress;
 
 public:
    /**
@@ -191,9 +270,9 @@ public:
    static void defaultConfigure() {
       enable();
 
-      pmc().LVDSC1 = Info::pmc_lvdsc1;
-      pmc().LVDSC2 = Info::pmc_lvdsc2;
-      pmc().REGSC  = Info::pmc_regsc;
+      pmc->LVDSC1 = Info::pmc_lvdsc1;
+      pmc->LVDSC2 = Info::pmc_lvdsc2;
+      pmc->REGSC  = Info::pmc_regsc;
 
       enableNvicInterrupts(Info::irqLevel);
    }
@@ -209,7 +288,7 @@ public:
          PmcLowVoltageDetectAction pmcLowVoltageDetectAction = PmcLowVoltageDetectAction_None,
          PmcLowVoltageDetectLevel  pmcLowVoltageDetectLevel  = PmcLowVoltageDetectLevel_High
          ) {
-      pmc().LVDSC1 = pmcLowVoltageDetectAction|pmcLowVoltageDetectLevel;
+      pmc->LVDSC1 = pmcLowVoltageDetectAction|pmcLowVoltageDetectLevel;
    }
 
 #else
@@ -219,7 +298,7 @@ public:
     * @param[in] pmcLowVoltageDetectAction Action to take on Low Voltage Detect
     */
    static void configureLowVoltageReset (PmcLowVoltageDetectAction pmcLowVoltageDetectAction = PmcLowVoltageDetectAction_None) {
-      pmc().LVDSC1 = pmcLowVoltageDetectAction;
+      pmc->LVDSC1 = pmcLowVoltageDetectAction;
    }
 
 #endif
@@ -235,7 +314,7 @@ public:
          PmcLowVoltageWarningAction pmcLowVoltageWarningAction = PmcLowVoltageWarningAction_None,
          PmcLowVoltageWarningLevel  pmcLowVoltageWarningLevel  = PmcLowVoltageWarningLevel_High
          ) {
-      pmc().LVDSC2 = pmcLowVoltageWarningAction|pmcLowVoltageWarningLevel;
+      pmc->LVDSC2 = pmcLowVoltageWarningAction|pmcLowVoltageWarningLevel;
    }
 
 #else
@@ -247,7 +326,7 @@ public:
    static void configureLowVoltageWarning (
          PmcLowVoltageWarningAction pmcLowVoltageWarningAction = PmcLowVoltageWarningAction_None
          ) {
-      pmc().LVDSC2 = pmcLowVoltageWarningAction;
+      pmc->LVDSC2 = pmcLowVoltageWarningAction;
    }
 
 #endif
@@ -257,7 +336,7 @@ public:
     * Release pins after VLLSx exit
     */
    static void releasePins () {
-      pmc().REGSC |= PMC_REGSC_ACKISO_MASK;
+      pmc->REGSC = pmc->REGSC | PMC_REGSC_ACKISO_MASK;
    }
 #endif
 
@@ -271,7 +350,7 @@ public:
    static void configureBandgapOperation(
          PmcBandgapBuffer           pmcBandgapBuffer,
          PmcBandgapLowPowerEnable   pmcBandgapLowPowerEnable=PmcBandgapLowPowerEnable_Off) {
-      pmc().REGSC = pmcBandgapBuffer|pmcBandgapLowPowerEnable;
+      pmc->REGSC = pmcBandgapBuffer|pmcBandgapLowPowerEnable;
    }
 #endif
 
@@ -286,7 +365,7 @@ public:
     * Biasing enabled => Core logic is slower and there are restrictions in allowed system clock speed
     */
    static void enableCoreBias() {
-      pmc().REGSC |= PMC_REGSC_BIASEN_MASK;
+      pmc->REGSC |= PMC_REGSC_BIASEN_MASK;
    }
 
    /**
@@ -295,7 +374,7 @@ public:
     * Biasing disabled => Core logic can run in full performance
     */
    static void disableCoreBias() {
-      pmc().REGSC &= ~PMC_REGSC_BIASEN_MASK;
+      pmc->REGSC &= ~PMC_REGSC_BIASEN_MASK;
    }
 #endif
 
@@ -308,7 +387,7 @@ public:
     * Enabled  - No effect
     */
    static void enableClockBias() {
-      pmc().REGSC &= ~PMC_REGSC_CLKBIASDIS_MASK;
+      pmc->REGSC &= ~PMC_REGSC_CLKBIASDIS_MASK;
    }
 
    /**
@@ -322,7 +401,7 @@ public:
     *            following clock modules are disabled: SIRC, FIRC, PLL.
     */
    static void disableClockBias() {
-      pmc().REGSC |= PMC_REGSC_CLKBIASDIS_MASK;
+      pmc->REGSC |= PMC_REGSC_CLKBIASDIS_MASK;
    }
 #endif
 
@@ -337,7 +416,7 @@ public:
     *       can result in malfunction of the LPO.
     */
    static void enableLowPowerOscillator() {
-      pmc().REGSC &= ~PMC_REGSC_LPODIS_MASK;
+      pmc->REGSC &= ~PMC_REGSC_LPODIS_MASK;
    }
 
    /**
@@ -350,7 +429,7 @@ public:
     *       can result in malfunction of the LPO.
     */
    static void disableLowPowerOscillator() {
-      pmc().REGSC |= PMC_REGSC_LPODIS_MASK;
+      pmc->REGSC |= PMC_REGSC_LPODIS_MASK;
    }
 #endif
 
@@ -362,16 +441,16 @@ public:
     * @return false => LPO is currently in low state
     */
    static bool getLowpowerOscillatorStatus() {
-      return (pmc().REGSC & PMC_REGSC_LPOSTAT_MASK)?true:false;
+      return (pmc->REGSC & PMC_REGSC_LPOSTAT_MASK)?true:false;
    }
 #endif
 
 #ifdef PMC_LPOTRIM_LPOTRIM
    static void setLowpowerOscillatorTrim(int trimValue) {
-      pmc().LPOTRIM = PMC_LPOTRIM_LPOTRIM(trimValue);
+      pmc->LPOTRIM = PMC_LPOTRIM_LPOTRIM(trimValue);
    }
    static int getLowpowerOscillatorTrim() {
-      int trim = pmc().LPOTRIM&PMC_LPOTRIM_LPOTRIM_MASK;
+      int trim = pmc->LPOTRIM&PMC_LPOTRIM_LPOTRIM_MASK;
       if (((unsigned)trim)>(PMC_LPOTRIM_LPOTRIM_MASK>>1)) {
          // Sign extend -ve values
          trim -= PMC_LPOTRIM_LPOTRIM_MASK+1;
@@ -393,7 +472,7 @@ public:
     *
     * @param[in]  nvicPriority  Interrupt priority
     */
-   static void enableNvicInterrupts(uint32_t nvicPriority) {
+   static void enableNvicInterrupts(NvicPriority nvicPriority) {
       enableNvicInterrupt(Info::irqNums[0], nvicPriority);
    }
 
@@ -411,12 +490,12 @@ public:
     * @param blocks Bit mask for the 8 SRAM blocks, 1=> retain, 0=> not powered during LLS2 mode and VLLS2 modes.
     */
    static void setVlpRamRetention(uint8_t blocks) {
-      pmc().SRAMCTL = (uint8_t)~blocks;
+      pmc->SRAMCTL = (uint8_t)~blocks;
    }
 #endif
 };
 
-template<class Info> PMCCallbackFunction PmcBase_T<Info>::sCallback = PmcBase_T<Info>::unhandledCallback;
+template<class Info> PmcCallbackFunction PmcBase_T<Info>::sCallback = PmcBase_T<Info>::unhandledCallback;
 
 #ifdef USBDM_PMC_IS_DEFINED
 /**
@@ -431,7 +510,6 @@ class Pmc : public PmcBase_T<PmcInfo> {};
  * Class representing PMC
  */
 class Pmc : public PmcBase_T<PmcInfo> {};
-
 #endif
 
 /**

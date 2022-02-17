@@ -5,8 +5,7 @@
  * @version  V4.12.1.80
  * @date     13 April 2016
  */
-#include "hardware.h"
-#include "utilities.h"
+#include "pin_mapping.h"
 
 namespace USBDM {
 
@@ -64,7 +63,7 @@ const char *getErrorMessage(ErrorCode err) {
 #ifdef DEBUG_BUILD
 void abort(const char *msg __attribute__((unused))) {
 #if USE_CONSOLE
-   console.WRITELN(msg);
+   log_error(msg);
 #endif
    while(true) {
       __BKPT();
@@ -81,7 +80,7 @@ ErrorCode checkError() {
       const char *msg = getErrorMessage();
       __attribute__((unused))
       int cmsisErrorCode = errorCode & ~E_CMSIS_ERR_OFFSET;
-      console.WRITELN(msg);
+      log_error(msg);
 #endif
       // If you arrive here then an error has been detected.
       // If a CMSIS error, check the 'cmsisErrorCode' above and refer to the CMSIS error codes
@@ -90,15 +89,6 @@ ErrorCode checkError() {
    return errorCode;
 }
 #endif
-
-/**
- * Startup code for C++ classes
- */
-extern "C" void __attribute__((constructor)) cpp_initialise() {
-   if constexpr (MAP_ALL_PINS) {
-      mapAllPins();
-   }
-}
 
 /**
  * Enable and set priority of interrupts in NVIC.

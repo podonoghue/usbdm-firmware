@@ -15,7 +15,7 @@
  * This file is generated automatically.
  * Any manual changes will be lost.
  */
-#include "hardware.h"
+#include "pin_mapping.h"
 
 #ifdef __CMSIS_RTOS
 #include "cmsis.h"
@@ -62,14 +62,14 @@ protected:
       // Not considered an error as may be using polling
    }
 
-   volatile I2C_Type  *i2c;                 //!< I2C hardware instance
-   const I2cMode       i2cMode;             //!< Mode of operation (I2cMode_Interrupt/I2cMode_Polled)
-   uint16_t            rxBytesRemaining;    //!< Number of receive bytes remaining in current transaction
-   uint16_t            txBytesRemaining;    //!< Number of transmit bytes remaining in current transaction
-   uint8_t            *rxDataPtr;           //!< Pointer to receive data for current transaction
-   const uint8_t      *txDataPtr;           //!< Pointer to transmit data for current transaction
-   uint8_t             addressedDevice;     //!< Address of device being communicated with
-   ErrorCode           errorCode;           //!< Error code from last transaction
+   const HardwarePtr<I2C_Type> i2c;                 //!< I2C hardware instance
+   const I2cMode               i2cMode;             //!< Mode of operation (I2cMode_Interrupt/I2cMode_Polled)
+   uint16_t                    rxBytesRemaining;    //!< Number of receive bytes remaining in current transaction
+   uint16_t                    txBytesRemaining;    //!< Number of transmit bytes remaining in current transaction
+   uint8_t                    *rxDataPtr;           //!< Pointer to receive data for current transaction
+   const uint8_t              *txDataPtr;           //!< Pointer to transmit data for current transaction
+   uint8_t                     addressedDevice;     //!< Address of device being communicated with
+   ErrorCode                   errorCode;           //!< Error code from last transaction
 
    /** I2C baud rate divisor table */
    static const uint16_t I2C_DIVISORS[4*16];
@@ -80,7 +80,7 @@ protected:
     * @param[in]  i2c     Base address of I2C hardware
     * @param[in]  i2cMode Mode of operation (I2cMode_Interrupt or I2cMode_Polled)
     */
-   I2c(volatile I2C_Type *i2c, I2cMode i2cMode) :
+   I2c(uint32_t i2c, I2cMode i2cMode) :
       state(i2c_idle), i2c(i2c), i2cMode(i2cMode), rxBytesRemaining(0),
       txBytesRemaining(0), rxDataPtr(0), txDataPtr(0), addressedDevice(0),
       errorCode(E_NO_ERROR) {
@@ -199,14 +199,29 @@ public:
 
    /**
     * Transmit message
+    * Note: 0th byte of Tx is often register address.
     *
     * @param[in]  address  Address of slave to communicate with (should include LSB = R/W bit = 0)
     * @param[in]  size     Size of transmission data
-    * @param[in]  data     Data to transmit, 0th byte is often register address
+    * @param[in]  data     Data to transmit
     *
     * @return E_NO_ERROR on success
     */
    ErrorCode transmit(uint8_t address, uint16_t size, const uint8_t data[]);
+
+   /**
+    * Transmit message.
+    * Note: 0th byte of Tx is often register address.
+    *
+    * @param[in]  address  Address of slave to communicate with (should include LSB = R/W bit = 0)
+    * @param[in]  data     Data to transmit (size of transmission is inferred from array size).
+    *
+    * @return E_NO_ERROR on success
+    */
+   template<unsigned txSize>
+   ErrorCode transmit(uint8_t address, const uint8_t (&data)[txSize]) {
+      return transmit(address, txSize, data);
+   }
 
    /**
     * Receive message
@@ -220,7 +235,21 @@ public:
    ErrorCode receive(uint8_t address, uint16_t size,  uint8_t data[]);
 
    /**
+    * Receive message
+    *
+    * @param[in]  address  Address of slave to communicate with (should include LSB = R/W bit = 0)
+    * @param[out] data     Data buffer for reception (size of reception is inferred from array size)
+    *
+    * @return E_NO_ERROR on success
+    */
+   template<unsigned rxSize>
+   ErrorCode receive(uint8_t address, uint8_t (&data)[rxSize]) {
+      return receive(address, rxSize, data);
+   }
+
+   /**
     * Transmit message followed by receive message.
+    * Note: 0th byte of Tx is often register address.
     *
     * Uses repeated-start.
     *
@@ -233,6 +262,59 @@ public:
     * @return E_NO_ERROR on success
     */
    ErrorCode txRx(uint8_t address, uint16_t txSize, const uint8_t txData[], uint16_t rxSize, uint8_t rxData[] );
+
+   /**
+    * Transmit message followed by receive message.
+    * Note: 0th byte of Tx is often register address.
+    *
+    * Uses repeated-start.
+    *
+    * @param[in]  address  Address of slave to communicate with (should include LSB = R/W bit = 0)
+    * @param[in]  txData   Data for transmission (Tx size inferred from array size)
+    * @param[out] rxData   Date buffer for reception (Rx size inferred from array size)
+    *
+    * @return E_NO_ERROR on success
+    */
+   template<unsigned TxSize, unsigned RxSize>
+   ErrorCode txRx(uint8_t address, const uint8_t (&txData)[TxSize], uint8_t (&rxData)[RxSize] ) {
+      return txRx(address, TxSize, txData, RxSize, rxData);
+   }
+
+   /**
+    * Transmit message followed by receive message.
+    * Note: 0th byte of Tx is often register address.
+    *
+    * Uses repeated-start.
+    *
+    * @param[in]  address  Address of slave to communicate with (should include LSB = R/W bit = 0)
+    * @param[in]  txSize   Size of transmission data
+    * @param[in]  txData   Data for transmission
+    * @param[out] rxData   Date buffer for reception (Rx size inferred from array size)
+    *
+    * @return E_NO_ERROR on success
+    */
+   template<unsigned RxSize>
+   ErrorCode txRx(uint8_t address, uint16_t txSize, const uint8_t txData[], uint8_t (&rxData)[RxSize] ) {
+      return txRx(address, txSize, txData, RxSize, rxData);
+   }
+
+   /**
+    * Transmit message followed by receive message.
+    * Note: 0th byte of Tx is often register address.
+    *
+    * Uses repeated-start.
+    *
+    * @param[in]  address  Address of slave to communicate with (should include LSB = R/W bit = 0)
+    * @param[in]  txData   Data for transmission (Tx size inferred from array size)
+    * @param[in]  rxSize   Size of reception data
+    * @param[out] rxData   Date buffer for reception
+    *
+    * @return E_NO_ERROR on success
+    */
+   template<unsigned TxSize>
+   ErrorCode txRx(uint8_t address, const uint8_t (&txData)[TxSize], uint16_t rxSize, uint8_t rxData[] ) {
+      return txRx(address, TxSize, txData, rxSize, rxData);
+   }
 
    /**
     * Transmit message followed by receive message.
@@ -286,12 +368,6 @@ public:
    // Handle on I2C hardware
    static constexpr volatile I2C_Type *I2C = Info::i2c;
 
-   // I2C SCL (clock) Pin
-   using sclGpio = GpioTable_T<Info, 0, USBDM::ActiveLow>; // Inactive is high
-
-   // I2C SDA (data) Pin
-   using sdaGpio = GpioTable_T<Info, 1, USBDM::ActiveHigh>;
-
    /** Used by ISR to obtain handle of object */
    static I2c *thisPtr;
 
@@ -311,7 +387,7 @@ public:
     *
     * @param[in]  nvicPriority  Interrupt priority
     */
-   static void enableNvicInterrupts(uint32_t nvicPriority) {
+   static void enableNvicInterrupts(NvicPriority nvicPriority) {
       enableNvicInterrupt(Info::irqNums[0], nvicPriority);
    }
 
@@ -364,13 +440,55 @@ public:
 #endif
 
 public:
+   // Template _mapPinsOption_on.xml
+
    /**
-    * Configures all mapped pins associated with this peripheral
+    * Configures all mapped pins associated with I2C
+    *
+    * @note Locked pins will be unaffected
     */
-   static void __attribute__((always_inline)) configureAllPins() {
-      // Configure pins
-      Info::initPCRs();
+   static void configureAllPins() {
+   
+      // Configure pins if selected and not already locked
+      if constexpr (Info::mapPinsOnEnable && !(MapAllPinsOnStartup && (ForceLockedPins == PinLock_Locked))) {
+         Info::initPCRs();
+      }
    }
+
+   /**
+    * Disabled all mapped pins associated with I2C
+    *
+    * @note Only the lower 16-bits of the PCR registers are modified
+    *
+    * @note Locked pins will be unaffected
+    */
+   static void disableAllPins() {
+   
+      // Disable pins if selected and not already locked
+      if constexpr (Info::mapPinsOnEnable && !(MapAllPinsOnStartup && (ForceLockedPins == PinLock_Locked))) {
+         Info::clearPCRs();
+      }
+   }
+
+   /**
+    * Basic enable of I2C
+    * Includes enabling clock and configuring all mapped pins if mapPinsOnEnable is selected in configuration
+    */
+   static void enable() {
+      Info::enableClock();
+      configureAllPins();
+   }
+
+   /**
+    * Disables the clock to I2C and all mapped pins
+    */
+   static void disable() {
+      disableNvicInterrupts();
+      
+      disableAllPins();
+      Info::disableClock();
+   }
+// End Template _mapPinsOption_on.xml
 
    /**
     * Construct I2C interface
@@ -379,13 +497,11 @@ public:
     * @param[in]  i2cMode    Mode of operation
     * @param[in]  myAddress  Address of this device on bus (not currently used)
     */
-   I2cBase_T(unsigned bps=400000, I2cMode i2cMode=I2cMode_Polled, uint8_t myAddress=0) : I2c(&Info::i2c(), i2cMode) {
+   I2cBase_T(unsigned bps=400000, I2cMode i2cMode=I2cMode_Polled, uint8_t myAddress=0) : I2c(Info::baseAddress, i2cMode) {
 
-#ifdef DEBUG_BUILD
       // Check pin assignments
-      static_assert(Info::info[0].gpioBit != UNMAPPED_PCR, "I2Cx_SCL has not been assigned to a pin - Modify Configure.usbdm");
-      static_assert(Info::info[1].gpioBit != UNMAPPED_PCR, "I2Cx_SDA has not been assigned to a pin - Modify Configure.usbdm");
-#endif
+      static_assert(Info::info[Info::sclPin].gpioBit >= 0, "I2Cx_SCL has not been assigned to a pin - Modify Configure.usbdm");
+      static_assert(Info::info[Info::sdaPin].gpioBit >= 0, "I2Cx_SDA has not been assigned to a pin - Modify Configure.usbdm");
 
       busHangReset();
 
@@ -454,33 +570,52 @@ public:
    /**
     * Clear bus hang
     *
-    * Generates I2C_SCL clock until I2C_SDA goes high\n
+    * Generates I2C_SCL clock until I2C_SDA goes high followed by I2C STOP. \n
     * This is useful if a slave is part-way through a transaction when the master goes away!
     */
    virtual void busHangReset() {
 
-      sclGpio::setOutput(Info::defaultPcrValue);
-      sdaGpio::setInput(Info::defaultPcrValue);
-      /*
-       * Set SCL initially high before enabling to minimise disturbance to bus
-       */
-      for (int i=0; i<9; i++) {
-         // Set clock high (ideally 3-state)
-         sclGpio::high();
+      static auto delay = [] {
          for(int j=0; j<20; j++) {
             __asm__("nop");
          }
+      };
+      // I2C SCL (clock) Pin
+      using sclGpio = GpioTable_T<Info, Info::sclPin, USBDM::ActiveHigh>;
+
+      // I2C SDA (data) Pin
+      using sdaGpio = GpioTable_T<Info, Info::sdaPin, USBDM::ActiveHigh>;
+
+      // Re-map pins to GPIOs initially 3-state
+      sclGpio::setInput();
+      sdaGpio::setInput();
+
+      // SCL & SDA data values are low but direction is manipulated to achieve open-drain operation
+      sclGpio::low();
+      sdaGpio::low();
+
+      for (int i=0; i<9; i++) {
+         // Set clock 3-state
+         sclGpio::setIn();    // SCL=T, SDA=?
+         delay();
+         bool sda = sdaGpio::isHigh();
+         // Set clock low
+         sclGpio::setOut();   // SCL=0, SDA=?
+         delay();
          // If data is high bus is OK
-         if (sdaGpio::isHigh()) {
+         if (sda) {
             break;
          }
-         // Set clock low
-         sclGpio::low();
-         for(int j=0; j<20; j++) {
-            __asm__("nop");
-         }
       }
-      // Restore pins
+      // Generate stop on I2C bus
+      sdaGpio::setOut(); // SCL=0, SDA=0
+      delay();
+      sclGpio::setIn();  // SCL=T, SDA=0
+      delay();
+      sdaGpio::setIn();  // SCL=T, SDA=T
+      delay();
+
+      // Restore pin mapping
       configureAllPins();
    }
 
@@ -525,6 +660,7 @@ using I2c1 = I2cBase_T<I2c1Info>;
  * Refer @ref I2cBase_T
  */
 using I2c2 = I2cBase_T<I2c2Info>;
+#endif
 
 #if defined(USBDM_I2C3_IS_DEFINED)
 /**
@@ -545,9 +681,6 @@ using I2c3 = I2cBase_T<I2c3Info>;
  */
 using I2c4 = I2cBase_T<I2c4Info>;
 #endif
-
-#endif
-
 /**
  * End I2C_Group
  * @}

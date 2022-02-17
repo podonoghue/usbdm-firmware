@@ -18,9 +18,57 @@
  * Any manual changes will be lost.
  */
 #include "derivative.h"
-#include "hardware.h"
+#include "pin_mapping.h"
 
 namespace USBDM {
+
+/**
+ * Regulator enable
+ * This bit is used to enable the internal 1.75 V regulator to produce a constant internal voltage supply in
+ * order to reduce the sensitivity to external supply noise and variation. \n
+ * If it is desired to keep the regulator enabled in very low power modes see @ref PmcBandgapLowPowerEnable.
+ */
+enum VrefReg {
+   VrefReg_Disable = VREF_SC_REGEN(0), /**< Regulator Disabled */
+   VrefReg_Enable  = VREF_SC_REGEN(1), /**< Regulator Enabled */
+};
+
+#if defined(VREF_SC_ICOMPEN)
+/**
+ *  Second order curvature compensation enable
+ *  This bit should be written to 1 to achieve the performance stated in the data sheet.
+ */
+enum VrefIcomp {
+   VrefIcomp_Disable = VREF_SC_ICOMPEN(0), /**< Compensation Disabled */
+   VrefIcomp_Enable  = VREF_SC_ICOMPEN(1), /**< Compensation Enabled */
+};
+#endif
+
+/**
+ * Buffer Mode selection
+ * These bits select the buffer modes for the Voltage Reference module.
+ */
+enum VrefBuffer {
+   VrefBuffer_Bandgap   = VREF_SC_MODE_LV(0), /**< Bandgap on only, for stabilisation and startup */
+   VrefBuffer_HighPower = VREF_SC_MODE_LV(1), /**< High power buffer mode enabled */
+   VrefBuffer_LowPower  = VREF_SC_MODE_LV(2), /**< Low power buffer mode enabled */
+};
+
+#if defined(VREF_TRM_CHOPEN)
+/**
+ * Chop oscillator enable.
+ *
+ * Controls the internal chopping operation to minimise the internal analogue offset.
+ * This option is enabled during factory trimming of the VREF voltage.
+ * This should be enabled to achieve the performance stated in the data sheet.
+ * If the chop oscillator is to be used in very low power modes, the system (bandgap)
+ * voltage reference must also be enabled. See @ref PmcBandgapLowPowerEnable.
+ */
+enum VrefChop {
+   VrefChop_Disable = VREF_TRM_CHOPEN(0), /**< Chop Disabled *//**< VrefChop_Disable */
+   VrefChop_Enable  = VREF_TRM_CHOPEN(1), /**< Chop Enabled */ /**< VrefChop_Enable */
+};
+#endif
 
 /**
  * @addtogroup VREF_Group VREF, Voltage Reference
@@ -43,34 +91,96 @@ namespace USBDM {
 template<class Info>
 class VrefBase_T {
 
-private:
-   /** Hardware instance pointer */
-   static __attribute__((always_inline)) volatile VREF_Type &vref() { return Info::vref(); }
+   /** Class to static check output is mapped to a pin - Assumes existence */
+   template<int output> class CheckOutputIsMapped {
 
-#ifdef DEBUG_BUILD
-   static_assert((Info::info[0].gpioBit != UNMAPPED_PCR), "VrefBase_T: Vref signal is not mapped to a pin - Modify Configure.usbdm");
-   static_assert((Info::info[0].gpioBit != INVALID_PCR),  "VrefBase_T: Non-existent signal used for Vref input");
-   static_assert((Info::info[0].gpioBit == UNMAPPED_PCR)||(Info::info[0].gpioBit == INVALID_PCR)||(Info::info[0].gpioBit >= 0), "VrefBase_T: Illegal signal used for Vref");
-#endif
+      // Check mapping - no need to check existence
+      static constexpr bool Test1 = (Info::info[output].gpioBit >= 0);
+
+      static_assert(Test1, "VREF output is not mapped to a pin - Modify Configure.usbdm");
+
+   public:
+      /** Dummy function to allow convenient in-line checking */
+      static constexpr void check() {}
+   };
+
+private:
+   /**
+    * This class is not intended to be instantiated
+    */
+   VrefBase_T(const VrefBase_T&) = delete;
+   VrefBase_T(VrefBase_T&&) = delete;
 
 public:
+   /** Hardware instance pointer */
+   static constexpr HardwarePtr<VREF_Type> vref = Info::baseAddress;
+
+   VrefBase_T() {
+   };
+
+public:
+   // Template _mapPinsOption.xml
+
    /**
-    * Configures all mapped pins associated with this peripheral
+    * Configures all mapped pins associated with VREF
+    *
+    * @note Locked pins will be unaffected
     */
-   static void __attribute__((always_inline)) configureAllPins() {
-      // Configure pins
-      Info::initPCRs();
+   static void configureAllPins() {
+   
+      // Configure pins if selected and not already locked
+      if constexpr (Info::mapPinsOnEnable && !(MapAllPinsOnStartup && (ForceLockedPins == PinLock_Locked))) {
+         Info::initPCRs();
+      }
    }
 
    /**
-    * Basic enable of VREF\n
-    * Includes configuring all pins
+    * Disabled all mapped pins associated with VREF
+    *
+    * @note Only the lower 16-bits of the PCR registers are modified
+    *
+    * @note Locked pins will be unaffected
+    */
+   static void disableAllPins() {
+   
+      // Disable pins if selected and not already locked
+      if constexpr (Info::mapPinsOnEnable && !(MapAllPinsOnStartup && (ForceLockedPins == PinLock_Locked))) {
+         Info::clearPCRs();
+      }
+   }
+
+   /**
+    * Basic enable of VREF
+    * Includes enabling clock and configuring all mapped pins if mapPinsOnEnable is selected in configuration
     */
    static void enable() {
-      configureAllPins();
-
-      // Enable clock to VREF interface
       Info::enableClock();
+      configureAllPins();
+   }
+
+   /**
+    * Disables the clock to VREF and all mapped pins
+    */
+   static void disable() {
+      
+      vref->SC = 0;
+      disableAllPins();
+      Info::disableClock();
+   }
+// End Template _mapPinsOption.xml
+
+   /**
+    * Enable Vref output pin as Vref output.
+    * Configures all Pin Control Register (PCR) values
+    */
+   static void setOutput() {
+
+      CheckOutputIsMapped<Info::outputPin>::check();
+
+      using Pcr = PcrTable_T<Info, Info::outputPin>;
+
+      // Enable and map pin to Vref_out is needed
+      Pcr::setPCR();
    }
 
    /**
@@ -80,20 +190,64 @@ public:
       enable();
 
       // Initialise hardware
-      vref().TRM  = Info::vref_trm;
-      vref().SC   = Info::vref_sc|VREF_SC_VREFEN_MASK;
+      vref->TRM = (vref->TRM & VREF_TRM_TRIM_MASK)| Info::vref_trm;
+      vref->SC   = Info::vref_sc|VREF_SC_VREFEN_MASK;
 
-      while ((vref().SC & VREF_SC_VREFST_MASK) == 0) {
+      while ((vref->SC & VREF_SC_VREFST_MASK) == 0) {
          // Wait until stable
       }
    }
 
+#if defined(VREF_SC_ICOMPEN) && defined(VREF_TRM_CHOPEN)
    /**
     * Configures the voltage reference
+    *
+    * @param vrefBuffer    Buffer Mode selection
+    * @param vrefReg       Regulator enable
+    * @param VrefIcomp     Second order curvature compensation enable
+    * @param vrefChop      Chop oscillator enable
     */
-   static void configure() {
-      defaultConfigure();
+   static void configure(
+         VrefBuffer  vrefBuffer =  VrefBuffer_HighPower,
+         VrefReg     vrefReg    =  VrefReg_Enable,
+         VrefIcomp   VrefIcomp  =  VrefIcomp_Enable,
+         VrefChop    vrefChop   =  VrefChop_Enable ) {
+      enable();
+
+      if (vrefReg) {
+         // Chop must be enabled
+         vrefChop = VrefChop_Enable;
+      }
+      vref->TRM = (vref->TRM & ~VREF_TRM_CHOPEN_MASK) | vrefChop;
+      vref->SC  = VREF_SC_VREFEN_MASK|vrefBuffer|VrefIcomp;
+      if (vrefReg) {
+         // Regulator must be enabled >300ns after Vref
+         waitUS(1);
+         vref->SC  = VREF_SC_VREFEN_MASK|VREF_SC_REGEN(1)|vrefBuffer|VrefIcomp;
+      }
    }
+#else
+   /**
+    * Configures the voltage reference
+    *
+    * @param vrefBuffer    Buffer Mode selection
+    * @param vrefReg       Regulator enable
+    */
+   static void configure(
+         VrefBuffer  vrefBuffer =  VrefBuffer_HighPower,
+         VrefReg     vrefReg    =  VrefReg_Enable
+         ) {
+      enable();
+
+      vref->TRM = 0;
+      vref->SC  = VREF_SC_VREFEN(1)|vrefBuffer;
+      if (vrefReg) {
+         // Regulator must be enabled >300ns after Vref
+         waitUS(1);
+         vref->SC  = VREF_SC_VREFEN(1)|vrefBuffer|VREF_SC_REGEN(1);
+      }
+   }
+#endif
 
    /**
     * Sets the voltage reference mode
@@ -101,16 +255,9 @@ public:
     * @param scValue Value for SC register e.g. VREF_SC_VREFEN_MASK|VREF_SC_REGEN_MASK|VREF_SC_ICOMPEN_MASK|VREF_SC_MO`DE_LV(2)
     */
    static void setMode(uint32_t scValue=Info::vref_sc|VREF_SC_VREFEN_MASK) {
-      vref().SC   = scValue;
+      vref->SC   = scValue;
    }
 
-   /**
-    * Disable Vref
-    */
-   static void disable() {
-      vref().SC = 0;
-      Info::disableClock();
-   }
 };
 
 #if defined(USBDM_VREF_IS_DEFINED)
@@ -121,7 +268,7 @@ class Vref : public VrefBase_T<VrefInfo> {};
 class Vref0 : public Vref<Vref0Info> {};
 #endif
 /**
- * End TSI_Group
+ * End VREF_Group
  * @}
  */
 

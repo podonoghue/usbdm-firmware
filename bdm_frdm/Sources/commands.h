@@ -40,73 +40,73 @@ static constexpr int  MAX_COMMAND_SIZE = 254;
 //!
 enum BDMCommands {
    // Common to all targets
-   CMD_USBDM_GET_COMMAND_RESPONSE  = 0,   //!< Status of last/current command
-   CMD_USBDM_SET_TARGET            = 1,   //!< Set target,  @param [2] 8-bit target value @ref TargetType_t
-   CMD_USBDM_SET_VDD               = 2,   //!< Set target Vdd (immediate effect)
-   CMD_USBDM_DEBUG                 = 3,   //!< Debugging commands (parameter determines actual command) @param [2]  Debug command see DebugSubCommands
-   CMD_USBDM_GET_BDM_STATUS        = 4,   //!< Get BDM status\n @return [1] 16-bit status value reflecting BDM status
-   CMD_USBDM_GET_CAPABILITIES      = 5,   //!< Get capabilities of BDM, see HardwareCapabilities_t
-   CMD_USBDM_SET_OPTIONS           = 6,   //!< Set BDM options, see BDM_Options_t
-//   CMD_USBDM_GET_SETTINGS        = 7,   //!< Get BDM setting
-   CMD_USBDM_CONTROL_PINS          = 8,   //!< Directly control BDM interface levels
+   CMD_USBDM_GET_COMMAND_RESPONSE        = 0,   //!< Status of last/current command
+   CMD_USBDM_SET_TARGET                  = 1,   //!< Set target,  @param [2] 8-bit target value @ref TargetType_t
+   CMD_USBDM_SET_VDD                     = 2,   //!< Set target Vdd (immediate effect)
+   CMD_USBDM_DEBUG                       = 3,   //!< Debugging commands (parameter determines actual command) @param [2]  Debug command see DebugSubCommands
+   CMD_USBDM_GET_BDM_STATUS              = 4,   //!< Get BDM status\n @return [1] 16-bit status value reflecting BDM status
+   CMD_USBDM_GET_CAPABILITIES            = 5,   //!< Get capabilities of BDM, see HardwareCapabilities_t
+   CMD_USBDM_SET_OPTIONS                 = 6,   //!< Set BDM options, see BDM_Options_t
+//   CMD_USBDM_GET_SETTINGS              = 7,   //!< Get BDM setting
+   CMD_USBDM_CONTROL_PINS                = 8,   //!< Directly control BDM interface levels
    // Reserved 7..11
-   CMD_USBDM_GET_VER               = 12,  //!< Sent to ep0 \n Get firmware version in BCD \n
-                                          //!< @return [1] 8-bit HW (major+minor) revision \n [2] 8-bit SW (major+minor) version number
-   CMD_GET_VER                     = 12,  //!< Deprecated name - Previous version
+   CMD_USBDM_GET_VER                     = 12,  //!< Sent to ep0 \n Get firmware version in BCD \n
+                                                //!< @return [1] 8-bit HW (major+minor) revision \n [2] 8-bit SW (major+minor) version number
+   CMD_GET_VER                           = 12,  //!< Deprecated name - Previous version
    // Reserved 13
-   CMD_USBDM_ICP_BOOT              = 14,  //!< Sent to ep0 \n
-                                          //!< Requests reboot to ICP mode. @param [2..5] must be "BOOT"
-   CMD_SET_BOOT                    = 14,  //!< Deprecated - Previous version
+   CMD_USBDM_ICP_BOOT                    = 14,  //!< Sent to ep0 \n
+                                                //!< Requests reboot to ICP mode. @param [2..5] must be "BOOT"
+   CMD_SET_BOOT                          = 14,  //!< Deprecated - Previous version
 
    // Target specific versions
-   CMD_USBDM_CONNECT               = 15,  //!< Try to connect to the target
-   CMD_USBDM_SET_SPEED             = 16,  //!< Sets-up the BDM interface for a new bit rate & tries
-                                          //!    to enable ackn feature, @param [2..3] 16-bit tick count
-   CMD_USBDM_GET_SPEED             = 17,  //!< Read speed of the target: @return [1..2] 16-bit tick coun
+   CMD_USBDM_CONNECT                     = 15,  //!< Try to connect to the target
+   CMD_USBDM_SET_SPEED                   = 16,  //!< Sets-up the BDM interface for a new bit rate & tries
+                                                //!    to enable ackn feature, @param [2..3] 16-bit tick count
+   CMD_USBDM_GET_SPEED                   = 17,  //!< Read speed of the target: @return [1..2] 16-bit tick coun
 
-   CMD_CUSTOM_COMMAND              = 18,  //!< Directly control BDM interface levels
+   CMD_CUSTOM_COMMAND                    = 18,  //!< Directly control BDM interface levels
    // Reserved 19
 
-   CMD_USBDM_READ_STATUS_REG       = 20,  //!< Get BDM status
-                                          //! @return [1] 8-bit status byte made up as follows: \n
-                                          //!    - (HC08/12/RS08/CFV1) bit0   - ACKN, \n
-                                          //!    - (All)               bit1   - target was reset (this bit is cleared after reading),  \n
-                                          //!    - (CFVx only)         bit2   - current RSTO value \n
-                                          //!    - (HC08/12/RS08/CFV1) bit4-3 - comm status: 00=NOT CONNECTED, 01=SYNC, 10=GUESS,  11=USER SUPPLIED \n
-                                          //!    - (All)               bit7   - target has power
+   CMD_USBDM_READ_STATUS_REG             = 20,  //!< Get BDM status
+                                                //! @return [1] 8-bit status byte made up as follows: \n
+                                                //!    - (HC08/12/RS08/CFV1) bit0   - ACKN, \n
+                                                //!    - (All)               bit1   - target was reset (this bit is cleared after reading),  \n
+                                                //!    - (CFVx only)         bit2   - current RSTO value \n
+                                                //!    - (HC08/12/RS08/CFV1) bit4-3 - comm status: 00=NOT CONNECTED, 01=SYNC, 10=GUESS,  11=USER SUPPLIED \n
+                                                //!    - (All)               bit7   - target has power
 
-   CMD_USBDM_WRITE_CONTROL_REG     = 21,  //!< Write to target Control register
+   CMD_USBDM_WRITE_CONTROL_REG           = 21,  //!< Write to target Control register
 
-   CMD_USBDM_TARGET_RESET          = 22,  //!< Reset target @param [2] TargetMode_t
-   CMD_USBDM_TARGET_STEP           = 23,  //!< Perform single step
-   CMD_USBDM_TARGET_GO             = 24,  //!< Start code execution
-   CMD_USBDM_TARGET_HALT           = 25,  //!< Stop the CPU and bring it into background mode
+   CMD_USBDM_TARGET_RESET                = 22,  //!< Reset target @param [2] TargetMode_t
+   CMD_USBDM_TARGET_STEP                 = 23,  //!< Perform single step
+   CMD_USBDM_TARGET_GO                   = 24,  //!< Start code execution
+   CMD_USBDM_TARGET_HALT                 = 25,  //!< Stop the CPU and bring it into background mode
 
-   CMD_USBDM_WRITE_REG             = 26,  //!< Write to target register
-   CMD_USBDM_READ_REG              = 27,  //!< Read target register
+   CMD_USBDM_WRITE_REG                   = 26,  //!< Write to target register
+   CMD_USBDM_READ_REG                    = 27,  //!< Read target register
 
-   CMD_USBDM_WRITE_CREG            = 28,  //!< Write target Core register
-   CMD_USBDM_READ_CREG             = 29,  //!< Read from target Core register
+   CMD_USBDM_WRITE_CREG                  = 28,  //!< Write target Core register
+   CMD_USBDM_READ_CREG                   = 29,  //!< Read from target Core register
 
-   CMD_USBDM_WRITE_DREG            = 30,  //!< Write target Debufg register
-   CMD_USBDM_READ_DREG             = 31,  //!< Read from target Debug register
+   CMD_USBDM_WRITE_DREG                  = 30,  //!< Write target Debufg register
+   CMD_USBDM_READ_DREG                   = 31,  //!< Read from target Debug register
 
-   CMD_USBDM_WRITE_MEM             = 32,  //!< Write to target memory
-   CMD_USBDM_READ_MEM              = 33,  //!< Read from target memory
-   CMD_USBDM_READ_ALL_REGS         = 34,  //!< Read all target core registers
+   CMD_USBDM_WRITE_MEM                   = 32,  //!< Write to target memory
+   CMD_USBDM_READ_MEM                    = 33,  //!< Read from target memory
+   CMD_USBDM_READ_ALL_REGS               = 34,  //!< Read all target core registers
 
-   //CMD_USBDM_TRIM_CLOCK            = 34,  //!< Trim target clock - deleted in V3.2
-   //CMD_USBDM_RS08_FLASH_ENABLE     = 35,  //!< Enable target flash programming (Vpp on)
-   //CMD_USBDM_RS08_FLASH_STATUS     = 36,  //!< Status of target flash programming
-   //CMD_USBDM_RS08_FLASH_DISABLE    = 37,  //!< Stop target flash programming (Vpp off)
+//   CMD_USBDM_TRIM_CLOCK                  = 34,  //!< Trim target clock - deleted in V3.2
+//   CMD_USBDM_RS08_FLASH_ENABLE           = 35,  //!< Enable target flash programming (Vpp on)
+//   CMD_USBDM_RS08_FLASH_STATUS           = 36,  //!< Status of target flash programming
+//   CMD_USBDM_RS08_FLASH_DISABLE          = 37,  //!< Stop target flash programming (Vpp off)
 
-   CMD_USBDM_JTAG_GOTORESET        = 38,  //!< Reset JTAG Tap controller
-   CMD_USBDM_JTAG_GOTOSHIFT        = 39,  //!< Move JTAG TAP controller to SHIFT-IR/DR
-   CMD_USBDM_JTAG_WRITE            = 40,  //!< Write to JTAG chain
-   CMD_USBDM_JTAG_READ             = 41,  //!< Read from JTAG chain
-   CMD_USBDM_SET_VPP               = 42,  //!< Set VPP level
-   CMD_USBDM_JTAG_READ_WRITE       = 43,  //!< Read & Write to JTAG chain (in-out buffer)
-   CMD_USBDM_JTAG_EXECUTE_SEQUENCE = 44,  //!< Execute sequence of JTAG commands
+   CMD_USBDM_JTAG_GOTORESET              = 38,  //!< Reset JTAG Tap controller
+   CMD_USBDM_JTAG_GOTOSHIFT              = 39,  //!< Move JTAG TAP controller to SHIFT-IR/DR
+   CMD_USBDM_JTAG_WRITE                  = 40,  //!< Write to JTAG chain
+   CMD_USBDM_JTAG_READ                   = 41,  //!< Read from JTAG chain
+   CMD_USBDM_SET_VPP                     = 42,  //!< Set VPP level
+   CMD_USBDM_JTAG_READ_WRITE             = 43,  //!< Read & Write to JTAG chain (in-out buffer)
+   CMD_USBDM_JTAG_EXECUTE_SEQUENCE       = 44,  //!< Execute sequence of JTAG commands
 };
 
 //! Error codes returned from BDM routines and BDM commands.
@@ -228,19 +228,20 @@ enum TargetType_t {
 //!
 enum MemorySpace_t {
    // One of the following
-   MS_Byte     = 1,        // Byte (8-bit) access
-   MS_Word     = 2,        // Word (16-bit) access
-   MS_Long     = 4,        // Long (32-bit) access
+   MS_Byte     = 1,        //! Byte (8-bit) access
+   MS_Word     = 2,        //! Word (16-bit) access
+   MS_Long     = 4,        //! Long (32-bit) access
    // One of the following
-   MS_None     = 0<<4,     // Memory space unused/undifferentiated
-   MS_Program  = 1<<4,     // Program memory space (e.g. P: on DSC)
-   MS_Data     = 2<<4,     // Data memory space (e.g. X: on DSC)
-   MS_Global   = 3<<4,     // HCS12 Global addresses (Using BDMPPR register)
-   // Fast memory access for HCS08/HCS12 (stopped target, regs. are modified
-   MS_Fast     = 1<<7,
+   MS_None     = 0<<4,     //! Memory space unused/undifferentiated
+   MS_Program  = 1<<4,     //! Program memory space (e.g. P: on DSC)
+   MS_Data     = 2<<4,     //! Data memory space (e.g. X: on DSC)
+   MS_Global   = 3<<4,     //! HCS12 Global addresses (Using BDMPPR register)
+
+   MS_Fast     = 1<<7,     //! Fast memory access for HCS08/HCS12 (stopped target, regs. are modified
+
    // Masks for above
-   MS_SIZE     = 0x7<<0,   // Size
-   MS_SPACE    = 0x7<<4,   // Memory space
+   MS_SIZE     = 0x7<<0,   //! Size
+   MS_SPACE    = 0x7<<4,   //! Memory space
 
    // For convenience (DSC)
    MS_PWord    = MS_Word+MS_Program,
@@ -441,22 +442,22 @@ enum CFV1_Registers_t {
 //! regNo Parameter for USBDM_ReadReg() with CFVx target
 //!
 enum CFVx_Registers_t {
-   CFVx_RegD0  = 0,  //!< D0
-   CFVx_RegD1  = 1,  //!< D1
-   CFVx_RegD2  = 2,  //!< D2
-   CFVx_RegD3  = 3,  //!< D3
-   CFVx_RegD4  = 4,  //!< D4
-   CFVx_RegD5  = 5,  //!< D5
-   CFVx_RegD6  = 6,  //!< D6
-   CFVx_RegD7  = 7,  //!< D7
-   CFVx_RegA0  = 8,  //!< A0
-   CFVx_RegA1  = 9,  //!< A1
-   CFVx_RegA2  = 10, //!< A2
-   CFVx_RegA3  = 11, //!< A3
-   CFVx_RegA4  = 12, //!< A4
-   CFVx_RegA5  = 13, //!< A5
-   CFVx_RegA6  = 14, //!< A6
-   CFVx_RegA7  = 15, //!< A7
+   CFVx_RegD0  = 0,          //!< D0
+   CFVx_RegD1  = 1,          //!< D1
+   CFVx_RegD2  = 2,          //!< D2
+   CFVx_RegD3  = 3,          //!< D3
+   CFVx_RegD4  = 4,          //!< D4
+   CFVx_RegD5  = 5,          //!< D5
+   CFVx_RegD6  = 6,          //!< D6
+   CFVx_RegD7  = 7,          //!< D7
+   CFVx_RegA0  = 8,          //!< A0
+   CFVx_RegA1  = 9,          //!< A1
+   CFVx_RegA2  = 10,         //!< A2
+   CFVx_RegA3  = 11,         //!< A3
+   CFVx_RegA4  = 12,         //!< A4
+   CFVx_RegA5  = 13,         //!< A5
+   CFVx_RegA6  = 14,         //!< A6
+   CFVx_RegA7  = 15,         //!< A7
    CFVx_RegSP  = CFVx_RegA7,
 };
 
@@ -707,7 +708,7 @@ enum CFV1_DRegisters_t {
    CFV1_DRegPBR2       = 0x1A,   //!< PBR2
    CFV1_DRegPBR3       = 0x1B,   //!< PBR3
 
-   CFV1_ByteRegs       = 0x1000, // Special access to msb
+   CFV1_ByteRegs       = 0x1000, // Special access to MSB
    CFV1_DRegXCSRbyte   = CFV1_ByteRegs+CFV1_DRegXCSR, //!< XCSR.msb
    CFV1_DRegCSR2byte   = CFV1_ByteRegs+CFV1_DRegCSR2, //!< CSR2.msb
    CFV1_DRegCSR3byte   = CFV1_ByteRegs+CFV1_DRegCSR3, //!< CSR3.msb
@@ -891,6 +892,10 @@ enum PinLevelMasks_t {
    PIN_NOCHANGE       = 0,    //!< No change to pins (used to get pin status)
    PIN_RELEASE        = -1,   //!< Release all pins (go to default for current target)
 };
+
+constexpr PinLevelMasks_t operator| (const PinLevelMasks_t &left, const PinLevelMasks_t &right) {
+   return static_cast<PinLevelMasks_t>((unsigned)left|(unsigned)right);
+}
 
 //! Debugging sub commands (used with CMD_USBDM_DEBUG )
 //! @note Not for general use! (Dangerous - don't try turning on VPP with the wrong chip!)

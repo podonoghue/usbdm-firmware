@@ -1,5 +1,5 @@
-/*! \file
-    \brief USBDM - Common BDM routines.
+/*! \file  interfaceCommon.cpp
+    \brief USBDM - Common interface routines.
 
    USBDM
    Copyright (C) 2016  Peter O'Donoghue
@@ -30,7 +30,7 @@
 #include <string.h>
 #include <targetVddInterface.h>
 #include "configure.h"
-#include "bdmCommon.h"
+#include "interfaceCommon.h"
 #include "swd.h"
 #if (HW_CAPABILITY&CAP_BDM)
 #include "bdm.h"
@@ -97,7 +97,7 @@ USBDM_ErrorCode checkTargetVdd(void) {
 USBDM_ErrorCode setTargetVdd(TargetVddSelect_t targetVdd) {
 
    if (targetVdd == BDM_TARGET_VDD_ENABLE) {
-      // Enable at set level
+      // Enable at previously set level
       targetVdd = bdm_option.targetVdd;
    }
    USBDM_ErrorCode rc = BDM_RC_OK;
@@ -147,72 +147,171 @@ USBDM_ErrorCode enableTargetVdd() {
    return setTargetVdd(bdm_option.targetVdd);
 }
 
+#if (HW_CAPABILITY&CAP_BDM)
 /**
- *   Cycle power ON to target
+ *   Cycle power ON to target (T_HC12, T_HCS08, T_RS08, T_CFV1 only)
  *
  *  @param mode
  *     - \ref RESET_SPECIAL => Power on in special mode,
  *     - \ref RESET_NORMAL  => Power on in normal mode
  *
- *   If RESET_SPECIAL, and HCS08 or CFV1 targets, BKGD/BKPT is held low when power
+ *   If RESET_SPECIAL mode then BKGD is held low when power
  *   is re-applied to start target in BKGD active mode.
  *
  *   @return
- *    \ref BDM_RC_OK                	=> Target Vdd confirmed on target \n
- *    \ref BDM_RC_VDD_WRONG_MODE    	=> Target Vdd not controlled by BDM interface \n
- *    \ref BDM_RC_VDD_NOT_PRESENT   	=> Target Vdd failed to rise 		\n
- *    \ref BDM_RC_RESET_TIMEOUT_RISE   => RESET signal failed to rise 		\n
- *    \ref BDM_RC_BKGD_TIMEOUT      	=> BKGD signal failed to rise
+ *    \ref BDM_RC_OK                   => Target Vdd confirmed on target \n
+ *    \ref BDM_RC_VDD_WRONG_MODE       => Target Vdd not controlled by BDM interface \n
+ *    \ref BDM_RC_VDD_NOT_PRESENT      => Target Vdd failed to rise     \n
+ *    \ref BDM_RC_RESET_TIMEOUT_RISE   => RESET signal failed to rise      \n
+ *    \ref BDM_RC_BKGD_TIMEOUT         => BKGD signal failed to rise
  */
-USBDM_ErrorCode cycleTargetVddOn(TargetMode_t mode) {
+USBDM_ErrorCode cycleTargetVddOnBdm(TargetMode_t mode) {
+
    USBDM_ErrorCode rc = BDM_RC_OK;
 
-#if (HW_CAPABILITY&CAP_BDM)
-   // Used to indicate doing HCS power on sequence with BKGD low
-   bool hcsPowerOn = false;
-#endif
+   // Used to indicate doing power on sequence with BKGD low
+   bool bkgdHeldLow = false;
 
    mode = (TargetMode_t)(mode&RESET_MODE_MASK);
 
-#if (HW_CAPABILITY&CAP_VDDCONTROL)
+   do {
+      Bdm::initialise();
+      if (mode == RESET_SPECIAL) {
+         bkgdHeldLow = true;
+         Bdm::setPinState(PIN_BKGD_LOW);
+      }
 
-   switch(cable_status.target_type) {
+      // Power on
+      rc = enableTargetVdd();
+      if (rc != BDM_RC_OK) {
+         // No target Vdd
+         continue;
+      }
+
+#if (HW_CAPABILITY&CAP_RST_IN)
+      // RESET rise may be delayed by target POR
+      if (bdm_option.useResetSignal) {
+         USBDM::waitUS(RESET_RISE_TIMEus, ResetInterface::isHigh);
+      }
+#endif // (HW_CAPABILITY&CAP_RST_IN)
+
+      // Let signals settle & CPU to finish reset (with BKGD possibly held low)
+      USBDM::waitUS(BKGD_WAITus);
+
+#if (HW_CAPABILITY&CAP_RST_IN)
+      if (bdm_option.useResetSignal && ResetInterface::isLow()) {
+         // RESET didn't rise
+         rc = BDM_RC_RESET_TIMEOUT_RISE;
+         continue;
+      }
+#endif // (HW_CAPABILITY&CAP_RST_IN)
+
+      if (bkgdHeldLow) {
+         // Release BKGD
+         Bdm::setPinState(PinLevelMasks_t::PIN_BKGD_3STATE);
+      }
+
+      // Let processor start up
+      USBDM::waitMS(RESET_RECOVERYms);
+
+   } while (false);
+
+   if (bkgdHeldLow) {
+      Bdm::initialise();
+   }
+
+   return(rc);
+}
+#endif
+
+#if (HW_CAPABILITY&CAP_SWD_HW)
+
+/**
+ *   Cycle power ON to target (ARM_SWD)
+ *
+ *   @return
+ *    \ref BDM_RC_OK                   => Target Vdd confirmed on target \n
+ *    \ref BDM_RC_VDD_WRONG_MODE       => Target Vdd not controlled by BDM interface \n
+ *    \ref BDM_RC_VDD_NOT_PRESENT      => Target Vdd failed to rise     \n
+ *    \ref BDM_RC_RESET_TIMEOUT_RISE   => RESET signal failed to rise      \n
+ *    \ref BDM_RC_BKGD_TIMEOUT         => BKGD signal failed to rise
+ */
+USBDM_ErrorCode cycleTargetVddOnSwd() {
+
+   USBDM_ErrorCode rc = BDM_RC_OK;
+
+   do {
+      Swd::initialiseInterface();
+
+      // Power on
+      rc = enableTargetVdd();
+      if (rc != BDM_RC_OK) {
+         // No target Vdd
+         continue;
+      }
+
+#if (HW_CAPABILITY&CAP_RST_IN)
+      // RESET rise may be delayed by target POR
+      if (bdm_option.useResetSignal) {
+         USBDM::waitUS(RESET_RISE_TIMEus, ResetInterface::isHigh);
+      }
+#endif
+
+      // Let signals settle & CPU to finish reset (with BKGD held low)
+      USBDM::waitUS(BKGD_WAITus);
+
+#if (HW_CAPABILITY&CAP_RST_IN)
+      if (bdm_option.useResetSignal && ResetInterface::isLow()) {
+         // RESET didn't rise
+         rc = BDM_RC_RESET_TIMEOUT_RISE;
+         continue;
+      }
+#endif
+
+      // Let processor start up
+      USBDM::waitMS(RESET_RECOVERYms);
+
+   } while(false);
+
+   return(rc);
+}
+#endif
+
 #if (HW_CAPABILITY&CAP_CFVx_HW)
-      case T_CFVx:
-         bdmcf_interfaceIdle();  // Make sure BDM interface is idle
-         if (mode == RESET_SPECIAL)
-            BKPT_LOW();
-         break;
-#endif
-#if (HW_CAPABILITY&CAP_BDM)
-      case T_HC12:
-      case T_HCS08:
-      case T_RS08:
-      case T_CFV1:
-         Bdm::initialise();
-         if (mode == RESET_SPECIAL) {
-            hcsPowerOn = true;
-            Bdm::setPinState(PinLevelMasks_t::PIN_BKGD_LOW);
-         }
-         break;
-#endif
-#if (HW_CAPABILITY&CAP_JTAG_HW)
-      case T_JTAG:
-      case T_MC56F80xx:
-      case T_ARM_JTAG:
-         jtag_interfaceIdle();  // Make sure BDM interface is idle
-#endif
-         break;
-      default:
-         Swd::initialise();
-         break;
-   }
-   // Power on
-   enableTargetVdd();
-   if (rc != BDM_RC_OK) {
-      // No target Vdd
-      goto cleanUp;
-   }
+/**
+ *   Cycle power ON to target (Coldfire V2/3)
+ *
+ *  @param mode
+ *     - \ref RESET_SPECIAL => Power on in special mode,
+ *     - \ref RESET_NORMAL  => Power on in normal mode
+ *
+ *   If RESET_SPECIAL mode then BKPT is held low when power
+ *   is re-applied to start target in BKGD active mode.
+ *
+ *   @return
+ *    \ref BDM_RC_OK                   => Target Vdd confirmed on target \n
+ *    \ref BDM_RC_VDD_WRONG_MODE       => Target Vdd not controlled by BDM interface \n
+ *    \ref BDM_RC_VDD_NOT_PRESENT      => Target Vdd failed to rise     \n
+ *    \ref BDM_RC_RESET_TIMEOUT_RISE   => RESET signal failed to rise      \n
+ *    \ref BDM_RC_BKGD_TIMEOUT         => BKGD signal failed to rise
+ */
+USBDM_ErrorCode cycleTargetVddOnColdfireVx(TargetMode_t mode) {
+
+   USBDM_ErrorCode rc = BDM_RC_OK;
+
+   mode = (TargetMode_t)(mode&RESET_MODE_MASK);
+
+   do {
+      bdmcf_interfaceIdle();  // Make sure BDM interface is idle
+      if (mode == RESET_SPECIAL)
+         BKPT_LOW();
+
+      // Power on
+      enableTargetVdd();
+      if (rc != BDM_RC_OK) {
+         // No target Vdd
+         continue;
+      }
 
 #if (HW_CAPABILITY&CAP_RST_IN)
    // RESET rise may be delayed by target POR
@@ -228,41 +327,131 @@ USBDM_ErrorCode cycleTargetVddOn(TargetMode_t mode) {
    if (bdm_option.useResetSignal && ResetInterface::isLow()) {
       // RESET didn't rise
       rc = BDM_RC_RESET_TIMEOUT_RISE;
-      goto cleanUp;
+      continue;
    }
 #endif // (HW_CAPABILITY&CAP_RST_IN)
 
-#if (HW_CAPABILITY&CAP_CFVx_HW)
-   if  (cable_status.target_type == T_CFVx)
-      bdmcf_interfaceIdle();  // Release BKPT etc
-   else
-#endif
-#if (HW_CAPABILITY&CAP_BDM)
-      if (hcsPowerOn) {
-         // Release BKGD
-         Bdm::setPinState(PinLevelMasks_t::PIN_BKGD_3STATE);
-      }
-#endif
+   bdmcf_interfaceIdle();  // Release BKPT etc
+
    // Let processor start up
    USBDM::waitMS(RESET_RECOVERYms);
 
-   cleanUp:
-#if (HW_CAPABILITY&CAP_CFVx_HW)
-   if  (cable_status.target_type == T_CFVx)
-      bdmcf_interfaceIdle();  // Release BKPT etc
-   else
+   } while(false);
+
+   return(rc);
+}
 #endif
-#if (HW_CAPABILITY&CAP_BDM)
-      if (hcsPowerOn) {
-         Bdm::initialise();
+
+#if (HW_CAPABILITY&CAP_JTAG_HW)
+/**
+ *   Cycle power ON to target (JTAG targets)
+ *
+ *   @return
+ *    \ref BDM_RC_OK                	=> Target Vdd confirmed on target \n
+ *    \ref BDM_RC_VDD_WRONG_MODE    	=> Target Vdd not controlled by BDM interface \n
+ *    \ref BDM_RC_VDD_NOT_PRESENT   	=> Target Vdd failed to rise 		\n
+ *    \ref BDM_RC_RESET_TIMEOUT_RISE  	=> RESET signal failed to rise 		\n
+ *    \ref BDM_RC_BKGD_TIMEOUT      	=> BKGD signal failed to rise
+ */
+USBDM_ErrorCode cycleTargetVddOnJtag() {
+
+   USBDM_ErrorCode rc = BDM_RC_OK;
+
+   mode = (TargetMode_t)(mode&RESET_MODE_MASK);
+
+   do {
+      jtag_interfaceIdle();  // Make sure BDM interface is idle
+
+      // Power on
+      enableTargetVdd();
+      if (rc != BDM_RC_OK) {
+         // No target Vdd
+         continue;
+      }
+
+#if (HW_CAPABILITY&CAP_RST_IN)
+      // RESET rise may be delayed by target POR
+      if (bdm_option.useResetSignal) {
+         USBDM::waitUS(RESET_RISE_TIMEus, ResetInterface::isHigh);
       }
 #endif
 
-   USBDM::waitMS(250);
+      // Let signals settle & CPU to finish reset (with BKGD held low)
+      USBDM::waitUS(BKGD_WAITus);
 
-#endif // CAP_VDDCONTROL
+#if (HW_CAPABILITY&CAP_RST_IN)
+      if (bdm_option.useResetSignal && ResetInterface::isLow()) {
+         // RESET didn't rise
+         rc = BDM_RC_RESET_TIMEOUT_RISE;
+         continue;
+#endif
+      }
+
+   } while (false);
+
+   // Let processor start up
+   USBDM::waitMS(RESET_RECOVERYms);
 
    return(rc);
+}
+#endif
+
+/**
+ *   Cycle power ON to target
+ *
+ *  @param mode
+ *     - \ref RESET_SPECIAL => Power on in special mode,
+ *     - \ref RESET_NORMAL  => Power on in normal mode
+ *
+ *   If RESET_SPECIAL, and HCS08 or CFV1 targets, BKGD/BKPT is held low when power
+ *   is re-applied to start target in BKGD active mode.
+ *
+ *   @return
+ *    \ref BDM_RC_OK                    => Target Vdd confirmed on target \n
+ *    \ref BDM_RC_VDD_WRONG_MODE        => Target Vdd not controlled by BDM interface \n
+ *    \ref BDM_RC_VDD_NOT_PRESENT       => Target Vdd failed to rise   \n
+ *    \ref BDM_RC_FEATURE_NOT_SUPPORTED => Target Vdd control not supported \n
+ *    \ref BDM_RC_RESET_TIMEOUT_RISE    => RESET signal failed to rise \n
+ *    \ref BDM_RC_BKGD_TIMEOUT          => BKGD signal failed to rise
+ */
+USBDM_ErrorCode cycleTargetVddOn(TargetMode_t mode) {
+   (void) mode;
+
+#if !(HW_CAPABILITY&CAP_VDDCONTROL)
+   // No Vdd control
+   return BDM_RC_FEATURE_NOT_SUPPORTED;
+#endif
+
+   switch(cable_status.target_type) {
+
+#if (HW_CAPABILITY&CAP_BDM)
+      case T_HC12:
+      case T_HCS08:
+      case T_RS08:
+      case T_CFV1:
+         return cycleTargetVddOnBdm(mode);
+#endif
+
+#if (HW_CAPABILITY&CAP_SWD_HW)
+      case T_ARM_SWD:
+         return cycleTargetVddOnSwd();
+#endif
+
+#if (HW_CAPABILITY&CAP_CFVx_HW)
+      case T_CFVx:
+         return cycleTargetVddOnColdfireVx(mode);
+#endif
+
+#if (HW_CAPABILITY&CAP_JTAG_HW)
+      case T_JTAG:
+      case T_MC56F80xx:
+      case T_ARM_JTAG:
+         return cycleTargetVddOnJtag();
+#endif
+
+      default:
+         return BDM_RC_UNKNOWN_TARGET;
+   }
 }
 
 /**
@@ -305,7 +494,7 @@ USBDM_ErrorCode cycleTargetVddOff(void) {
          break;
 #endif
       case T_ARM_SWD:
-         Swd::initialise();
+         Swd::initialiseInterface();
          break;
 
       default:
@@ -389,11 +578,12 @@ void suspend(void){
    bdmCF_suspend();
 #endif
 #if (HW_CAPABILITY&CAP_BDM)
-   Bdm::disable();
+   Bdm::disableInterface();
 #endif
 #if (HW_CAPABILITY&CAP_SWD_HW)
-   Swd::disable();
+   Swd::disableInterface();
 #endif
+   cycleTargetVddOff();
 }
 
 /**
@@ -403,9 +593,11 @@ void suspend(void){
  *   Depending upon settings, may leave target power on.
  */
 void interfaceOff( void ) {
-   Swd::disable();
+#if (HW_CAPABILITY&CAP_SWD_HW)
+   Swd::disableInterface();
+#endif
 #if (HW_CAPABILITY&CAP_BDM)
-   Bdm::disable();
+   Bdm::disableInterface();
 #endif
    if (!bdm_option.leaveTargetPowered) {
       cycleTargetVddOff();
@@ -487,7 +679,7 @@ USBDM_ErrorCode setTarget(TargetType_t target) {
 #endif
 #if (TARGET_CAPABILITY&CAP_ARM_SWD)
       case T_ARM_SWD:
-         Swd::initialise(); // Initialise JTAG
+         Swd::initialiseInterface(); // Initialise JTAG
          break;
 #endif
       case T_OFF:

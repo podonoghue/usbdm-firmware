@@ -7,11 +7,13 @@
  *      Author: podonoghue
  ============================================================================
  */
+#include <interfaceCommon.h>
 #include <math.h>
 #include <string.h>
 #include <random>
 #include <stdlib.h>
 #include "hardware.h"
+#include "smc.h"
 #include "interface.h"
 #include "usb.h"
 #include "targetVddInterface.h"
@@ -20,7 +22,6 @@
 #include "console.h"
 #include "configure.h"
 #include "commands.h"
-#include "bdmCommon.h"
 #include "cmdProcessingSWD.h"
 #if HW_CAPABILITY & CAP_BDM
 #include "bdm.h"
@@ -43,10 +44,10 @@ void check(USBDM_ErrorCode rc , const char *file = NULL, unsigned lineNum = 0 ) 
    (void)file;
    (void)lineNum;
    if (rc == BDM_RC_OK) {
-   //   console.WRITE("OK, [").WRITE(file).WRITE(":#").WRITE(lineNum).WRITELN("]");
+   //   console.writeln("OK, [", file, ":#", lineNum).write("]");
       return;
    }
-   console.WRITE("Failed, [").WRITE(file).WRITE(":#").WRITE(lineNum).WRITE("], Reason= ").WRITELN(rc);
+   console.writeln("Failed, [", file, ":#", lineNum, "], Reason= ", rc);
    __BKPT();
 }
 /**
@@ -97,11 +98,11 @@ USBDM_ErrorCode memRead(uint32_t address, uint8_t opSize, uint8_t size, uint8_t 
  */
 USBDM_ErrorCode testmem(uint32_t addressStart, uint32_t addrRange) {
 
-//   console.WRITE("Connection speed = %ld Hz\n", getSpeed());
+//   console.writeln("Connection speed = %ld Hz\n", getSpeed());
 
    CHECK(f_CMD_CONNECT());
 //   CHECK(Swd::powerUp());
-   console.WRITE("Connected\n");
+   console.writeln("Connected\n");
 
    uint8_t randomData[sizeof(commandBuffer)];
    for (unsigned i=0; i<sizeof(randomData);i++) {
@@ -121,7 +122,7 @@ USBDM_ErrorCode testmem(uint32_t addressStart, uint32_t addrRange) {
       //                          SIZE     #BYTES   Address
       uint8_t operation[] = {0,0, opSize,   size,   (uint8_t)(address>>24), (uint8_t)(address>>16), (uint8_t)(address>>8), (uint8_t)address};
 
-      console.write("Testing [").WRITE(address,Radix_16).WRITE("..").WRITE(address+size-1,Radix_16).WRITE("]:").WRITELN("-BW-L"[opSize]);
+      console.write("Testing [", address, Radix_16, "..", address+size-1,Radix_16, "]:", "-BW-L"[opSize]);
 
       memcpy(commandBuffer, operation, sizeof(operation));
       memcpy(commandBuffer+sizeof(operation), randomData, size);
@@ -144,30 +145,30 @@ USBDM_ErrorCode recover() {
    Swd::initialise();
    USBDM_ErrorCode rc = Swd::lineReset();
    if (rc != BDM_RC_OK) {
-      console.WRITE();
-      console.WRITE("Failed lineReset(), rc = %d\n", rc);
+      console.writeln();
+      console.writeln("Failed lineReset(), rc = %d\n", rc);
       rc = Swd::connect();
       if (rc != BDM_RC_OK) {
-         console.WRITE("Failed connect(), rc = %d\n", rc);
+         console.writeln("Failed connect(), rc = %d\n", rc);
       }
    }
    if (rc == BDM_RC_OK) {
-      console.WRITE("lineReset()/connect() done\n");
+      console.writeln("lineReset()/connect() done\n");
    }
    uint32_t status;
    rc = Swd::readReg(Swd::SWD_RD_DP_STATUS, status);
    if (rc != BDM_RC_OK) {
-      console.WRITE("Failed SWD_RD_DP_STATUS, rc = %d\n", rc);
+      console.writeln("Failed SWD_RD_DP_STATUS, rc = %d\n", rc);
    }
    else {
-      console.WRITE("DP Status = 0x%08lX\n", status);
+      console.writeln("DP Status = 0x%08lX\n", status);
    }
    rc = Swd::clearStickyBits();
    if (rc != BDM_RC_OK) {
-      console.WRITE("Failed clearStickyBits(), rc = %d\n", rc);
+      console.writeln("Failed clearStickyBits(), rc = %d\n", rc);
    }
    else {
-      console.WRITE("Cleared sticky bits\n");
+      console.writeln("Cleared sticky bits\n");
    }
    return rc;
 }
@@ -178,14 +179,14 @@ void testMassErase() {
    CHECK(Swd::f_CMD_CONNECT());
    CHECK(Swd::powerUp());
 
-   console.WRITE("Connected\n");
+   console.writeln("Connected\n");
 
    USBDM_ErrorCode rc = Swd::kinetisMassErase();
    if (rc != BDM_RC_OK) {
-      console.WRITE("Failed massErase(), rc = %d\n", rc);
+      console.writeln("Failed massErase(), rc = %d\n", rc);
    }
    else {
-      console.WRITE("OK massErase()\n");
+      console.writeln("OK massErase()\n");
    }
 }
 
@@ -196,11 +197,11 @@ USBDM_ErrorCode testmem() {
 
    Swd::initialise();
 
-   console.WRITE("Connection speed = %ld Hz\n", Swd::getSpeed());
+   console.writeln("Connection speed = %ld Hz\n", Swd::getSpeed());
 
    CHECK(Swd::f_CMD_CONNECT());
    CHECK(Swd::powerUp());
-   console.WRITE("Connected\n");
+   console.writeln("Connected\n");
 
    uint8_t randomData[sizeof(commandBuffer)];
    for (unsigned i=0; i<sizeof(randomData);i++) {
@@ -220,7 +221,7 @@ USBDM_ErrorCode testmem() {
       //                          SIZE     #BYTES   Address
       uint8_t operation[] = {0,0, opSize,   size,   (uint8_t)(address>>24), (uint8_t)(address>>16), (uint8_t)(address>>8), (uint8_t)address};
 
-      console.write("Testing [").WRITE(address,Radix_16).WRITE("..").WRITE(address+size-1,Radix_16).WRITE("]:").WRITELN("-BW-L"[opSize]);
+      console.writeln("Testing [", address,Radix_16, "..", address+size-1,Radix_16, "]:", "-BW-L"[opSize]);
 
       memcpy(commandBuffer, operation, sizeof(operation));
       memcpy(commandBuffer+sizeof(operation), randomData, size);
@@ -242,21 +243,21 @@ USBDM_ErrorCode checkIDcode() {
 
    CHECK(Swd::f_CMD_CONNECT());
    CHECK(Swd::powerUp());
-   console.WRITE("Connected\n");
+   console.writeln("Connected\n");
 
    uint32_t idcode;
    USBDM_ErrorCode rc = Swd::readReg(Swd::SWD_RD_DP_IDCODE, idcode);
    if (rc != BDM_RC_OK) {
-      console.WRITE("Failed SWD_RD_DP_IDCODE, rc = ").writeln(rc);
+      console.writeln("Failed SWD_RD_DP_IDCODE, rc = ", rc);
       return rc;
    }
    else {
       if (idcode != 0x2BA01477) {
-         console.WRITE("Wrong IDCODE = 0x").writeln(idcode, Radix_16);
+         console.writeln("Wrong IDCODE = 0x", idcode, Radix_16);
          return rc;
       }
       else {
-         console.WRITE("IDCODE = 0x").writeln(idcode, Radix_16);
+         console.writeln("IDCODE = 0x", idcode, Radix_16);
       }
    }
    return BDM_RC_OK;
@@ -279,9 +280,9 @@ void hcs08Testing () {
    // Need to initialise for debug UART0
    ::initialise();
 
-   console.WRITE("SystemBusClock  = ").writeln(::SystemBusClock);
-   console.WRITE("SystemCoreClock = ").writeln(::SystemCoreClock);
-   console.WRITE("Target Vdd = ").writeln(TargetVdd::readVoltage());
+   console.writeln("SystemBusClock  = ", ::SystemBusClock);
+   console.writeln("SystemCoreClock = ", ::SystemCoreClock);
+   console.writeln("Target Vdd      = ", TargetVdd::readVoltage());
 
    USBDM_ErrorCode rc;
    do {
@@ -306,11 +307,55 @@ void hcs08Testing () {
 }
 #endif
 
+#if !defined(DEBUG_BUILD)
+/**
+ * Structure of Boot information in Image Flash memory
+ */
+struct BootInformation {
+   static constexpr uint32_t KEY_VALUE = 0xAA551234;
+
+   const uint32_t *magicNumber;        ///< Pointer to magic number location used to force ICP
+   const uint32_t softwareVersion;     ///< Version of this software image
+   const uint32_t hardwareVersion;     ///< Identifies the hardware this image is intended for
+   const uint32_t reserved[3]{0};      ///<
+   const uint32_t key;
+
+   bool isValid() const {
+      return key == KEY_VALUE;
+   }
+
+   constexpr BootInformation(
+         const uint32_t *magicNumber,
+         const uint32_t softwareVersion,
+         const uint32_t hardwareVersion ) :
+            magicNumber(magicNumber),
+            softwareVersion(softwareVersion),
+            hardwareVersion(hardwareVersion),
+            key(KEY_VALUE) {
+   }
+};
+
+
+// Dummy bootloader information for linker
+
+// Triggers memory image relocation for bootloader
+extern BootInformation const bootloaderInformation;
+
+__attribute__ ((section(".bootloaderInformation")))
+__attribute__((used))
+const BootInformation bootloaderInformation = {
+      nullptr,  // Magic number to force ICP on reboot
+      2,        // Software version
+      3,        // Hardware version for this image
+};
+#endif
+
+
 /**
  *  Dummy callback function servicing the interrupt from Vdd changes
  */
 static void targetVddSense(VddState) {
-   console.WRITELN("Target Vdd Change");
+   console.writeln("Target Vdd Change");
 }
 
 void warmStart() {
@@ -320,7 +365,8 @@ void warmStart() {
    Debug::initialise();
 
    InterfaceEnable::initialise();
-   // The interface is always on
+
+   // The interface is initially on
    InterfaceEnable::on();
 
 //   console_initialise();
@@ -333,40 +379,45 @@ void coldStart() {
 
    TargetVddInterface::initialise(targetVddSense);
 
-   // Board starts with Target Vdd on
+#if TARGET_HARDWARE == H_USBDM_OPENSDA
+   // FRDM board starts with Target Vdd on
    TargetVddInterface::vddOn();
+#endif
 
    // Wait for Vbdm stable
-   wait(10*ms);
+   wait(10_ms);
 
    checkError();
 }
 
 #include "utilities.h"
+#include "spi.h"
 
 char buff[100];
 
 int main() {
 //   hcs08Testing();
-
    // Need to coldStart voltage monitoring etc
    ::coldStart();
 
-//   console.write("SystemBusClock  = ").write(::SystemBusClock/1000000.0).writeln(" MHz");
-//   console.write("SystemCoreClock = ").write(::SystemCoreClock/1000000.0).writeln(" MHz");
+//   console.writeln("SystemBusClock  = ", ::SystemBusClock/1000000.0, " MHz");
+//   console.writeln("SystemCoreClock = ", ::SystemCoreClock/1000000.0, " MHz");
 //
-//   console.write("HardwareId = ").writeln(HardwareId::getId());
-//   console.write("Target Vdd = ").write(TargetVddInterface::readVoltage()).writeln(" V");
+//   console.writeln("HardwareId = ", HardwareId::getId());
+//   console.writeln("Target Vdd = ", TargetVddInterface::readVoltage(), " V");
 
-   console.WRITELN("\n\nStarting");
+   console.writeln("\n\nStarting");
 
    UsbImplementation::initialise();
    checkError();
 
+//   const PcrValue x(23);
+//   PcrValue z(x+PinPull_Down);
+
    for(;;) {
       // Wait for USB connection
       while(!UsbImplementation::isConfigured()) {
-         __WFI();
+         Smc::enterWaitMode();
       }
       // Process commands
       commandLoop();

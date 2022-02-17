@@ -17,7 +17,8 @@
  * This file is generated automatically.
  * Any manual changes will be lost.
  */
-#include "hardware.h"
+#include <math.h>
+#include "pin_mapping.h"
 
 namespace USBDM {
 
@@ -116,6 +117,33 @@ enum TsiErrorInterrupt {
    TsiErrorInterrupt_Disabled  = TSI_GENCS_ERIE(0),   //!< Error interrupts disabled
    TsiErrorInterrupt_Enabled   = TSI_GENCS_ERIE(1),   //!< Error interrupts enabled (overrun or illegal measurement result)
 };
+
+/**
+ * Select TSI inputs
+ */
+enum TsiInput {
+   // Mapped inputs
+   TsiInput_0          =  0, //!< TSI input 0
+   TsiInput_1          =  1, //!< TSI input 1
+   TsiInput_2          =  2, //!< TSI input 2
+   TsiInput_3          =  3, //!< TSI input 3
+   TsiInput_4          =  4, //!< TSI input 4
+   TsiInput_5          =  5, //!< TSI input 5
+   TsiInput_6          =  6, //!< TSI input 6
+   TsiInput_7          =  7, //!< TSI input 7
+   TsiInput_8          =  9, //!< TSI input 8
+   TsiInput_9          =  8, //!< TSI input 9
+   TsiInput_10         = 10, //!< TSI input 10
+   TsiInput_11         = 11, //!< TSI input 11
+   TsiInput_12         = 12, //!< TSI input 12
+   TsiInput_13         = 13, //!< TSI input 13
+   TsiInput_14         = 14, //!< TSI input 14
+   TsiInput_15         = 15, //!< TSI input 15
+// No user defined TSI inputs found
+
+};
+
+
 /**
  * Type definition for TSI interrupt call back
  *
@@ -145,12 +173,25 @@ protected:
       return (electrode>=Info::numSignals)?0:electrode;
    }
 
-   /** Class to static check channel pin mapping is valid */
-   template<int electrodeNum> class CheckSignal {
-      static_assert((electrodeNum<Info::numSignals), "Non-existent TSI Input - Modify Configure.usbdm");
-      static_assert((electrodeNum>=Info::numSignals)||(Info::info[electrodeNum].gpioBit != UNMAPPED_PCR), "TSI Input is not mapped to a pin - Modify Configure.usbdm");
-      static_assert((electrodeNum>=Info::numSignals)||(Info::info[electrodeNum].gpioBit != INVALID_PCR),  "TSI Input doesn't exist in this device/package - Modify Configure.usbdm");
-      static_assert((electrodeNum>=Info::numSignals)||((Info::info[electrodeNum].gpioBit == UNMAPPED_PCR)||(Info::info[electrodeNum].gpioBit == INVALID_PCR)||(Info::info[electrodeNum].gpioBit >= 0)), "Illegal TSI Input - Modify Configure.usbdm");
+   /**
+    * Class to static check electrodeNum exists and is mapped to a pin
+    *
+    * @tparam electrodeNum Electrode number to check
+    */
+   template<int electrodeNum> class CheckPinExistsAndIsMapped {
+      // Tests are chained so only a single assertion can fail so as to reduce noise
+
+      // Out of bounds value for function index
+      static constexpr bool Test1 = (electrodeNum>=0) && (electrodeNum<(Info::numSignals));
+      // Function is not currently mapped to a pin
+      static constexpr bool Test2 = !Test1 || (Info::info[electrodeNum].gpioBit != UNMAPPED_PCR);
+      // Non-existent function and catch-all. (should be INVALID_PCR)
+      static constexpr bool Test3 = !Test1 || !Test2 || (Info::info[electrodeNum].gpioBit >= 0);
+
+      static_assert(Test1, "Illegal TSI Input - Check Configure.usbdm for available inputs");
+      static_assert(Test2, "TSI input is not mapped to a pin - Modify Configure.usbdm");
+      static_assert(Test3, "TSI input doesn't exist in this device/package - Check Configure.usbdm for available input pins");
+
    public:
       /** Dummy function to allow convenient in-line checking */
       static constexpr void check() {}
@@ -166,7 +207,7 @@ public:
    static void irqHandler(void) {
 
       // Capture flags
-      uint32_t status = TsiBase_T<Info>::tsi().GENCS;
+      uint32_t status = TsiBase_T<Info>::tsi->GENCS;
 
       status &= TSI_GENCS_SCNIP_MASK|TSI_GENCS_EOSF_MASK|TSI_GENCS_OUTRGF_MASK|TSI_GENCS_OVRF_MASK|TSI_GENCS_EXTERF_MASK;
 
@@ -175,7 +216,7 @@ public:
          return;
       }
       // Clear flags
-      TsiBase_T<Info>::tsi().GENCS |= status; // w1c found flags
+      TsiBase_T<Info>::tsi->GENCS = TsiBase_T<Info>::tsi->GENCS | status; // w1c found flags
       if (status == (TSI_GENCS_SCNIP_MASK|TSI_GENCS_EOSF_MASK)) {
          // Ignore EOSF unless SCNIP is clear to avoid multiple events due to errata e3926
          // This assumes that there is at least some idle time between sequences - as there should be
@@ -200,8 +241,8 @@ public:
    }
 
 public:
-   /** Hardware instance pointer */
-   static __attribute__((always_inline)) volatile TSI_Type &tsi() { return Info::tsi(); }
+   /** Pointer to hardware */
+   static constexpr HardwarePtr<TSI_Type> tsi = Info::baseAddress;
 
    /**
     * Handler for unexpected interrupts i.e. handler not installed.
@@ -210,26 +251,55 @@ public:
       setAndCheckErrorCode(E_NO_HANDLER);
    }
 
+   // Template _mapPinsOption.xml
+
    /**
-    * Configures all mapped pins associated with this peripheral
+    * Configures all mapped pins associated with TSI
+    *
+    * @note Locked pins will be unaffected
     */
-   static void __attribute__((always_inline)) configureAllPins() {
-      // Configure pins
-      Info::initPCRs();
+   static void configureAllPins() {
+   
+      // Configure pins if selected and not already locked
+      if constexpr (Info::mapPinsOnEnable && !(MapAllPinsOnStartup && (ForceLockedPins == PinLock_Locked))) {
+         Info::initPCRs();
+      }
    }
 
    /**
-    * Enables TSI bus interface clock and configures all pins
+    * Disabled all mapped pins associated with TSI
+    *
+    * @note Only the lower 16-bits of the PCR registers are modified
+    *
+    * @note Locked pins will be unaffected
+    */
+   static void disableAllPins() {
+   
+      // Disable pins if selected and not already locked
+      if constexpr (Info::mapPinsOnEnable && !(MapAllPinsOnStartup && (ForceLockedPins == PinLock_Locked))) {
+         Info::clearPCRs();
+      }
+   }
+
+   /**
+    * Basic enable of TSI
+    * Includes enabling clock and configuring all mapped pins if mapPinsOnEnable is selected in configuration
     */
    static void enable() {
-
-      if (Info::mapPinsOnEnable) {
-         configureAllPins();
-      }
-
       Info::enableClock();
-      __DMB();
+      configureAllPins();
    }
+
+   /**
+    * Disables the clock to TSI and all mapped pins
+    */
+   static void disable() {
+      disableNvicInterrupts();
+      
+      disableAllPins();
+      Info::disableClock();
+   }
+// End Template _mapPinsOption.xml
 
    /**
     * Initialise TSI to default settings determined by Configure.usbdmProject\n
@@ -238,10 +308,10 @@ public:
    static void defaultConfigure() {
       enable();
 
-      tsi().GENCS     = Info::tsi_gencs|TSI_GENCS_TSIEN_MASK;
-      tsi().SCANC     = Info::tsi_scanc;
-      tsi().THRESHOLD = Info::tsi_threshold;
-      tsi().PEN       = Info::tsi_pen;
+      tsi->GENCS     = Info::tsi_gencs|TSI_GENCS_TSIEN_MASK;
+      tsi->SCANC     = Info::tsi_scanc;
+      tsi->THRESHOLD = Info::tsi_threshold;
+      tsi->PEN       = Info::tsi_pen;
 
       enableNvicInterrupts(Info::irqLevel);
    }
@@ -259,7 +329,7 @@ public:
     *
     * @param[in]  nvicPriority  Interrupt priority
     */
-   static void enableNvicInterrupts(uint32_t nvicPriority) {
+   static void enableNvicInterrupts(NvicPriority nvicPriority) {
       enableNvicInterrupt(Info::irqNums[0], nvicPriority);
    }
 
@@ -281,7 +351,7 @@ public:
     */
    static void setScans(TsiElectrodePrescaler tsiElectrodePrescaler, int consecutiveScans) {
 
-      tsi().GENCS = (tsi().GENCS&~(TSI_GENCS_PS_MASK|TSI_GENCS_NSCN_MASK))|tsiElectrodePrescaler|TSI_GENCS_NSCN(consecutiveScans-1);
+      tsi->GENCS = (tsi->GENCS&~(TSI_GENCS_PS_MASK|TSI_GENCS_NSCN_MASK))|tsiElectrodePrescaler|TSI_GENCS_NSCN(consecutiveScans-1);
    }
    /**
     * Set clock source, clock divider and modulus for active mode
@@ -295,7 +365,7 @@ public:
          TsiClockDivider tsiClockDivider  = TsiClockDivider_128,
          uint16_t        scanModulus      = 0 ) {
 
-      tsi().SCANC = (tsi().SCANC&~(TSI_SCANC_AMCLKS_MASK|TSI_SCANC_AMPSC_MASK|TSI_SCANC_SMOD_MASK))|
+      tsi->SCANC = (tsi->SCANC&~(TSI_SCANC_AMCLKS_MASK|TSI_SCANC_AMPSC_MASK|TSI_SCANC_SMOD_MASK))|
             TSI_SCANC_SMOD(scanModulus)|tsiClockSource|tsiClockDivider;
    }
    /**
@@ -320,7 +390,7 @@ public:
          float    clock = inputClock/prescaleFactor;
          uint32_t periodInTicks = round(period*clock);
          if (periodInTicks <= maxPeriodInTicks) {
-            tsi().SCANC = (tsi().SCANC&~(TSI_SCANC_AMPSC_MASK|TSI_SCANC_SMOD_MASK))|
+            tsi->SCANC = (tsi->SCANC&~(TSI_SCANC_AMPSC_MASK|TSI_SCANC_SMOD_MASK))|
                   TSI_SCANC_AMPSC(prescalerValue)|TSI_SCANC_SMOD(periodInTicks);
             return E_NO_ERROR;
          }
@@ -342,7 +412,7 @@ public:
          TsiLowPowerScanInterval tsiLowPowerScanInterval = TsiLowPowerScanInterval_500ms,
          TsiLowPowerClockSource  tsiLowPowerClockSource  = TsiLowPowerClockSource_LpOscClk) {
 
-      tsi().GENCS = (tsi().GENCS&~(TSI_GENCS_STPE_MASK|TSI_GENCS_LPCLKS_MASK|TSI_GENCS_LPSCNITV_MASK))|
+      tsi->GENCS = (tsi->GENCS&~(TSI_GENCS_STPE_MASK|TSI_GENCS_LPCLKS_MASK|TSI_GENCS_LPSCNITV_MASK))|
             tsiStopMode|tsiLowPowerScanInterval|tsiLowPowerClockSource;
    }
    /**
@@ -353,7 +423,7 @@ public:
     */
    static void setCurrents(uint16_t referenceCharge=16, uint16_t externalCharge=16) {
 
-      tsi().SCANC = (tsi().SCANC&~(TSI_SCANC_REFCHRG_MASK|TSI_SCANC_EXTCHRG_MASK))|
+      tsi->SCANC = (tsi->SCANC&~(TSI_SCANC_REFCHRG_MASK|TSI_SCANC_EXTCHRG_MASK))|
             TSI_SCANC_REFCHRG((referenceCharge+1)/2)|TSI_SCANC_EXTCHRG((externalCharge+1)/2);
    }
    /**
@@ -385,7 +455,7 @@ public:
    static void enableTsiInterrupts(
          TsiInterrupt      tsiInterrupt,
          TsiErrorInterrupt tsiErrorInterrupt = TsiErrorInterrupt_Disabled) {
-      tsi().GENCS = (tsi().GENCS&~(TSI_GENCS_TSIIE_MASK|TSI_GENCS_ERIE_MASK))|tsiInterrupt|tsiErrorInterrupt;
+      tsi->GENCS = (tsi->GENCS&~(TSI_GENCS_TSIIE_MASK|TSI_GENCS_ERIE_MASK))|tsiInterrupt|tsiErrorInterrupt;
    }
 
    /**
@@ -396,7 +466,7 @@ public:
     * @return 16-bit count value
     */
    static uint16_t getCount(int channel) {
-      return Info::tsi().CNTR[channel];
+      return Info::tsi->CNTR[channel];
    }
 
    /**
@@ -407,16 +477,16 @@ public:
    static void startScan(TsiScanMode tsiScanMode) {
       // Disable module so changes have effect
       // This also helps with errata e4181
-      tsi().GENCS &= ~TSI_GENCS_TSIEN_MASK|TSI_GENCS_SWTS_MASK;
+      tsi->GENCS = tsi->GENCS & ~TSI_GENCS_TSIEN_MASK|TSI_GENCS_SWTS_MASK;
 
       // Select Hardware/Software mode
-      tsi().GENCS |= (tsiScanMode&TSI_GENCS_STM_MASK);
+      tsi->GENCS = tsi->GENCS | (tsiScanMode&TSI_GENCS_STM_MASK);
 
       // Enable
-      tsi().GENCS |= TSI_GENCS_TSIEN_MASK;
+      tsi->GENCS = tsi->GENCS | TSI_GENCS_TSIEN_MASK;
 
       // Clear flags and start scan
-      tsi().GENCS |=
+      tsi->GENCS = tsi->GENCS |
             tsiScanMode|            // Software/Hardware mode + optional software trigger
             TSI_GENCS_EOSF_MASK|    // Clear flags
             TSI_GENCS_OUTRGF_MASK|
@@ -435,36 +505,37 @@ public:
       startScan(TsiScanMode_Triggered);
 
       // Wait for complete flag or error
-      while ((tsi().GENCS&(TSI_GENCS_EOSF_MASK|TSI_GENCS_OUTRGF_MASK|TSI_GENCS_EXTERF_MASK|TSI_GENCS_OVRF_MASK)) == 0) {
+      while ((tsi->GENCS&(TSI_GENCS_EOSF_MASK|TSI_GENCS_OUTRGF_MASK|TSI_GENCS_EXTERF_MASK|TSI_GENCS_OVRF_MASK)) == 0) {
       }
 
-      return (tsi().GENCS&(TSI_GENCS_OUTRGF_MASK|TSI_GENCS_EXTERF_MASK|TSI_GENCS_OVRF_MASK))?E_ERROR:E_NO_ERROR;
+      return (tsi->GENCS&(TSI_GENCS_OUTRGF_MASK|TSI_GENCS_EXTERF_MASK|TSI_GENCS_OVRF_MASK))?E_ERROR:E_NO_ERROR;
    }
 
    /**
     * Class representing a TSI input pin
     *
-    * @tparam electrodeNum Number of TSI electrode (input) to configure
+    * @tparam tsiInput Number of TSI electrode (input) to configure
     */
-   template<int tsiElectrodeNum>
+   template<TsiInput tsiInput>
    class Pin {
 
    private:
       // Check if electrode mapped to pin
-      static CheckSignal<tsiElectrodeNum> check;
+      static CheckPinExistsAndIsMapped<tsiInput> check;
 
       // PCR for pin associated with electrode
-      using Pcr = PcrTable_T<Info, limitElectrode(tsiElectrodeNum)>;
+      using Pcr = PcrTable_T<Info, limitElectrode(tsiInput)>;
 
    public:
-      static constexpr int electrodeNum = tsiElectrodeNum;
+      static constexpr TsiInput TSI_INPUT      = tsiInput;
+      static constexpr uint16_t TSI_INPUT_MASK = 1<<tsiInput;
 
       /**
        * Configure the pin associated with a TSI input electrode.
        */
       static void setInput() {
          // Configure associated pin as analogue input
-         Pcr::setPCR(PinMux_Analog);
+         Pcr::setPCR();
       }
 
       /**
@@ -473,7 +544,7 @@ public:
        * @return 16-bit count value
        */
       static uint16_t getCount() {
-         return Info::tsi().CNTR[tsiElectrodeNum];
+         return Info::tsi->CNTR[tsiInput];
       }
    };
 
@@ -486,7 +557,6 @@ template<class Info> TSICallbackFunction TsiBase_T<Info>::sCallback = TsiBase_T<
  * Class representing TSI
  */
 class Tsi : public TsiBase_T<TsiInfo> {};
-
 #endif
 
 #ifdef USBDM_TSI0_IS_DEFINED
@@ -494,7 +564,6 @@ class Tsi : public TsiBase_T<TsiInfo> {};
  * Class representing TSI
  */
 class Tsi0 : public TsiBase_T<Tsi0Info> {};
-
 #endif
 /**
  * End TSI_Group

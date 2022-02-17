@@ -44,44 +44,143 @@ namespace Swd {
 /** Select SPI to use */
 using SpiInfo = Spi0Info;
 
-/** GPIO for SWD-CLK pin */
-using swdClk = GpioTable_T<SpiInfo, 0, ActiveHigh>;
-
-/** GPIO for SWD-DIN pin */
-using swdIn = GpioTable_T<SpiInfo, 1, ActiveHigh>;
-
-/** GPIO for SWD-DOUT pin */
-using swdOut = GpioTable_T<SpiInfo, 2, ActiveHigh>;
-
 // Make sure pins have been assigned to SPI
-CheckSignal<SpiInfo, 0> sck_chk;
-CheckSignal<SpiInfo, 1> sin_chk;
-CheckSignal<SpiInfo, 2> sout_chk;
+CheckSignalMapping<SpiInfo, 0> sck_chk;         // SWCLK_O pin
+CheckSignalMapping<SpiInfo, 1> sin_chk;         // SWD_I pin
+CheckSignalMapping<SpiInfo, 2> sout_chk;        // SWD_O pin
 
-#if defined(AUTO_DIO_SWITCHING)
-CheckSignal<SpiInfo, 5> enable_chk;
+/** Manual control of SWDIO */
+class swdDioControl{
 
-/** GPIO for manual SWD enable pin */
-using swdDirection = GpioTable_T<SpiInfo, 5, ActiveHigh>;
+   /** GPIO for SWD_I pin / Shared with SPI */
+   using swdIn  = GpioTable_T<SpiInfo, 1, ActiveHigh>;
 
-static inline void enableDrive() { }
-static inline void disableDrive() { }
+   /** GPIO for SWD_O pin / Shared with SPI */
+   using swdOut = GpioTable_T<SpiInfo, 2, ActiveHigh>;
 
-// Masks for SPI CS which controls the SWDIO output drive
-static constexpr SpiPeripheralSelect SwdDriveEnable  = SpiPeripheralSelect_None;
-static constexpr SpiPeripheralSelect SwdDriveDisable = SpiPeripheralSelect_None;
-#else
-/** GPIO for SWD enable pin */
-using swdDirection = GpioB<0, ActiveLow>;
+   /** GPIO for SWD_DIR pin (manual direction control) */
+   using swdDir = USBDM::Swd_OE_Enable; // GpioB<0, ActiveLow>;
 
-static inline void enableDrive() { swdDirection::on(); }
-static inline void disableDrive() { swdDirection::off(); }
+public:
+   /**
+    * Set SWDIO as output driving high
+    *
+    * @note SWDIO control is transferred to GPIO from SPI
+    */
+   static void driveHigh() {
+      swdOut::high();
+      swdOut::setPCR();       // Pin controlled by GPIO (rather that SPI)
+      swdDir::on();
+      swdDir::setPCR();       // Pin controlled by GPIO (rather that SPI)
+   }
 
-// Masks for SPI CS which controls the SWDIO output drive (not used)
-static constexpr SpiPeripheralSelect SwdDriveEnable  = SpiPeripheralSelect_2;
-static constexpr SpiPeripheralSelect SwdDriveDisable = SpiPeripheralSelect_None;
-#endif
+   /**
+    * Set SWDIO direction as output driving low
+    *
+    * @note SWDIO control is transferred to GPIO from SPI
+    */
+   static void driveLow()  {
+      swdOut::low();
+      swdOut::setPCR();       // Pin controlled by GPIO (rather that SPI)
+      swdDir::on();
+      swdDir::setPCR();       // Pin controlled by GPIO (rather that SPI)
+   }
 
+   /**
+    * Set SWDIO direction as output driving low
+    *
+    * @note SWDIO control is transferred to GPIO from SPI
+    */
+   static void triState()  {
+      swdDir::off();
+      swdDir::setPCR();       // Pin controlled by GPIO (rather that SPI)
+   }
+
+   /**
+    * Read SWDIO level
+    *
+    * @note SWDIO control is not affected
+    */
+   static bool peek()  {
+      // GPIO PDIR always reflects digital value even when not configured as GPIO
+      return swdIn::readBit();
+   }
+
+   /**
+    * Set SWDIO as driven output
+    *
+    * @note Assumes interface is owned by SPI
+    */
+   static void directionOut() {
+      swdDir::on();
+   }
+
+   /**
+    * Set SWDIO as output
+    *
+    * @note Assumes interface is owned by SPI
+    */
+   static void directionIn() {
+      swdDir::off();
+   }
+
+   /**
+    * Enables control of direction (manual)
+    */
+   static void directionInitialise() {
+      swdDir::setOutput();
+   }
+};
+
+/** Manual control of SWCLK */
+class swdClkControl{
+
+   /** GPIO for SWCLK_O pin */
+   using swdClk = GpioTable_T<SpiInfo, 0, ActiveHigh>;
+
+public:
+   /**
+    * Set SWCLK as output driving high
+    *
+    * @note SWCLK control is transferred to GPIO from SPI
+    */
+   static void driveHigh() {
+      swdClk::high();
+      swdClk::setPCR();       // Pin controlled by GPIO (rather that SPI)
+   }
+
+   /**
+    * Set SWCLK direction as output driving low
+    *
+    * @note SWCLK control is transferred to GPIO from SPI
+    */
+   static void driveLow()  {
+      swdClk::low();
+      swdClk::setPCR();       // Pin controlled by GPIO (rather that SPI)
+   }
+
+   /**
+    * 3-state control of SWDCLK is not available as buffer disable interacts with Debug_Tx
+    * Set SWCLK direction as output driving low
+    *
+    * @note SWCLK control is transferred to GPIO from SPI
+    */
+   static void triState()  {
+      swdClk::off();
+      swdClk::setPCR();       // Pin controlled by GPIO (rather that SPI)
+   }
+
+   /**
+    * Read SWCLK level
+    *
+    * @note SWCLK control is not affected
+    * @note This reads the value being driven on SWCLK_O which may not always reflect the level on SWDCLK
+    */
+   static bool peek()  {
+      // GPIO PDIR always reflects digital value even when not configured as GPIO
+      return swdClk::readState();
+   }
+};
 
 //===========================================================================
 
@@ -159,7 +258,7 @@ enum SwdAck {
 };
 
 /** SPI Object */
-static SPI_Type volatile &spi() { return SpiInfo::spi(); };
+static const HardwarePtr<SPI_Type> spi = SpiInfo::baseAddress;
 
 /** Initial value of AHB_SP_CSW register read from target */
 static uint32_t ahb_ap_csw_defaultValue;
@@ -183,19 +282,8 @@ static uint8_t calcParity(const uint32_t data) {
          "and.w r0, #1               \n\t"
          "bx lr                      \n\t"
    );
-   return 0; // stop warning
+   return 0; // prevent warning
 }
-
-///**
-// * Check status of SWDDIO signal
-// *
-// * @return Value on SWDIO pin
-// */
-//bool readSwdDin() {
-//   GpioTable_T<SpiInfo, 1> SwdDin;
-//   return SwdDin.isHigh();
-//}
-
 
 /**
  *  Transmit [32-bit word]
@@ -203,23 +291,23 @@ static uint8_t calcParity(const uint32_t data) {
  *  @param data Data to send
  */
 static void tx32(const uint32_t data) {
-   spi().CTAR[0] = Tx16Ctar;
+   spi->CTAR[0] = Tx16Ctar;
 
-//   spi().MCR &= ~SPI_MCR_HALT_MASK;
-   enableDrive();
-   spi().PUSHR = ((uint16_t)(data))    |SPI_PUSHR_CTAS(0)|SwdDriveEnable|SPI_PUSHR_CONT(1)|SPI_PUSHR_EOQ(0);
-   spi().PUSHR = ((uint16_t)(data>>16))|SPI_PUSHR_CTAS(0)|SwdDriveEnable|SPI_PUSHR_CONT(0)|SPI_PUSHR_EOQ(1);
+//   spi->MCR &= ~SPI_MCR_HALT_MASK;
+   swdDioControl::directionOut();
+   spi->PUSHR = ((uint16_t)(data))    |SPI_PUSHR_CTAS(0)|SPI_PUSHR_CONT(1)|SPI_PUSHR_EOQ(0);
+   spi->PUSHR = ((uint16_t)(data>>16))|SPI_PUSHR_CTAS(0)|SPI_PUSHR_CONT(0)|SPI_PUSHR_EOQ(1);
 
    // Wait until End of Transmission
-   while ((spi().SR & SPI_SR_EOQF_MASK)==0) {
+   while ((spi->SR & SPI_SR_EOQF_MASK)==0) {
    }
-   disableDrive();
-   spi().SR = SPI_SR_TCF_MASK|SPI_SR_EOQF_MASK;
+   swdDioControl::directionIn();
+   spi->SR = SPI_SR_TCF_MASK|SPI_SR_EOQF_MASK;
 
-   (void)(spi().POPR);
-   (void)(spi().POPR);
+   (void)(spi->POPR);
+   (void)(spi->POPR);
 
-//   spi().MCR |= SPI_MCR_HALT_MASK;
+//   spi->MCR |= SPI_MCR_HALT_MASK;
 }
 
 /**
@@ -232,21 +320,20 @@ static void tx32(const uint32_t data) {
  * Note: Chooses the highest speed that is not greater than frequency.
  */
 USBDM_ErrorCode setSpeed(uint32_t frequency) {
-   float SPI_PADDING2 = 1/(5.0*frequency);
-   const uint32_t ctarBase = Spi::calculateCtar(SpiInfo::getClockFrequency(), frequency, SPI_PADDING2, SPI_PADDING2, SPI_PADDING2);
+   const uint32_t ctarBase = Spi::calculateCtarTiming(SpiInfo::getClockFrequency(), frequency);
 
-   PreambleCtar = ctarBase|SpiPolarity_InactiveHigh|SpiPhase_LeadingChange |SpiFrameSize(8) |SpiOrder_MsbFirst;
-   AckCtar      = ctarBase|SpiPolarity_InactiveHigh|SpiPhase_LeadingCapture|SpiFrameSize(5) |SpiOrder_MsbFirst;
-   RxCtar       = ctarBase|SpiPolarity_InactiveHigh|SpiPhase_LeadingCapture|SpiFrameSize(16)|SpiOrder_LsbFirst;
-   TxCtar       = ctarBase|SpiPolarity_InactiveHigh|SpiPhase_LeadingChange |SpiFrameSize(11)|SpiOrder_LsbFirst;
-   Tx16Ctar     = ctarBase|SpiPolarity_InactiveHigh|SpiPhase_LeadingChange |SpiFrameSize(16)|SpiOrder_LsbFirst;
+   PreambleCtar = ctarBase|SpiPolarity_InactiveHigh|SpiPhase_LeadingChange |SpiFrameSize_8 |SpiOrder_MsbFirst;
+   AckCtar      = ctarBase|SpiPolarity_InactiveHigh|SpiPhase_LeadingCapture|SpiFrameSize_5 |SpiOrder_MsbFirst;
+   RxCtar       = ctarBase|SpiPolarity_InactiveHigh|SpiPhase_LeadingCapture|SpiFrameSize_16|SpiOrder_LsbFirst;
+   TxCtar       = ctarBase|SpiPolarity_InactiveHigh|SpiPhase_LeadingChange |SpiFrameSize_11|SpiOrder_LsbFirst;
+   Tx16Ctar     = ctarBase|SpiPolarity_InactiveHigh|SpiPhase_LeadingChange |SpiFrameSize_16|SpiOrder_LsbFirst;
 
 //   console.setPadding(Padding_LeadingZeroes).setWidth(32);
-//   console.WRITE("PreambleCtar ").WRITELN(PreambleCtar,Radix_2);
-//   console.WRITE("AckCtar      ").WRITELN(AckCtar,Radix_2);
-//   console.WRITE("RxCtar       ").WRITELN(RxCtar,Radix_2);
-//   console.WRITE("TxCtar       ").WRITELN(TxCtar,Radix_2);
-//   console.WRITE("Tx16Ctar     ").WRITELN(Tx16Ctar,Radix_2);
+//   console.writeln("PreambleCtar 0b", PreambleCtar, Radix_2);
+//   console.writeln("AckCtar      0b", AckCtar, Radix_2);
+//   console.writeln("RxCtar       0b", RxCtar, Radix_2);
+//   console.writeln("TxCtar       0b", TxCtar, Radix_2);
+//   console.writeln("Tx16Ctar     0b", Tx16Ctar, Radix_2);
 
    return BDM_RC_OK;
 }
@@ -260,119 +347,6 @@ USBDM_ErrorCode setSpeed(uint32_t frequency) {
  */
 uint32_t getSpeed() {
    return Spi::calculateSpeed(SpiInfo::getClockFrequency(), TxCtar);
-}
-
-/**
- * Initialise interface\n
- * Does not communicate with target
- */
-void initialise() {
-
-   console.WRITELN("Swd::initialise()");
-
-   // Configure SPI pins
-   SpiInfo::initPCRs();
-
-   SpiInfo::enableClock();
-
-   setSpeed(12000000);
-
-   // Start reset 3-state
-   ResetInterface::initialise();
-   ResetInterface::highZ();
-
-   swdDirection::setOutput();
-
-   // GPIO controlling some interface signals (SWD, UART-TX)
-   InterfaceEnable::initialise();
-   InterfaceEnable::on();
-
-   // Set mode
-   spi().MCR =
-         SPI_MCR_FRZ(1)|      // Freeze in debug mode
-         SPI_MCR_CLR_RXF(1)|  // Clear Receive FIFO
-         SPI_MCR_CLR_TXF(1)|  // Clear Transmit FIFO
-         SPI_MCR_ROOE(0)|     // Ignore Receive data on overflow
-         SPI_MCR_MSTR(1)|     // Master mode
-         SPI_MCR_DCONF(0)|    // SPI (must be zero)
-         SPI_MCR_MTFE(0)|     // Don't use modified sample point
-         SPI_MCR_SMPL_PT(0)|  // Modified sample point (N/A)
-         SPI_MCR_PCSIS(0);    // All PCSes active-high
-}
-
-/**
- * Initialise interface\n
- * Does not communicate with target
- */
-void interfaceIdle() {
-
-//   console.WRITELN("Swd::interfaceIdle()");
-
-   // Configure RESET pins
-   ResetInterface::highZ();
-
-   // Configure SPI pins SIN,SOUT,SCK,CS (SWDIO, SWDCLK)
-   SpiInfo::initPCRs();
-}
-
-/**
- * Disables interface
- *
- * Note: Reset is not affected
- */
-void disable() {
-   SpiInfo::clearPCRs();
-}
-
-/**
- * Set pin state
- *
- * @param pins Pin control mask
- *
- * @note Only handles SWD, SWCLK functions as others (such as reset) are assumed handled in common code
- */
-void setPinState(PinLevelMasks_t control) {
-   switch (control & PIN_SWD_MASK) {
-      case PIN_SWD_3STATE :
-         swdDirection::low();           // Disable SWD buffer, SWDIO = Z
-         swdDirection::setOutput();     // Enable manual control of buffer direction
-         break;
-      case PIN_SWD_LOW :
-         swdOut::low();                 // SWD = Low
-         swdOut::setOutput();           // Enable manual control of SWD
-         swdDirection::high();          // Enable SWD buffer, SWDIO = Low
-         swdDirection::setOutput();     // Enable manual control of buffer direction
-         break;
-      case PIN_SWD_HIGH :
-         swdOut::high();                // SWD = High
-         swdOut::setOutput();           // Enable manual control of SWD
-         swdDirection::high();          // Enable SWD buffer, SWDIO = High
-         swdDirection::setOutput();     // Enable manual control of buffer direction
-         break;
-   }
-   switch (control & PIN_SWCLK_MASK) {
-      case PIN_SWCLK_3STATE :
-         // Not supported - approximate as high
-         // No break
-      case PIN_SWCLK_HIGH :
-         swdClk::setOutput();    // Enable manual control of SWDCLK
-         swdClk::high();         // Drive high
-         break;
-      case PIN_SWCLK_LOW :
-         swdClk::setOutput();    // Enable manual control of SWDCLK
-         swdClk::low();          // Drive low
-         break;
-   }
-}
-
-/**
- * Get pin status
- *
- * @param [INOUT] status Updated with pin status from this interface
- */
-void getPinState(PinLevelMasks_t &status) {
-   status = (PinLevelMasks_t) (status | swdIn::isHigh()?PIN_SWD_LOW:PIN_SWD_LOW);
-   status = (PinLevelMasks_t) (status | swdClk::isHigh()?PIN_SWD_LOW:PIN_SWD_LOW);
 }
 
 /**
@@ -402,6 +376,113 @@ static USBDM_ErrorCode update_ahb_ap_csw_defaultValue() {
    ahb_ap_csw_defaultValue = (ahb_ap_cswValue & 0xFF000000) | 0x00000040;
    return BDM_RC_OK;
 }
+
+/**
+ * Set pin state
+ *
+ * @param pins Pin control mask
+ *
+ * @note Only handles SWD, SWCLK functions as others (such as reset) are assumed handled in common code
+ * @note Transfers SWD and SWDCLK control to GPIO from SPI. Use @ref interfaceIdle() to return control to SPI.
+ */
+void setPinState(PinLevelMasks_t control) {
+   switch (control & PIN_SWD_MASK) {
+      case PIN_SWD_3STATE :
+         swdDioControl::triState();
+         break;
+      case PIN_SWD_LOW :
+         swdDioControl::driveLow();
+         break;
+      case PIN_SWD_HIGH :
+         swdDioControl::driveHigh();
+         break;
+   }
+   switch (control & PIN_SWCLK_MASK) {
+      case PIN_SWCLK_3STATE :
+         // Not supported as fixed buffer between pin and T_SWCLK - approximate as high
+         // No break
+      case PIN_SWCLK_HIGH :
+         swdClkControl::driveHigh();      // Drive high
+         break;
+      case PIN_SWCLK_LOW :
+         swdClkControl::driveLow();      // Drive low
+         break;
+   }
+}
+
+/**
+ * Get pin status
+ *
+ * @return Pin status from this interface
+ */
+PinLevelMasks_t getPinState() {
+   return (PinLevelMasks_t) ((swdDioControl::peek()?PIN_SWD_LOW:PIN_SWD_LOW) | (swdClkControl::peek()?PIN_SWD_LOW:PIN_SWD_LOW));
+}
+
+/**
+ * Initialise interface                \n
+ * Does not communicate with target    \n
+ * Reset is initially 3-state
+ */
+void initialiseInterface() {
+
+   console.WRITELN("initialise()");
+
+   SpiInfo::enableClock();
+
+   setSpeed(12000000);
+
+   // Configure reset signal
+   ResetInterface::initialise();
+
+   // GPIO controlling some interface signals (SWD, UART-TX)
+   InterfaceEnable::initialise();
+   InterfaceEnable::on();
+
+   interfaceIdle();
+
+   // Set mode
+   spi->MCR =
+         SPI_MCR_FRZ(1)|      // Freeze in debug mode
+         SPI_MCR_CLR_RXF(1)|  // Clear Receive FIFO
+         SPI_MCR_CLR_TXF(1)|  // Clear Transmit FIFO
+         SPI_MCR_ROOE(0)|     // Ignore Receive data on overflow
+         SPI_MCR_MSTR(1)|     // Master mode
+         SPI_MCR_DCONF(0)|    // SPI (must be zero)
+         SPI_MCR_MTFE(0)|     // Don't use modified sample point
+         SPI_MCR_SMPL_PT(0)|  // Modified sample point (N/A)
+         SPI_MCR_PCSIS(0);    // All PCSes active-high
+}
+
+/**
+ * Initialise interface                   \n
+ * Does not communicate with target       \n
+ * Reset is 3-state                       \n
+ * SWD signals are controlled by SPI
+ */
+void interfaceIdle() {
+
+//   console.WRITELN("interfaceIdle()");
+
+   // Configure RESET pins
+   ResetInterface::highZ();
+
+   // Configure SPI pins SIN,SOUT,SCK (SWDIO, SWDCLK)
+   SpiInfo::initPCRs();
+
+   swdDioControl::directionInitialise();
+}
+
+/**
+ * Disables interface         \n
+ * SPI is disconnected from SWD signals
+ *
+ * Note: Reset is not affected
+ */
+void disableInterface() {
+   SpiInfo::clearPCRs();
+}
+
 
 /**
  *  Switches interface to SWD and confirm connection to target
@@ -473,21 +554,6 @@ USBDM_ErrorCode lineReset(void) {
 }
 
 /**
- * Transmit 8 idle cycles
- */
-void txIdle8() {
-   spi().CTAR[0] = PreambleCtar;
-   enableDrive();
-   spi().PUSHR = 0b00000000|SPI_PUSHR_CTAS(0)|SwdDriveEnable |SPI_PUSHR_CONT(0)|SPI_PUSHR_EOQ(1);
-   // Wait until End of Transmission
-   while ((spi().SR & SPI_SR_EOQF_MASK)==0) {
-   }
-   disableDrive();
-   spi().SR = SPI_SR_TCF_MASK|SPI_SR_EOQF_MASK;
-   (void)(spi().POPR);
-}
-
-/**
  *  Read ARM-SWD DP & AP register
  *
  *  @param swdRead - SWD command byte to select register etc.
@@ -508,56 +574,49 @@ void txIdle8() {
  */
 USBDM_ErrorCode readReg(const SwdRead swdRead, uint32_t &data) {
 
-   spi().CTAR[0] = PreambleCtar;
-   spi().CTAR[1] = AckCtar;
+   spi->CTAR[0] = PreambleCtar;
+   spi->CTAR[1] = AckCtar;
 
-//   spi().MCR &= ~SPI_MCR_HALT_MASK;
+//   spi->MCR &= ~SPI_MCR_HALT_MASK;
 
    unsigned        retry = 2000;
    USBDM_ErrorCode rc    = BDM_RC_OK;
 
    do {
-#if defined(AUTO_DIO_SWITCHING)
-      spi().PUSHR = swdRead|SPI_PUSHR_CTAS(0)|SwdDriveEnable |SPI_PUSHR_CONT(0)|SPI_PUSHR_EOQ(0);
-      spi().PUSHR = 0b00000|SPI_PUSHR_CTAS(1)|SwdDriveDisable|SPI_PUSHR_CONT(0)|SPI_PUSHR_EOQ(1);
-
+      // Write SWD command
+      swdDioControl::directionOut();
+      spi->PUSHR = swdRead  |SPI_PUSHR_CTAS(0)|SPI_PUSHR_CONT(0)|SPI_PUSHR_EOQ(1);
       // Wait until End of Transmission
-      while ((spi().SR & SPI_SR_EOQF_MASK)==0) {
-      }
-      spi().SR = SPI_SR_TCF_MASK|SPI_SR_EOQF_MASK;
-#else
-      // write SWD command
-      enableDrive();
-      spi().PUSHR = swdRead  |SPI_PUSHR_CTAS(0)|SwdDriveEnable |SPI_PUSHR_CONT(0)|SPI_PUSHR_EOQ(1);
-      // Wait until End of Transmission
-      while ((spi().SR & SPI_SR_EOQF_MASK)==0) {
+      while ((spi->SR & SPI_SR_EOQF_MASK)==0) {
       }
       // Read ACK
-      disableDrive();
-      spi().SR = SPI_SR_TCF_MASK|SPI_SR_EOQF_MASK;
-      spi().PUSHR = 0b00000|SPI_PUSHR_CTAS(1)|SwdDriveDisable|SPI_PUSHR_CONT(0)|SPI_PUSHR_EOQ(1);
+      swdDioControl::directionIn();
+      spi->SR = SPI_SR_TCF_MASK|SPI_SR_EOQF_MASK;
+      spi->PUSHR = 0b00000|SPI_PUSHR_CTAS(1)|SPI_PUSHR_CONT(0)|SPI_PUSHR_EOQ(1);
+
       // Wait until End of Transmission
-      while ((spi().SR & SPI_SR_EOQF_MASK)==0) {
+      while ((spi->SR & SPI_SR_EOQF_MASK)==0) {
       }
-      spi().SR = SPI_SR_TCF_MASK|SPI_SR_EOQF_MASK;
-#endif
-      (void)(spi().POPR);
-      uint8_t value = (spi().POPR);
+      spi->SR = SPI_SR_TCF_MASK|SPI_SR_EOQF_MASK;
+
+      (void)(spi->POPR);
+      uint8_t value = (spi->POPR);
       SwdAck ack = (SwdAck)(value & SW_ACK_MASK);
 
       data = value & 0b00001; // Data[0] is captured as part of the ACK read
 
       if (ack == SWD_ACK_OK) {
          // OK receive the rest of the data
-         spi().CTAR[1] = RxCtar;
-         spi().PUSHR = 0xFFFF|SPI_PUSHR_CTAS(1)|SwdDriveDisable|SPI_PUSHR_CONT(0)|SPI_PUSHR_EOQ(0);
-         spi().PUSHR = 0xFFFF|SPI_PUSHR_CTAS(1)|SwdDriveDisable|SPI_PUSHR_CONT(0)|SPI_PUSHR_EOQ(1);
+         spi->CTAR[1] = RxCtar;
+         spi->PUSHR = 0xFFFF|SPI_PUSHR_CTAS(1)|SPI_PUSHR_CONT(0)|SPI_PUSHR_EOQ(0);
+         spi->PUSHR = 0xFFFF|SPI_PUSHR_CTAS(1)|SPI_PUSHR_CONT(0)|SPI_PUSHR_EOQ(1);
+
          // Wait until End of Transmission
-         while ((spi().SR & SPI_SR_EOQF_MASK)==0) {
+         while ((spi->SR & SPI_SR_EOQF_MASK)==0) {
          }
-         spi().SR = SPI_SR_TCF_MASK|SPI_SR_EOQF_MASK;
-         data |= (spi().POPR)<<1;       // Data[1-16]
-         uint32_t temp = (spi().POPR);  // Data[17-31],Parity
+         spi->SR = SPI_SR_TCF_MASK|SPI_SR_EOQF_MASK;
+         data |= (spi->POPR)<<1;       // Data[1-16]
+         uint32_t temp = (spi->POPR);  // Data[17-31],Parity
          data |= temp<<17;
          uint8_t receivedParity = temp>>15;
          uint8_t calculatedparity = calcParity(data);
@@ -565,15 +624,15 @@ USBDM_ErrorCode readReg(const SwdRead swdRead, uint32_t &data) {
             rc = BDM_RC_ARM_PARITY_ERROR;
          }
          // Transmit 8 bits idle
-         enableDrive();
-         spi().PUSHR = 0b00000000|SPI_PUSHR_CTAS(0)|SwdDriveEnable |SPI_PUSHR_CONT(0)|SPI_PUSHR_EOQ(1);
+         swdDioControl::directionOut();
+         spi->PUSHR = 0b00000000|SPI_PUSHR_CTAS(0)|SPI_PUSHR_CONT(0)|SPI_PUSHR_EOQ(1);
          // Wait until End of Idle Transmission
-         while ((spi().SR & SPI_SR_EOQF_MASK)==0) {
+         while ((spi->SR & SPI_SR_EOQF_MASK)==0) {
          }
-         disableDrive();
-         spi().SR = SPI_SR_TCF_MASK|SPI_SR_EOQF_MASK;
+         swdDioControl::directionIn();
+         spi->SR = SPI_SR_TCF_MASK|SPI_SR_EOQF_MASK;
          // Discard idle Rx
-         (void)(spi().POPR);
+         (void)(spi->POPR);
       }
       else if (ack == SWD_ACK_WAIT) {
          if (retry-->0) {
@@ -590,7 +649,7 @@ USBDM_ErrorCode readReg(const SwdRead swdRead, uint32_t &data) {
       break;
    } while (true);
 
-//   spi().MCR |= SPI_MCR_HALT_MASK;
+//   spi->MCR |= SPI_MCR_HALT_MASK;
 
    return rc;
 }
@@ -614,65 +673,56 @@ USBDM_ErrorCode readReg(const SwdRead swdRead, uint32_t &data) {
  */
 USBDM_ErrorCode writeReg(const SwdWrite swdWrite, const uint32_t data) {
 
-   spi().CTAR[0] = PreambleCtar;
-   spi().CTAR[1] = AckCtar;
+   spi->CTAR[0] = PreambleCtar;
+   spi->CTAR[1] = AckCtar;
 
-//   spi().MCR &= ~SPI_MCR_HALT_MASK;
+//   spi->MCR &= ~SPI_MCR_HALT_MASK;
 
    unsigned        retry = 2000;
    USBDM_ErrorCode rc    = BDM_RC_OK;
 
    do {
-#if defined(AUTO_DIO_SWITCHING)
-      spi().PUSHR = swdWrite  |SPI_PUSHR_CTAS(0)|SwdDriveEnable |SPI_PUSHR_CONT(0)|SPI_PUSHR_EOQ(0);
-      spi().PUSHR = SWD_ACK_OK|SPI_PUSHR_CTAS(1)|SwdDriveDisable|SPI_PUSHR_CONT(0)|SPI_PUSHR_EOQ(1);
+      swdDioControl::directionOut();
+      spi->PUSHR = swdWrite  |SPI_PUSHR_CTAS(0)|SPI_PUSHR_CONT(0)|SPI_PUSHR_EOQ(1);
+      // Wait until End of Transmission
+      while ((spi->SR & SPI_SR_EOQF_MASK)==0) {
+      }
+      swdDioControl::directionIn();
+      spi->SR = SPI_SR_TCF_MASK|SPI_SR_EOQF_MASK;
+      spi->PUSHR = SWD_ACK_OK|SPI_PUSHR_CTAS(1)|SPI_PUSHR_CONT(0)|SPI_PUSHR_EOQ(1);
 
       // Wait until End of Transmission
-      while ((spi().SR & SPI_SR_EOQF_MASK)==0) {
+      while ((spi->SR & SPI_SR_EOQF_MASK)==0) {
       }
-      spi().SR = SPI_SR_TCF_MASK|SPI_SR_EOQF_MASK;
-#else
-      enableDrive();
-      spi().PUSHR = swdWrite  |SPI_PUSHR_CTAS(0)|SwdDriveEnable |SPI_PUSHR_CONT(0)|SPI_PUSHR_EOQ(1);
-      // Wait until End of Transmission
-      while ((spi().SR & SPI_SR_EOQF_MASK)==0) {
-      }
-      disableDrive();
-      spi().SR = SPI_SR_TCF_MASK|SPI_SR_EOQF_MASK;
-      spi().PUSHR = SWD_ACK_OK|SPI_PUSHR_CTAS(1)|SwdDriveDisable|SPI_PUSHR_CONT(0)|SPI_PUSHR_EOQ(1);
-      // Wait until End of Transmission
-      while ((spi().SR & SPI_SR_EOQF_MASK)==0) {
-      }
-      spi().SR = SPI_SR_TCF_MASK|SPI_SR_EOQF_MASK;
-      enableDrive();
-#endif
+      spi->SR = SPI_SR_TCF_MASK|SPI_SR_EOQF_MASK;
+      swdDioControl::directionOut();
 
-      (void)(spi().POPR);
-      SwdAck ack = (SwdAck)(spi().POPR & SW_ACK_MASK);
+      (void)(spi->POPR);
+      SwdAck ack = (SwdAck)(spi->POPR & SW_ACK_MASK);
 
       if (ack == SWD_ACK_OK) {
          // OK send the data
          uint32_t parity = calcParity(data)?(1<<10):0;
 
-         spi().CTAR[1] = TxCtar;
+         spi->CTAR[1] = TxCtar;
 
          // Transmit 3x11 bits = Write:Data(0-10) or Write:Data(11-21) or Write:Data(22-31),parity
-         enableDrive();
-         spi().PUSHR = ((uint16_t)(data>>0))|SPI_PUSHR_CTAS(1)|SwdDriveEnable|SPI_PUSHR_CONT(1)|SPI_PUSHR_EOQ(0);
-         spi().PUSHR = ((uint16_t)(data>>11))|SPI_PUSHR_CTAS(1)|SwdDriveEnable|SPI_PUSHR_CONT(1)|SPI_PUSHR_EOQ(0);
-         spi().PUSHR = ((uint16_t)(data>>22))|parity|SPI_PUSHR_CTAS(1)|SwdDriveEnable|SPI_PUSHR_CONT(0)|SPI_PUSHR_EOQ(0);
+         swdDioControl::directionOut();
+         spi->PUSHR = ((uint16_t)(data>>0))|SPI_PUSHR_CTAS(1)|SPI_PUSHR_CONT(1)|SPI_PUSHR_EOQ(0);
+         spi->PUSHR = ((uint16_t)(data>>11))|SPI_PUSHR_CTAS(1)|SPI_PUSHR_CONT(1)|SPI_PUSHR_EOQ(0);
+         spi->PUSHR = ((uint16_t)(data>>22))|parity|SPI_PUSHR_CTAS(1)|SPI_PUSHR_CONT(0)|SPI_PUSHR_EOQ(0);
          // Transmit 8 bits idle
-         spi().PUSHR = 0b00000000|SPI_PUSHR_CTAS(0)|SwdDriveEnable |SPI_PUSHR_CONT(0)|SPI_PUSHR_EOQ(1);
+         spi->PUSHR = 0b00000000|SPI_PUSHR_CTAS(0)|SPI_PUSHR_CONT(0)|SPI_PUSHR_EOQ(1);
 
          // Wait until End of Transmission
-         while ((spi().SR & SPI_SR_EOQF_MASK)==0) {
+         while ((spi->SR & SPI_SR_EOQF_MASK)==0) {
          }
-         disableDrive();
-         spi().SR = SPI_SR_TCF_MASK|SPI_SR_EOQF_MASK;
-         (void)(spi().POPR);
-         (void)(spi().POPR);
-         (void)(spi().POPR);
-         (void)(spi().POPR);
+         swdDioControl::directionIn();
+         spi->SR = SPI_SR_TCF_MASK|SPI_SR_EOQF_MASK;
+         (void)(spi->POPR);
+         (void)(spi->POPR);
+         (void)(spi->POPR);
+         (void)(spi->POPR);
       }
       else if (ack == SWD_ACK_WAIT) {
          if (retry-->0) {
@@ -689,7 +739,7 @@ USBDM_ErrorCode writeReg(const SwdWrite swdWrite, const uint32_t data) {
       break;
    } while (true);
    
-//   spi().MCR |= SPI_MCR_HALT_MASK;
+//   spi->MCR |= SPI_MCR_HALT_MASK;
 
    return rc;
 }
@@ -919,23 +969,21 @@ USBDM_ErrorCode writeMemoryWord(const uint32_t address, const uint32_t data) {
 
 /**  Write ARM-SWD Memory
  *
- *  @note
- *   commandBuffer\n
- *    - [2]     =>  size of data elements
- *    - [3]     =>  # of bytes
- *    - [4..7]  =>  Memory address in BIG-ENDIAN order
- *    - [8..N]  =>  Data to write
+ *  @param elementSize  Size of the data elements
+ *  @param count        Number of data bytes
+ *  @param addr         LSB of Address in target memory
+ *  @param data_ptr     Where in buffer to write the data
  *
  *  @return BDM_RC_OK => success, error otherwise
  */
 USBDM_ErrorCode writeMemory(
-      uint32_t  elementSize,  // Size of the data writes
-      uint32_t  count,        // # of bytes
-      uint32_t  addr,         // Address in target memory
-      uint8_t   *data_ptr     // Where the data is
+      uint32_t  elementSize,
+      uint32_t  count,
+      uint32_t  addr,
+      uint8_t   *data_ptr
 ) {
    USBDM_ErrorCode  rc;
-   uint8_t  temp[4] = {0xAA,0xAA,0xAA,0xAA,};
+   uint8_t  temp[4] ={0};
 
    /* Steps
     *  - Set up to access AHB-AP register bank 0 (CSW,TAR,DRW)
@@ -985,10 +1033,8 @@ USBDM_ErrorCode writeMemory(
       count >>= 1;
       while (count > 0) {
          switch (addr&0x2) {
-         case 0:  temp[3] = *data_ptr++;
-         temp[2] = *data_ptr++; break;
-         case 2:  temp[1] = *data_ptr++;
-         temp[0] = *data_ptr++; break;
+         case 0:  temp[3] = *data_ptr++;  temp[2] = *data_ptr++; break;
+         case 2:  temp[1] = *data_ptr++;  temp[0] = *data_ptr++; break;
          }
          rc = writeReg(SwdWrite_AHB_DRW, temp);
          if (rc != BDM_RC_OK) {
@@ -1199,110 +1245,6 @@ USBDM_ErrorCode readMemory(uint32_t elementSize, int count, uint32_t addr, uint8
    }
    return rc;
 #endif
-}
-
-/**  Write ARM-SWD Memory
- *
- *  @param elementSize  Size of the data elements
- *  @param count        Number of data bytes
- *  @param addr         LSB of Address in target memory
- *  @param data_ptr     Where in buffer to write the data
- *
- *  @return BDM_RC_OK => success, error otherwise
- */
-USBDM_ErrorCode writeMemory(uint32_t elementSize, int count, uint32_t addr, uint8_t *data_ptr) {
-   USBDM_ErrorCode  rc;
-   uint8_t  temp[4] ={0};
-
-   /* Steps
-    *  - Set up to access AHB-AP register bank 0 (CSW,TAR,DRW)
-    *  - Write AP-CSW value (auto-increment etc)
-    *  - Write AP-TAR value (target memory address)
-    *  - Loop
-    *    - Pack data
-    *    - Write value to DRW (data value to target memory)
-    */
-   // Select AHB-AP memory bank - subsequent AHB-AP register accesses are all in the same bank
-   rc = writeReg(SwdWrite_DP_SELECT, ARM_AHB_AP_BANK0);
-   if (rc != BDM_RC_OK) {
-      return rc;
-   }
-   rc = update_ahb_ap_csw_defaultValue();
-   if (rc != BDM_RC_OK) {
-      return rc;
-   }
-   // Write CSW (auto-increment etc)
-   rc = writeReg(SwdWrite_AHB_CSW, ahb_ap_csw_defaultValue|getcswValue(elementSize));
-   if (rc != BDM_RC_OK) {
-      return rc;
-   }
-   // Write TAR (target address)
-   rc = writeReg(SwdWrite_AHB_TAR, addr);
-   if (rc != BDM_RC_OK) {
-      return rc;
-   }
-   switch (elementSize) {
-   case MS_Byte:
-      while (count > 0) {
-         switch (addr&0x3) {
-         case 0:
-            temp[3] = *data_ptr++;
-            break;
-         case 1:
-            temp[2] = *data_ptr++;
-            break;
-         case 2:
-            temp[1] = *data_ptr++;
-            break;
-         case 3:
-            temp[0] = *data_ptr++;
-            break;
-         }
-         rc = writeReg(SwdWrite_AHB_DRW, temp);
-         if (rc != BDM_RC_OK) {
-            return rc;
-         }
-         addr++;
-         count--;
-      }
-      break;
-   case MS_Word:
-      count >>= 1;
-      while (count > 0) {
-         switch (addr&0x2) {
-         case 0:
-            temp[3] = *data_ptr++;
-            temp[2] = *data_ptr++;
-            break;
-         case 2:
-            temp[1] = *data_ptr++;
-            temp[0] = *data_ptr++;
-            break;
-         }
-         rc = writeReg(SwdWrite_AHB_DRW, temp);
-         if (rc != BDM_RC_OK) {
-            return rc;
-         }
-         addr  += 2;
-         count--;
-      }
-      break;
-   case MS_Long:
-      count >>= 2;
-      while (count-- > 0) {
-         temp[3] = *data_ptr++;
-         temp[2] = *data_ptr++;
-         temp[1] = *data_ptr++;
-         temp[0] = *data_ptr++;
-         rc = writeReg(SwdWrite_AHB_DRW, temp);
-         if (rc != BDM_RC_OK) {
-            return rc;
-         }
-      }
-      break;
-   }
-   // Dummy read to obtain status from last write
-   return readReg(SwdRead_DP_RDBUFF, temp);
 }
 
 /**

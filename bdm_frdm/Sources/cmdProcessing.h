@@ -27,7 +27,7 @@ extern int returnSize;
 extern void commandLoop(void);
 
 /**
- *   Optionally re-connects with target
+ *  Optionally re-connects with target
  *
  *  @param when Indicates situation in which the routine is being called \n
  *        AUTOCONNECT_STATUS - being called during status query \n

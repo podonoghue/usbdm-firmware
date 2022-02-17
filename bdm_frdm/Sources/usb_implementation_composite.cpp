@@ -523,7 +523,7 @@ int Usb0::receiveBulkData(uint8_t maxSize, uint8_t *buffer) {
    epBulkOut.startRxStage(EPDataOut, maxSize, buffer);
    while(epBulkOut.getState() != EPIdle) {
       __enable_irq();
-      __WFI();
+      Smc::enterWaitMode();
    }
    setActive();
    return epBulkOut.getDataTransferredSize();

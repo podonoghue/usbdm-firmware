@@ -17,7 +17,7 @@
  * Any manual changes will be lost.
  */
 #include "derivative.h"
-#include "hardware.h"
+#include "pin_mapping.h"
 
 namespace USBDM {
 
@@ -99,7 +99,7 @@ public:
     *
     * @return Reference to CRC hardware
     */
-   static __attribute__((always_inline)) volatile CRC_Type &crc() { return Info::crc(); }
+   static constexpr HardwarePtr<CRC_Type> crc = Info::baseAddress;
 
 public:
 
@@ -120,7 +120,7 @@ public:
    static void defaultConfigure() {
       enable();
       // Initialise hardware
-//      crc().GPOLY = Info::gpoly;
+//      crc->GPOLY = Info::gpoly;
    }
 
    /**
@@ -137,7 +137,7 @@ public:
          CrcReadTranspose     crcReadTranspose,
          CrcReadComplement    crcReadComplement) {
       enable();
-      crc().CTRL = crcWidth|crcWriteTranspose|crcReadTranspose|crcReadComplement;
+      crc->CTRL = crcWidth|crcWriteTranspose|crcReadTranspose|crcReadComplement;
    }
 
    /**
@@ -146,7 +146,7 @@ public:
     * @param polynomialValue Polynomial value used for CRC calculation
     */
    static void writePolynomial(uint32_t polynomialValue) {
-      crc().GPOLY = polynomialValue;
+      crc->GPOLY = polynomialValue;
    }
 
    /**
@@ -155,8 +155,8 @@ public:
     * @return Polynomial value used for CRC calculation
     */
    static uint32_t getPolynomial(uint32_t polynomialValue) {
-      uint32_t data = crc().GPOLY;
-      if ((crc().CTRL&CRC_CTRL_TCRC_MASK) == 0) {
+      uint32_t data = crc->GPOLY;
+      if ((crc->CTRL&CRC_CTRL_TCRC_MASK) == 0) {
          data &= 0xFFFF;
       }
       return data;
@@ -168,9 +168,9 @@ public:
     * @param seedValue  Seed value to initialise CRC calculation
     */
    static void writeSeed(uint32_t seedValue) {
-      crc().CTRL |= CRC_CTRL_WAS_MASK;
-      crc().DATA = seedValue;
-      crc().CTRL &= ~CRC_CTRL_WAS_MASK;
+      crc->CTRL = crc->CTRL | CRC_CTRL_WAS_MASK;
+      crc->DATA = seedValue;
+      crc->CTRL = crc->CTRL & ~CRC_CTRL_WAS_MASK;
    }
 
    /**
@@ -179,7 +179,7 @@ public:
     * @param dataValue  Data value for CRC calculation
     */
    static void writeData8(uint8_t dataValue) {
-      crc().DATALL = dataValue;
+      crc->DATALL = dataValue;
    }
 
    /**
@@ -188,7 +188,7 @@ public:
     * @param dataValue  Data value for CRC calculation
     */
    static void writeData16(uint16_t dataValue) {
-      crc().DATAL = dataValue;
+      crc->DATAL = dataValue;
    }
 
    /**
@@ -197,7 +197,7 @@ public:
     * @param dataValue  Data value for CRC calculation
     */
    static void writeData32(uint32_t dataValue) {
-      crc().DATA = dataValue;
+      crc->DATA = dataValue;
    }
 
    /**
@@ -206,8 +206,8 @@ public:
     * @return Calculated CRC value
     */
    static uint32_t getCalculatedCrc() {
-      uint32_t data = crc().DATA;
-      if ((crc().CTRL&CRC_CTRL_TCRC_MASK) == 0) {
+      uint32_t data = crc->DATA;
+      if ((crc->CTRL&CRC_CTRL_TCRC_MASK) == 0) {
          // Truncate to 16-bit value
          data &= 0xFFFF;
       }

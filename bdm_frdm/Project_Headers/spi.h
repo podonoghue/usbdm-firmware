@@ -17,9 +17,8 @@
  * This file is generated automatically.
  * Any manual changes will be lost.
  */
-#include <stdint.h>
-#include "derivative.h"
-#include "hardware.h"
+#include "pin_mapping.h"
+
 #ifdef __CMSIS_RTOS
 #include "cmsis.h"
 #endif
@@ -39,17 +38,27 @@ namespace USBDM {
 typedef void (*SpiCallbackFunction)(uint32_t status);
 
 /**
- * SPI mode - Controls clock polarity and the timing relationship between clock and data
+ * SPI mode
+ *
+ * Controls clock polarity and the timing relationship between clock and data
  */
 enum SpiMode {
-   SpiMode_0 = SPI_CTAR_CPOL(0)|SPI_CTAR_CPHA(0), //!< Active-high clock (idles low), Data is captured on leading edge of SCK and changes on the following edge.
-   SpiMode_1 = SPI_CTAR_CPOL(0)|SPI_CTAR_CPHA(1), //!< Active-high clock (idles low), Data is changes on leading edge of SCK and captured on the following edge.
-   SpiMode_2 = SPI_CTAR_CPOL(1)|SPI_CTAR_CPHA(0), //!< Active-low clock (idles high), Data is captured on leading edge of SCK and changes on the following edge.
-   SpiMode_3 = SPI_CTAR_CPOL(1)|SPI_CTAR_CPHA(1), //!< Active-low clock (idles high), Data is changes on leading edge of SCK and captured on the following edge.
+   /// Active-high clock (idles low), Data is captured on leading edge of SCK and changes on the following edge.
+   SpiMode_0 = SPI_CTAR_CPOL(0)|SPI_CTAR_CPHA(0),
+
+   /// Active-high clock (idles low), Data is changes on leading edge of SCK and captured on the following edge.
+   SpiMode_1 = SPI_CTAR_CPOL(0)|SPI_CTAR_CPHA(1),
+
+   /// Active-low clock (idles high), Data is captured on leading edge of SCK and changes on the following edge.
+   SpiMode_2 = SPI_CTAR_CPOL(1)|SPI_CTAR_CPHA(0),
+
+   /// Active-low clock (idles high), Data is changes on leading edge of SCK and captured on the following edge.
+   SpiMode_3 = SPI_CTAR_CPOL(1)|SPI_CTAR_CPHA(1),
 };
 
 /**
  *  Clock polarity
+ *
  *  Selects the inactive state of the Serial Communications Clock (SCK).
  */
 enum SpiPolarity {
@@ -59,6 +68,7 @@ enum SpiPolarity {
 
 /**
  *  Clock Phase
+ *
  *  Selects which edge of SCK causes data to change and which edge causes data to be captured
  */
 enum SpiPhase {
@@ -73,17 +83,6 @@ enum SpiOrder {
    SpiOrder_MsbFirst = SPI_CTAR_LSBFE(0), /**< Transmit data LSB first */
    SpiOrder_LsbFirst = SPI_CTAR_LSBFE(1), /**< Transmit data MSB first */
 };
-
-/**
- * Calculate SPI.CTAR value from required frame-size
- *
- * @param frameSize Frame size i.e. number of bits to transfer
- *
- * @return Mask for CTAR.FMSZ
- */
-uint32_t constexpr SpiFrameSize(unsigned frameSize) {
-   return SPI_CTAR_FMSZ(frameSize-1);
-}
 
 /**
  * Transmit FIFO Fill Request interrupt/DMA enable (TFFF flag)
@@ -134,7 +133,7 @@ enum SpiEndOfQueueInterrupt {
    SpiEndOfQueueInterrupt_Enabled    = SPI_RSER_EOQF_RE(1),   // DSPI Finished Request Enable (EOQF flag)
 };
 /**
- * Select which Peripheral Select Line to assert during transaction
+ * Mask to select which Peripheral Chip Select Line (PCS) to assert during transaction
  */
 enum SpiPeripheralSelect {
    SpiPeripheralSelect_None = SPI_PUSHR_PCS(0),   //!< Select peripheral using programmatic GPIO
@@ -143,14 +142,29 @@ enum SpiPeripheralSelect {
    SpiPeripheralSelect_2    = SPI_PUSHR_PCS(1<<2),//!< Select peripheral using SPI_PCS2 signal
    SpiPeripheralSelect_3    = SPI_PUSHR_PCS(1<<3),//!< Select peripheral using SPI_PCS3 signal
    SpiPeripheralSelect_4    = SPI_PUSHR_PCS(1<<4),//!< Select peripheral using SPI_PCS4 signal
+   SpiPeripheralSelect_5    = SPI_PUSHR_PCS(1<<5),//!< Select peripheral using SPI_PCS4 signal
+   SpiPeripheralSelect_6    = SPI_PUSHR_PCS(1<<6),//!< Select peripheral using SPI_PCS4 signal
+   SpiPeripheralSelect_7    = SPI_PUSHR_PCS(1<<7),//!< Select peripheral using SPI_PCS4 signal
 };
+
+/**
+ * Or operation on SpiPeripheralSelect masks
+ *
+ * @param left    Left operand
+ * @param right   Right operand
+ *
+ * @return  left|right
+ */
+static constexpr SpiPeripheralSelect operator| (SpiPeripheralSelect left, SpiPeripheralSelect right) {
+   return (SpiPeripheralSelect)(left|right);
+}
 
 /**
  * Select which CTAR to use for transaction
  */
 enum SpiCtarSelect {
-   SpiCtarSelect_0 = (0), //!< CTAR #0
-   SpiCtarSelect_1 = (1), //!< CTAR #1
+   SpiCtarSelect_0 = (0), //!< Configuration 0
+   SpiCtarSelect_1 = (1), //!< Configuration 1
 };
 
 /**
@@ -162,11 +176,135 @@ enum SpiSelectMode {
 };
 
 /**
- * Used to hold SPI configuration that may commonly be modified for different target peripherals
+ * SPI Frame sizes
  */
-struct SpiConfig {
+enum SpiFrameSize {
+   SpiFrameSize_4  = SPI_CTAR_FMSZ( 4-1), /**< 4  bits - seems to work but not guaranteed */
+   SpiFrameSize_5  = SPI_CTAR_FMSZ( 5-1), /**< 5  bits */
+   SpiFrameSize_6  = SPI_CTAR_FMSZ( 6-1), /**< 6  bits */
+   SpiFrameSize_7  = SPI_CTAR_FMSZ( 7-1), /**< 7  bits */
+   SpiFrameSize_8  = SPI_CTAR_FMSZ( 8-1), /**< 8  bits */
+   SpiFrameSize_9  = SPI_CTAR_FMSZ( 9-1), /**< 9  bits */
+   SpiFrameSize_10 = SPI_CTAR_FMSZ(10-1), /**< 10 bits */
+   SpiFrameSize_11 = SPI_CTAR_FMSZ(11-1), /**< 11 bits */
+   SpiFrameSize_12 = SPI_CTAR_FMSZ(12-1), /**< 12 bits */
+   SpiFrameSize_13 = SPI_CTAR_FMSZ(13-1), /**< 13 bits */
+   SpiFrameSize_14 = SPI_CTAR_FMSZ(14-1), /**< 14 bits */
+   SpiFrameSize_15 = SPI_CTAR_FMSZ(15-1), /**< 15 bits */
+   SpiFrameSize_16 = SPI_CTAR_FMSZ(16-1), /**< 16 bits */
+};
+
+/**
+ * Clear Rx or TX FIFOs
+ */
+enum SpiClearFifo {
+   SpiClearFifo_None = SPI_MCR_CLR_TXF(0)|SPI_MCR_CLR_RXF(0),  /**< No action             */
+   SpiClearFifo_Rx   = SPI_MCR_CLR_TXF(0)|SPI_MCR_CLR_RXF(1),  /**< Clear Rx FIFO         */
+   SpiClearFifo_Tx   = SPI_MCR_CLR_TXF(1)|SPI_MCR_CLR_RXF(0),  /**< Clear Tx FIFO         */
+   SpiClearFifo_Both = SPI_MCR_CLR_TXF(1)|SPI_MCR_CLR_RXF(1),  /**< Clear Rx and Tx FIFOs */
+};
+
+/**
+ * Sample Point
+ *
+ * Controls when the module master samples SIN in Modified Transfer Format.
+ * This field is valid only when CPHA bit 0.
+ */
+enum SpiSampleDelay {
+   SpiSampleDelay_0_Clocks = SPI_MCR_SMPL_PT(0b00), /**< 0 protocol clocks from SCK edge to SIN sample */
+   SpiSampleDelay_1_Clocks = SPI_MCR_SMPL_PT(0b01), /**< 1 protocol clocks from SCK edge to SIN sample */
+   SpiSampleDelay_2_Clocks = SPI_MCR_SMPL_PT(0b10), /**< 2 protocol clocks from SCK edge to SIN sample */
+};
+
+/**
+ * Continuous SCK Enable
+ *
+ * Enables the Serial Communication Clock (SCK) to run continuously.
+ */
+enum SpiContinuousClock {
+   SpiContinuousClock_Disable = SPI_MCR_CONT_SCKE(0),/**< Continuous SCK disabled */
+   SpiContinuousClock_Enable  = SPI_MCR_CONT_SCKE(1),/**< Continuous SCK enabled  */
+};
+
+/**
+ * Used to hold a calculated configuration that may be reused to avoid calculation overhead
+ */
+struct SpiCalculatedConfiguration {
    uint32_t pushr; //!<  PUSHR register value e.g. Target, selection mode etc
    uint32_t ctar;  //!<  CTAR register value e.g. Baud, number of bits, timing
+};
+
+/**
+ * This struct contains settings for a CTAR
+ *
+ */
+struct SpiConfiguration {
+   uint32_t       frequency;
+   uint32_t       ctar;
+
+   /**
+    * Constructor
+    *
+    * @param frequency     Frequency for communication
+    * @param spiMode       SPI mode
+    * @param spiOrder      Bit order
+    * @param spiFrameSize  Frame size
+    */
+   constexpr SpiConfiguration (
+         uint32_t frequency,
+         SpiMode spiMode=SpiMode_0, SpiOrder spiOrder=SpiOrder_MsbFirst, SpiFrameSize spiFrameSize=SpiFrameSize_8) :
+      frequency(frequency), ctar(spiMode|spiOrder|spiFrameSize) {
+   }
+
+   /**
+    * Default Constructor
+    */
+   constexpr SpiConfiguration () : frequency(0), ctar(0) {
+   }
+};
+
+/**
+ * This struct contains settings for a SPI
+ * Example:
+ * @code
+ *    static const SpiConfigurations settings {
+ *       //  Speed      Mode           Order            Frame Size
+ *       { 1'000'000, SpiMode_0, SpiOrder_MsbFirst, SpiFrameSize_8},  // Configuration 0 (CTAR0)
+ *       {10'000'000, SpiMode_0, SpiOrder_MsbFirst, SpiFrameSize_12}, // Configuration 1 (CTAR1)
+ *       0b000000, // All PCSs idle low                               // PCS idle levels
+ *    };
+ * @endcode
+ */
+struct SpiConfigurations {
+   SpiConfiguration     ctar0;
+   SpiConfiguration     ctar1;
+   SpiPeripheralSelect  pcsPolarity;
+
+   /**
+    * Constructor
+    *
+    * @param ctar0         CTAR 0 value
+    * @param ctar1         CTAR 1 value
+    * @param pcsPolarity   Polarity of PCS signals (bit-mask made up of SpiPeripheralSelect values)
+    */
+   constexpr SpiConfigurations (
+         SpiConfiguration     ctar0,
+         SpiConfiguration     ctar1,
+         SpiPeripheralSelect  pcsPolarity) :
+               ctar0(ctar0), ctar1(ctar1), pcsPolarity(pcsPolarity) {
+   }
+
+   /**
+    * Constructor for a single configuration
+    *
+    * @param ctar0         CTAR 0 value
+    * @param pcsPolarity   Polarity of PCS signals (bit-mask made up of SpiPeripheralSelect values)
+    */
+   constexpr SpiConfigurations (
+         SpiConfiguration     ctar0,
+         SpiPeripheralSelect  pcsPolarity) :
+               ctar0(ctar0), ctar1(), pcsPolarity(pcsPolarity) {
+   }
 };
 
 /**
@@ -175,60 +313,22 @@ struct SpiConfig {
 class Spi {
 
 protected:
-   /** Callback to catch unhandled interrupt */
-   static void unhandledCallback(uint32_t) {
-      setAndCheckErrorCode(E_NO_HANDLER);
-   }
 
-public:
-
-   volatile  SPI_Type * const spi; //!< SPI hardware
+   /** Hardware pointer */
+   const HardwarePtr<SPI_Type> spi;
 
    /**
-    * Calculate communication speed factors for SPI
-    *
-    * @param[in]  clockFrequency => Clock frequency of SPI in Hz
-    * @param[in]  frequency      => Communication frequency in Hz
-    *
-    * @return CTAR register value including SPI_CTAR_BR, SPI_CTAR_PBR fields
-    *
-    * Note: Chooses the highest speed that is not greater than frequency.
+    * Value to combine with transmit data
+    * Controls which device (PCS) and which configuration (CTAR)
     */
-   static uint32_t calculateDividers(uint32_t clockFrequency, uint32_t frequency);
-
-   /**
-    * Calculate communication speed from SPI clock frequency and speed factors
-    *
-    * @param[in]  clockFrequency => Clock frequency of SPI in Hz
-    * @param[in]  clockFactors   => CTAR register value providing SPI_CTAR_BR, SPI_CTAR_PBR fields
-    *
-    * @return Clock frequency of SPI in Hz for these factors
-    */
-   static uint32_t calculateSpeed(uint32_t clockFrequency, uint32_t clockFactors);
-
-   /**
-    *
-    * @param[in]  clockFrequency => Clock frequency of SPI in Hz
-    * @param[in]  frequency      => Communication frequency in Hz
-    * @param[in]  cssck          => PCS assertion to SCK Delay Scaler
-    * @param[in]  asc            => SCK to PCS negation delay
-    * @param[in]  dt             => PCS negation to PCS assertion delay between transfers
-    *
-    * @return Combined masks for CTAR.BR, CTAR.PBR, CTAR.PCSSCK, CTAR.CSSCK, CTAR.PDT, CTAR.DT, CTAR.PCSSCK and CTAR.CSSCK
-    */
-   static uint32_t calculateCtar(uint32_t clockFrequency, uint32_t frequency, float cssck, float asc, float dt) {
-      return calculateDividers(clockFrequency, frequency)|calculateDelays(clockFrequency, cssck, asc, dt);
-   }
-
-protected:
-   uint32_t  pushrMask;            //!< Value to combine with data
+   uint32_t  pushrMask;
 
    /**
     * Constructor
     *
     * @param[in]  baseAddress    Base address of SPI
     */
-   Spi(volatile SPI_Type *baseAddress) :
+   Spi(uint32_t baseAddress) :
       spi(baseAddress), pushrMask(0) {
    }
 
@@ -238,121 +338,151 @@ protected:
    virtual ~Spi() {
    }
 
+   /** Callback to catch unhandled interrupt */
+   static void unhandledCallback(uint32_t) {
+      setAndCheckErrorCode(E_NO_HANDLER);
+   }
+
+   /**
+    * Calculate communication speed from SPI clock frequency and speed factors
+    *
+    * @param[in]  clockFrequency  Clock frequency of SPI in Hz
+    * @param[in]  spiCtarSelect   CTAR selection providing SPI_CTAR_BR, SPI_CTAR_PBR fields
+    *
+    * @return Clock frequency of SPI in Hz for these factors
+    */
+   uint32_t calculateSpeed(uint32_t clockFrequency, SpiCtarSelect spiCtarSelect) {
+      return calculateSpeed(clockFrequency, spi->CTAR[spiCtarSelect]);
+   }
+
    /**
     * Calculate Delay factors
     * Used for ASC, DT and CSSCK
     *
-    * @param[in]  clockFrequency => Clock frequency of SPI in Hz
-    * @param[in]  delay          => Desired delay in seconds
-    * @param[in]  bestPrescale   => Best prescaler value (0=>/1, 1=>/3, 2=/5, 3=>/7)
-    * @param[in]  bestDivider    => Best divider value (N=>/(2**(N+1)))
-    *
-    * @return true
+    * @param[in]  clockFrequency Clock frequency of SPI in Hz
+    * @param[in]  delay          Desired delay in seconds
+    * @param[out] bestPrescale   Best prescaler value (0=>/1, 1=>/3, 2=/5, 3=>/7)
+    * @param[out] bestDivider    Best divider value (N=>/(2**(N+1)))
     *
     * Note: Determines bestPrescaler and bestDivider for the smallest delay that is not less than delay.
     */
    static void calculateDelay(float clockFrequency, float delay, int &bestPrescale, int &bestDivider);
 
    /**
-    * Calculate Delay factors for CSSCK (PCS assertion to SCK Delay Scaler)
+    * Calculate communication speed factors for SPI
     *
-    * @param[in]  clockFrequency => Clock frequency of SPI in Hz
-    * @param[in]  delay          => Desired delay in seconds
+    * @param[in]  clockFrequency Clock frequency of SPI in Hz
+    * @param[in]  frequency      Communication frequency in Hz
     *
-    * @return Combined masks for CTAR.PCSSCK and CTAR.CSSCK
+    * @return CTAR register value only including (BR and PBR)
     *
-    * Note: Determines value for the smallest delay that is not less than delay.
+    * Note: Chooses the highest speed that is not greater than frequency.
     */
-   static uint32_t calculateCSSCK(float clockFrequency, float delay) {
-      int bestPrescale, bestDivider;
-      calculateDelay(clockFrequency, delay, bestPrescale, bestDivider);
-      return SPI_CTAR_PCSSCK(bestPrescale)|SPI_CTAR_CSSCK(bestDivider);
-   }
+   static uint32_t calculateDividers(uint32_t clockFrequency, uint32_t frequency);
 
    /**
-    * Calculate Delay factors for ASC (SCK to PCS negation delay)
+    * Calculate CTAR timing related values
     *
-    * @param[in]  clockFrequency => Clock frequency of SPI in Hz
-    * @param[in]  delay          => Desired delay in seconds
+    * @param[in]  clockFrequency Clock frequency of SPI in Hz
+    * @param[in]  frequency      Communication frequency in Hz
+    * @param[in]  cssck          PCS assertion to SCK Delay Scaler
+    * @param[in]  asc            SCK to PCS negation delay
+    * @param[in]  dt             PCS negation to PCS assertion delay between transfers
     *
-    * @return Combined masks for CTAR.PASC and CTAR.ASC
-    *
-    * Note: Determines value for the smallest delay that is not less than delay.
+    * @return Combined masks for CTAR (BR, PBR, PCSSCK, CSSCK, PDT, DT, PCSSCK and CSSCK)
     */
-   static uint32_t calculateASC(float clockFrequency, float delay) {
-      int bestPrescale, bestDivider;
-      calculateDelay(clockFrequency, delay, bestPrescale, bestDivider);
-      return SPI_CTAR_PASC(bestPrescale)|SPI_CTAR_ASC(bestDivider);
-   }
+   static uint32_t calculateCtarTiming(uint32_t clockFrequency, uint32_t frequency, float cssck, float asc, float dt) {
 
-   /**
-    * Calculate Delay factors for DT (PCS negation to PCS assertion delay between transfers)
-    *
-    * @param[in]  clockFrequency => Clock frequency of SPI in Hz
-    * @param[in]  delay          => Desired delay in seconds
-    *
-    * @return Combined masks for CTAR.PDT and CTAR.DT
-    *
-    * Note: Determines value for the smallest delay that is not less than delay.
-    */
-   static uint32_t calculateDT(float clockFrequency, float delay) {
       int bestPrescale, bestDivider;
-      calculateDelay(clockFrequency, delay, bestPrescale, bestDivider);
-      return SPI_CTAR_PDT(bestPrescale)|SPI_CTAR_DT(bestDivider);
-   }
-
-   /**
-    * Calculates the CTAR value for a given set of communication delays for SPI
-    *
-    * @param[in]  clockFrequency => Clock frequency of SPI in Hz
-    * @param[in]  cssck          => PCS assertion to SCK Delay Scaler
-    * @param[in]  asc            => SCK to PCS negation delay
-    * @param[in]  dt             => PCS negation to PCS assertion delay between transfers
-    *
-    * @return Combined masks for CTAR.PCSSCK, CTAR.CSSCK, CTAR.PDT, CTAR.DT, CTAR.PCSSCK and CTAR.CSSCK
-    *
-    * Note: Determines values for the smallest delay that is not less than specified delays.
-    */
-   static uint32_t calculateDelays(uint32_t clockFrequency, float cssck=1*USBDM::us, float asc=1*USBDM::us, float dt=1*USBDM::us) {
       uint32_t ctarValue;
-      ctarValue  = calculateASC(clockFrequency, asc);
-      ctarValue |= calculateDT(clockFrequency, dt);
-      ctarValue |= calculateCSSCK(clockFrequency, cssck);
+
+      ctarValue = calculateDividers(clockFrequency, frequency);
+
+      calculateDelay(clockFrequency, cssck, bestPrescale, bestDivider);
+      ctarValue |= SPI_CTAR_PCSSCK(bestPrescale)|SPI_CTAR_CSSCK(bestDivider);
+
+      calculateDelay(clockFrequency, asc, bestPrescale, bestDivider);
+      ctarValue |= SPI_CTAR_PASC(bestPrescale)|SPI_CTAR_ASC(bestDivider);
+
+      calculateDelay(clockFrequency, dt, bestPrescale, bestDivider);
+      ctarValue |= SPI_CTAR_PDT(bestPrescale)|SPI_CTAR_DT(bestDivider);
+
       return ctarValue;
    }
 
    /**
-    * Sets Communication speed for SPI
+    * Get the frequency of the input clock to the SPI
     *
-    * @param[in]  frequency      => Communication frequency in Hz
-    * @param[in]  clockFrequency => Clock frequency of SPI in Hz
-    * @param[in]  spiCtarSelect  => Index of CTAR register to modify
-    *
-    * Note: Chooses the highest speed that is not greater than frequency.
+    * @return Frequency on Hz
     */
-   void setSpeed(uint32_t clockFrequency, uint32_t frequency, SpiCtarSelect spiCtarSelect=SpiCtarSelect_0) {
-      spi->CTAR[spiCtarSelect] = (spi->CTAR[spiCtarSelect] & ~(SPI_CTAR_BR_MASK|SPI_CTAR_PBR_MASK)) | calculateDividers(clockFrequency, frequency);
+   virtual uint32_t getSpiInputClockFrequency() = 0;
+
+public:
+
+   /**
+    * Calculate communication speed from SPI clock frequency and speed factors
+    *
+    * @param[in]  clockFrequency  Clock frequency of SPI in Hz
+    * @param[in]  spiCtarValue    Configuration providing SPI_CTAR_BR, SPI_CTAR_PBR fields
+    *
+    * @return Clock frequency of SPI in Hz for these factors
+    */
+   static uint32_t calculateSpeed(uint32_t clockFrequency, uint32_t spiCtarValue);
+
+   /**
+    * Calculate CTAR timing related values \n
+    * Uses default delays
+    *
+    * @param[in]  clockFrequency Clock frequency of SPI in Hz
+    * @param[in]  frequency      Communication frequency in Hz
+    *
+    * @return Combined masks for CTAR (BR, PBR, PCSSCK, CSSCK, PDT, DT, PCSSCK and CSSCK)
+    */
+   static uint32_t calculateCtarTiming(uint32_t clockFrequency, uint32_t frequency) {
+
+      int bestPrescale, bestDivider;
+      uint32_t ctarValue;
+
+      float SPI_PADDING2 = 1/(5.0*clockFrequency);
+
+      ctarValue = calculateDividers(clockFrequency, frequency);
+
+      calculateDelay(clockFrequency, SPI_PADDING2, bestPrescale, bestDivider);
+      ctarValue |= SPI_CTAR_PCSSCK(bestPrescale)|SPI_CTAR_CSSCK(bestDivider);
+
+      calculateDelay(clockFrequency, SPI_PADDING2, bestPrescale, bestDivider);
+      ctarValue |= SPI_CTAR_PASC(bestPrescale)|SPI_CTAR_ASC(bestDivider);
+
+      calculateDelay(clockFrequency, SPI_PADDING2, bestPrescale, bestDivider);
+      ctarValue |= SPI_CTAR_PDT(bestPrescale)|SPI_CTAR_DT(bestDivider);
+
+      return ctarValue;
    }
 
    /**
-    * Sets the CTAR value for a given set of communication delays
+    * Sets communication speed for SPI
     *
-    * @param[in]  clockFrequency => Clock frequency of SPI in Hz
-    * @param[in]  cssck          => PCS assertion to SCK Delay Scaler
-    * @param[in]  asc            => SCK to PCS negation delay
-    * @param[in]  dt             => PCS negation to PCS assertion delay between transfers
-    * @param[in]  spiCtarSelect  => Index of CTAR register to modify
+    * @param[in]  frequency      Communication frequency in Hz
+    * @param[in]  spiCtarSelect  Configuration to modify
     *
-    * Note: Determines values for the smallest delay that is not less than specified delays.
+    * @note Chooses the highest speed that is not greater than frequency.
     */
-   void setDelays(uint32_t clockFrequency, float cssck, float asc, float dt, SpiCtarSelect spiCtarSelect=SpiCtarSelect_0) {
-
-      uint32_t ctarValue = spi->CTAR[spiCtarSelect] &
-            ~(SPI_CTAR_ASC_MASK|SPI_CTAR_PASC_MASK|SPI_CTAR_DT_MASK|SPI_CTAR_PDT_MASK|SPI_CTAR_CSSCK_MASK|SPI_CTAR_PCSSCK_MASK);
-      spi->CTAR[spiCtarSelect] = ctarValue|calculateDelays(clockFrequency, cssck, asc, dt);
+   void setSpeed(uint32_t frequency, SpiCtarSelect spiCtarSelect=SpiCtarSelect_0) {
+      spi->CTAR[spiCtarSelect] =
+            (spi->CTAR[spiCtarSelect] & (SPI_CTAR_FMSZ_MASK|SPI_CTAR_MODE_MASK|SPI_CTAR_LSBFE_MASK)) |
+            calculateCtarTiming(getSpiInputClockFrequency(), frequency);
    }
 
-public:
+   /**
+    * Get communication speed
+    *
+    * @param[in]  spiCtarSelect   Configuration to use
+    *
+    * @return Clock frequency of SPI in Hz for these factors
+    */
+   uint32_t getSpeed(SpiCtarSelect spiCtarSelect=SpiCtarSelect_0) {
+      return calculateSpeed(getSpiInputClockFrequency(), spiCtarSelect);
+   }
 
 #ifdef __CMSIS_RTOS
    /**
@@ -369,7 +499,7 @@ public:
     *
     * @note The USBDM error code will also be set on error
     */
-   virtual osStatus startTransaction(SpiConfig &configuration, int milliseconds=osWaitForever) = 0;
+   virtual osStatus startTransaction(SpiCalculatedConfiguration &configuration, int milliseconds=osWaitForever) = 0;
 
    /**
     * Obtain SPI mutex (SPI configuration unchanged)
@@ -396,73 +526,133 @@ public:
     * @note The USBDM error code will also be set on error
     */
    virtual osStatus endTransaction() = 0;
-//#elif defined(__FREE_RTOS)
 #else
    /**
     * Obtain SPI - dummy routine (non RTOS)
     */
    int startTransaction(int =0) {
-      spi->MCR &= ~SPI_MCR_HALT_MASK;
+      spi->MCR = spi->MCR & ~SPI_MCR_HALT_MASK;
       return 0;
    }
+
    /**
     * Obtain SPI and set SPI configuration
     *
     * @param[in] configuration The configuration values to set for the transaction.
     */
-   int startTransaction(SpiConfig &configuration, int =0) {
-      spi->MCR    &= ~SPI_MCR_HALT_MASK;
+   int startTransaction(SpiCalculatedConfiguration &configuration, int =0) {
+      spi->MCR = spi->MCR & ~SPI_MCR_HALT_MASK;
       setConfiguration(configuration);
       return 0;
    }
+
+   /**
+    * Obtain SPI and set SPI configuration
+    *
+    * @param spiPeripheralSelect    Which device to select
+    * @param spiCtarSelect          Which configuration to use
+    */
+   int startTransaction(SpiPeripheralSelect spiPeripheralSelect, SpiCtarSelect spiCtarSelect=SpiCtarSelect_0) {
+      spi->MCR = spi->MCR & ~SPI_MCR_HALT_MASK;
+      setActiveConfiguration(spiPeripheralSelect, spiCtarSelect);
+      return 0;
+   }
+
    /**
     * Release SPI - dummy routine (non RTOS)
     */
    int endTransaction() {
-      spi->MCR  |= SPI_MCR_HALT_MASK;
+      spi->MCR = spi->MCR | SPI_MCR_HALT_MASK;
       return 0;
    }
 #endif
 
    /**
-    * Enable pins used by SPI
+    * Set active configuration for following transactions
+    *
+    * This determines both the active configuration (see @ref SpiConfiguration) and
+    * the particular device to communicate with (through PCS used)
+    * This means multiple device may share a configuration.
+    *
+    * @param spiPeripheralSelect    Which device to select
+    * @param spiCtarSelect          Which configuration to use
+    *
+    * @note The configurations should have been initialised beforehand using:
+    *      - @ref setConfigurations()  Configure all configurations and CS idle levels
+    *      - @ref setConfiguration()   Configure individual configuration
+    *      - @ref setPcsIdleLevels()   Configure PCS idle levels
     */
-   virtual void enablePins() = 0;
+   void setActiveConfiguration(
+         SpiPeripheralSelect  spiPeripheralSelect,
+         SpiCtarSelect        spiCtarSelect=SpiCtarSelect_0 ) {
+
+      pushrMask = spiPeripheralSelect|SPI_PUSHR_CTAS(spiCtarSelect);
+   }
 
    /**
-    * Disable (restore to usual default) pins used by SPI
+    * Initialise
+    *
+    * @param settings Settings to use
     */
-   virtual void disablePins() = 0;
+   void setConfigurations(const SpiConfigurations &settings) {
+
+      const uint32_t spiFrequency = getSpiInputClockFrequency();
+
+      enable();
+
+      spi->MCR =
+            SPI_MCR_HALT(1)|           // Halt transfers initially
+            SpiClearFifo_Both|         // Clear FIFOs
+            SPI_MCR_ROOE(1)|           // Receive FIFO Overflow Overwrite
+            SPI_MCR_MSTR(1)|           // Master mode
+            SPI_MCR_DCONF(0)|          // Must be zero
+            SpiSampleDelay_0_Clocks|   // 0 system clocks between SCK edge and SIN sample
+            SPI_MCR_PCSIS(settings.pcsPolarity);
+
+      // CTAR 0
+      spi->CTAR[0] = settings.ctar0.ctar|calculateCtarTiming(spiFrequency, settings.ctar0.frequency);
+
+      // CTAR 1
+      spi->CTAR[1] = settings.ctar1.ctar|calculateCtarTiming(spiFrequency, settings.ctar1.frequency);
+   }
 
    /**
-    * Sets the CTAR value for a given set of communication delays
+    * Set communication parameters
     *
-    * @param[in]  cssck          => PCS assertion to SCK Delay Scaler
-    * @param[in]  asc            => SCK to PCS negation delay
-    * @param[in]  dt             => PCS negation to PCS assertion delay between transfers
-    * @param[in]  spiCtarSelect  => Index of CTAR register to modify
-    *
-    * Note: Determines values for the smallest delay that is not less than specified delays.
+    * @param spiCtarSettings  Settings to use
+    * @param spiCtarSelect    Configuration to modify
     */
-   virtual void setDelays(float cssck=1*USBDM::us, float asc=1*USBDM::us, float dt=1*USBDM::us, SpiCtarSelect spiCtarSelect=SpiCtarSelect_0) = 0;
+   void setConfiguration(const SpiConfiguration &spiCtarSettings, SpiCtarSelect spiCtarSelect = SpiCtarSelect_0) {
+      const uint32_t spiFrequency = getSpiInputClockFrequency();
+      spi->CTAR[spiCtarSelect] = spiCtarSettings.ctar|calculateCtarTiming(spiFrequency, spiCtarSettings.frequency);
+   }
 
    /**
-    * Sets the CTAR value for a given communication speed
+    * Set inactive (idle) level for PCS signals
     *
-    * @param[in]  frequency => Frequency in Hz (0 => use default value)
-    * @param[in]  spiCtarSelect   => Index of CTAR register to modify
-    *
-    * Note: Chooses the highest speed that is not greater than frequency.
-    * Note: This will only have effect the next time a CTAR is changed
+    * @param mask Mask for levels 0=> idles low, 1 =>idle high
     */
-   virtual void setSpeed(uint32_t frequency, SpiCtarSelect spiCtarSelect=SpiCtarSelect_0) = 0;
+   void setPcsIdleLevels(uint8_t mask) {
+      spi->MCR = (spi->MCR & ~SPI_MCR_PCSIS_MASK) | SPI_MCR_PCSIS(mask);
+   }
+
+   /**
+    * Basic enable of SPI
+    * Includes enabling clock and configuring all pins if mapPinsOnEnable is selected in configuration
+    */
+   virtual void enable() = 0;
+
+   /**
+    * Disables the clock to SPI and disable all mappable pins
+    */
+   virtual void disable() = 0;
 
    /**
     * Sets Communication mode for SPI
     *
-    * @param[in] spiMode   Controls clock polarity and the timing relationship between clock and data
-    * @param[in] spiOrder  Bit transmission order (LSB/MSB first)
-    * @param[in] spiCtarSelect => Index of CTAR register to modify
+    * @param[in] spiMode       Controls clock polarity and the timing relationship between clock and data
+    * @param[in] spiOrder      Bit transmission order (LSB/MSB first)
+    * @param[in] spiCtarSelect Configuration to modify
     */
    void setMode(SpiMode spiMode=SpiMode_0, SpiOrder spiOrder=SpiOrder_MsbFirst, SpiCtarSelect spiCtarSelect=SpiCtarSelect_0) {
       // Sets the default CTAR value with 8 bits
@@ -474,30 +664,14 @@ public:
    /**
     * Sets Communication mode for SPI
     *
-    * @param[in] spiPolarity      Selects the inactive state of the Serial Communications Clock (SCK).
-    * @param[in] spiPhase         Selects which edge of SCK causes data to change and which edge causes data to be captured
-    * @param[in] spiOrder         Bit transmission order (LSB/MSB first)
-    * @param[in] spiCtarSelect    Index of CTAR register to modify
+    * @param[in]  spiFrameSize  Number of bits in each transfer
+    * @param[in]  spiCtarSelect Configuration to modify
     */
-   void setMode(SpiPolarity spiPolarity, SpiPhase spiPhase, SpiOrder spiOrder=SpiOrder_MsbFirst, SpiCtarSelect spiCtarSelect=SpiCtarSelect_0) {
-      // Sets the default CTAR value with 8 bits
-      spi->CTAR[spiCtarSelect] =
-         (spiPolarity|spiPhase|spiOrder)|
-         (spi->CTAR[spiCtarSelect]&~(SPI_CTAR_MODE_MASK|SPI_CTAR_LSBFE_MASK));
+   void setFrameSize(SpiFrameSize spiFrameSize, SpiCtarSelect spiCtarSelect=SpiCtarSelect_0) {
+      // Sets the frame size in CTAR
+      spi->CTAR[spiCtarSelect] = (spi->CTAR[spiCtarSelect]&~(SPI_CTAR_FMSZ_MASK)) | spiFrameSize;
    }
 
-   /**
-    * Sets Communication mode for SPI
-    *
-    * @param[in]  numBits => Number of bits in each transfer
-    * @param[in]  spiCtarSelect => Index of CTAR register to modify
-    */
-   void setFrameSize(int numBits, SpiCtarSelect spiCtarSelect=SpiCtarSelect_0) {
-      // Sets the frame size in CTAR
-      spi->CTAR[spiCtarSelect] = (spi->CTAR[spiCtarSelect]&~(SPI_CTAR_FMSZ_MASK)) |
-            SPI_CTAR_FMSZ(numBits-1);
-   }
-   
    /**
     * Sets up hardware peripheral select (SPI_PCSx) for transfer.
     * Also controls which CTAR is used for the transaction.
@@ -505,7 +679,7 @@ public:
     * @param[in]  spiPeripheralSelect  Which peripheral to select using SPI_PCSx signal
     * @param[in]  polarity             Polarity of SPI_PCSx, ActiveHigh or ActiveLow to select device
     * @param[in]  spiSelectMode        Whether SPI_PCSx signal is returned to idle between transfers
-    * @param[in]  spiCtarSelect        Which CTAR to use for transaction
+    * @param[in]  spiCtarSelect        Which configuration to use for transaction
     */
    void setPeripheralSelect(
          SpiPeripheralSelect spiPeripheralSelect,
@@ -517,11 +691,11 @@ public:
 
       if (polarity) {
          // ActiveHigh
-         spi->MCR &= ~spiPeripheralSelect;
+         spi->MCR = spi->MCR & ~spiPeripheralSelect;
       }
       else {
          // ActiveLow
-         spi->MCR |= spiPeripheralSelect;
+         spi->MCR = spi->MCR | spiPeripheralSelect;
       }
    }
 
@@ -557,13 +731,43 @@ public:
    void txRx(uint32_t dataSize, const T *txData, T *rxData=nullptr);
 
    /**
-    * Transmit and receive a value over SPI using current settings
+    *  Transmit and receive a series of values
     *
-    * @param[in] data Data to send (4-16 bits)
+    *  @tparam T Type for data transfer (may be inferred from parameters)
     *
-    * @return Data received
+    *  @param[in]  txData    Transmit bytes (tx-rx size is inferred from this array)
+    *  @param[out] rxData    Receive byte buffer
+    *
+    *  @note: rxData may use same buffer as txData
     */
-   uint16_t txRx(uint16_t data);
+   template<typename T, unsigned N>
+   void txRx(const T (&txData)[N], T rxData[]) {
+      txRx(N, txData, rxData);
+   }
+
+   /**
+    *  Transmit a series of values
+    *
+    *  @tparam T Type for data transfer (may be inferred from parameters)
+    *
+    *  @param[in]  txData    Transmit bytes (tx size is inferred from this array)
+    */
+   template<typename T, unsigned N>
+   void tx(const T (&txData)[N]) {
+      txRx(N, txData, (T*)nullptr);
+   }
+
+   /**
+    *  Transmit and receive a series of values
+    *
+    *  @tparam T Type for data transfer (may be inferred from parameters)
+    *
+    *  @param[out] rxData    Receive byte buffer (rx size is inferred from this array)
+    */
+   template<typename T, unsigned N>
+   void rx(T (&rxData)[N]) {
+      txRx(N, (T*)nullptr, rxData );
+   }
 
    /**
     * Transmit and receive a value over SPI
@@ -573,30 +777,51 @@ public:
     *
     * @return Data received
     */
-   uint32_t txRxRaw(uint32_t value);
+   uint32_t txRxRaw(uint32_t data);
 
    /**
-    *  Set Configuration\n
+    * Transmit and receive a value over SPI
+    *
+    * @param[in] data - Data to send (4-16 bits)
+    *
+    * @return Data received
+    */
+   uint16_t txRx(uint16_t data) {
+      return txRxRaw(data|pushrMask);
+   }
+
+   /**
+    * Clear Transmit and/or Receive FIFOs
+    *
+    * @param spiClearFifo  Which FIFOs to clear
+    */
+   void clearFifos(SpiClearFifo spiClearFifo=SpiClearFifo_Both) {
+      spi->MCR = spi->MCR | spiClearFifo;
+   }
+
+   /**
+    *  Set calculated configuration\n
     *  This includes timing settings, word length and transmit order\n
     *  Assumes the interface is already acquired through startTransaction
     *
     * @param[in]  configuration Configuration value
     */
-   void setConfiguration(const SpiConfig &configuration) {
+   void setConfiguration(const SpiCalculatedConfiguration &configuration) {
       spi->CTAR[0] = configuration.ctar;
       pushrMask    = configuration.pushr;
    }
 
    /**
-    *  Get SPI configuration\n
-    *  This includes timing settings, word length and transmit order
+    *  Get calculated SPI configuration\n
+    *  This includes timing settings, word length and transmit order\n
+    *  This value may be reused by @ref setConfiguration()
     *
     * @return Configuration value
     *
     * @note Typically used with startTransaction()
     */
-   SpiConfig getConfiguration() {
-      return SpiConfig{pushrMask,spi->CTAR[0]};
+   SpiCalculatedConfiguration getConfiguration() {
+      return SpiCalculatedConfiguration{pushrMask, spi->CTAR[0]};
    }
 
    /**
@@ -604,7 +829,7 @@ public:
     *
     * @param[in]  ctar 32-bit CTAR value
     */
-   void setCTAR0Value(uint32_t ctar) {
+   void setCtar0Value(uint32_t ctar) {
       spi->CTAR[0] = ctar;
    }
 
@@ -613,7 +838,7 @@ public:
     *
     * @param[in]  ctar 32-bit CTAR value
     */
-   void setCTAR1Value(uint32_t ctar) {
+   void setCtar1Value(uint32_t ctar) {
       spi->CTAR[1] = ctar;
    }
 
@@ -622,7 +847,7 @@ public:
     *
     * @return ctar 32-bit CTAR value
     */
-   uint32_t getCTAR0Value() {
+   uint32_t getCtar0Value() {
       return spi->CTAR[0];
    }
 
@@ -631,7 +856,7 @@ public:
     *
     * @return ctar 32-bit CTAR value
     */
-   uint32_t getCTAR1Value() {
+   uint32_t getCtar1Value() {
       return spi->CTAR[1];
    }
 
@@ -642,10 +867,10 @@ public:
     */
    void enableTransfer(bool enable=true) {
       if (enable) {
-         spi->MCR &= ~SPI_MCR_HALT_MASK;
+         spi->MCR = spi->MCR & ~SPI_MCR_HALT_MASK;
       }
       else {
-         spi->MCR |= SPI_MCR_HALT_MASK;
+         spi->MCR = spi->MCR | SPI_MCR_HALT_MASK;
       }
    }
    /**
@@ -687,23 +912,23 @@ template<class Info>
 class SpiBase_T : public Spi {
 
 public:
-   /** Get reference to SPI hardware as struct */
-   static volatile SPI_Type &spiPtr() { return Info::spi(); }
+   /** Pointer to SPI hardware as struct */
+   static constexpr HardwarePtr<SPI_Type>spi = Info::baseAddress;
 
-   /** Get base address of SPI hardware as uint32_t */
-   static constexpr uint32_t spiBase() { return Info::baseAddress; }
-   /** Get base address of SPI.MCR register as uint32_t */
-   static constexpr uint32_t spiMCR() { return spiBase() + offsetof(SPI_Type, MCR); }
-   /** Get base address of SPI.CR register as uint32_t */
-   static constexpr uint32_t spiCR() { return spiBase() + offsetof(SPI_Type, TCR); }
-   /** Get base address of SPI.CTAR[n] register as uint32_t */
-   static constexpr uint32_t spiCTAR(unsigned index) { return spiBase() + offsetof(SPI_Type, CTAR[index]); }
-   /** Get base address of SPI.SR register as uint32_t */
-   static constexpr uint32_t spiSR() { return spiBase() + offsetof(SPI_Type, SR); }
-   /** Get base address of SPI.PUSHR register as uint32_t */
-   static constexpr uint32_t spiPUSHR() { return spiBase() + offsetof(SPI_Type, PUSHR); }
-   /** Get base address of SPI.POPR register as uint32_t */
-   static constexpr uint32_t spiPOPR() { return spiBase() + offsetof(SPI_Type, POPR); }
+   /** Base address of SPI hardware as uint32_t */
+   static constexpr uint32_t spiBase   = Info::baseAddress;
+   /** Address of SPI.MCR register as uint32_t */
+   static constexpr uint32_t spiMCR    = Info::baseAddress + offsetof(SPI_Type, MCR);
+   /** Address of SPI.CR register as uint32_t */
+   static constexpr uint32_t spiCR     = Info::baseAddress + offsetof(SPI_Type, TCR);
+   /** Address of SPI.CTAR[n] register as uint32_t */
+   static constexpr uint32_t spiCTAR(unsigned index) {return Info::baseAddress + offsetof(SPI_Type, CTAR[index]); }
+   /** Address of SPI.SR register as uint32_t */
+   static constexpr uint32_t spiSR     = Info::baseAddress + offsetof(SPI_Type, SR);
+   /** Address of SPI.PUSHR register as uint32_t */
+   static constexpr uint32_t spiPUSHR  = Info::baseAddress + offsetof(SPI_Type, PUSHR);
+   /** Address of SPI.POPR register as uint32_t */
+   static constexpr uint32_t spiPOPR   = Info::baseAddress + offsetof(SPI_Type, POPR);
 
 protected:
    /** Callback function for ISR */
@@ -729,6 +954,30 @@ public:
          callback = Spi::unhandledCallback;
       }
       sCallback = callback;
+   }
+
+   /**
+    * Enable interrupts in NVIC
+    */
+   static void enableNvicInterrupts() {
+      NVIC_EnableIRQ(Info::irqNums[0]);
+   }
+
+   /**
+    * Enable and set priority of interrupts in NVIC
+    * Any pending NVIC interrupts are first cleared.
+    *
+    * @param[in]  nvicPriority  Interrupt priority
+    */
+   static void enableNvicInterrupts(NvicPriority nvicPriority) {
+      enableNvicInterrupt(Info::irqNums[0], nvicPriority);
+   }
+
+   /**
+    * Disable interrupts in NVIC
+    */
+   static void disableNvicInterrupts() {
+      NVIC_DisableIRQ(Info::irqNums[0]);
    }
 
 #ifdef __CMSIS_RTOS
@@ -760,7 +1009,7 @@ public:
     *
     * @note The USBDM error code will also be set on error
     */
-   virtual osStatus startTransaction(SpiConfig &configuration, int milliseconds=osWaitForever) override {
+   virtual osStatus startTransaction(SpiCalculatedConfiguration &configuration, int milliseconds=osWaitForever) override {
       // Obtain mutex
       osStatus status = mutex().wait(milliseconds);
       if (status == osOK) {
@@ -830,97 +1079,121 @@ public:
    using soutGpio = GpioTable_T<Info, 2, ActiveHigh>;
 
    /**
-    * Configures all mapped pins associated with this peripheral
+    * Class to hide static functions
+    * This allows virtual functions with the same name
     */
-   static void __attribute__((always_inline)) configureAllPins() {
-      // Configure pins
-      Info::initPCRs(pcrValue(PinPull_Up, PinDriveStrength_High));
+   class Private {
+   public:
+
+   // Template _mapPinsOption_on.xml
+
+   /**
+    * Configures all mapped pins associated with SPI
+    *
+    * @note Locked pins will be unaffected
+    */
+   static void configureAllPins() {
+   
+      // Configure pins if selected and not already locked
+      if constexpr (Info::mapPinsOnEnable && !(MapAllPinsOnStartup && (ForceLockedPins == PinLock_Locked))) {
+         Info::initPCRs();
+      }
    }
 
-   virtual void enablePins() override {
+   /**
+    * Disabled all mapped pins associated with SPI
+    *
+    * @note Only the lower 16-bits of the PCR registers are modified
+    *
+    * @note Locked pins will be unaffected
+    */
+   static void disableAllPins() {
+   
+      // Disable pins if selected and not already locked
+      if constexpr (Info::mapPinsOnEnable && !(MapAllPinsOnStartup && (ForceLockedPins == PinLock_Locked))) {
+         Info::clearPCRs();
+      }
+   }
+
+   /**
+    * Basic enable of SPI
+    * Includes enabling clock and configuring all mapped pins if mapPinsOnEnable is selected in configuration
+    */
+   static void enable() {
+      Info::enableClock();
       configureAllPins();
    }
 
-   virtual void disablePins() override {
-      // Configure SPI pins to mux=0
-      Info::clearPCRs();
+   /**
+    * Disables the clock to SPI and all mapped pins
+    */
+   static void disable() {
+      disableNvicInterrupts();
+      
+      disableAllPins();
+      Info::disableClock();
+   }
+// End Template _mapPinsOption_on.xml
+
+   };
+
+   /**
+    * Configures all mapped pins associated with SPI
+    */
+   static void configureAllPins() {
+      Private::configureAllPins();
    }
 
    /**
-    * Sets Communication speed for SPI.
-    * This also updates the communication delays based on the frequency.
+    * Disabled all mapped pins associated with SPI
     *
-    * @param[in]  frequency      => Frequency in Hz (0 => use default value)
-    * @param[in]  spiCtarSelect  => Index of CTAR register to modify
-    *
-    * Note: Chooses the highest speed that is not greater than frequency.
+    * @note Only the lower 16-bits of the PCR registers are modified
     */
-   virtual void setSpeed(uint32_t frequency, SpiCtarSelect spiCtarSelect=SpiCtarSelect_0) override {
-      Spi::setSpeed(Info::getClockFrequency(), frequency, spiCtarSelect);
-      float SPI_PADDING2 = 1/(5.0*frequency);
-      setDelays(SPI_PADDING2, SPI_PADDING2, SPI_PADDING2, spiCtarSelect);
+   static void disableAllPins() {
+      Private::disableAllPins();
    }
 
    /**
-    * Sets the CTAR value for a given set of communication delays
-    *
-    * @param[in]  cssck          => PCS assertion to SCK Delay Scaler
-    * @param[in]  asc            => SCK to PCS negation delay
-    * @param[in]  dt             => PCS negation to PCS assertion delay between transfers
-    * @param[in]  spiCtarSelect  => Index of CTAR register to modify
-    *
-    * Note: Determines values for the smallest delay that is not less than specified delays.
+    * Basic enable of SPI
+    * Includes enabling clock and configuring all pins if mapPinsOnEnable is selected in configuration
     */
-   void setDelays(float cssck=1*USBDM::us, float asc=1*USBDM::us, float dt=1*USBDM::us, SpiCtarSelect spiCtarSelect=SpiCtarSelect_0) override {
-      Spi::setDelays(Info::getClockFrequency(), cssck, asc, dt, spiCtarSelect);
+   virtual void enable() override {
+      Private::enable();
    }
 
    /**
-    * Calculates the timing aspects of a CTAR value based on frequency
-    
-    * @param[in]  frequency      => Communication frequency in Hz
-    *
-    * @return Combined masks for CTAR.BR, CTAR.PBR, CTAR.PCSSCK, CTAR.CSSCK, CTAR.PDT, CTAR.DT, CTAR.PCSSCK and CTAR.CSSCK
+    * Disables the clock to SPI and all mappable pins
     */
-   static uint32_t calculateCtar(uint32_t frequency) {
-      float SPI_PADDING2 = 1/(5.0*frequency);
-      return calculateDividers(Info::getClockFrequency(), frequency, SPI_PADDING2, SPI_PADDING2, SPI_PADDING2);
+   virtual void disable() override {
+      Private::disable();
    }
 
+   /**
+    * Get the frequency of the input clock to the SPI
+    *
+    * @return Frequency on Hz
+    */
+   virtual uint32_t getSpiInputClockFrequency() {
+      return Info::getClockFrequency();
+   }
+
+   static constexpr SpiConfigurations defaultSettings {
+      /* CTAR 0         */ {Info::speed, (SpiMode)Info::mode, (SpiOrder)Info::lsbfe, SpiFrameSize_8},
+      /* CTAR 1         */ {Info::speed, (SpiMode)Info::mode, (SpiOrder)Info::lsbfe, SpiFrameSize_8},
+      /* PCS idle level */ SpiPeripheralSelect_None,
+   };
 
    /**
     * Constructor
     */
-   SpiBase_T() : Spi(reinterpret_cast<volatile SPI_Type*>(&Info::spi())) {
+   SpiBase_T() : Spi(Info::baseAddress) {
 
       // Check pin assignments
-      static_assert(Info::info[0].gpioBit != UNMAPPED_PCR, "SPIx_SCK has not been assigned to a pin - Modify Configure.usbdm");
-      static_assert(Info::info[1].gpioBit != UNMAPPED_PCR, "SPIx_SIN has not been assigned to a pin - Modify Configure.usbdm");
-      static_assert(Info::info[2].gpioBit != UNMAPPED_PCR, "SPIx_SOUT has not been assigned to a pin - Modify Configure.usbdm");
+      static_assert(Info::info[Info::sckPin].gpioBit != UNMAPPED_PCR, "SPIx_SCK has not been assigned to a pin - Modify Configure.usbdm");
+      static_assert(Info::info[Info::sinPin].gpioBit != UNMAPPED_PCR, "SPIx_SIN has not been assigned to a pin - Modify Configure.usbdm");
+      static_assert(Info::info[Info::soutPin].gpioBit != UNMAPPED_PCR, "SPIx_SOUT has not been assigned to a pin - Modify Configure.usbdm");
 
-      if (Info::mapPinsOnEnable) {
-         configureAllPins();
-      }
-
-      // Enable SPI module clock
-      Info::enableClock();
-      __DMB();
-
-      spi->MCR =
-            SPI_MCR_HALT(1)|        // Halt transfers initially
-            SPI_MCR_CLR_RXF(1)|     // Clear Rx FIFO
-            SPI_MCR_CLR_TXF(1)|     // Clear Tx FIFO
-            SPI_MCR_ROOE(1)|        // Receive FIFO Overflow Overwrite
-            SPI_MCR_MSTR(1)|        // Master mode
-            SPI_MCR_DCONF(0)|       // Must be zero
-            SPI_MCR_SMPL_PT(0)|     // 0 system clocks between SCK edge and SIN sample
-            SPI_MCR_PCSIS(0);       // Assume all SPI_PCSx active-high (initially)
-
-      setCTAR0Value(0);         // Clear
-      setCTAR1Value(0);         // Clear
-      setFrameSize(8);          // Default 8-bit transfers
-      setSpeed(Info::speed);    // Use default speed
-      setMode((SpiMode)Info::mode, (SpiOrder)Info::lsbfe); // Use default mode and order
+      setConfigurations(defaultSettings);
    }
 
    /**
@@ -936,9 +1209,9 @@ public:
     */
    static uint32_t __attribute__((always_inline)) getStatus() {
       // Capture interrupt status
-      uint32_t status = Info::spi().SR;
+      uint32_t status = Info::spi->SR;
       // Clear captured flags
-      Info::spi().SR = status;
+      Info::spi->SR = status;
       // Return status
       return status;
    }
@@ -1006,7 +1279,10 @@ template<class Info> SpiCallbackFunction SpiBase_T<Info>::sCallback = Spi::unhan
  * @endcode
  *
  */
-class Spi0 : public SpiBase_T<Spi0Info> {};
+class Spi0 : public SpiBase_T<Spi0Info> {
+public:
+
+};
 #endif
 
 #if defined(USBDM_SPI1_IS_DEFINED)
@@ -1023,13 +1299,11 @@ class Spi0 : public SpiBase_T<Spi0Info> {};
  * @endcode
  *
  */
-class Spi1 : public SpiBase_T<Spi1Info> {};
-
+class Spi1 : public SpiBase_T<Spi1Info> {
+public:
+// No user mappings found
+};
 #endif
-/**
- * End SPI_Group
- * @}
- */
 
 #if defined(USBDM_SPI2_IS_DEFINED)
 /**
@@ -1045,13 +1319,11 @@ class Spi1 : public SpiBase_T<Spi1Info> {};
  * @endcode
  *
  */
-class Spi2 : public SpiBase_T<Spi2Info> {};
-
+class Spi2 : public SpiBase_T<Spi2Info> {
+public:
+// No user mappings found
+};
 #endif
-/**
- * End SPI_Group
- * @}
- */
 
 #if defined(USBDM_SPI3_IS_DEFINED)
 /**
@@ -1067,8 +1339,10 @@ class Spi2 : public SpiBase_T<Spi2Info> {};
  * @endcode
  *
  */
-class Spi3 : public SpiBase_T<Spi3Info> {};
-
+class Spi3 : public SpiBase_T<Spi3Info> {
+public:
+// No user mappings found
+};
 #endif
 /**
  * End SPI_Group

@@ -11,31 +11,29 @@
 #include "hardware.h"
 
 /**
- * 3-State I/O for reset signal
+ * Reset signal
+ * Ouptut only
+ * No reset event detection
  */
 class ResetInterface {
 
 private:
-   using Data      = USBDM::GpioB<1>;
-
-   static bool  fResetActivity;
+   // Output to RESET driver
+   using Data      = USBDM::Reset_IO; // USBDM::GpioB<1>;
 
 public:
    /**
     * Initialise Transceiver
     *
     * Initial state:
-    *    Input/HighZ
+    *    Reset signal Input/HighZ
     */
    static void initialise() {
 
-      // Set pin as input
+      // Enable pins
       Data::setInput();
-
-      // IRQ on falling edge - reset detection
-
-      fResetActivity = false;
    }
+
    /**
     * Drive signal low
     */
@@ -44,20 +42,13 @@ public:
       Data::setOut();
    }
    /**
-    * Drive signal low
-    *
-    * @note Assumes driver already enabled
-    */
-   static void _low() {
-      Data::low();
-   }
-   /**
     * Disable Transceiver (high-impedance)\n
     * Actually sets to input
     */
    static void highZ() {
       Data::setIn();
    }
+
    /**
     * Read value from receiver
     *
@@ -68,6 +59,7 @@ public:
    static bool read() {
       return Data::read();
    }
+
    /**
     * Check if receiver input is low
     *
@@ -78,6 +70,7 @@ public:
    static bool isLow() {
       return !Data::read();
    }
+
    /**
     * Check if receiver input is high
     *
@@ -87,18 +80,6 @@ public:
     */
    static bool isHigh() {
       return Data::read();
-   }
-
-   /**
-    * Check and clear reset activity flag
-    *
-    * @return True  Reset has been active since last polled
-    * @return False Reset has not been active since last polled
-    */
-   static bool resetActivity() {
-      bool temp = fResetActivity;
-      fResetActivity = false;
-      return temp;
    }
 };
 

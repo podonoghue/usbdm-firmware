@@ -15,10 +15,11 @@
  * This file is generated automatically.
  * Any manual changes will be lost.
  */
+#include <climits>
+#include <cmath>
 #include "derivative.h"
 #include "system.h"
-#include "hardware.h"
-#include "cmath"
+#include "pin_mapping.h"
 
 namespace USBDM {
 
@@ -31,7 +32,7 @@ namespace USBDM {
 /**
  * Type definition for LPTMR interrupt call back
  */
-typedef void (*LPTMRCallbackFunction)(void);
+typedef void (*LptmrCallbackFunction)(void);
 
 #ifdef PCC_PCC_LPTMR0_CGC_MASK
 /**
@@ -132,10 +133,10 @@ protected:
    static constexpr int MINIMUM_RESOLUTION = 100;
 
    /** Callback function for ISR */
-   static LPTMRCallbackFunction sCallback;
+   static LptmrCallbackFunction sCallback;
 
    /** Hardware instance */
-   static __attribute__((always_inline)) volatile LPTMR_Type &lptmr()     { return Info::lptmr(); }
+   static constexpr HardwarePtr<LPTMR_Type> lptmr = Info::baseAddress;
 
    /** Callback to catch unhandled interrupt */
    static void unhandledCallback() {
@@ -143,25 +144,56 @@ protected:
    }
 
 public:
+   // Template _mapPinsOption.xml
+
    /**
-    * Configures all mapped pins associated with this peripheral
+    * Configures all mapped pins associated with LPTMR
+    *
+    * @note Locked pins will be unaffected
     */
-   static void __attribute__((always_inline)) configureAllPins() {
-      // Configure pins
-      Info::initPCRs();
+   static void configureAllPins() {
+   
+      // Configure pins if selected and not already locked
+      if constexpr (Info::mapPinsOnEnable && !(MapAllPinsOnStartup && (ForceLockedPins == PinLock_Locked))) {
+         Info::initPCRs();
+      }
    }
 
    /**
-    * Enables the LPTMR clock and configures the pins
+    * Disabled all mapped pins associated with LPTMR
+    *
+    * @note Only the lower 16-bits of the PCR registers are modified
+    *
+    * @note Locked pins will be unaffected
+    */
+   static void disableAllPins() {
+   
+      // Disable pins if selected and not already locked
+      if constexpr (Info::mapPinsOnEnable && !(MapAllPinsOnStartup && (ForceLockedPins == PinLock_Locked))) {
+         Info::clearPCRs();
+      }
+   }
+
+   /**
+    * Basic enable of LPTMR
+    * Includes enabling clock and configuring all mapped pins if mapPinsOnEnable is selected in configuration
     */
    static void enable() {
-      configureAllPins();
-
-      // Enable clock
       Info::enableClock();
-      __DMB();
+      configureAllPins();
    }
-   
+
+   /**
+    * Disables the clock to LPTMR and all mapped pins
+    */
+   static void disable() {
+      disableNvicInterrupts();
+      
+      disableAllPins();
+      Info::disableClock();
+   }
+// End Template _mapPinsOption.xml
+
    /**
     * Set LPTMR to pulse counting mode.
     * Provides selection of input pin, edge selection and reset mode.\n
@@ -180,9 +212,9 @@ public:
 
       enable();
       // Change settings with timer disabled
-      lptmr().CSR = LptmrMode_PulseCounting|lptmrPinSel|lptmrPulseEdge|lptmrResetOn|lptmrInterrupt;
+      lptmr->CSR = LptmrMode_PulseCounting|lptmrPinSel|lptmrPulseEdge|lptmrResetOn|lptmrInterrupt;
       // Enable timer
-      lptmr().CSR = LptmrMode_PulseCounting|lptmrPinSel|lptmrPulseEdge|lptmrResetOn|lptmrInterrupt|LPTMR_CSR_TEN_MASK;
+      lptmr->CSR = LptmrMode_PulseCounting|lptmrPinSel|lptmrPulseEdge|lptmrResetOn|lptmrInterrupt|LPTMR_CSR_TEN_MASK;
    }
 
    /**
@@ -201,13 +233,13 @@ public:
          LptmrPrescale     lptmrPrescale  = LptmrPrescale_Bypass) {
       enable();
       // Change settings with timer disabled
-      lptmr().CSR = LptmrMode_Time|lptmrResetOn|lptmrInterrupt;
+      lptmr->CSR = LptmrMode_Time|lptmrResetOn|lptmrInterrupt;
       // Set clock source and prescaler
-      lptmr().PSR = lptmrClockSel|lptmrPrescale;
+      lptmr->PSR = lptmrClockSel|lptmrPrescale;
       // Set dummy timer value to avoid immediate interrupts
-      lptmr().CMR = (uint32_t)-1;
+      lptmr->CMR = (uint32_t)-1;
       // Enable timer and clear interrupt flag
-      lptmr().CSR = LptmrMode_Time|lptmrResetOn|lptmrInterrupt|LPTMR_CSR_TEN_MASK|LPTMR_CSR_TCF_MASK;
+      lptmr->CSR = LptmrMode_Time|lptmrResetOn|lptmrInterrupt|LPTMR_CSR_TEN_MASK|LPTMR_CSR_TCF_MASK;
    }
 
    /**
@@ -216,9 +248,9 @@ public:
     *
     */
    static void restart() {
-      uint32_t csr = lptmr().CSR;
-      lptmr().CSR   = 0;
-      lptmr().CSR   = csr|LPTMR_CSR_TCF_MASK;
+      uint32_t csr = lptmr->CSR;
+      lptmr->CSR   = 0;
+      lptmr->CSR   = csr|LPTMR_CSR_TCF_MASK;
    }
 
    /**
@@ -232,10 +264,10 @@ public:
          LptmrClockSel lptmrClockSel,
          LptmrPrescale lptmrPrescale   = LptmrPrescale_Bypass) {
 
-      uint32_t csr = lptmr().CSR;
-      lptmr().CSR   = 0;
-      lptmr().PSR   = lptmrClockSel|lptmrPrescale;
-      lptmr().CSR   = csr;
+      uint32_t csr = lptmr->CSR;
+      lptmr->CSR   = 0;
+      lptmr->PSR   = lptmrClockSel|lptmrPrescale;
+      lptmr->CSR   = csr;
    }
 
    /**
@@ -245,10 +277,10 @@ public:
     */
    static void enableInterrupts(bool enable=true) {
       if (enable) {
-         lptmr().CSR |= LPTMR_CSR_TIE_MASK;
+         lptmr->CSR = lptmr->CSR | LPTMR_CSR_TIE_MASK;
       }
       else {
-         lptmr().CSR &= ~LPTMR_CSR_TIE_MASK;
+         lptmr->CSR =lptmr->CSR & ~LPTMR_CSR_TIE_MASK;
       }
    }
 
@@ -256,7 +288,7 @@ public:
     * Clear interrupt flag
     */
    static void clearInterruptFlag() {
-      lptmr().CSR |= LPTMR_CSR_TCF_MASK;
+      lptmr->CSR = lptmr->CSR | LPTMR_CSR_TCF_MASK;
    }
 
    /**
@@ -284,13 +316,92 @@ public:
    }
 
    /**
+    * Wrapper to allow the use of a class member as a callback function
+    * @note Only usable with static objects.
+    *
+    * @tparam T         Type of the object containing the callback member function
+    * @tparam callback  Member function pointer
+    * @tparam object    Object containing the member function
+    *
+    * @return  Pointer to a function suitable for the use as a callback
+    *
+    * @code
+    * class AClass {
+    * public:
+    *    int y;
+    *
+    *    // Member function used as callback
+    *    // This function must match LptmrCallbackFunction
+    *    void callback() {
+    *       ...;
+    *    }
+    * };
+    * ...
+    * // Instance of class containing callback member function
+    * static AClass aClass;
+    * ...
+    * // Wrap member function
+    * auto fn = Lptmr0::wrapCallback<AClass, &AClass::callback, aClass>();
+    * // Use as callback
+    * Lptmr0::setCallback(fn);
+    * @endcode
+    */
+   template<class T, void(T::*callback)(), T &object>
+   static LptmrCallbackFunction wrapCallback() {
+      static LptmrCallbackFunction fn = []() {
+         (object.*callback)();
+      };
+      return fn;
+   }
+
+   /**
+    * Wrapper to allow the use of a class member as a callback function
+    * @note There is a considerable space and time overhead to using this method
+    *
+    * @tparam T         Type of the object containing the callback member function
+    * @tparam callback  Member function pointer
+    * @tparam object    Object containing the member function
+    *
+    * @return  Pointer to a function suitable for the use as a callback
+    *
+    * @code
+    * class AClass {
+    * public:
+    *    int y;
+    *
+    *    // Member function used as callback
+    *    // This function must match LptmrCallbackFunction
+    *    void callback() {
+    *       ...;
+    *    }
+    * };
+    * ...
+    * // Instance of class containing callback member function
+    * AClass aClass;
+    * ...
+    * // Wrap member function
+    * auto fn = Lptmr0::wrapCallback<AClass, &AClass::callback>(aClass);
+    * // Use as callback
+    * Lptmr0::setCallback(fn);
+    * @endcode
+    */
+   template<class T, void(T::*callback)()>
+   static LptmrCallbackFunction wrapCallback(T &object) {
+      static T &obj = object;
+      static LptmrCallbackFunction fn = []() {
+         (obj.*callback)();
+      };
+      return fn;
+   }
+
+   /**
     * Set callback for ISR and enable NVIC interrupts.
     *
     *   @param[in]  callback Callback function to be executed on interrupt\n
     *                        Use nullptr to remove callback.
     */
-   static void setCallback(LPTMRCallbackFunction callback) {
-      static_assert(Info::irqHandlerInstalled, "LPTMR not configure for interrupts");
+   static void setCallback(LptmrCallbackFunction callback) {
+      static_assert(Info::irqLevel>=0, "LPTMR not configure for interrupts");
       if (callback == nullptr) {
          callback = unhandledCallback;
       }
@@ -303,7 +414,7 @@ public:
     */
    static void irqHandler() {
       // Clear interrupt flag
-      lptmr().CSR |= LPTMR_CSR_TCF_MASK;
+      lptmr->CSR = lptmr->CSR | LPTMR_CSR_TCF_MASK;
 
       sCallback();
    }
@@ -317,13 +428,13 @@ public:
    static void defaultConfigure() {
       enable();
       // Disable timer
-      lptmr().CSR  = Info::csr;
+      lptmr->CSR  = Info::csr;
       // PCS 0,1,2,3 => MCGIRCLK, LPO, ERCLK32K, OSCERCLK
-      lptmr().PSR  = Info::psr;
+      lptmr->PSR  = Info::psr;
       // Period/Compare value
-      lptmr().CMR  = Info::cmr;
+      lptmr->CMR  = Info::cmr;
       // Enable timer
-      lptmr().CSR |= LPTMR_CSR_TEN_MASK;
+      lptmr->CSR = lptmr->CSR | LPTMR_CSR_TEN_MASK;
 
       if (Info::csr & LPTMR_CSR_TIE_MASK) {
          // Enable timer interrupts
@@ -332,15 +443,6 @@ public:
          // Set priority level
          NVIC_SetPriority(Info::irqNums[0], Info::irqLevel);
       }
-   }
-   /**
-    *   Disable the LPTMR
-    */
-   static void disable(void) {
-      // Disable timer
-      lptmr().CSR = 0;
-      NVIC_DisableIRQ(Info::irqNums[0]);
-      Info::disableClock();
    }
 
    /**
@@ -353,9 +455,9 @@ public:
     * @note Assumes prescale has been chosen appropriately.
     * @note Rudimentary range checking only. Sets error code.
     */
-   static uint32_t convertTicksToMicroseconds(unsigned ticks) {
+   static uint32_t convertTicksToMicroseconds(Ticks ticks) {
       uint32_t tickRate = Info::getClockFrequency();
-      uint64_t rv       = (((uint64_t)ticks)*1000000)/tickRate;
+      uint64_t rv       = (((uint64_t)ticks)*1000000)/(unsigned)tickRate;
 
 #ifdef DEBUG_BUILD
       if (rv > UINT_MAX) {
@@ -380,9 +482,9 @@ public:
     * @note Assumes prescale has been chosen appropriately.
     * @note Rudimentary range checking only. Sets error code.
     */
-   static unsigned convertTicksToMilliseconds(unsigned ticks) {
+   static unsigned convertTicksToMilliseconds(Ticks ticks) {
       uint32_t tickRate = Info::getClockFrequency();
-      uint64_t rv       = (((uint64_t)ticks)*1000)/tickRate;
+      uint64_t rv       = (((uint64_t)ticks)*1000)/(unsigned)tickRate;
 
 #ifdef DEBUG_BUILD
       if (rv > UINT_MAX) {
@@ -407,9 +509,9 @@ public:
     * @note Assumes prescale has been chosen appropriately.
     * @note Rudimentary range checking only. Sets error code.
     */
-   static float convertTicksToSeconds(unsigned ticks) {
+   static Seconds convertTicksToSeconds(Ticks ticks) {
       uint32_t tickRate = Info::getClockFrequency();
-      return ((float)ticks)/tickRate;
+      return ((float)ticks)/(unsigned)tickRate;
    }
 
    /**
@@ -422,11 +524,11 @@ public:
     * @note Assumes prescale has been chosen appropriately.
     * @note Rudimentary range checking only. Sets error code.
     */
-   static uint32_t convertMicrosecondsToTicks(int time) {
+   static Ticks convertMicrosecondsToTicks(int time) {
 
       // Calculate period
       uint32_t tickRate = Info::getClockFrequency();
-      uint64_t rv       = ((uint64_t)time*tickRate)/1000000;
+      uint64_t rv       = (unsigned)((uint64_t)time*tickRate)/1000000;
 
 #ifdef DEBUG_BUILD
       if (rv > 0xFFFFUL) {
@@ -450,11 +552,11 @@ public:
     * @note Assumes prescale has been chosen appropriately.
     * @note Rudimentary range checking only. Sets error code.
     */
-   static uint32_t convertMillisecondsToTicks(int time) {
+   static Ticks convertMillisecondsToTicks(int time) {
 
       // Calculate period
       uint32_t tickRate = Info::getClockFrequency();
-      uint64_t rv       = ((uint64_t)time*tickRate)/1000;
+      uint64_t rv       = (unsigned)((uint64_t)time*tickRate)/1000;
 
 #ifdef DEBUG_BUILD
       if (rv > 0xFFFFUL) {
@@ -479,11 +581,11 @@ public:
     * @note Uses floating point
     * @note Rudimentary range checking only. Sets error code.
     */
-   static uint32_t convertSecondsToTicks(float time) {
+   static Ticks convertSecondsToTicks(Seconds time) {
 
       // Calculate period
       float    tickRate = Info::getClockFrequencyF();
-      uint64_t rv       = (time*tickRate);
+      uint64_t rv       = (unsigned)((float)time*tickRate);
 
 #ifdef DEBUG_BUILD
       if (rv > 0xFFFFUL) {
@@ -509,10 +611,10 @@ public:
     * @return E_NO_ERROR      => Success
     * @return E_ILLEGAL_PARAM => Failed to find suitable values for PBYP & PRESCALE
     */
-   static ErrorCode setPeriod(float period) {
+   static ErrorCode setPeriod(Seconds period) {
       // Disable LPTMR before prescale change
-      uint32_t csr = lptmr().CSR;
-      lptmr().CSR = 0;
+      uint32_t csr = lptmr->CSR;
+      lptmr->CSR = 0;
 
       float    inputClock = Info::getInputClockFrequency();
       int      prescaleFactor=1;
@@ -526,9 +628,9 @@ public:
          }
          if (mod <= 65535) {
             __DSB();
-            lptmr().CMR  = mod;
-            lptmr().PSR  = (lptmr().PSR & ~(LPTMR_PSR_PRESCALE_MASK|LPTMR_PSR_PBYP_MASK))|LPTMR_PSR_PRESCALE(prescalerValue-1)|LPTMR_PSR_PBYP(prescalerValue==0);
-            lptmr().CSR  = csr;
+            lptmr->CMR  = mod;
+            lptmr->PSR  = (lptmr->PSR & ~(LPTMR_PSR_PRESCALE_MASK|LPTMR_PSR_PBYP_MASK))|LPTMR_PSR_PRESCALE(prescalerValue-1)|LPTMR_PSR_PBYP(prescalerValue==0);
+            lptmr->CSR  = csr;
             return E_NO_ERROR;
          }
          prescalerValue++;
@@ -557,11 +659,11 @@ public:
       while (prescalerValue<=16) {
          if ((interval*prescaleFactor) < inputClock) {
             // Disable LPTMR before prescale change
-            uint32_t csr = lptmr().CSR;
-            lptmr().CSR = 0;
+            uint32_t csr = lptmr->CSR;
+            lptmr->CSR = 0;
             __DSB();
-            lptmr().PSR  = (lptmr().PSR & ~(LPTMR_PSR_PRESCALE_MASK|LPTMR_PSR_PBYP_MASK))|LPTMR_PSR_PRESCALE(prescalerValue-1)|LPTMR_PSR_PBYP(prescalerValue==0);
-            lptmr().CSR  = csr;
+            lptmr->PSR  = (lptmr->PSR & ~(LPTMR_PSR_PRESCALE_MASK|LPTMR_PSR_PBYP_MASK))|LPTMR_PSR_PRESCALE(prescalerValue-1)|LPTMR_PSR_PBYP(prescalerValue==0);
+            lptmr->CSR  = csr;
             return E_NO_ERROR;
          }
          prescalerValue++;
@@ -578,12 +680,12 @@ public:
     */
    static uint32_t getCounterValue() {
       // It is necessary to write to the CNR to capture current value
-      lptmr().CNR = 0;
-      return lptmr().CNR;
+      lptmr->CNR = 0;
+      return lptmr->CNR;
    }
 };
 
-template<class Info> LPTMRCallbackFunction LptmrBase_T<Info>::sCallback = LptmrBase_T<Info>::unhandledCallback;
+template<class Info> LptmrCallbackFunction LptmrBase_T<Info>::sCallback = LptmrBase_T<Info>::unhandledCallback;
 
 #ifdef USBDM_LPTMR0_IS_DEFINED
 /**

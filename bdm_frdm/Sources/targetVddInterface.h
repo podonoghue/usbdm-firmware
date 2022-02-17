@@ -32,12 +32,12 @@ private:
    /**
     * GPIO for Target Vdd enable pin
     */
-   using Control = USBDM::GpioD<6, USBDM::ActiveHigh>;
+   using Control = USBDM::TVdd_Enable; // USBDM::GpioD<6, USBDM::ActiveHigh>;
 
    /**
     * GPIO used to monitor power switch error indicator
     */
-   using VddPowerFaultMonitor = USBDM::GpioD<7, USBDM::ActiveHigh>;
+   using VddPowerFaultMonitor = USBDM::TVdd_Fault; // USBDM::GpioD<7, USBDM::ActiveHigh>;
 
    /**
     * Callback for Vdd changes
@@ -68,7 +68,7 @@ public:
     */
    static void powerFaultCallback(uint32_t status) {
 
-      if ((VddPowerFaultMonitor::MASK & status) != 0) {
+      if ((VddPowerFaultMonitor::BITMASK & status) != 0) {
 
          // In case Vdd overload
          Control::off();
@@ -103,7 +103,7 @@ public:
 
       setCallback(callback);
 
-      VddPowerFaultMonitor::setCallback(powerFaultCallback);
+      VddPowerFaultMonitor::setPinCallback(powerFaultCallback);
       VddPowerFaultMonitor::setInput(
             USBDM::PinPull_Up,
             USBDM::PinAction_IrqFalling,
@@ -111,7 +111,6 @@ public:
       VddPowerFaultMonitor::enableNvicInterrupts();
 
       vddState = VddState_None;
-
       if (isVddOK()) {
          vddState = VddState_External;
       }

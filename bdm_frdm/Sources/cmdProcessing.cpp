@@ -5,11 +5,11 @@
  *      Author: podonoghue
  */
 
+#include <interfaceCommon.h>
 #include <string.h>
 #include "targetVddInterface.h"
 #include "delay.h"
 #include "configure.h"
-#include "bdmCommon.h"
 #include "cmdProcessing.h"
 #include "cmdProcessingSWD.h"
 #if HW_CAPABILITY & CAP_BDM
@@ -22,6 +22,8 @@
 #include "targetDefines.h"
 #include "bdm.h"
 #endif
+
+using namespace USBDM;
 
 /** Buffer for USB command in, result out */
 uint8_t commandBuffer[MAX_COMMAND_SIZE+4];
@@ -447,9 +449,9 @@ USBDM_ErrorCode f_CMD_GET_BDM_STATUS(void) {
  */
 void getPinStatus(void) {
    PinLevelMasks_t status = ResetInterface::isHigh()?PIN_RESET_LOW:PIN_RESET_HIGH;
-   Swd::getPinState(status);
+   status = status | Swd::getPinState();
 #if HW_CAPABILITY & CAP_BDM
-   Bdm::getPinState(status);
+   status = status | Bdm::getPinState();
 #endif
 
    unpack16BE(status, commandBuffer+1);
@@ -654,7 +656,7 @@ USBDM_ErrorCode f_CMD_SET_VDD(void) {
 /**  Pointer to command function */
 typedef USBDM_ErrorCode (*FunctionPtr)(void);
 
-/**  Structure representing a s.et of function ptrs */
+/**  Structure representing a set of function ptrs */
 typedef struct {
    uint8_t firstCommand;          //!< First command value accepted
    uint8_t size;                  //!< Size of command structure
@@ -679,9 +681,9 @@ static const FunctionPtr commonFunctionPtrs[] = {
       //   f_CMD_ILLEGAL                    ,//= 9,  Reserved
       //   f_CMD_ILLEGAL                    ,//= 10, Reserved
       //   f_CMD_ILLEGAL                    ,//= 11, Reserved
-      //   f_CMD_ILLEGAL                    ,//= 12, CMD_USBDM_GET_VER (EP0)
+      //   f_CMD_ILLEGAL                    ,//= 12, CMD_USBDM_GET_VER (handled by EP0)
       //   f_CMD_ILLEGAL                    ,//= 13, Reserved
-      //   f_CMD_ILLEGAL                    ,//= 14, CMD_USBDM_ICP_BOOT (EP0)
+      //   f_CMD_ILLEGAL                    ,//= 14, CMD_USBDM_ICP_BOOT (handled by EP0)
 };
 
 #if (TARGET_CAPABILITY&CAP_HCS12)
@@ -714,7 +716,8 @@ static const FunctionPtr HCS12functionPtrs[] = {
       Hcs12::f_CMD_WRITE_MEM           ,//= 32, CMD_USBDM_WRITE_MEM
       Hcs12::f_CMD_READ_MEM            ,//= 33, CMD_USBDM_READ_MEM
 };
-static const FunctionPtrs HCS12FunctionPointers = {CMD_USBDM_CONNECT,
+static const FunctionPtrs HCS12FunctionPointers = {
+      CMD_USBDM_CONNECT,
       (uint8_t)(sizeof(HCS12functionPtrs)/sizeof(FunctionPtr)),
       HCS12functionPtrs};
 #endif
@@ -749,7 +752,8 @@ static const FunctionPtrs HCS12FunctionPointers = {CMD_USBDM_CONNECT,
          Cfv1::f_CMD_WRITE_MEM         ,//= 32, CMD_USBDM_WRITE_MEM
          Cfv1::f_CMD_READ_MEM          ,//= 33, CMD_USBDM_READ_MEM
    };
-   static const FunctionPtrs S12ZFunctionPointers = {CMD_USBDM_CONNECT,
+   static const FunctionPtrs S12ZFunctionPointers = {
+         CMD_USBDM_CONNECT,
          (uint8_t)(sizeof(S12ZfunctionPtrs)/sizeof(FunctionPtr)),
          S12ZfunctionPtrs};
 #endif
@@ -798,7 +802,8 @@ static const FunctionPtrs HCS12FunctionPointers = {CMD_USBDM_CONNECT,
          f_CMD_SET_VPP                    ,//= 42, CMD_USBDM_SET_VPP
 #endif
    };
-   static const FunctionPtrs HCS08FunctionPointers = {CMD_USBDM_CONNECT,
+   static const FunctionPtrs HCS08FunctionPointers = {
+         CMD_USBDM_CONNECT,
          (uint8_t)(sizeof(HCS08functionPtrs)/sizeof(FunctionPtr)),
          HCS08functionPtrs};
 #endif
@@ -838,7 +843,8 @@ static const FunctionPtrs HCS12FunctionPointers = {CMD_USBDM_CONNECT,
          f_CMD_ILLEGAL                   ,//= 34, CMD_USBDM_READ_ALL_REGS
 #endif
    };
-   static const FunctionPtrs CFV1FunctionPointers  = {CMD_USBDM_CONNECT,
+   static const FunctionPtrs CFV1FunctionPointers  = {
+         CMD_USBDM_CONNECT,
          (uint8_t)(sizeof(CFV1functionPtrs)/sizeof(FunctionPtr)),
          CFV1functionPtrs};
 #endif
@@ -878,7 +884,8 @@ static const FunctionPtrs HCS12FunctionPointers = {CMD_USBDM_CONNECT,
          //   f_CMD_ILLEGAL                    ,//= 34, CMD_USBDM_READ_ALL_REGS
 #endif
    };
-   static const FunctionPtrs CFVxFunctionPointers  = {CMD_USBDM_CONNECT,
+   static const FunctionPtrs CFVxFunctionPointers  = {
+         CMD_USBDM_CONNECT,
          sizeof(CFVxfunctionPtrs)/sizeof(FunctionPtr),
          CFVxfunctionPtrs};
 #endif
@@ -921,7 +928,8 @@ static const FunctionPtrs HCS12FunctionPointers = {CMD_USBDM_CONNECT,
          f_CMD_JTAG_READ_WRITE            ,//= 43, CMD_USBDM_JTAG_READ_WRITE
          f_CMD_JTAG_EXECUTE_SEQUENCE      ,//= 44, CMD_JTAG_EXECUTE_SEQUENCE
    };
-   static const FunctionPtrs JTAGFunctionPointers   = {CMD_USBDM_CONNECT,
+   static const FunctionPtrs JTAGFunctionPointers   = {
+         CMD_USBDM_CONNECT,
          sizeof(JTAGfunctionPtrs)/sizeof(FunctionPtr),
          JTAGfunctionPtrs};
 #elif (TARGET_CAPABILITY&(CAP_DSC|CAP_JTAG))
@@ -959,7 +967,8 @@ static const FunctionPtrs HCS12FunctionPointers = {CMD_USBDM_CONNECT,
          f_CMD_JTAG_READ_WRITE            ,//= 43, CMD_USBDM_JTAG_READ_WRITE
          f_CMD_JTAG_EXECUTE_SEQUENCE      ,//= 44, CMD_JTAG_EXECUTE_SEQUENCE
    };
-   static const FunctionPtrs JTAGFunctionPointers   = {CMD_USBDM_CONNECT,
+   static const FunctionPtrs JTAGFunctionPointers   = {
+         CMD_USBDM_CONNECT,
          sizeof(JTAGfunctionPtrs)/sizeof(FunctionPtr),
          JTAGfunctionPtrs};
 #endif
@@ -981,16 +990,16 @@ static const FunctionPtrs HCS12FunctionPointers = {CMD_USBDM_CONNECT,
          Swd::f_CMD_TARGET_STEP            ,//= 23, CMD_USBDM_TARGET_STEP
          Swd::f_CMD_TARGET_GO              ,//= 24, CMD_USBDM_TARGET_GO
          Swd::f_CMD_TARGET_HALT            ,//= 25, CMD_USBDM_TARGET_HALT
-         Swd::f_CMD_WRITE_REG              ,//= 26, CMD_USBDM_WRITE_REG
-         Swd::f_CMD_READ_REG               ,//= 27  CMD_USBDM_READ_REG
-         Swd::f_CMD_WRITE_CREG             ,//= 28  CMD_USBDM_WRITE_CREG
-         Swd::f_CMD_READ_CREG              ,//= 29  CMD_USBDM_READ_CREG
-         Swd::f_CMD_WRITE_DREG             ,//= 30  CMD_USBDM_WRITE_DREG
-         Swd::f_CMD_READ_DREG              ,//= 31  CMD_USBDM_READ_DREG
+         Swd::f_CMD_WRITE_REG              ,//= 26, CMD_USBDM_WRITE_REG    - Write ARM-SWD core register
+         Swd::f_CMD_READ_REG               ,//= 27  CMD_USBDM_READ_REG     - Read ARM-SWD core register
+         Swd::f_CMD_WRITE_CREG             ,//= 28  CMD_USBDM_WRITE_CREG   - Write to AP register (sets AP_SELECT & APACC)
+         Swd::f_CMD_READ_CREG              ,//= 29  CMD_USBDM_READ_CREG    - Read to AP register (sets AP_SELECT & APACC)
+         Swd::f_CMD_WRITE_DREG             ,//= 30  CMD_USBDM_WRITE_DREG   - Write SWD DP register
+         Swd::f_CMD_READ_DREG              ,//= 31  CMD_USBDM_READ_DREG    - Read SWD DP register;
          Swd::f_CMD_WRITE_MEM              ,//= 32  CMD_USBDM_WRITE_MEM
          Swd::f_CMD_READ_MEM               ,//= 33  CMD_USBDM_READ_MEM
 #if HW_CAPABILITY&CAP_CORE_REGS
-         Swd::f_CMD_READ_ALL_CORE_REGS     ,//= 34  CMD_USBDM_READ_ALL_REGS
+         Swd::f_CMD_READ_ALL_CORE_REGS     ,//= 34  CMD_USBDM_READ_ALL_REGS - Block read ARM-SWD core registers
 #endif
    };
    /** Information about command functions for ARM-SWD targets */
@@ -1000,60 +1009,60 @@ static const FunctionPtrs HCS12FunctionPointers = {CMD_USBDM_CONNECT,
 #endif
 
 //  Pointer to function table for current target type
-static const FunctionPtrs *currentFunctions = NULL; // default to none
+static const FunctionPtrs *currentFunctions = nullptr; // default to none
 
 static const FunctionPtrs *const functionsPtrs[] = {
 #if (TARGET_CAPABILITY&CAP_HCS12)
       /* T_HC12 */ &HCS12FunctionPointers,
 #else
-      NULL,
+      nullptr,
 #endif
 #if (TARGET_CAPABILITY&CAP_HCS08)
       /* T_HCS08 */ &HCS08FunctionPointers,
 #else
-      NULL,
+      nullptr,
 #endif
 #if (TARGET_CAPABILITY & CAP_RS08)
       /* T_RS08 */  &HCS08FunctionPointers,
 #else
-      NULL,
+      nullptr,
 #endif
 #if (TARGET_CAPABILITY & CAP_CFV1)
       /* T_CFV1 */ &CFV1FunctionPointers,
 #else
-      NULL,
+      nullptr,
 #endif
 #if (TARGET_CAPABILITY&CAP_CFVx)
       /* T_CFVx */ &CFVxFunctionPointers,
 #else
-      NULL,
+      nullptr,
 #endif
 #if (TARGET_CAPABILITY&CAP_JTAG)
       /* T_JTAG */ &JTAGFunctionPointers,
 #else
-      NULL,
+      nullptr,
 #endif
-      /* T_EZFLASH */ NULL,
+      /* T_EZFLASH */ nullptr,
 #if (TARGET_CAPABILITY&CAP_DSC)
       /* T_MC56F80xx */ &JTAGFunctionPointers,
 #else
-      NULL,
+      nullptr,
 #endif
 #if (TARGET_CAPABILITY&CAP_ARM_JTAG)
       /* T_ARM_JTAG */ &JTAGFunctionPointers,
 #else
-      NULL,
+      nullptr,
 #endif
 #if (TARGET_CAPABILITY&CAP_ARM_SWD)
       /* T_ARM_SWD */ &SWDFunctionPointers,
 #else
-      NULL,
+      nullptr,
 #endif
-      /* T_ARM     */  NULL,
+      /* T_ARM     */  nullptr,
 #if (TARGET_CAPABILITY&CAP_S12Z)
       /* T_HC12ZVM */ &S12ZFunctionPointers,
 #else
-      NULL,
+      nullptr,
 #endif
 };
 
@@ -1066,13 +1075,11 @@ static const FunctionPtrs *const functionsPtrs[] = {
 USBDM_ErrorCode f_CMD_SET_TARGET(void) {
    TargetType_t target = (TargetType_t) commandBuffer[2];
 
-   if (target >= (sizeof(functionsPtrs)/sizeof(functionsPtrs[0]))) {
-      currentFunctions = NULL;
-   }
-   else {
+   currentFunctions = nullptr;
+   if (target < (sizeof(functionsPtrs)/sizeof(functionsPtrs[0]))) {
       currentFunctions = functionsPtrs[target];
    }
-   if ((target != T_OFF) && (currentFunctions == NULL)) {
+   if ((target != T_OFF) && (currentFunctions == nullptr)) {
       target = T_ILLEGAL;
    }
    return setTarget(target);
@@ -1092,29 +1099,30 @@ static void commandExec(void) {
 //   Debug::high();
 
    BDMCommands command    = (BDMCommands)commandBuffer[1];  // Command is 1st byte
-   FunctionPtr commandPtr = f_CMD_ILLEGAL;     // Default to illegal command
+   FunctionPtr commandPtr = f_CMD_ILLEGAL;                  // Default to illegal command
 
    USBDM::console.WRITE("Command = ").WRITELN(command);
 
-   // Check if modeless command
-   if ((uint8_t)command < sizeof(commonFunctionPtrs)/sizeof(FunctionPtr)) {
+   if (((uint8_t)command >= CMD_USBDM_CONTROL_PINS) && (currentFunctions == nullptr)) {
+      // Command greater than this require the interface to have been set up i.e.
+      // target selected, so leave as illegal command
+   }
+   else if ((uint8_t)command < sizeofArray(commonFunctionPtrs)) {
       // Modeless command
       commandPtr = commonFunctionPtrs[(uint8_t)command];
    }
    else {
-      // Target specific command
-      if (currentFunctions != NULL) {
-         int commandIndex = (uint8_t)command - currentFunctions->firstCommand;
-         if ((commandIndex >= 0) && (commandIndex < currentFunctions->size))
-            commandPtr = currentFunctions->functions[commandIndex];
-      }
+      // Earlier check means we don't need to check if target set here
+      int commandIndex = (uint8_t)command - currentFunctions->firstCommand;
+      if ((commandIndex >= 0) && (commandIndex < currentFunctions->size))
+         commandPtr = currentFunctions->functions[commandIndex];
    }
    // Execute the command
    // Note: returnSize & commandBuffer may be updated by command
    //       returnSize has a default value of 1
    //       commandStatus has a default value of BDM_RC_OK
    //       On error, returnSize is forced to 1 (error code return only)
-   returnSize       = 1;
+   returnSize    = 1;
    commandStatus = BDM_RC_OK;
    if (command >= CMD_USBDM_READ_STATUS_REG) {
       // Check if re-connect needed before most commands (always)
@@ -1181,7 +1189,10 @@ void commandLoop() {
    static uint8_t commandSequence = 0;
 
    for(;;) {
-      (void)USBDM::UsbImplementation::receiveBulkData(MAX_COMMAND_SIZE, commandBuffer);
+      int receivedSize = USBDM::UsbImplementation::receiveBulkData(MAX_COMMAND_SIZE, commandBuffer);
+      if (receivedSize <= 0) {
+         continue;
+      }
       commandSequence = commandBuffer[1] & 0xC0;
       commandBuffer[1] &= 0x3F;
       commandExec();

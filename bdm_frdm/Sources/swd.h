@@ -34,6 +34,7 @@
 
 #include <stdint.h>
 #include "commands.h"
+#include "spi.h"
 
 #define NEED_ENDIAN_CONVERSIONS 1
 #include "utilities.h"
@@ -59,32 +60,20 @@ static constexpr uint8_t Stop    = 0b00000000;
 static constexpr uint8_t Park    = 0b00000001;
 
 /**
- * Calculates the parity value for a SWD command
+ * Adds the parity value to a SWD command
  *
  * @param command
  *
  * @return command + parity
  */
-static constexpr uint8_t parity(uint8_t command) {
-   switch (command&(Start|AP|Read|Addr3)) {
-      case 0b10000000: return Parity0|command;
-      case 0b10001000: return Parity1|command;
-      case 0b10010000: return Parity1|command;
-      case 0b10011000: return Parity0|command;
-      case 0b10100000: return Parity1|command;
-      case 0b10101000: return Parity0|command;
-      case 0b10110000: return Parity0|command;
-      case 0b10111000: return Parity1|command;
-      case 0b11000000: return Parity1|command;
-      case 0b11001000: return Parity0|command;
-      case 0b11010000: return Parity0|command;
-      case 0b11011000: return Parity1|command;
-      case 0b11100000: return Parity0|command;
-      case 0b11101000: return Parity1|command;
-      case 0b11110000: return Parity1|command;
-      case 0b11111000: return Parity0|command;
-      default: return 0; // can't happen
-   }
+static constexpr uint8_t swdAddCommandParity(uint8_t command) {
+   uint8_t temp = command&(Start|AP|Read|Addr3);
+
+   temp = (temp>>4)^temp;
+   temp = (temp>>2)^temp;
+   temp = (temp>>1)^temp;
+
+   return (temp&0b1)?(Parity0|command):(Parity1|command);
 }
 
 /**
@@ -92,16 +81,16 @@ static constexpr uint8_t parity(uint8_t command) {
  */
 enum SwdRead {
    // Read registers
-   SwdRead_DP_IDCODE  = parity(Start|Read|DP|Addr0|Stop|Park),  // Read IDCODE 10100101
-   SwdRead_DP_STATUS  = parity(Start|Read|DP|Addr1|Stop|Park),  // Read STATUS 10110001
-   SwdRead_DP_RESEND  = parity(Start|Read|DP|Addr2|Stop|Park),  // Read RESEND 10101001
-   SwdRead_DP_RDBUFF  = parity(Start|Read|DP|Addr3|Stop|Park),  // Read RDBUFF 10111101
+   SwdRead_DP_IDCODE  = swdAddCommandParity(Start|Read|DP|Addr0|Stop|Park),  // Read IDCODE 10100101
+   SwdRead_DP_STATUS  = swdAddCommandParity(Start|Read|DP|Addr1|Stop|Park),  // Read STATUS 10110001
+   SwdRead_DP_RESEND  = swdAddCommandParity(Start|Read|DP|Addr2|Stop|Park),  // Read RESEND 10101001
+   SwdRead_DP_RDBUFF  = swdAddCommandParity(Start|Read|DP|Addr3|Stop|Park),  // Read RDBUFF 10111101
    //
    // Read AP register
-   SwdRead_AP_REG0    = parity(Start|Read|AP|Addr0|Stop|Park),  // Read AP-REG0 11100001
-   SwdRead_AP_REG1    = parity(Start|Read|AP|Addr1|Stop|Park),  // Read AP-REG1 11110101
-   SwdRead_AP_REG2    = parity(Start|Read|AP|Addr2|Stop|Park),  // Read AP-REG2 11101101
-   SwdRead_AP_REG3    = parity(Start|Read|AP|Addr3|Stop|Park),  // Read AP-REG3 11111001
+   SwdRead_AP_REG0    = swdAddCommandParity(Start|Read|AP|Addr0|Stop|Park),  // Read AP-REG0 11100001
+   SwdRead_AP_REG1    = swdAddCommandParity(Start|Read|AP|Addr1|Stop|Park),  // Read AP-REG1 11110101
+   SwdRead_AP_REG2    = swdAddCommandParity(Start|Read|AP|Addr2|Stop|Park),  // Read AP-REG2 11101101
+   SwdRead_AP_REG3    = swdAddCommandParity(Start|Read|AP|Addr3|Stop|Park),  // Read AP-REG3 11111001
 
    // Aliases for use when AP = AHB
    SwdRead_AHB_CSW = SwdRead_AP_REG0, // Read AHB-CSW
@@ -114,16 +103,16 @@ enum SwdRead {
  */
 enum SwdWrite {
    // Write registers
-   SwdWrite_DP_ABORT    = parity(Start|Write|DP|Addr0|Stop|Park), // Write ABORT      10000001
-   SwdWrite_DP_CONTROL  = parity(Start|Write|DP|Addr1|Stop|Park), // Write CONTROL    10010101
-   SwdWrite_DP_SELECT   = parity(Start|Write|DP|Addr2|Stop|Park), // Write SELECT     10001101
-   SwdWrite_DP_INVALID  = parity(Start|Write|DP|Addr3|Stop|Park), // Invalid reg      
+   SwdWrite_DP_ABORT    = swdAddCommandParity(Start|Write|DP|Addr0|Stop|Park), // Write ABORT      10000001
+   SwdWrite_DP_CONTROL  = swdAddCommandParity(Start|Write|DP|Addr1|Stop|Park), // Write CONTROL    10010101
+   SwdWrite_DP_SELECT   = swdAddCommandParity(Start|Write|DP|Addr2|Stop|Park), // Write SELECT     10001101
+   SwdWrite_DP_INVALID  = swdAddCommandParity(Start|Write|DP|Addr3|Stop|Park), // Invalid reg
    //
    // Write AP register
-   SwdWrite_AP_REG0     = parity(Start|Write|AP|Addr0|Stop|Park), // Write AP-REG0    11000101
-   SwdWrite_AP_REG1     = parity(Start|Write|AP|Addr1|Stop|Park), // Write AP-REG1    11010001
-   SwdWrite_AP_REG2     = parity(Start|Write|AP|Addr2|Stop|Park), // Write AP-REG2    11001001
-   SwdWrite_AP_REG3     = parity(Start|Write|AP|Addr3|Stop|Park), // Write AP-REG3    11011101
+   SwdWrite_AP_REG0     = swdAddCommandParity(Start|Write|AP|Addr0|Stop|Park), // Write AP-REG0    11000101
+   SwdWrite_AP_REG1     = swdAddCommandParity(Start|Write|AP|Addr1|Stop|Park), // Write AP-REG1    11010001
+   SwdWrite_AP_REG2     = swdAddCommandParity(Start|Write|AP|Addr2|Stop|Park), // Write AP-REG2    11001001
+   SwdWrite_AP_REG3     = swdAddCommandParity(Start|Write|AP|Addr3|Stop|Park), // Write AP-REG3    11011101
 
    // Aliases for use when AP = AHB
    SwdWrite_AHB_CSW = SwdWrite_AP_REG0, // Write AHB-CSW
@@ -154,6 +143,18 @@ static constexpr uint32_t  DHCSR_C_HALT            = (1<<1);
 static constexpr uint32_t  DHCSR_C_DEBUGEN         = (1<<0);
 
 /**
+ * Pack 2 bytes into a 32-bit value for ARM addresses
+ *
+ * @param  data   Data value in BIG-ENDIAN order order
+ *
+ * @return Value
+ */
+inline
+constexpr uint32_t pack16AddressBE(const uint8_t data[2]) {
+   return (data[0]<<24)+data[1];
+}
+
+/**
  * Set pin state
  *
  * @param pins Pin control mask
@@ -161,23 +162,11 @@ static constexpr uint32_t  DHCSR_C_DEBUGEN         = (1<<0);
 void setPinState(PinLevelMasks_t control);
 
 /**
- * Get pin state
+ * Get pin status
  *
- * @param [INOUT] status Updated with pin status from this interface
+ * @return Pin status from this interface
  */
-void getPinState(PinLevelMasks_t &status);
-
-/**
- * Pack 2 bytes into a 32-bit value for ARM addresses
- *
- * @param  data   Data value in BIG-ENDIAN order order
- *
- * @return Value
- */
-static inline
-constexpr uint32_t pack16AddressBE(const uint8_t data[2]) {
-   return (data[0]<<24)+data[1];
-}
+PinLevelMasks_t getPinState();
 
 /**
  * Sets Communication speed for SWD
@@ -202,7 +191,7 @@ uint32_t getSpeed();
  * Initialise interface\n
  * Does not communicate with target
  */
-void initialise();
+void initialiseInterface();
 
 /**
  * Set the interface to idle level\n
@@ -215,14 +204,14 @@ void interfaceIdle();
  *
  * Note: Reset is not affected
  */
-void disable();
+void disableInterface();
 
-/**
- * Check status of SWDDIO signal
- *
- * @return Value on SWDIO pin
- */
-bool readSwdDin();
+///**
+// * Check status of SWDDIO signal
+// *
+// * @return Value on SWDIO pin
+// */
+//bool readSwdDin();
 
 /**
  *  Switches interface to SWD and confirm connection to target
@@ -307,7 +296,7 @@ USBDM_ErrorCode readReg(const SwdRead swdRead, uint32_t &data);
  *    SwdRead_DP_RDBUFF - Value from last AP read and clear READOK flag in STRL/STAT, FAULT on sticky error \n
  *    SwdRead_AP_REGx   - Value from last AP read, clear READOK flag in STRL/STAT and INITIATE next AP read, FAULT on sticky error
  */
-static inline
+inline
 USBDM_ErrorCode readReg(const SwdRead swdRead, uint8_t data[4]) {
    uint32_t temp = 0;
    USBDM_ErrorCode rc = readReg(swdRead, temp);
@@ -353,7 +342,7 @@ USBDM_ErrorCode writeReg(const SwdWrite swdWrite, const uint32_t data);
  *    SwdWrite_DP_SELECT  - Write value to SELECT register (may be pending), FAULT on sticky error. \n
  *    SwdWrite_AP_REGx    - Write to AP register.  May initiate action e.g. memory access.  Result is pending, FAULT on sticky error.
  */
-static inline
+inline
 USBDM_ErrorCode writeReg(const SwdWrite swdWrite, const uint8_t data[4]) {
    return writeReg(swdWrite, pack32BE(data));
 }
@@ -388,7 +377,7 @@ USBDM_ErrorCode readAPReg(const uint32_t address, uint32_t &buff);
  *
  *  @note - Access is completed before return
  */
-static inline
+inline
 USBDM_ErrorCode readAPReg(uint8_t address[2], uint8_t data[4]) {
    uint32_t temp = 0;
    USBDM_ErrorCode rc = readAPReg(pack16AddressBE(address), temp);
@@ -426,7 +415,7 @@ USBDM_ErrorCode writeAPReg(const uint32_t address, const uint32_t data);
  *
  *  @note - Access is completed before return
  */
-static inline
+inline
 USBDM_ErrorCode writeAPReg(const uint8_t address[2], const uint8_t buff[4]) {
    return writeAPReg(pack16AddressBE(address), pack32BE(buff));
 }
@@ -471,7 +460,7 @@ USBDM_ErrorCode writeMemoryWord(const uint32_t address, const uint32_t data);
  *   == \ref BDM_RC_OK => success         \n
  *   != \ref BDM_RC_OK => various errors
  */
-static inline
+inline
 USBDM_ErrorCode writeMemoryWord(const uint32_t address, const uint8_t data[4]) {
    return writeMemoryWord(address, pack32BE(data));
 }
@@ -516,7 +505,7 @@ USBDM_ErrorCode readMemoryWord(const uint32_t address, uint32_t &data);
  *   == \ref BDM_RC_OK => success         \n
  *   != \ref BDM_RC_OK => various errors
  */
-static inline
+inline
 USBDM_ErrorCode readMemoryWord(const uint32_t address, uint8_t data[4]) {
    uint32_t temp = 0;
    USBDM_ErrorCode rc = readMemoryWord(address, temp);
@@ -544,26 +533,6 @@ USBDM_ErrorCode readMemory(
       int        count,        // # of data bytes
       uint32_t   addr,         // LSB of Address in target memory
       uint8_t   *data_ptr      // Where in buffer to write the data
-);
-
-/**  Write ARM-SWD Memory
- *
- *  @note
- *   commandBuffer\n
- *    - [2]     =>  size of data elements
- *    - [3]     =>  # of bytes
- *    - [4..7]  =>  Memory address in BIG-ENDIAN order
- *    - [8..N]  =>  Data to write
- *
- *  @return \n
- *   == \ref BDM_RC_OK => success         \n
- *   != \ref BDM_RC_OK => various errors
- */
-USBDM_ErrorCode writeMemory(
-      uint32_t        elementSize, // Size of the data writes
-      uint32_t        count,       // # of bytes
-      uint32_t        addr,     // Address in target memory
-      const uint8_t  *data_ptr     // Where the data is
 );
 
 /**

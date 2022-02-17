@@ -16,10 +16,16 @@ void SystemCoreClockUpdate(void) {
 }
 
 /* These are overridden if actual clock code is provided */
+/* Based on Kinetis internal clock used after reset */
 __attribute__((__weak__))
-uint32_t SystemCoreClock = 4000000;
+uint32_t SystemCoreClock = 20000000;
 __attribute__((__weak__))
-uint32_t SystemBusClock = 8000000;
+uint32_t SystemBusClock  = 20000000;
+
+#ifdef SIM_CLKDIV1_OUTDIV3_MASK
+__attribute__((__weak__))
+uint32_t SystemFlexbusClock = 20000000;
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -57,8 +63,12 @@ void software_init_hook () {
 void* __dso_handle;
 #endif
 
+#if defined(KINETIS_BOOTLOADER_CHECK)
+void checkICP();
+#endif
+
 /**
- *  @brief Low-level initialize the system
+ *  @brief Low-level initialise the system
  *
  *  Low level setup of the microcontroller system. \n
  *  Called very early in the initialisation. \n
@@ -77,7 +87,7 @@ void SystemInitLowLevel(void) {
 
 #ifdef SCB_CCR_DIV_0_TRP_Msk
    /* Enable trapping of divide by zero */
-   SCB->CCR |= SCB_CCR_DIV_0_TRP_Msk;
+   SCB->CCR = SCB->CCR | SCB_CCR_DIV_0_TRP_Msk;
 #endif
 
 #ifdef RCM_MR_BOOTROM
@@ -132,6 +142,14 @@ void SystemInitLowLevel(void) {
          WDOG_STCTRLH_WDOGEN(0)|          // Disable WDOG
          WDOG_STCTRLH_ALLOWUPDATE(1)|     // Allow future updates
          WDOG_STCTRLH_CLKSRC(0);          // WDOG clk=LPO
+#endif
+
+#if defined(KINETIS_BOOTLOADER_CHECK)
+   /**
+    * Hook for ICP code
+    * Needed to be done before too much uC configuration
+    */
+   checkICP();
 #endif
 }
 

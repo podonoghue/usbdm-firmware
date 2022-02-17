@@ -63,13 +63,14 @@ extern volatile uint32_t SystemMcgPllClock;
  * Convenience names for common priority levels
  */
 enum NvicPriority {
-   NvicPriority_VeryHigh = 0, //!< NvicPriority_VeryHigh
-   NvicPriority_High     = 2, //!< NvicPriority_High
-   NvicPriority_MidHigh  = 5, //!< NvicPriority_MidHigh
-   NvicPriority_Normal   = 8, //!< NvicPriority_Normal
-   NvicPriority_Midlow   = 11,//!< NvicPriority_Midlow
-   NvicPriority_Low      = 13,//!< NvicPriority_Low
-   NvicPriority_VeryLow  = 15,//!< NvicPriority_VeryLow
+   NvicPriority_VeryHigh     = 0,  //!< NvicPriority_VeryHigh
+   NvicPriority_High         = 2,  //!< NvicPriority_High
+   NvicPriority_MidHigh      = 5,  //!< NvicPriority_MidHigh
+   NvicPriority_Normal       = 8,  //!< NvicPriority_Normal
+   NvicPriority_Midlow       = 11, //!< NvicPriority_Midlow
+   NvicPriority_Low          = 13, //!< NvicPriority_Low
+   NvicPriority_VeryLow      = 15, //!< NvicPriority_VeryLow
+   NvicPriority_NotInstalled = -1, //!< Indicates handler is not installed
 };
 
 #include "pin_mapping.h"

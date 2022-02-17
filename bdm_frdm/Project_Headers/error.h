@@ -120,7 +120,24 @@ inline void clearError() {
    errorCode = E_NO_ERROR;
 }
 
-extern void log_error(const char *);
+#define USE_CONSOLE 1
+
+#if USE_CONSOLE
+/**
+ * Print simple log message to console
+ *
+ * @param msg Message to print
+ */
+extern void log_error(const char * msg);
+#else
+/**
+ * Print simple log message to console\n
+ * Dummy for when no console available
+ *
+ * @param msg Message to print
+ */
+inline void log_error(const char *) {}
+#endif
 
 /**
  * Print simple log message to console

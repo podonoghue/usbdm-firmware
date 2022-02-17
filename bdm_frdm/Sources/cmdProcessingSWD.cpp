@@ -30,6 +30,7 @@
  *  +=========================================================================================================
  *  \endverbatim
  */
+#include <interfaceCommon.h>
 #include <string>
 #include <math.h>
 #include "configure.h"
@@ -38,7 +39,6 @@
 #include "cmdProcessing.h"
 #include "cmdProcessingSWD.h"
 #include "swd.h"
-#include "bdmCommon.h"
 
 namespace Swd {
 

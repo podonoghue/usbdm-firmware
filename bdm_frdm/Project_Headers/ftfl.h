@@ -14,10 +14,11 @@
 #ifndef SOURCES_FLASH_H_
 #define SOURCES_FLASH_H_
 
-#include "derivative.h"
-#include "hardware.h"
-#include "delay.h"
+#include "pin_mapping.h"
 #include "smc.h"
+
+extern uint8_t __FlexRamStart[];
+extern uint8_t __FlexRamEnd[];
 
 namespace USBDM {
 /**
@@ -42,7 +43,7 @@ enum FlashDriverError_t {
    FLASH_ERR_ILLEGAL_SECURITY  = (12), // Kinetis/CFV1+ - Illegal value for security location
    FLASH_ERR_UNKNOWN           = (13), // Unspecified error
    FLASH_ERR_PROG_RDCOLERR     = (14), // Read Collision
-   FLASH_ERR_NEW_EEPROM        = (15), // Indicates EEPROM has just bee partitioned and need initialisation
+   FLASH_ERR_NEW_EEPROM        = (15), // Indicates EEPROM has just been partitioned and needs initialisation
    FLASH_ERR_NOT_AVAILABLE     = (16), // Attempt to do flash operation when not available (e.g. while in VLPR mode)
 };
 
@@ -112,7 +113,7 @@ protected:
    static FlashDriverError_t readFlashResource(uint8_t resourceSelectCode, uint32_t address, uint8_t *data);
 
    /**
-    * Program EEPROM Data Size Code and FlexNVM Partition Code.
+    * Program EEPROM Data Size Code and FlexNVM Partition Code
     *
     * See device reference manual for the meaning of the following parameters
     *
@@ -146,11 +147,12 @@ protected:
 //      write("residual flash=").write(partitionInformation[partition].eeepromSize>>10).writeln("K)");
 
       if (isFlexRamConfigured()) {
-//         console.write("flashController().FCNFG.FTFL_FCNFG_EEERDY = ").writeln((bool)(flashController().FCNFG&FTFL_FCNFG_EEERDY_MASK));
+//         console.write("flashController->FCNFG.FTFL_FCNFG_EEERDY = ").writeln((bool)(flashController->FCNFG&FTFL_FCNFG_EEERDY_MASK));
 //         console.writeln("Flex RAM is already configured");
+         // Note: This means, even when using the debug build, if the FlexRAM has been previously configured then real FlexRAM will be used.
          return FLASH_ERR_OK;
       }
-//      console.write("flashController().FCNFG.FTFL_FCNFG_EEERDY = ").writeln((bool)(flashController().FCNFG&FTFL_FCNFG_EEERDY_MASK));
+//      console.write("flashController->FCNFG.FTFL_FCNFG_EEERDY = ").writeln((bool)(flashController->FCNFG&FTFL_FCNFG_EEERDY_MASK));
       if ((eepromSizes[eeprom].size*MINIMUM_BACKING_RATIO)>(partitionInformation[partition].eeepromSize)) {
 //         console.writeln("Backing ratio (Flash/EEPROM) is too small\n");
          USBDM::setErrorCode(E_FLASH_INIT_FAILED);
@@ -171,6 +173,8 @@ protected:
       (void) split;
 
       // For debug, initialise FlexRam every time (no actual writes to flash)
+      // This highlights any initialisation missed by user code
+      memset(__FlexRamStart, -1, __FlexRamEnd-__FlexRamStart);
 
       // Initialisation pretend EEPROM on every reset
       // This return code is not an error
@@ -185,7 +189,7 @@ public:
     *
     * @return Reference to Flash hardware
     */
-   __attribute__((always_inline)) static volatile FTFL_Type &flashController() { return ftfl(); }
+   static constexpr HardwarePtr<FTFL_Type> flashController = baseAddress;
 
    /**
     * Checks if the flexRAM has been configured.
@@ -195,11 +199,11 @@ public:
     */
    static bool isFlexRamConfigured() {
 #if 1
-      return waitForFlashReady() && (flashController().FCNFG&FTFL_FCNFG_EEERDY_MASK);
+      return waitForFlashReady() && (flashController->FCNFG&FTFL_FCNFG_EEERDY_MASK);
 #else
-      console.write("flashController().FCNFG = ").writeln(flashController().FCNFG, Radix_16);
-      console.write("flashController().FCNFG.FTFL_FCNFG_RAMRDY = ").writeln((bool)(flashController().FCNFG&FTFL_FCNFG_RAMRDY_MASK));
-      console.write("flashController().FCNFG.FTFL_FCNFG_EEERDY = ").writeln((bool)(flashController().FCNFG&FTFL_FCNFG_EEERDY_MASK));
+      console.write("flashController->FCNFG = ").writeln(flashController->FCNFG, Radix_16);
+      console.write("flashController->FCNFG.FTFL_FCNFG_RAMRDY = ").writeln((bool)(flashController->FCNFG&FTFL_FCNFG_RAMRDY_MASK));
+      console.write("flashController->FCNFG.FTFL_FCNFG_EEERDY = ").writeln((bool)(flashController->FCNFG&FTFL_FCNFG_EEERDY_MASK));
 
       uint8_t result[4];
       FlashDriverError_t rc = readFlashResource(0, DATA_ADDRESS_FLAG|0xFC, result);
@@ -213,7 +217,7 @@ public:
       console.write("FlexNVM partition code = ").writeln(flexNvmPartitionSize, Radix_16);
       console.write("EEPROM data set size   = ").writeln(eepromDatSetSize, Radix_16);
 
-      return (flashController().FCNFG&FTFL_FCNFG_EEERDY_MASK);
+      return (flashController->FCNFG&FTFL_FCNFG_EEERDY_MASK);
 #endif
    }
 
@@ -225,7 +229,7 @@ public:
     */
    static bool waitForFlashReady() {
       for(int timeout=0; timeout<100000; timeout++) {
-         if ((flashController().FSTAT&FTFL_FSTAT_CCIF_MASK) != 0) {
+         if ((flashController->FSTAT&FTFL_FSTAT_CCIF_MASK) != 0) {
             return true;
          }
       }
@@ -248,7 +252,7 @@ public:
     * This is used to wait until a FlexRAM write has completed.
     *
     * @return true  => Operation complete and FlexRAM idle
-    * @return false => timeout or flash not available
+    * @return false => Timeout or flash not available
     */
    static bool waitUntilFlexIdle() {
       usbdm_assert(isFlashAvailable(), "Flash use in unsuitable run mode");
@@ -270,7 +274,7 @@ public:
     *
     * @param[in]  nvicPriority  Interrupt priority
     */
-   static void enableNvicInterrupts(uint32_t nvicPriority) {
+   static void enableNvicInterrupts(NvicPriority nvicPriority) {
       enableNvicInterrupt(irqNums[0], nvicPriority);
    }
 
@@ -308,7 +312,7 @@ public:
 
 private:
    /**
-    * Program a phrase to Flash memory.
+    * Program phrase to Flash memory
     *
     * @param[in]  data       Location of data to program
     * @param[out] address    Memory address to program - must be phrase boundary
@@ -328,7 +332,7 @@ private:
 
 public:
    /**
-    * Program a range of bytes to Flash memory.
+    * Program a range of bytes to Flash memory
     *
     * @param[in]  data       Location of data to program
     * @param[out] address    Memory address to program - must be phrase boundary
@@ -372,6 +376,9 @@ template <typename T>
 class Nonvolatile {
 
    static_assert((sizeof(T) == 1)||(sizeof(T) == 2)||(sizeof(T) == 4), "Size of non-volatile object must be 1, 2 or 4 bytes in size");
+    
+    // Don't allow construction of copies
+   Nonvolatile<T>(const Nonvolatile<T> &) = delete;
 
 private:
    /**
@@ -384,35 +391,53 @@ private:
    T data;
 
 public:
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#pragma GCC diagnostic ignored "-Wuninitialized"
+
+   Nonvolatile<T>() = default;
+
    /**
-    * Assign to underlying type.
+    * Assignment
+    * This adds a wait for the Flash to be updated.
+    *
+    * @param[in]  data The data to assign
+    *
+    * @note Write only occurs if the NV data is changing.
+    */
+   Nonvolatile<T> &operator=(const Nonvolatile<T> &data ) {
+      if (this->data != (T)data) {
+         this->data = (T)data;
+         Flash::waitUntilFlexIdle();
+      }
+      return *this;
+   }
+   /**
+    * Assignment from underlying type.
     * This adds a wait for the Flash to be updated
     *
     * @param[in]  data The data to assign
-    */
-   void operator=(const Nonvolatile<T> &data ) {
-      this->data = (T)data;
-      Flash::waitUntilFlexIdle();
-   }
-   /**
-    * Assign to underlying type.
-    * This adds a wait for the Flash to be updated
     *
-    * @param[in]  data The data to assign
+    * @note Write only occurs if the NV data is changing.
     */
-   void operator=(const T &data ) {
-      this->data = data;
-      Flash::waitUntilFlexIdle();
+   Nonvolatile<T> &operator=(const T &data ) {
+      if (this->data != data) {
+         this->data = data;
+         Flash::waitUntilFlexIdle();
+      }
+      return *this;
    }
+#pragma GCC diagnostic pop
    /**
     * Increment underlying type.
     * This adds a wait for the Flash to be updated
     *
     * @param[in]  change The amount to increment
     */
-   void operator+=(const Nonvolatile<T> &change ) {
+   Nonvolatile<T> &operator+=(const Nonvolatile<T> &change ) {
       this->data += (T)change;
       Flash::waitUntilFlexIdle();
+      return *this;
    }
    /**
     * Increment underlying type.
@@ -420,9 +445,10 @@ public:
     *
     * @param[in]  change The amount to increment
     */
-   void operator+=(const T &change ) {
+   Nonvolatile<T> &operator+=(const T &change ) {
       this->data += change;
       Flash::waitUntilFlexIdle();
+      return *this;
    }
    /**
     * Decrement underlying type.
@@ -430,9 +456,10 @@ public:
     *
     * @param[in]  change The amount to increment
     */
-   void operator-=(const Nonvolatile<T> &change ) {
+   Nonvolatile<T> &operator-=(const Nonvolatile<T> &change ) {
       this->data -= (T)change;
       Flash::waitUntilFlexIdle();
+      return *this;
    }
    /**
     * Decrement underlying type.
@@ -440,16 +467,17 @@ public:
     *
     * @param[in]  change The amount to increment
     */
-   void operator-=(const T &change ) {
+   Nonvolatile<T> &operator-=(const T &change ) {
       this->data -= change;
       Flash::waitUntilFlexIdle();
+      return *this;
    }
    /**
     * Return the underlying object - <b>read-only</b>.
     *
     * @return underlying object
     */
-   operator T() const {
+   operator const T() const {
       Flash::waitUntilFlexIdle();
       return data;
    }
@@ -483,7 +511,7 @@ private:
 
    /** Array of elements in FlexRAM.
     *
-    *  FlexRAM required data to be aligned according to its size.\n
+    *  FlexRAM requires data to be aligned according to its size.\n
     *  Be careful how you order variables otherwise space will be wasted
     */
    __attribute__ ((aligned (sizeof(T))))
@@ -491,43 +519,46 @@ private:
 
 public:
    /**
-    * Assign to underlying array.
+    * Assign from underlying array.
     *
     * @param[in]  other TArray to assign from
     *
     * This adds a wait for the Flash to be updated after each element is assigned
-    */
-   void operator=(const TArray &other ) {
-      for (int index=0; index<dimension; index++) {
-         data[index] = other[index];
-         Flash::waitUntilFlexIdle();
-      }
-   }
-
-   /**
-    * Assign to underlying array.
     *
-    * @param[in]  other NonvolatileArray to assign from
-    *
-    * This adds a wait for the Flash to be updated after each element is assigned
+    * @note Flash write only occurs if the NV data element is changing value.
     */
-   void operator=(const NonvolatileArray &other ) {
-      if (this == &other) {
+   NonvolatileArray &operator=(const TArray &other ) {
+      if (&this->data == &other) {
          // Identity check
-         return;
+         return *this;
       }
       for (int index=0; index<dimension; index++) {
-         data[index] = other[index];
-         Flash::waitUntilFlexIdle();
+         if (data[index] != other[index]) {
+            data[index] = other[index];
+            Flash::waitUntilFlexIdle();
+         }
       }
+      return *this;
    }
 
    /**
-    * Assign to underlying array.
+    * Assign from NonvolatileArray array.
     *
-    * @param[in]  other NonvolatileArray to assign to
+    * @param[in] other NonvolatileArray to assign from
     *
     * This adds a wait for the Flash to be updated after each element is assigned
+    *
+    * @note Flash write only occurs if the NV data element is changing value.
+    */
+   NonvolatileArray &operator=(const NonvolatileArray &other ) {
+      *this = other.data;
+      return *this;
+   }
+
+   /**
+    * Copy from underlying array.
+    *
+    * @param[in]  other array to assign to
     */
    void copyTo(T *other) const {
       for (int index=0; index<dimension; index++) {
@@ -540,10 +571,11 @@ public:
     *
     * @param[in]  index Index of element to return
     *
-    * @return Reference to underlying array
+    * @return Reference to underlying array element
     */
-   const T operator [](int index) {
-      return data[index];
+   Nonvolatile<T> &operator [](int index) const {
+      usbdm_assert(static_cast<unsigned>(index)<dimension, "Index out of range");
+      return *(Nonvolatile<T> *)(&data[index]);
    }
 
    /**
@@ -558,20 +590,26 @@ public:
     *
     * @param[in]  index Array index of element to change
     * @param[in]  value Value to initialise array elements to
+    *
+    * @note Flash write only occurs if the NV data element is changing value.
     */
-   void set(int index, T value) {
-      data[index] = value;
-      Flash::waitUntilFlexIdle();
+   void set(unsigned index, T value) {
+      usbdm_assert(static_cast<unsigned>(index)<dimension, "Index out of range");
+      if (data[index] != value) {
+         data[index] = value;
+         Flash::waitUntilFlexIdle();
+      }
    }
    /**
     * Set all elements of the array to the value provided.
     *
     * @param[in]  value Value to initialise array elements to
+    *
+    * @note Flash write only occurs if the NV data element is changing value.
     */
    void set(T value) {
       for (int index=0; index<dimension; index++) {
-         data[index] = value;
-         Flash::waitUntilFlexIdle();
+         set(index, value);
       }
    }
 };

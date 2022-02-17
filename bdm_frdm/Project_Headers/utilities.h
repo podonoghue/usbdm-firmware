@@ -4,8 +4,8 @@
  * @version  V4.12.1.160
  * @date     13 May 2013
  */
-#ifndef PROJECT_HEADERS_UTILTIES_H_
-#define PROJECT_HEADERS_UTILTIES_H_
+#ifndef UTILTIES_H_
+#define UTILTIES_H_
 
 #include <stdint.h>
 

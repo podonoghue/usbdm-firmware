@@ -16,7 +16,6 @@
 #ifndef INCLUDE_USBDM_CONSOLE_H_
 #define INCLUDE_USBDM_CONSOLE_H_
 #include <derivative.h>
-#include "hardware.h"
 
 #if defined(USBDM_UART0_IS_DEFINED) || defined(USBDM_UART1_IS_DEFINED) || defined(USBDM_UART2_IS_DEFINED) || defined(USBDM_UART3_IS_DEFINED) || defined(USBDM_UART4_IS_DEFINED)
 #include "uart.h"
@@ -24,8 +23,6 @@
 #if defined(USBDM_LPUART0_IS_DEFINED) || defined(USBDM_LPUART1_IS_DEFINED) || defined(USBDM_LPUART2_IS_DEFINED)
 #include "lpuart.h"
 #endif
-
-#define USE_CONSOLE 1
 
 // The following macros allow the selective use of the console routines
 // In release versions of the code the macros are null.
@@ -83,10 +80,7 @@ extern Console console;
  *
  * @param msg Message to print
  */
-inline void log_error(const char *msg) {
-   (void)msg;
-   console.WRITELN(msg);
-}
+extern void log_error(const char *msg);
 
 /**
  * @}
@@ -140,7 +134,6 @@ public:
 
 extern Console console;
 
-inline void log_error(const char *) {}
 } // End namespace USBDM
 
 #endif /* USE_CONSOLE */
