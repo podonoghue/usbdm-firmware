@@ -25,7 +25,7 @@ using namespace USBDM;
  */
 
 // Connection mapping - change as required
-using Led = gpio_LED_BLUE;
+using Led = GpioA<2,  ActiveLow>;
 
 using Timer        = Pit;
 using TimerChannel = Timer::Channel<0>;
@@ -48,8 +48,7 @@ int main() {
    TimerChannel::setCallback(flash);
 
    // Flash LED @ 1Hz
-//   TimerChannel::configureInTicks(::SystemBusClock/2, PitChannelIrq_Enabled);
-   TimerChannel::configure(0.5 * seconds, PitChannelIrq_Enabled);
+   TimerChannel::configure(0.5_s, PitChannelIrq_Enabled);
 
    TimerChannel::enableNvicInterrupts(NvicPriority_Normal);
 

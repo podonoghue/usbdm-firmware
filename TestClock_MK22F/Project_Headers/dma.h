@@ -9,8 +9,7 @@
 #ifndef INCLUDE_USBDM_DMA_H_
 #define INCLUDE_USBDM_DMA_H_
 
-#include "derivative.h"
-#include "hardware.h"
+#include "pin_mapping.h"
 
 /*
  * *****************************
@@ -748,6 +747,10 @@ template <class DmaMuxInfo, unsigned NumChannels>
 class DmaMux_T {
 
 public:
+
+   /// Number of multiplexor channels
+   static const unsigned numChannels = NumChannels;
+
    /**
     * Configures and enable hardware requests on a channel.
     *
@@ -779,8 +782,8 @@ public:
       DmaMuxInfo::enableClock();
 
       // Configure channel - must be disabled to change
-      DmaMuxInfo::dmamux().CHCFG[dmaChannelNum] = 0;
-      DmaMuxInfo::dmamux().CHCFG[dmaChannelNum] = dmaMuxEnable|DMAMUX_CHCFG_SOURCE(dmaSlot);
+      DmaMuxInfo::dmamux->CHCFG[dmaChannelNum] = 0;
+      DmaMuxInfo::dmamux->CHCFG[dmaChannelNum] = dmaMuxEnable|DMAMUX_CHCFG_SOURCE(dmaSlot);
    }
 
    /**
@@ -796,7 +799,7 @@ public:
       DmaMuxInfo::enableClock();
 
       // Disable channel
-      DmaMuxInfo::dmamux().CHCFG[dmaChannelNum] = 0;
+      DmaMuxInfo::dmamux->CHCFG[dmaChannelNum] = 0;
    }
 };
 
@@ -812,7 +815,7 @@ class DmaBase_T {
 
 protected:
    /** Hardware instance pointer */
-   static __attribute__((always_inline)) volatile DMA_Type &dmac() { return Info::dma(); }
+   static constexpr HardwarePtr<DMA_Type> dmac = Info::baseAddress;
 
    /** Callback functions for ISRs */
    static DmaCallbackFunction sCallbacks[Info::NumVectors];
@@ -838,10 +841,10 @@ public:
    static void errorIrqHandler() {
 
       // Capture error status
-      uint32_t errorFlags = dmac().ES;
+      uint32_t errorFlags = dmac->ES;
 
       // Clear channel error flag
-      dmac().CERR = DMA_CERR_CERR(dmac().ES>>DMA_ES_ERRCHN_SHIFT);
+      dmac->CERR = DMA_CERR_CERR(dmac->ES>>DMA_ES_ERRCHN_SHIFT);
 
       errorCallback(errorFlags);
    }
@@ -877,7 +880,7 @@ public:
       Info::enableClock();
 
       // Set shared control options
-      dmac().CR = dmaArbitration|dmaOnError|dmaContinuousLink|dmaMinorLoopMapping|dmaGroupArbitration|DMA_CR_EDBG(1);
+      dmac->CR = dmaArbitration|dmaOnError|dmaContinuousLink|dmaMinorLoopMapping|dmaGroupArbitration|DMA_CR_EDBG(1);
 
       // Clear call-backs and TCDs
       for (unsigned channel=0; channel<Info::NumVectors; channel++) {
@@ -899,9 +902,9 @@ public:
          DmaArbitration       dmaArbitration,
          DmaGroupArbitration  dmaGroupArbitration=DmaGroupArbitration_RoundRobin ) {
 #if defined DMA_CR_ERGA
-      dmac().CR = (dmac().CR&~(DMA_CR_ERCA(1)|DMA_CR_GRP1PRI(1)|DMA_CR_GRP0PRI(1)))|dmaArbitration|dmaGroupArbitration;
+      dmac->CR = (dmac->CR&~(DMA_CR_ERCA(1)|DMA_CR_GRP1PRI(1)|DMA_CR_GRP0PRI(1)))|dmaArbitration|dmaGroupArbitration;
 #else
-      dmac().CR = (dmac().CR&~(DMA_CR_ERCA(1)))|dmaArbitration|dmaGroupArbitration;
+      dmac->CR = (dmac->CR&~(DMA_CR_ERCA(1)))|dmaArbitration|dmaGroupArbitration;
 #endif
    }
 
@@ -911,7 +914,7 @@ public:
     * @param[in] dmaMinorLoopMapping Whether to enable minor loop mapping
     */
    void setMinorLoopMapping(DmaMinorLoopMapping  dmaMinorLoopMapping) {
-      dmac().CR = (dmac().CR&~(DMA_CR_EMLM(1)))|dmaMinorLoopMapping;
+      dmac->CR = (dmac->CR&~(DMA_CR_EMLM(1)))|dmaMinorLoopMapping;
    }
 
    /**
@@ -920,7 +923,7 @@ public:
     * @param[in] dmaOnError Whether to halt when a DMA error occurs
     */
    void setErrorHandling(DmaOnError dmaOnError) {
-      dmac().CR = (dmac().CR&~(DMA_CR_HOE(1)))|dmaOnError;
+      dmac->CR = (dmac->CR&~(DMA_CR_HOE(1)))|dmaOnError;
    }
 
    /**
@@ -930,7 +933,7 @@ public:
     * @param[in] dmaContinuousLink       Whether to enable continuous link mode
     */
    void setLinking(DmaContinuousLink dmaContinuousLink) {
-      dmac().CR = (dmac().CR&~(DMA_CR_CLM(1)))|dmaContinuousLink;
+      dmac->CR = (dmac->CR&~(DMA_CR_CLM(1)))|dmaContinuousLink;
    }
 
    /**
@@ -1046,7 +1049,7 @@ public:
       usbdm_assert(dmaChannelNum<Info::NumChannels, "Illegal DMA channel");
 
       int index = (dmaChannelNum&0xFC)|(3-(dmaChannelNum&0x03));
-      constexpr volatile uint8_t *priorities = &dmac().DCHPRI3;
+      constexpr volatile uint8_t *priorities = &dmac->DCHPRI3;
       priorities[index] = dmaCanBePreempted|dmaCanPreemptLower|DMA_DCHPRI_CHPRI(priority);
    }
 
@@ -1060,17 +1063,17 @@ public:
 
       usbdm_assert(dmaChannelNum<Info::NumChannels, "Illegal DMA channel");
 
-      dmac().TCD[dmaChannelNum].SADDR           = tcd.SADDR;
-      dmac().TCD[dmaChannelNum].SOFF            = tcd.SOFF;
-      dmac().TCD[dmaChannelNum].ATTR            = tcd.ATTR.data;
-      dmac().TCD[dmaChannelNum].NBYTES_MLNO     = tcd.NBYTES;
-      dmac().TCD[dmaChannelNum].SLAST           = tcd.SLAST;
-      dmac().TCD[dmaChannelNum].DADDR           = tcd.DADDR;
-      dmac().TCD[dmaChannelNum].DOFF            = tcd.DOFF;
-      dmac().TCD[dmaChannelNum].CITER_ELINKNO   = tcd.CITER;
-      dmac().TCD[dmaChannelNum].DLASTSGA        = tcd.DLAST;
-      dmac().TCD[dmaChannelNum].CSR             = tcd.CSR.data;
-      dmac().TCD[dmaChannelNum].BITER_ELINKNO   = tcd.CITER;
+      dmac->TCD[dmaChannelNum].SADDR           = tcd.SADDR;
+      dmac->TCD[dmaChannelNum].SOFF            = tcd.SOFF;
+      dmac->TCD[dmaChannelNum].ATTR            = tcd.ATTR.data;
+      dmac->TCD[dmaChannelNum].NBYTES_MLNO     = tcd.NBYTES;
+      dmac->TCD[dmaChannelNum].SLAST           = tcd.SLAST;
+      dmac->TCD[dmaChannelNum].DADDR           = tcd.DADDR;
+      dmac->TCD[dmaChannelNum].DOFF            = tcd.DOFF;
+      dmac->TCD[dmaChannelNum].CITER_ELINKNO   = tcd.CITER;
+      dmac->TCD[dmaChannelNum].DLASTSGA        = tcd.DLAST;
+      dmac->TCD[dmaChannelNum].CSR             = tcd.CSR.data;
+      dmac->TCD[dmaChannelNum].BITER_ELINKNO   = tcd.CITER;
    }
 
    /**
@@ -1079,7 +1082,7 @@ public:
     * @return 32-bit flag register see DMA_ES definitions
     */
    static uint32_t __attribute__((always_inline)) getLastError() {
-      return dmac().ES;
+      return dmac->ES;
    }
 
    /**
@@ -1091,9 +1094,9 @@ public:
 
       usbdm_assert(dmaChannelNum<Info::NumChannels, "Illegal DMA channel");
 
-      int lastCiter = dmac().TCD[dmaChannelNum].CITER_ELINKNO;
-      while ((dmac().TCD[dmaChannelNum].CSR & DMA_CSR_DONE_MASK) == 0) {
-         int currentCiter = dmac().TCD[dmaChannelNum].CITER_ELINKNO;
+      int lastCiter = dmac->TCD[dmaChannelNum].CITER_ELINKNO;
+      while ((dmac->TCD[dmaChannelNum].CSR & DMA_CSR_DONE_MASK) == 0) {
+         int currentCiter = dmac->TCD[dmaChannelNum].CITER_ELINKNO;
          if (lastCiter != currentCiter) {
             lastCiter = currentCiter;
             __asm__ volatile("nop");
@@ -1119,7 +1122,7 @@ public:
 
       usbdm_assert(dmaChannelNum<Info::NumChannels, "Illegal DMA channel");
 
-      dmac().SSRT = dmaChannelNum;
+      dmac->SSRT = dmaChannelNum;
    }
 
    /**
@@ -1134,10 +1137,10 @@ public:
       usbdm_assert((dmaChannelMask&~((1<<Info::NumChannels)-1)) != 0, "Illegal DMA channel");
 
       if (enable) {
-         dmac().ERQ |= dmaChannelMask;
+         dmac->ERQ = dmac->ERQ | dmaChannelMask;
       }
       else {
-         dmac().ERQ &= ~dmaChannelMask;
+         dmac->ERQ = dmac->ERQ & ~dmaChannelMask;
       }
    }
 
@@ -1155,10 +1158,10 @@ public:
       usbdm_assert(dmaChannelNum<Info::NumChannels, "Illegal DMA channel");
 
       if (enable) {
-         dmac().SERQ = dmaChannelNum;
+         dmac->SERQ = dmaChannelNum;
       }
       else {
-         dmac().CERQ = dmaChannelNum;
+         dmac->CERQ = dmaChannelNum;
       }
    }
 
@@ -1175,10 +1178,10 @@ public:
       usbdm_assert(dmaChannelNum<Info::NumChannels, "Illegal DMA channel");
 
       if (enable) {
-         dmac().EARS |= (1<<dmaChannelNum);
+         dmac->EARS = dmac->EARS | (1<<dmaChannelNum);
       }
       else {
-         dmac().EARS &= ~(1<<dmaChannelNum);
+         dmac->EARS = dmac->EARS & ~(1<<dmaChannelNum);
       }
    }
 #endif
@@ -1194,10 +1197,10 @@ public:
       usbdm_assert((dmaChannelMask&~((1<<Info::NumChannels)-1)) != 0, "Illegal DMA channel");
 
       if (enable) {
-         dmac().EEI |= dmaChannelMask;
+         dmac->EEI = dmac->EEI | dmaChannelMask;
       }
       else {
-         dmac().EEI &= ~dmaChannelMask;
+         dmac->EEI = dmac->EEI & ~dmaChannelMask;
       }
    }
 
@@ -1214,10 +1217,10 @@ public:
       usbdm_assert(dmaChannelNum<Info::NumChannels, "Illegal DMA channel");
 
       if (enable) {
-         dmac().SEEI = dmaChannelNum;
+         dmac->SEEI = dmaChannelNum;
       }
       else {
-         dmac().CEEI = dmaChannelNum;
+         dmac->CEEI = dmaChannelNum;
       }
    }
 
@@ -1232,7 +1235,7 @@ public:
 
       usbdm_assert(dmaChannelNum<Info::NumChannels, "Illegal DMA channel");
 
-      dmac().CDNE = dmaChannelNum;
+      dmac->CDNE = dmaChannelNum;
    }
 
    /**
@@ -1246,10 +1249,10 @@ public:
       usbdm_assert((dmaChannelMask&~((1<<Info::NumChannels)-1)) != 0, "Illegal DMA channel");
 
       if (enable) {
-         dmac().INT |= dmaChannelMask;
+         dmac->INT = dmac->INT | dmaChannelMask;
       }
       else {
-         dmac().INT &= ~dmaChannelMask;
+         dmac->INT = dmac->INT & ~dmaChannelMask;
       }
    }
 
@@ -1264,7 +1267,7 @@ public:
 
       usbdm_assert(dmaChannelNum<Info::NumChannels, "Illegal DMA channel");
 
-      dmac().CINT = dmaChannelNum;
+      dmac->CINT = dmaChannelNum;
    }
 
    /**
@@ -1375,19 +1378,19 @@ template<class Info> DmaErrorCallbackFunction DmaBase_T<Info>::errorCallback = n
 template<class Info> uint32_t DmaBase_T<Info>::allocatedChannels = -1;
 
 #ifdef USBDM_DMAMUX0_IS_DEFINED
-using DmaMux0 = DmaMux_T<Dmamux0Info, Dma0Info::NumChannels>;
+typedef DmaMux_T<Dmamux0Info, Dma0Info::NumChannels> DmaMux0;
 #endif
 
 #ifdef USBDM_DMAMUX1_IS_DEFINED
-using DmaMux1 = DmaMux_T<Dmamux1Info, Dma1Info::NumChannels>;
+typedef DmaMux_T<Dmamux1Info, Dma1Info::NumChannels> DmaMux1;
 #endif
 
 #ifdef USBDM_DMA0_IS_DEFINED
-using Dma0 = DmaBase_T<Dma0Info>;
+typedef DmaBase_T<Dma0Info> Dma0;
 #endif
 
 #ifdef USBDM_DMA1_IS_DEFINED
-using Dma0 = DmaBase_T<Dma1Info>;
+typedef DmaBase_T<Dma1Info> Dma1;
 #endif
 
 /**

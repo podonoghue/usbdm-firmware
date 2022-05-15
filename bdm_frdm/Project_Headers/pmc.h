@@ -288,7 +288,7 @@ public:
          PmcLowVoltageDetectAction pmcLowVoltageDetectAction = PmcLowVoltageDetectAction_None,
          PmcLowVoltageDetectLevel  pmcLowVoltageDetectLevel  = PmcLowVoltageDetectLevel_High
          ) {
-      pmc->LVDSC1 = pmcLowVoltageDetectAction|pmcLowVoltageDetectLevel;
+      pmc->LVDSC1 = pmc->LVDSC1 | (pmcLowVoltageDetectAction|pmcLowVoltageDetectLevel);
    }
 
 #else
@@ -314,7 +314,7 @@ public:
          PmcLowVoltageWarningAction pmcLowVoltageWarningAction = PmcLowVoltageWarningAction_None,
          PmcLowVoltageWarningLevel  pmcLowVoltageWarningLevel  = PmcLowVoltageWarningLevel_High
          ) {
-      pmc->LVDSC2 = pmcLowVoltageWarningAction|pmcLowVoltageWarningLevel;
+      pmc->LVDSC2 = pmc->LVDSC2 | (pmcLowVoltageWarningAction|pmcLowVoltageWarningLevel);
    }
 
 #else
@@ -350,7 +350,7 @@ public:
    static void configureBandgapOperation(
          PmcBandgapBuffer           pmcBandgapBuffer,
          PmcBandgapLowPowerEnable   pmcBandgapLowPowerEnable=PmcBandgapLowPowerEnable_Off) {
-      pmc->REGSC = pmcBandgapBuffer|pmcBandgapLowPowerEnable;
+      pmc->REGSC = pmc->REGSC | (pmcBandgapBuffer|pmcBandgapLowPowerEnable);
    }
 #endif
 
@@ -397,7 +397,7 @@ public:
     * While using this option, it must be ensured that respective clock modules are
     * disabled in VLPS mode otherwise severe malfunction of clock modules will occur.
     *
-    * Disabled - In VLPS mode, the bias currents and reference voltages for the 
+    * Disabled - In VLPS mode, the bias currents and reference voltages for the
     *            following clock modules are disabled: SIRC, FIRC, PLL.
     */
    static void disableClockBias() {
@@ -411,7 +411,7 @@ public:
     *
     * Controls operation of the low power oscillator.
     *
-    * @note After disabling the LPO a time of 2 LPO clock cycles is required before 
+    * @note After disabling the LPO a time of 2 LPO clock cycles is required before
     *       it is allowed to enable it again. Violating this waiting time of 2 cycles
     *       can result in malfunction of the LPO.
     */

@@ -38,7 +38,7 @@ using TimerChannel = Timer::Channel<1>;
 static volatile uint16_t timerHalfPeriodInTicks;
 
 /// Waveform period to generate
-static constexpr float WAVEFORM_PERIOD = 100*ms;
+static constexpr float WAVEFORM_PERIOD = 100_ms;
 
 /// Maximum OC interval - the OC interval should not exceed this value.
 static constexpr float MAX_OC_INTERVAL = (1.1 * WAVEFORM_PERIOD)/2;

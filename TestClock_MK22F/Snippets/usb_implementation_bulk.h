@@ -180,6 +180,17 @@ public:
     */
    static ErrorCode sendBulkData(const uint16_t size, const uint8_t *buffer, uint32_t timeout);
 
+   static ErrorCode startReceiveBulkData(uint16_t size, uint8_t *buffer);
+   /**
+    * Poll for receive data on USB.
+    * If the interface is idle it is set up for reception using the parameters provided.
+    * This is non-blocking.
+    *
+    * @return  <0  => No data available
+    * @return  >=0 => Data has been received and copied to buffer
+    */
+   static int       pollReceiveBulkData();
+
    /**
     *  Blocking reception of data over bulk OUT end-point
     *

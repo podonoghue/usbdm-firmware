@@ -8,6 +8,7 @@
  ============================================================================
  */
 #include "hardware.h"
+#include "adc.h"
 
 using namespace USBDM;
 
@@ -19,19 +20,19 @@ using namespace USBDM;
  */
 
 // Connection mapping - change as required
-using Adc = USBDM::Adc0;
+using MyAdc = USBDM::Adc0;
 
-using JOYSTICK_X = Adc::adc_A2;
-using JOYSTICK_Y = Adc::adc_A1;
-using JOYSTICK_K = gpio_A0;
+using JOYSTICK_X = Adc0::Channel<8>;
+using JOYSTICK_Y = Adc0::Channel<9>;
+using JOYSTICK_K = GpioD<5,  ActiveLow>;
 
 int main(void) {
 
    // Enable and configure ADC
-   Adc::configure(AdcResolution_8bit_se);
+   MyAdc::configure(AdcResolution_8bit_se);
 
    // Calibrate before use
-   Adc::calibrate();
+   MyAdc::calibrate();
 
    // Connect ADC channels to pins
    JOYSTICK_X::setInput();
@@ -44,6 +45,6 @@ int main(void) {
       int  x      = JOYSTICK_X::readAnalogue();
       int  y      = JOYSTICK_Y::readAnalogue();
       bool button = JOYSTICK_K::isPressed();
-      console.write("Joystick (X,Y,K) = ").write(x).write(", ").write(y).write(", ").writeln(button?"Pressed":"Released");
+      console.write("Joystick (X,Y,K) = ", x, ", ", y, ", ", button?"Pressed":"Released");
    }
 }

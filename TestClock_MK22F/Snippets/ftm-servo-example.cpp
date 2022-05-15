@@ -8,6 +8,7 @@
  ============================================================================
  */
 #include "hardware.h"
+#include "ftm.h"
 
 using namespace USBDM;
 
@@ -24,9 +25,9 @@ private:
    using Timer = typename FtmChannel::Ftm;
 
    // Assumes servo is controlled by a [1,2] millisecond pulse repeated every 20 millisecond
-   static constexpr float SERVO_PERIOD = 20.0 * ms;
-   static constexpr float SERVO_MIN    =  1.0 * ms;
-   static constexpr float SERVO_MAX    =  2.0 * ms;
+   static constexpr Seconds SERVO_PERIOD = 20.0_ms;
+   static constexpr Seconds SERVO_MIN    =  1.0_ms;
+   static constexpr Seconds SERVO_MAX    =  2.0_ms;
 
 public:
    /**
@@ -35,7 +36,7 @@ public:
     */
    static void enable() {
       Timer::configure(FtmMode_LeftAlign, FtmClockSource_System);
-      Timer::setPeriod(SERVO_PERIOD, true);
+      Timer::setPeriod(SERVO_PERIOD);
       FtmChannel::configure(FtmChMode_PwmHighTruePulses);
       FtmChannel::setOutput(PinDriveStrength_High);
       FtmChannel::setHighTime((SERVO_MIN+SERVO_MAX)/2);
@@ -56,22 +57,21 @@ public:
 
 // Instantiate servo on pin
 // It will be necessary to map the pin to a FTM channel in Configure.usbdmProject
-//using servo = Servo<ftm_D2>;
-using servo = Servo<Ftm0Channel<7>>;
+using Servo1 = Servo<Ftm0::Channel<0>>;
 
 int main() {
    console.writeln("Starting\n");
 
-   servo::enable();
+   Servo1::enable();
 
    // Check if configuration failed
    USBDM::checkError();
 
    for (;;) {
       for(unsigned i=0; i<=180; i++) {
-         servo::setPosition(i);
+         Servo1::setPosition(i);
          waitMS(50);
-         console.write("Position = ").writeln(i);
+         console.write("Position = ", i);
       }
    }
    return 0;

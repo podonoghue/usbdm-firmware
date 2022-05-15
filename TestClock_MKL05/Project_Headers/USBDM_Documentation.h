@@ -76,7 +76,7 @@ Convenience template for UART. Uses the following classes:\n
 
    int value;
    console.write("Enter value: ").readln(value);
-   console.write("Value =").writeln(value);
+   console.writeln("Value =", value);
 
    console<<"Enter value: ">>value<<EndOfLine;
    console<<"Value ="<<value<<EndOfLine;
@@ -92,8 +92,8 @@ Convenience template for UART. Uses the following classes:\n
    // String buffer example
    // Used to write formatted strings
    char buff[100];
-   StringFormatter sf(buff, sizeof(buff));
-   sf.write("This is a string and number(").write(3.3).write(") written to a char buffer (string)");
+   StringFormatter sf(buff);
+   sf.write("This is a string and number(", 3.3, ") written to a char buffer (string)");
    console.writeln(sf.toString());
  @endcode
 
@@ -121,8 +121,6 @@ This is a template class with static methods.\n
  - @ref dma-spi-example.cpp
  - @ref dma-uart-example-mkl25.cpp
 
- @page GPIOExamples  General Purpose Input Output
-
 @page LPTMRExamples  Low Power Timer
 
 Convenience template for LPTMR. Uses the following classes:\n
@@ -140,7 +138,7 @@ This is a template class with static methods.\n
 
 <b>Examples</b>\n
  - @ref lptmr-example.cpp
- 
+
  @page GPIOExamples  General Purpose Input Output
 
 Convenience template for GPIO pins. Uses the following classes:\n
@@ -301,22 +299,25 @@ This is a template class with static methods.\n
    // ADC being used (for shared settings)
    using Adc         = Adc0;
 
-   // Use ADC0 channel 6 as ADC input (ADC_IN6)
-   using AdcChannel = USBDM::Adc0Channel<6>;
+   // Use ADC channel 6 as ADC input (ADC_SE6)
+   using AdcChannel = Adc::Channel<6>;
 
    // Initially configure ADC for resolution of 16 bits with default settings
    Adc::configure(AdcResolution_16bit_se);
 
    // Calibrate before use
    Adc::calibrate();
-   
+
    // Set ADC averaging to 4 samples
    Adc::setAveraging(AdcAveraging_4);
+
+   // Set ADC pin as input
+   AdcChannel::setInput();
 
    // Read ADC value
    uint32_t value = AdcChannel::readAnalogue();
 
-   console.write("ADC measurement = ").writeln(value);
+   console.writeln("ADC measurement = ", value);
  @endcode
 
  <b>Usage - Differential measurement</b>
@@ -329,21 +330,24 @@ This is a template class with static methods.\n
    using Adc         = Adc0;
 
    // Use channel 0 as ADC differential input (ADC_DM0, ADC_DP0)
-   using Adc1_diff0 = USBDM::Adc0DiffChannel<0>;
+   using AdcDiff0 = USBDM::Adc::DiffChannel<0>;
 
    // Initially configure ADC for resolution of 11 bits differential with default settings
    Adc::configure(AdcResolution_11bit_diff);
 
    // Calibrate before use
    Adc::calibrate();
-   
+
    // Set ADC averaging to 4 samples
    Adc::setAveraging(AdcAveraging_4);
 
-   // Read signed differential ADC value
-   int32_t value = Adc1_diff0::readAnalogue();
+   // Set both differential pins as input (unneeded in this case as DM0,DP0 are fixed)
+   AdcDiffChannel::setInput();
 
-   console.write("ADC measurement = ").writeln(value);
+   // Read signed differential ADC value
+   int32_t value = AdcDiffChannel::readAnalogue();
+
+   console.writeln("ADC measurement = ", value);
  @endcode
 
 @page TPMExamples Flexible Timer Module
@@ -445,7 +449,7 @@ This is a template class with static methods.\n
 
    for (;;) {
       // Report position
-      console.write("Shaft position = ").writeln(TpmQuadDecoder::getPosition());
+      console.writeln("Shaft position = ", QuadDecoder::getPosition());
    }
 @endcode
 

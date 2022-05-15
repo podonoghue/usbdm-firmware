@@ -8,6 +8,7 @@
  ============================================================================
  */
 #include "hardware.h"
+#include "adc.h"
 
 using namespace USBDM;
 
@@ -19,10 +20,10 @@ using namespace USBDM;
 // Note - many actions on the channel affect the entire ADC
 
 // Shared ADC to use
-using Adc        = Adc0;
+using MyAdc        = Adc0;
 
 // ADC channel to use
-using AdcChannel = Adc::DiffChannel<0>;
+using MyAdcChannel = MyAdc::DiffChannel<0>;
 
 // Resolution to use for ADC
 constexpr AdcResolution adcResolution = AdcResolution_9bit_diff;
@@ -30,20 +31,20 @@ constexpr AdcResolution adcResolution = AdcResolution_9bit_diff;
 int main(void) {
 
    // Enable and configure ADC
-   Adc::configure(AdcResolution_11bit_diff);
+   MyAdc::configure(AdcResolution_11bit_diff);
 
    // Calibrate before first use
-   Adc::calibrate();
+   MyAdc::calibrate();
 
    // May change current resolution as needed e.g.
-   Adc::setResolution(adcResolution);
+   MyAdc::setResolution(adcResolution);
 
    // Connect ADC channel to pin
-   AdcChannel::setInput();
+   MyAdcChannel::setInput();
 
    for(;;) {
       // Do next conversion
-      int32_t value = AdcChannel::readAnalogue();
-      console.write("Difference  = ").write(value*3.3/Adc::getDifferentialMaximum(adcResolution)).writeln(" volts");
+      int32_t value = MyAdcChannel::readAnalogue();
+      console.writeln("Difference  = ", value*3.3/MyAdc::getDifferentialMaximum(adcResolution), " volts");
    }
 }

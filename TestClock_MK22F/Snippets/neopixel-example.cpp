@@ -17,6 +17,7 @@
  */
 #include <string.h>
 #include "hardware.h"
+#include "ftm.h"
 #include "dma.h"
 #include "smc.h"
 
@@ -84,7 +85,7 @@ static uint8_t pixelBuffer[PIXEL_LENGTH*PIXEL_BIT_LENGTH] = {0};
  * Mask for GPIO pins (used with TimerData DMA channel)
  * For consistent DMA latency this must be allocated in same region as pixelBuffer.
  */
-static uint8_t pixelBitmask = Pixel::MASK;
+static uint8_t pixelBitmask = Pixel::BITMASK;
 
 /**
  * Unpack RGB pixel data into format for transmission.
@@ -126,7 +127,7 @@ void unpackPixels(uint8_t pixelMask, const uint32_t pixelData[PIXEL_LENGTH]) {
 static void initialiseDma(DmaChannelNum dmaSetChannel, DmaChannelNum dmaDataChannel, DmaChannelNum dmaClearChannel) {
 
    // This example assumes the Pixels lie within the 1st byte of the port
-   static_assert((Pixel::MASK&~0xFF) == 0);
+   static_assert((Pixel::BITMASK&~0xFF) == 0);
 
 
    /**
@@ -179,7 +180,7 @@ static void initialiseDma(DmaChannelNum dmaSetChannel, DmaChannelNum dmaDataChan
       /* Source address modulo       */ DmaModulo_Disabled,                // No modulo
       /* Source last adjustment      */ 0,                                 // Source address doesn't change
 
-      /* Destination address         */ Pixel::gpioPSOR(),                 // Destination is GPIO.PSOR register
+      /* Destination address         */ Pixel::gpioPSOR,                   // Destination is GPIO.PSOR register
       /* Destination address offset  */ 0,                                 // Destination address doesn't change
       /* Destination size            */ dmaSize(pixelBitmask),             // 8-bit write to Source address
       /* Destination address modulo  */ DmaModulo_Disabled,                // No modulo
@@ -209,7 +210,7 @@ static void initialiseDma(DmaChannelNum dmaSetChannel, DmaChannelNum dmaDataChan
       /* Source address modulo       */ DmaModulo_Disabled,                // No modulo
       /* Source last adjustment      */ -(int)sizeof(pixelBuffer),         // Reset Source address back to start of buffer
 
-      /* Destination address         */ Pixel::gpioPCOR(),                 // Destination is GPIO.PCOR register
+      /* Destination address         */ Pixel::gpioPCOR,                   // Destination is GPIO.PCOR register
       /* Destination address offset  */ 0,                                 // Destination address doesn't change
       /* Destination size            */ dmaSize(pixelBuffer[0]),           // 8-bit write to Source address
       /* Destination address modulo  */ DmaModulo_Disabled,                // No modulo
@@ -239,7 +240,7 @@ static void initialiseDma(DmaChannelNum dmaSetChannel, DmaChannelNum dmaDataChan
       /* Source address modulo       */ DmaModulo_Disabled,                 // No modulo
       /* Source last adjustment      */ 0,                                  // Source address doesn't change
 
-      /* Destination address         */ Pixel::gpioPCOR(),                  // Destination is GPIO.PCOR register
+      /* Destination address         */ Pixel::gpioPCOR,                    // Destination is GPIO.PCOR register
       /* Destination address offset  */ 0,                                  // Destination address doesn't change
       /* Destination size            */ dmaSize(pixelBitmask),                   // 8-bit write to Source address
       /* Destination address modulo  */ DmaModulo_Disabled,                 // No modulo
@@ -301,23 +302,23 @@ static void initialiseDma(DmaChannelNum dmaSetChannel, DmaChannelNum dmaDataChan
 //#define WS2812B
 #define SK6812
 #if defined WS2812
-static constexpr float T0_HIGH = 400*ns;   // 350 +/- 150 ns
-static constexpr float T1_HIGH = 600*ns;   // 700 +/- 150 ns
-static constexpr float PERIOD  = 1200*ns;
-//static constexpr float T0_LOW  = 800*ns; // 800 +/- 150 ns
-//static constexpr float T1_LOW  = 600*ns; // 600 +/- 150 ns
+static constexpr float T0_HIGH = 400_ns;   // 350 +/- 150 ns
+static constexpr float T1_HIGH = 600_ns;   // 700 +/- 150 ns
+static constexpr float PERIOD  = 1200_ns;
+//static constexpr float T0_LOW  = 800_ns; // 800 +/- 150 ns
+//static constexpr float T1_LOW  = 600_ns; // 600 +/- 150 ns
 #elif defined WS2812B
-static constexpr float T0_HIGH = 500*ns;   // 400 +/- 150 ns
-static constexpr float T1_HIGH = 800*ns;   // 800 +/- 150 ns
-static constexpr float PERIOD  = 1350*ns;
-//static constexpr float T0_LOW  = 850*ns; // 850 +/- 150 ns
-//static constexpr float T1_LOW  = 550*ns; // 450 +/- 150 ns
+static constexpr float T0_HIGH = 500_ns;   // 400 +/- 150 ns
+static constexpr float T1_HIGH = 800_ns;   // 800 +/- 150 ns
+static constexpr float PERIOD  = 1350_ns;
+//static constexpr float T0_LOW  = 850_ns; // 850 +/- 150 ns
+//static constexpr float T1_LOW  = 550_ns; // 450 +/- 150 ns
 #elif defined SK6812
-static constexpr float T0_HIGH = 300*ns+20*ns; // 300 +/- 150 ns (20ns tweak for latency)
-static constexpr float T1_HIGH = 600*ns;       // 600 +/- 150 ns
-static constexpr float PERIOD  = 1200*ns;
-//static constexpr float T0_LOW  = 900*ns;     // 900 +/- 150 ns
-//static constexpr float T1_LOW  = 600*ns;     // 600 +/- 150 ns
+static constexpr float T0_HIGH = 300_ns+20_ns; // 300 +/- 150 ns (20ns tweak for latency)
+static constexpr float T1_HIGH = 600_ns;       // 600 +/- 150 ns
+static constexpr float PERIOD  = 1200_ns;
+//static constexpr float T0_LOW  = 900_ns;     // 900 +/- 150 ns
+//static constexpr float T1_LOW  = 600_ns;     // 600 +/- 150 ns
 #else
 #error "Unknown Neopixel type"
 #endif

@@ -17,7 +17,7 @@
  * Any manual changes will be lost.
  */
 #include "derivative.h"
-#include "hardware.h"
+#include "pin_mapping.h"
 
 namespace USBDM {
 
@@ -116,7 +116,7 @@ static constexpr uint16_t WdogUnlock2 = 0xD928;
  *
  * @param[in]  status Struct indicating interrupt source and state
  */
-typedef void (*WDOGCallbackFunction)();
+typedef void (*WdogCallbackFunction)();
 
 /**
  * Template class representing the Watchdog Monitor
@@ -143,7 +143,7 @@ protected:
    }
 
    /** Callback function for ISR */
-   static WDOGCallbackFunction callback;
+   static WdogCallbackFunction callback;
 
 public:
    /**
@@ -151,7 +151,7 @@ public:
     *
     * @return Reference to WDOG hardware
     */
-   static __attribute__((always_inline)) volatile WDOG_Type &wdog() { return Info::wdog(); }
+   static constexpr HardwarePtr<WDOG_Type> wdog = Info::baseAddress;
 
    /**
     * IRQ handler
@@ -162,6 +162,85 @@ public:
    }
 
    /**
+    * Wrapper to allow the use of a class member as a callback function
+    * @note Only usable with static objects.
+    *
+    * @tparam T         Type of the object containing the callback member function
+    * @tparam callback  Member function pointer
+    * @tparam object    Object containing the member function
+    *
+    * @return  Pointer to a function suitable for the use as a callback
+    *
+    * @code
+    * class AClass {
+    * public:
+    *    int y;
+    *
+    *    // Member function used as callback
+    *    // This function must match WdogCallbackFunction
+    *    void callback() {
+    *       ...;
+    *    }
+    * };
+    * ...
+    * // Instance of class containing callback member function
+    * static AClass aClass;
+    * ...
+    * // Wrap member function
+    * auto fn = Wdog::wrapCallback<AClass, &AClass::callback, aClass>();
+    * // Use as callback
+    * Wdog::setCallback(fn);
+    * @endcode
+    */
+   template<class T, void(T::*callback)(), T &object>
+   static WdogCallbackFunction wrapCallback() {
+      static WdogCallbackFunction fn = []() {
+         (object.*callback)();
+      };
+      return fn;
+   }
+
+   /**
+    * Wrapper to allow the use of a class member as a callback function
+    * @note There is a considerable space and time overhead to using this method
+    *
+    * @tparam T         Type of the object containing the callback member function
+    * @tparam callback  Member function pointer
+    * @tparam object    Object containing the member function
+    *
+    * @return  Pointer to a function suitable for the use as a callback
+    *
+    * @code
+    * class AClass {
+    * public:
+    *    int y;
+    *
+    *    // Member function used as callback
+    *    // This function must match WdogCallbackFunction
+    *    void callback() {
+    *       ...;
+    *    }
+    * };
+    * ...
+    * // Instance of class containing callback member function
+    * AClass aClass;
+    * ...
+    * // Wrap member function
+    * auto fn = Wdog::wrapCallback<AClass, &AClass::callback>(aClass);
+    * // Use as callback
+    * Wdog::setCallback(fn);
+    * @endcode
+    */
+   template<class T, void(T::*callback)()>
+   static WdogCallbackFunction wrapCallback(T &object) {
+      static T &obj = object;
+      static WdogCallbackFunction fn = []() {
+         (obj.*callback)();
+      };
+      return fn;
+   }
+
+   /**
     * Set callback function.
     *
     * The callback may be executed prior to the WDOG reset.
@@ -169,7 +248,7 @@ public:
     *
     * @param[in]  theCallback Callback function to execute on interrupt
     */
-   static void setCallback(WDOGCallbackFunction theCallback) {
+   static void setCallback(WdogCallbackFunction theCallback) {
       static_assert(Info::irqHandlerInstalled, "WDOG not configured for interrupts");
       if (theCallback == nullptr) {
          theCallback = unhandledCallback;
@@ -194,7 +273,7 @@ public:
     * @return Count of timeout resets
     */
    static uint16_t getResetCount() {
-      return wdog().RSTCNT;
+      return wdog->RSTCNT;
    }
 
    /**
@@ -202,8 +281,8 @@ public:
     *
     * @return current timer value
     */
-   static uint32_t getTimer() {
-      return (wdog().TMROUTH<<16)|wdog().TMROUTL;
+   static Ticks getTimer() {
+      return (wdog->TMROUTH<<16)|wdog->TMROUTL;
    }
 
    /**
@@ -215,13 +294,13 @@ public:
     *
     * @note This is a protected operation which uses unlock
     */
-   static void setTimeout(uint8_t prescaler, unsigned ticks) {
+   static void setTimeout(uint8_t prescaler, Ticks ticks) {
       // Disable interrupts while accessing watchdog
       CriticalSection cs;
       writeUnlock(WdogUnlock1, WdogUnlock2);
-      wdog().PRESC = WDOG_PRESC_PRESCVAL(prescaler-1);
-      wdog().TOVALH = ticks>>16;
-      wdog().TOVALL = ticks;
+      wdog->PRESC = WDOG_PRESC_PRESCVAL(prescaler-1);
+      wdog->TOVALH = (unsigned)ticks>>16;
+      wdog->TOVALL = (unsigned)ticks;
    }
 
    /**
@@ -232,7 +311,7 @@ public:
     * @note This is a protected operation which uses unlock
     * @note This adjusts both the prescaler and the timeout value.
     */
-   static ErrorCode setTimeout(float seconds) {
+   static ErrorCode setTimeout(Seconds seconds) {
       unsigned prescaler;
       uint64_t timerValue;
       uint32_t inputClockFreq = WdogInfo::getInputClockFrequency();
@@ -241,12 +320,12 @@ public:
          if (prescaler>8) {
             return setErrorCode(E_TOO_LARGE);
          }
-         timerValue = (uint64_t)((seconds*inputClockFreq)/prescaler);
+         timerValue = (uint64_t)(((float)seconds*inputClockFreq)/prescaler);
          if (timerValue <= 0xFFFF) {
             break;
          }
       }
-      setTimeout(prescaler, timerValue);
+      setTimeout(prescaler, (unsigned)timerValue);
       return E_NO_ERROR;
    }
 
@@ -261,8 +340,8 @@ public:
       // Disable interrupts while accessing watchdog
       CriticalSection cs;
       writeUnlock(WdogUnlock1, WdogUnlock2);
-      wdog().WINH = value>>16;
-      wdog().WINL = value;
+      wdog->WINH = value>>16;
+      wdog->WINL = value;
    }
 
    /**
@@ -284,8 +363,8 @@ public:
     * @param wdogRefresh2 2nd value to write (WdogRefresh2)
     */
    static void writeRefresh(uint16_t wdogRefresh1, uint16_t wdogRefresh2) {
-      wdog().REFRESH = wdogRefresh1;
-      wdog().REFRESH = wdogRefresh2;
+      wdog->REFRESH = wdogRefresh1;
+      wdog->REFRESH = wdogRefresh2;
    }
 
    /**
@@ -296,8 +375,8 @@ public:
     * @param wdogUnlock2 2nd value to write (WdogUnlock2)
     */
    static void writeUnlock(uint16_t wdogUnlock1, uint16_t wdogUnlock2) {
-      wdog().UNLOCK = wdogUnlock1;
-      wdog().UNLOCK = wdogUnlock2;
+      wdog->UNLOCK = wdogUnlock1;
+      wdog->UNLOCK = wdogUnlock2;
    }
 
    /**
@@ -323,7 +402,7 @@ public:
       // Unlock before changing settings
       writeUnlock(WdogUnlock1, WdogUnlock2);
 
-      wdog().STCTRLH = wdogEnable|wdogClock|wdogInterrupt|wdogWindow|WdogAllowUpdate_Enabled|wdogEnableInDebug|wdogEnableInStop|wdogEnableInWait;
+      wdog->STCTRLH = wdogEnable|wdogClock|wdogInterrupt|wdogWindow|WdogAllowUpdate_Enabled|wdogEnableInDebug|wdogEnableInStop|wdogEnableInWait;
    }
 
    /**
@@ -335,7 +414,7 @@ public:
 
       // Unlock before changing settings
       writeUnlock(WdogUnlock1, WdogUnlock2);
-      wdog().STCTRLH &= ~WDOG_STCTRLH_ALLOWUPDATE_MASK;
+      wdog->STCTRLH = wdog->STCTRLH & ~WDOG_STCTRLH_ALLOWUPDATE_MASK;
    }
 
    /**
@@ -359,7 +438,7 @@ public:
     *
     * @param[in]  nvicPriority  Interrupt priority
     */
-   static void enableNvicInterrupts(uint32_t nvicPriority) {
+   static void enableNvicInterrupts(NvicPriority nvicPriority) {
       enableNvicInterrupt(Info::irqNums[0], nvicPriority);
    }
 
@@ -381,15 +460,15 @@ public:
       // Protect sequence from interrupts
       CriticalSection cs;
       if (enable) {
-         wdog().STCTRLH |= WDOG_STCTRLH_IRQRSTEN_MASK;
+         wdog->STCTRLH = wdog->STCTRLH | WDOG_STCTRLH_IRQRSTEN_MASK;
       }
       else {
-         wdog().STCTRLH &= ~WDOG_STCTRLH_IRQRSTEN_MASK;
+         wdog->STCTRLH = wdog->STCTRLH & ~WDOG_STCTRLH_IRQRSTEN_MASK;
       }
    }
 };
 
-template<class Info> WDOGCallbackFunction WdogBase_T<Info>::callback = WdogBase_T<Info>::unhandledCallback;
+template<class Info> WdogCallbackFunction WdogBase_T<Info>::callback = WdogBase_T<Info>::unhandledCallback;
 
 #if defined(USBDM_WDOG_IS_DEFINED)
 class Wdog : public WdogBase_T<WdogInfo> {};

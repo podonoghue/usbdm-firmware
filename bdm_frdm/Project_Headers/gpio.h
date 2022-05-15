@@ -1577,7 +1577,7 @@ class GpioFieldTable_T :
       public GpioField_T<Info::info[right].portAddress, Info::info[right].clockInfo, Info::info[right].irqNum,
                          Info::info[right].gpioAddress, Info::info[right].pcrValue, Info::info[right].irqLevel, left, right, polarity> {
 
-      static constexpr int bitNum = GpioEInfo::info[right].gpioBit;
+      static constexpr int bitNum = Info::info[right].gpioBit;
 
       // Tests are chained so only a single assertion can fail so as to reduce noise
       // Out of bounds value for field boundaries

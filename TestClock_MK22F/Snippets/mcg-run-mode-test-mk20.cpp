@@ -53,7 +53,7 @@ int main() {
     * The LPO clock is used since it is independent of run mode.
     */
    Lptmr::configureTimeCountingMode(LptmrResetOn_Compare, LptmrInterrupt_Enabled, LptmrClockSel_Lpoclk);
-   Lptmr::setPeriod(100*ms);
+   Lptmr::setPeriod(100_ms);
    Lptmr::setCallback(toggleLED);
    Lptmr::enableNvicInterrupts(NvicPriority_Normal);
 

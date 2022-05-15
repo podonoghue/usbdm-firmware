@@ -14,7 +14,7 @@ using namespace USBDM;
 
 // Connection mapping - change as required
 // Led is assumed active-low
-using LED   = gpio_LED_RED;
+using LED   = GpioA<1,  ActiveLow>;
 
 using Timer        = Pit;
 using TimerChannel = Timer::Channel<0>;
@@ -32,7 +32,7 @@ int main() {
    for(;;) {
       // Delay in ticks using channel 0
       // This is a busy-waiting loop!
-      TimerChannel::delay(100*ms);
+      TimerChannel::delay(100_ms);
       //console.writeln("Tick");
       LED::toggle();
    }

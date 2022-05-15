@@ -137,7 +137,7 @@ static void initDma(DmaChannelNum dmaTransmitChannel, DmaChannelNum dmaReceiveCh
       /* Source modulo                  */ DmaModulo_Disabled,             // Disabled
       /* Last source adjustment         */ -(int)sizeof(txBuffer),         // Reset Source address to start of array on completion
 
-      /* Destination address            */ spi.spiPUSHR(),                 // Destination is SPI.PUSHR data register
+      /* Destination address            */ spi.spiPUSHR,                   // Destination is SPI.PUSHR data register
       /* Destination offset             */ 0,                              // Destination address doesn't change
       /* Destination size               */ DmaSize_32bit,                  // 32-bit write to destination address
       /* Destination modulo             */ DmaModulo_Disabled,             // Disabled
@@ -160,7 +160,7 @@ static void initDma(DmaChannelNum dmaTransmitChannel, DmaChannelNum dmaReceiveCh
     * Note: The transfer size used here is 8-bits only
     */
    static constexpr DmaTcd rxTcd (
-      /* Source address                 */ spi.spiPOPR(),                  // Source is SPI.POPR data register
+      /* Source address                 */ spi.spiPOPR,                    // Source is SPI.POPR data register
       /* Source offset                  */ 0,                              // Source address doesn't change
       /* Source size                    */ DmaSize_8bit,                   // 8-bit read from source address
       /* Source modulo                  */ DmaModulo_Disabled,             // No modulo
@@ -256,14 +256,14 @@ static void startTransfer(DmaChannelNum dmaTransmitChannel, DmaChannelNum dmaRec
 
 int main() {
    console.writeln("Starting");
-   console.write("spiPtr      = ").writeln((unsigned)&spi.spiPtr(), Radix_16);
-   console.write("spiBase     = ").writeln(spi.spiBase(), Radix_16);
-   console.write("spiCR       = ").writeln(spi.spiCR(), Radix_16);
-   console.write("spiCTAR[1]  = ").writeln(spi.spiCTAR(1), Radix_16);
-   console.write("spiMCR      = ").writeln(spi.spiMCR(), Radix_16);
-   console.write("spiPOPR     = ").writeln(spi.spiPOPR(), Radix_16);
-   console.write("spiPUSHR    = ").writeln(spi.spiPUSHR(), Radix_16);
-   console.write("spiSR       = ").writeln(spi.spiSR(), Radix_16);
+   console.writeln("spiPtr      = ", spi.spi,            Radix_16);
+   console.writeln("spiBase     = ", spi.spiBase,        Radix_16);
+   console.writeln("spiCR       = ", spi.spiCR,          Radix_16);
+   console.writeln("spiCTAR[1]  = ", spi.spiCTAR(1),     Radix_16);
+   console.writeln("spiMCR      = ", spi.spiMCR,         Radix_16);
+   console.writeln("spiPOPR     = ", spi.spiPOPR,        Radix_16);
+   console.writeln("spiPUSHR    = ", spi.spiPUSHR,       Radix_16);
+   console.writeln("spiSR       = ", spi.spiSR,          Radix_16);
 
    Led::setOutput();
 
@@ -273,7 +273,7 @@ int main() {
       console.writeln("Failed to allocate Transmit DMA channel");
       checkError();
    }
-   console.write("Allocated Transmit DMA channel  #").writeln(dmaTransmitChannel);
+   console.writeln("Allocated Transmit DMA channel  #", dmaTransmitChannel);
 
    // DMA channel number to use for reception
    static const DmaChannelNum dmaReceiveChannel = Dma0::allocatePeriodicChannel();
@@ -281,7 +281,7 @@ int main() {
       console.writeln("Failed to allocate Receive DMA channel");
       checkError();
    }
-   console.write("Allocated Receive DMA channel  #").writeln(dmaReceiveChannel);
+   console.writeln("Allocated Receive DMA channel  #", dmaReceiveChannel);
 
    // Set up DMA transfer from memory -> SPI -> memory
    initDma(dmaTransmitChannel, dmaReceiveChannel);
@@ -304,10 +304,10 @@ int main() {
       // Check expected Rx data
       if (memcmp(rxBuffer, rxTestBuffer, sizeof(rxBuffer)) != 0) {
          failureCount++;
-         console.write("Failed   - fail count = ").writeln(failureCount);
+         console.writeln("Failed   - fail count = ", failureCount);
       }
       else {
-         console.write("Verified - fail count =").writeln(failureCount);
+         console.writeln("Verified - fail count =", failureCount);
       }
    }
    return 0;

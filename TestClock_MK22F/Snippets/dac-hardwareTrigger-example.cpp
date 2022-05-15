@@ -28,11 +28,11 @@ static void configurePdb() {
    Pdb0::configure(
          PdbMode_Continuous,
          PdbTrigger_Software);
-//   Pdb0::setPeriod(1*ms);
-   Pdb0::configureDacTrigger(0, PdbDacTriggerMode_Delayed, 20*us);
+//   Pdb0::setPeriod(1_ms);
+   Pdb0::configureDacTrigger(0, PdbDacTriggerMode_Delayed, 20_us);
 
    // Registers load on next event
-   Pdb0::confirmRegisterLoad(PdbLoadMode_Event);
+   Pdb0::configureRegisterLoad(PdbLoadMode_Event);
 
    // Start timer and load values
    Pdb0::softwareTrigger();
@@ -61,7 +61,7 @@ static void configureDac() {
    for (unsigned index=0; index<Dac::getBufferSize(); index++) {
       uint16_t value = round(index*Dac::getRange())/(Dac::getBufferSize()-1);
       Dac::writeValue(index, value);
-      console.write("Value[").write(index).write("] = ").writeln(value);
+      console.write("Value[", index, "] = ", value);
    }
 }
 

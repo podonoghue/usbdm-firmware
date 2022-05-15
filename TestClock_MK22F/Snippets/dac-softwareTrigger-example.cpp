@@ -41,7 +41,7 @@ static void configureDac() {
    for (unsigned index=0; index<Dac::getBufferSize(); index++) {
       uint16_t value = round(index*Dac::getRange())/(Dac::getBufferSize()-1);
       Dac::writeValue(index, value);
-      console.write("Value[").write(index).write("] = ").writeln(value);
+      console.write("Value[", index, "] = ", value);
    }
 }
 

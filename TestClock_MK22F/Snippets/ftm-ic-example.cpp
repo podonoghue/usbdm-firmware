@@ -11,6 +11,7 @@
  ================================================================================
  */
 #include "hardware.h"
+#include "ftm.h"
 
 using namespace USBDM;
 
@@ -29,19 +30,19 @@ using namespace USBDM;
 using Timer = Ftm0;
 
 /// Timer channel for measurement - change as required
-using TimerChannel = Timer::Channel<7>;
+using TimerChannel = Timer::Channel<0>;
 
 /**
  * Period between input edges in ticks.
  * This variable is shared with the interrupt routine
  */
-static volatile uint16_t periodInTicks = 0;
+static volatile unsigned periodInTicks;
 
 // Maximum measurement time
-static constexpr float MEASUREMENT_TIME = 100*ms;
+static constexpr Seconds MEASUREMENT_TIME = 100_ms;
 
 // Maximum IC interval - the IC interval between measurement events should not exceed this value.
-static constexpr float MAX_IC_INTERVAL = (1.1 * MEASUREMENT_TIME);
+static constexpr Seconds MAX_IC_INTERVAL = (1.1f * MEASUREMENT_TIME);
 
 using Debug = GpioA<12>;
 
@@ -52,12 +53,12 @@ using Debug = GpioA<12>;
  * @param[in] status Flags indicating interrupt source channel(s)
  */
 static void ftmCallback(uint8_t status) {
-   static uint16_t risingEdgeEventTime;
+   static unsigned risingEdgeEventTime;
 
    Debug::set();
    // Check channel
    if (status & TimerChannel::CHANNEL_MASK) {
-      uint16_t currentEventTime = TimerChannel::getEventTime();
+      unsigned currentEventTime = (unsigned)TimerChannel::getEventTime();
       periodInTicks = currentEventTime-risingEdgeEventTime;
       risingEdgeEventTime = currentEventTime;
    }
@@ -112,15 +113,14 @@ int main() {
 
    // Loop here forever reporting values from ISR (call-back)
    for(;;) {
-      uint16_t tPeriodInTicks;
+      Ticks tPeriodInTicks;
       // Access shared data in protected fashion
       // Not necessary on Cortex-M4 as reading a simple variable like this is atomic.
       {
          CriticalSection cs;
          tPeriodInTicks = periodInTicks;
       }
-      float intervalInMilliseconds = (1000.0*Timer::convertTicksToSeconds(tPeriodInTicks));
-      console.write("Period = ").write(intervalInMilliseconds).writeln(" ms");
+      console.write("Period = ", Timer::convertTicksToSeconds(tPeriodInTicks));
    }
    return 0;
 }

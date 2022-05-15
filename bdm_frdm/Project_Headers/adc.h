@@ -714,9 +714,9 @@ public:
    /** @return Base address of SPI hardware as uint32_t */
    static constexpr uint32_t adcBase() { return Info::baseAddress; }
    /** @return Base address of ADC.SC1[index] registers as uint32_t */
-   static constexpr uint32_t adcSC(unsigned index) { return adcBase() + offsetof(ADC_Type, SC1[index]); }
+   static constexpr uint32_t adcSC(unsigned index) { return adcBase() + offsetof(ADC_Type, SC1) + index*sizeof(ADC_Type::SC1[0]); }
    /** @return Base address of ADC.R[index] registers as uint32_t */
-   static constexpr uint32_t adcR(unsigned index) { return adcBase() + offsetof(ADC_Type, R[index]); }
+   static constexpr uint32_t adcR(unsigned index) { return adcBase() + offsetof(ADC_Type, R) + index*sizeof(ADC_Type::R[0]); }
 
 // Template _mapPinsOption.xml
 

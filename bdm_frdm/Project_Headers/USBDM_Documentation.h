@@ -2,7 +2,7 @@
  * @file     USBDM_Documentation.h (Generated from 180.ARM_Peripherals/Project_Headers/USBDM_Documentation_MK.h)
  * @brief    USBDM Documentation
  */
- 
+
  /**
  @mainpage USBDM Overview
 
@@ -94,7 +94,7 @@ Convenience template for UART. Uses the following classes:\n
 
    int value;
    console.write("Enter value: ").readln(value);
-   console.write("Value =").writeln(value);
+   console.writeln("Value =", value);
 
    console<<"Enter value: ">>value<<EndOfLine;
    console<<"Value ="<<value<<EndOfLine;
@@ -111,7 +111,7 @@ Convenience template for UART. Uses the following classes:\n
    // Used to write formatted strings
    char buff[100];
    StringFormatter sf(buff);
-   sf.write("This is a string and number(").write(3.3).write(") written to a char buffer (string)");
+   sf.write("This is a string and number(", 3.3, ") written to a char buffer (string)");
    console.writeln(sf.toString());
  @endcode
 
@@ -158,7 +158,7 @@ This is a template class with static methods.\n
 
 <b>Examples</b>\n
  - @ref lptmr-example.cpp
- 
+
  @page GPIOExamples  General Purpose Input Output
 
 Convenience template for GPIO pins. Uses the following classes:\n
@@ -327,7 +327,7 @@ This is a template class with static methods.\n
 
    // Calibrate before use
    Adc::calibrate();
-   
+
    // Set ADC averaging to 4 samples
    Adc::setAveraging(AdcAveraging_4);
 
@@ -337,7 +337,7 @@ This is a template class with static methods.\n
    // Read ADC value
    uint32_t value = AdcChannel::readAnalogue();
 
-   console.write("ADC measurement = ").writeln(value);
+   console.writeln("ADC measurement = ", value);
  @endcode
 
  <b>Usage - Differential measurement</b>
@@ -357,7 +357,7 @@ This is a template class with static methods.\n
 
    // Calibrate before use
    Adc::calibrate();
-   
+
    // Set ADC averaging to 4 samples
    Adc::setAveraging(AdcAveraging_4);
 
@@ -367,7 +367,7 @@ This is a template class with static methods.\n
    // Read signed differential ADC value
    int32_t value = AdcDiffChannel::readAnalogue();
 
-   console.write("ADC measurement = ").writeln(value);
+   console.writeln("ADC measurement = ", value);
  @endcode
 
 @page FTMExamples Flexible Timer Module
@@ -471,7 +471,7 @@ This is a template class with static methods.\n
 
    for (;;) {
       // Report position
-      console.write("Shaft position = ").writeln(QuadDecoder::getPosition());
+      console.writeln("Shaft position = ", QuadDecoder::getPosition());
    }
 @endcode
 

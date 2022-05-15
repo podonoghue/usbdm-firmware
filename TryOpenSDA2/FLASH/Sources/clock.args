@@ -1,1 +1,0 @@
--proc cortex-m4 -fp soft -little -msgstyle parseable -g3 -thumb -interworking -lavender model=ewl ,print=int ,scan=int ,io=raw -cwd include -enc ascii -i "$(ProjDirPath)/Project_Headers" -i "$(MCUToolsBaseDirEnv)/ARM_EABI_Support/ewl/EWL_C/include" -inline on -generic_symbol_names off -sdata 8 -char signed -Cpp_Exceptions off -iso_templates on 

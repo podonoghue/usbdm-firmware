@@ -113,7 +113,7 @@ protected:
                console.writeln("Read-back OK");
             }
          }
-         wait(10*ms);
+         wait(10_ms);
       }
 
 

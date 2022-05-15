@@ -8,6 +8,7 @@
  ============================================================================
  */
 #include "hardware.h"
+#include "adc.h"
 #include "pmc.h"
 
 using namespace USBDM;
@@ -20,11 +21,11 @@ using namespace USBDM;
 // Note - many actions on the channel affect the entire ADC
 
 // Shared ADC to use
-using Adc        = Adc0;
+using MyAdc        = Adc0;
 
 // ADC channel to use
-using BandgapAdcChannel     = Adc0::Channel<0b11011>;  // Internal bandgap
-using AdcChannel    = Adc0::Channel<21>;  // FRDM_K20 temp sensor
+using BandgapAdcChannel  = Adc0::Channel<27>;  // Internal bandgap
+using MyAdcChannel       = Adc0::Channel<26>;  // Internal chip temperature
 
 // Resolution to use for ADC
 constexpr AdcResolution adcResolution = AdcResolution_16bit_se;
@@ -39,19 +40,19 @@ void reportChipTemperature() {
    float    chipTemperature = 25 - (tVoltage-0.719)/.001715;
 
    console.setFloatFormat(1, Padding_LeadingSpaces, 2);
-   console.write("Temp = ").write(chipTemperature).writeln(" degrees");
+   console.writeln("Temp = ", chipTemperature, " degrees");
    console.resetFormat();
 }
 
 int main(void) {
    // Enable and configure ADC
-   Adc::configure(adcResolution);
+   MyAdc::configure(adcResolution);
 
    // Calibrate before first use
-   Adc::calibrate();
+   MyAdc::calibrate();
 
    // Connect ADC channel to pin
-   AdcChannel::setInput();
+   MyAdcChannel::setInput();
 
    // Enable band-gap voltage reference buffer in PMC
    Pmc::configureBandgapOperation(PmcBandgapBuffer_On, PmcBandgapLowPowerEnable_Off);
@@ -65,10 +66,10 @@ int main(void) {
       uint32_t value = BandgapAdcChannel::readAnalogue();
 
       // Scale value for input voltage range (Assumes Vrh=3.3V, Vrl=0.0V)
-      float voltage = value*3.3/Adc::getSingleEndedMaximum(adcResolution);
+      float voltage = value*3.3/MyAdc::getSingleEndedMaximum(adcResolution);
 
       // Report
-      console.write("Value = ").write(voltage).writeln(" volts");
+      console.writeln("Value = ", voltage, " volts");
       waitMS(200);
    }
 }

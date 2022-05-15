@@ -278,7 +278,7 @@ ErrorCode Usb0::receiveBulkData(uint16_t &size, uint8_t *buffer) {
  *
  *  @param[IN] size    Number of bytes to send
  *  @param[IN] buffer  Pointer to bytes to send
- *  @param[IN] timeout Maximum time to wait for packet
+ *  @param[IN] timeout Maximum time to wait for idle before transmission
  *
  *  @note : Waits for idle BEFORE transmission but\n
  *          returns before data has been transmitted

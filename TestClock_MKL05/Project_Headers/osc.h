@@ -16,7 +16,7 @@
  * This file is generated automatically.
  * Any manual changes will be lost.
  */
-#include "hardware.h"
+#include "pin_mapping.h"
 
 namespace USBDM {
 /**
@@ -40,29 +40,92 @@ namespace USBDM {
 template <class Info>
 class OscBase_T {
 
+private:
+   /** Class to static check OSC signal is mapped to a pin - Assumes existence */
+   template<int xtalPin> class CheckPinMapped {
+   private:
+      // Check mapping - no need to check existence
+      static constexpr bool Test1 = (Info::info[xtalPin].gpioBit >= 0);
+
+      static_assert(Test1, "OSC XTAL/EXTAL signal is not mapped to a pin - Modify Configure.usbdm");
+
+   public:
+      /// Dummy for inline checking
+      static constexpr bool checker = false;
+   };
+
 protected:
    /** Hardware instance */
-   static __attribute__((always_inline)) volatile OSC_Type &osc() { return Info::osc(); }
+   static constexpr HardwarePtr<OSC_Type> osc = Info::baseAddress;
 
 public:
+   // Template _mapPinsOption_on.xml
+
    /**
-    * Configures all mapped pins associated with this peripheral
+    * Configures all mapped pins associated with OSC
+    *
+    * @note Locked pins will be unaffected
     */
-   static void __attribute__((always_inline)) configureAllPins() {
-      // Configure pins
-      Info::initPCRs();
+   static void configureAllPins() {
+   
+      // Configure pins if selected and not already locked
+      if constexpr (Info::mapPinsOnEnable && !(MapAllPinsOnStartup && (ForceLockedPins == PinLock_Locked))) {
+         Info::initPCRs();
+      }
    }
+
+   /**
+    * Disabled all mapped pins associated with OSC
+    *
+    * @note Only the lower 16-bits of the PCR registers are modified
+    *
+    * @note Locked pins will be unaffected
+    */
+   static void disableAllPins() {
+   
+      // Disable pins if selected and not already locked
+      if constexpr (Info::mapPinsOnEnable && !(MapAllPinsOnStartup && (ForceLockedPins == PinLock_Locked))) {
+         Info::clearPCRs();
+      }
+   }
+
+   /**
+    * Basic enable of OSC
+    * Includes enabling clock and configuring all mapped pins if mapPinsOnEnable is selected in configuration
+    */
+   static void enable() {
+      
+      configureAllPins();
+   }
+
+   /**
+    * Disables the clock to OSC and all mapped pins
+    */
+   static void disable() {
+      
+      
+      disableAllPins();
+      
+   }
+// End Template _mapPinsOption_on.xml
+
 
    /**
     * Initialise OSC to default settings.
     * Configures all OSC pins
     */
    static void defaultConfigure() {
+
+      if constexpr (Osc0Info::cr & OSC_CR_ERCLKEN_MASK) {
+         (void)CheckPinMapped<0>::checker;
+         (void)CheckPinMapped<1>::checker;
+      }
+
       if (Info::mapPinsOnEnable) {
          configureAllPins();
       }
       // Configure OSC
-      Info::osc().CR  = Info::cr;
+      Info::osc->CR  = Info::cr;
    }
 
    /**

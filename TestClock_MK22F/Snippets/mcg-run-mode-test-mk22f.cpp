@@ -44,7 +44,7 @@ int main() {
        * RUN -> VLPR
        * Change clock down then run mode
        */
-      Mcg::clockTransition(McgInfo::clockInfo[ClockConfig_BLPI_4MHz]);
+      Mcg::clockTransition(Mcg::clockInfo[ClockConfig_BLPE_4MHz]);
       console.setBaudRate(defaultBaudRate);
       console<<Smc::getSmcStatusName()<<":"<<Mcg::getClockModeName()<<"@"<<::SystemCoreClock<<" Hz\n";
       Smc::enterRunMode(SmcRunMode_VeryLowPower);
@@ -57,7 +57,7 @@ int main() {
        */
       Smc::enterRunMode(SmcRunMode_Normal);
       console<<Smc::getSmcStatusName()<<":"<<Mcg::getClockModeName()<<"@"<<::SystemCoreClock<<" Hz\n"<<Flush;
-      Mcg::clockTransition(McgInfo::clockInfo[ClockConfig_PEE_80MHz]);
+      Mcg::clockTransition(Mcg::clockInfo[ClockConfig_PEE_80MHz]);
       console.setBaudRate(defaultBaudRate);
       console<<Smc::getSmcStatusName()<<":"<<Mcg::getClockModeName()<<"@"<<::SystemCoreClock<<" Hz\n";
       waitMS(200);
@@ -68,7 +68,7 @@ int main() {
        */
       Smc::enterRunMode(SmcRunMode_HighSpeed);
       console<<Smc::getSmcStatusName()<<":"<<Mcg::getClockModeName()<<"@"<<::SystemCoreClock<<" Hz\n"<<Flush;
-      Mcg::clockTransition(McgInfo::clockInfo[ClockConfig_PEE_120MHz]);
+      Mcg::clockTransition(Mcg::clockInfo[ClockConfig_PEE_120MHz]);
       console.setBaudRate(defaultBaudRate);
       console<<Smc::getSmcStatusName()<<":"<<Mcg::getClockModeName()<<"@"<<::SystemCoreClock<<" Hz\n";
       waitMS(200);
@@ -77,7 +77,7 @@ int main() {
        * HSRUN -> RUN
        * Change clock down then run mode
        */
-      Mcg::clockTransition(McgInfo::clockInfo[ClockConfig_PEE_80MHz]);
+      Mcg::clockTransition(Mcg::clockInfo[ClockConfig_PEE_80MHz]);
       console.setBaudRate(defaultBaudRate);
       console<<Smc::getSmcStatusName()<<":"<<Mcg::getClockModeName()<<"@"<<::SystemCoreClock<<" Hz\n"<<Flush;
       Smc::enterRunMode(SmcRunMode_Normal);

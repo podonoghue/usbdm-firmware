@@ -298,10 +298,10 @@ enum {
 /*----------------------------------------------------------------------------
  ** bmAttributes types
  */
-#define ATTR_CONTROL	    (0x00)
-#define ATTR_ISOCHRONOUS 	(0x01)
-#define ATTR_BULK  			(0x02)
-#define ATTR_INTERRUPT  	(0x03)
+#define ATTR_CONTROL       (0x00)
+#define ATTR_ISOCHRONOUS   (0x01)
+#define ATTR_BULK          (0x02)
+#define ATTR_INTERRUPT     (0x03)
 
 #define USBMilliamps(x)     ((x)/2)
 #define USBMilliseconds(x)  (x)
@@ -313,11 +313,11 @@ typedef struct {
    uint8_t bLength;                //!< Size of this Descriptor in Bytes
    uint8_t bDescriptorType;        //!< Descriptor Type (=0B)
    uint8_t bFirstInterface;        //!< First interface #
-   uint8_t bInterfaceCount;		   //!< Number of interfaces
+   uint8_t bInterfaceCount;        //!< Number of interfaces
    uint8_t bFunctionClass;         //!< bInterfaceClass;
    uint8_t bFunctionSubClass;      //!< bInterfaceSubClass;
    uint8_t bFunctionProtocol;      //!< Protocol
-   uint8_t iFunction;			   //!< Function
+   uint8_t iFunction;              //!< Function
 } InterfaceAssociationDescriptor;
 
 //============================================================================
@@ -340,45 +340,45 @@ typedef struct {
 
 //! USB CDC Header Functional Descriptor
 typedef struct {
-   uint8_t  bFunctionLength;		//!< Size
-   uint8_t  bDescriptorType;		//!< Type
-   uint8_t  bDescriptorSubtype;	    //!< Sub-type
-   uint16_t bcdCDC;					//!< ??
+   uint8_t  bFunctionLength;      //!< Size
+   uint8_t  bDescriptorType;      //!< Type
+   uint8_t  bDescriptorSubtype;   //!< Sub-type
+   uint16_t bcdCDC;               //!< ??
 } CDCHeaderFunctionalDescriptor;
 
 //! USB CDC Call Management Functional Descriptor
 typedef struct {
-   uint8_t  bFunctionLength;		//!< Length
-   uint8_t  bDescriptorType;		//!< Type
-   uint8_t  bDescriptorSubtype;	    //!< Sub-type
-   uint8_t  bmCapabilities;		    //!< Capabilities
-   uint8_t  bDataInterface;		    //!< Data interface
+   uint8_t  bFunctionLength;      //!< Length
+   uint8_t  bDescriptorType;      //!< Type
+   uint8_t  bDescriptorSubtype;   //!< Sub-type
+   uint8_t  bmCapabilities;       //!< Capabilities
+   uint8_t  bDataInterface;       //!< Data interface
 } CDCCallManagementFunctionalDescriptor;
 
 //! USB CDC Abstract Control Management Descriptor
 typedef struct {
-   uint8_t  bFunctionLength;		//!< Length
-   uint8_t  bDescriptorType;		//!< Type
-   uint8_t  bDescriptorSubtype;	    //!< Sub-type
-   uint8_t  bmCapabilities;		    //!< Capabilities
+   uint8_t  bFunctionLength;      //!< Length
+   uint8_t  bDescriptorType;      //!< Type
+   uint8_t  bDescriptorSubtype;   //!< Sub-type
+   uint8_t  bmCapabilities;       //!< Capabilities
 } CDCAbstractControlManagementDescriptor;
 
 //! USB CDC Union Functional Descriptor
 typedef struct {
    uint8_t  bFunctionLength;       //!< Length
-   uint8_t  bDescriptorType;	   //!< Type
+   uint8_t  bDescriptorType;       //!< Type
    uint8_t  bDescriptorSubtype;    //!< Sub-type
-   uint8_t  bMasterInterface;	   //!< Interface
-   uint8_t  bSlaveInterface[1];	   //!< Slave interface
+   uint8_t  bMasterInterface;      //!< Interface
+   uint8_t  bSlaveInterface[1];    //!< Slave interface
 } CDCUnionFunctionalDescriptor;
 
 //! USB CDC Notification
 typedef struct {
-   uint8_t  bmRequestType;	//!< Request type
-   uint8_t  bNotification;	//!< Notification
-   uint16_t wValue;		    //!< Value
-   uint16_t wIndex;	        //!< Index
-   uint16_t wLength;        //!< Length
+   uint8_t  bmRequestType; //!< Request type
+   uint8_t  bNotification; //!< Notification
+   uint16_t wValue;        //!< Value
+   uint16_t wIndex;        //!< Index
+   uint16_t wLength;       //!< Length
 } CDCNotification;
 
 #define CDC_NOTIFICATION   (0xA1)
@@ -419,7 +419,7 @@ enum DataToggle : bool {
  * @return Toggled value
  */
 inline DataToggle __attribute__((always_inline)) operator!(DataToggle volatile const& data0_1) {
-    return data0_1==DataToggle::DataToggle_0?DataToggle::DataToggle_1:DataToggle::DataToggle_0;
+   return (DataToggle)!(bool)data0_1;
 }
 
 // Data packet odd/even indicator
@@ -453,35 +453,29 @@ enum BdtOwner : bool {
 // Little-endian on Kinetis
 struct BdtEntry {
    union {
-      volatile uint8_t raw:8;    //!< Access as bit masks
+      uint8_t raw:8;    //!< Access as bit masks
       struct {          //!< BDT setup access
          uint8_t     :2;
-         volatile bool        bdt_stall:1;  //!< Stall End point
-         volatile bool        dts:1;        //!< Enable Data toggle
-         volatile bool        ninc:1;       //!< Disable DMA address increment
-         volatile bool        keep:1;       //!< BDT is 'kept' by SIE, used for FIFO w/o MCU intervention
+         bool        bdt_stall:1;  //!< Stall End point
+         bool        dts:1;        //!< Enable Data toggle
+         bool        ninc:1;       //!< Disable DMA address increment
+         bool        keep:1;       //!< BDT is 'kept' by SIE, used for FIFO w/o MCU intervention
          uint8_t     :2;
       } setup;
       struct {          //!< BDT result access
          uint8_t     :2;
-         volatile UsbPids     tok_pid:4;  //!< Token PID is written back by SIE
+         UsbPids     tok_pid:4;  //!< Token PID is written back by SIE
          uint8_t     :2;
       } result;
       struct {          //!< BDT common access
          uint8_t     :6;
-         volatile DataToggle  data0_1:1;  //!< Data 0/1 toggle
-         volatile BdtOwner    own:1;      //!< Ownership of the BDT.  MCU only modifies BDT if owned.
+         DataToggle  data0_1:1;  //!< Data 0/1 toggle
+         BdtOwner    own:1;      //!< Ownership of the BDT.  MCU only modifies BDT if owned.
       };
    };
-   volatile uint8_t  :8;
-   volatile uint16_t bc;          //!< Byte count for transaction
-   volatile uint32_t addr;        //!< Buffer address for transaction
-
-   constexpr BdtEntry() :
-      raw(0), bc(0), addr(0) {};
-
-   constexpr BdtEntry(uint8_t value, uint16_t byteCount, uint32_t address) :
-      raw(value), bc(byteCount), addr(address) {};
+   uint8_t  rsvd:8;
+   uint16_t bc;          //!< Byte count for transaction
+   uint32_t addr;        //!< Buffer address for transaction
 
    void initialise(uint8_t value, uint16_t byteCount, uint32_t address) volatile {
       raw  = value;
@@ -529,11 +523,14 @@ struct BdtEntry {
 };
 #endif
 
-struct EndpointBdtEntry {
-   BdtEntry rxEven;
-   BdtEntry rxOdd;
-   BdtEntry txEven;
-   BdtEntry txOdd;
+union EndpointBdtEntry {
+   BdtEntry bdts[4];
+   struct {
+      BdtEntry rxEven;
+      BdtEntry rxOdd;
+      BdtEntry txEven;
+      BdtEntry txOdd;
+   };
 } ;
 
 // Bit masks for fields in BdtEntry

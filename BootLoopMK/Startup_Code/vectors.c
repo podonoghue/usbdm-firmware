@@ -72,6 +72,7 @@ void HardFault_Handler(void) {
     * and allows access to the saved processor state.
     * Other registers are unchanged and available in the usual register view
     */
+     __asm__ volatile ("       .align 4              \n"); // Check mode
      __asm__ volatile ( "  tst   lr, #4              \n");  // Check mode
      __asm__ volatile ( "  ite   eq                  \n");  // Get active SP in r0
      __asm__ volatile ( "  mrseq r0, msp             \n");

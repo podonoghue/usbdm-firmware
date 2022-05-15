@@ -18,8 +18,8 @@ using namespace USBDM;
 
 // Connections - change as required
 using Cmp              = Cmp0;
-using CmpPositiveInput = Cmp::Pin<Cmp0Input_Ptc8>;
-using CmpNegativeInput = Cmp::Pin<Cmp0Input_Cmp0Dac>;
+using CmpPositiveInput = Cmp::Pin<Cmp0::Input_Ptc8>;   // Change as needed in Configure.usbdmProject
+using CmpNegativeInput = Cmp::Pin<Cmp0::Input_CmpDac>;
 
 // Led to control - change as required
 using Led   = GpioA<2, ActiveLow>;

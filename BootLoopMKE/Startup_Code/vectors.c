@@ -72,6 +72,7 @@ void HardFault_Handler(void) {
     * and allows access to the saved processor state.
     * Other registers are unchanged and available in the usual register view
     */
+   __asm__ volatile ("       .align 4                                      \n"); // Check mode
    __asm__ volatile ("       mov r0,lr                                     \n"); // Check mode
    __asm__ volatile ("       mov r1,#4                                     \n");
    __asm__ volatile ("       and r0,r1                                     \n");

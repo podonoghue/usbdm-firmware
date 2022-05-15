@@ -5,7 +5,7 @@
  *           Equivalent: 
  *
  * @version  V1.6
- * @date     2021/05
+ * @date     2022/05
  *
  *******************************************************************************************************/
 
@@ -2709,126 +2709,127 @@ typedef struct EWM_Type {
  * @} */ /* End group EWM_Peripheral_access_layer_GROUP 
  */
 /**
-* @addtogroup FB_Peripheral_access_layer_GROUP FB Peripheral Access Layer
-* @brief C Struct for FB
+* @addtogroup FLEXBUS_Peripheral_access_layer_GROUP FLEXBUS Peripheral Access Layer
+* @brief C Struct for FLEXBUS
 * @{
 */
 
 /* ================================================================================ */
-/* ================           FB (file:FB)                         ================ */
+/* ================           FLEXBUS (file:FLEXBUS)               ================ */
 /* ================================================================================ */
 
 /**
  * @brief FlexBus external bus interface
  */
+#define FLEXBUS_MEMORY_REGIONS_COUNT 6  /**< Number of Select Regions                           */
 /**
-* @addtogroup FB_structs_GROUP FB struct
-* @brief Struct for FB
+* @addtogroup FLEXBUS_structs_GROUP FLEXBUS struct
+* @brief Struct for FLEXBUS
 * @{
 */
-typedef struct FB_Type {
+typedef struct FLEXBUS_Type {
    struct {
       __IO uint32_t  CSAR;                      /**< 0000: Chip Select Address Register                                 */
       __IO uint32_t  CSMR;                      /**< 0004: Chip Select Mask Register                                    */
       __IO uint32_t  CSCR;                      /**< 0008: Chip Select Control Register                                 */
-   } CS[6];                                     /**< 0000: (cluster: size=0x0048, 72)                                   */
+   } CS[FLEXBUS_MEMORY_REGIONS_COUNT];          /**< 0000: (cluster: size=0x0048, 72)                                   */
         uint8_t   RESERVED_1[24];               /**< 0048: 0x18 bytes                                                   */
    __IO uint32_t  CSPMCR;                       /**< 0060: Chip Select port Multiplexing Control Register               */
-} FB_Type;
+} FLEXBUS_Type;
 
 /**
- * @} */ /* End group FB_structs_GROUP 
+ * @} */ /* End group FLEXBUS_structs_GROUP 
  */
 
 /* -------------------------------------------------------------------------------- */
-/* -----------     'FB' Position & Mask macros                          ----------- */
+/* -----------     'FLEXBUS' Position & Mask macros                     ----------- */
 /* -------------------------------------------------------------------------------- */
 
 /**
-* @addtogroup FB_Register_Masks_GROUP FB Register Masks
-* @brief Register Masks for FB
+* @addtogroup FLEXBUS_Register_Masks_GROUP FLEXBUS Register Masks
+* @brief Register Masks for FLEXBUS
 * @{
 */
 /* ------- CSAR Bit Fields                          ------ */
-#define FB_CSAR_BA_MASK                          (0xFFFF0000U)                                       /*!< FB_CSAR.BA Mask                         */
-#define FB_CSAR_BA_SHIFT                         (16U)                                               /*!< FB_CSAR.BA Position                     */
-#define FB_CSAR_BA(x)                            (((uint32_t)(((uint32_t)(x))<<16U))&0xFFFF0000UL)   /*!< FB_CSAR.BA Field                        */
+#define FLEXBUS_CSAR_BA_MASK                     (0xFFFF0000U)                                       /*!< FLEXBUS_CSAR.BA Mask                    */
+#define FLEXBUS_CSAR_BA_SHIFT                    (16U)                                               /*!< FLEXBUS_CSAR.BA Position                */
+#define FLEXBUS_CSAR_BA(x)                       (((uint32_t)(((uint32_t)(x))<<16U))&0xFFFF0000UL)   /*!< FLEXBUS_CSAR.BA Field                   */
 /* ------- CSMR Bit Fields                          ------ */
-#define FB_CSMR_V_MASK                           (0x1U)                                              /*!< FB_CSMR.V Mask                          */
-#define FB_CSMR_V_SHIFT                          (0U)                                                /*!< FB_CSMR.V Position                      */
-#define FB_CSMR_V(x)                             (((uint32_t)(((uint32_t)(x))<<0U))&0x1UL)           /*!< FB_CSMR.V Field                         */
-#define FB_CSMR_WP_MASK                          (0x100U)                                            /*!< FB_CSMR.WP Mask                         */
-#define FB_CSMR_WP_SHIFT                         (8U)                                                /*!< FB_CSMR.WP Position                     */
-#define FB_CSMR_WP(x)                            (((uint32_t)(((uint32_t)(x))<<8U))&0x100UL)         /*!< FB_CSMR.WP Field                        */
-#define FB_CSMR_BAM_MASK                         (0xFFFF0000U)                                       /*!< FB_CSMR.BAM Mask                        */
-#define FB_CSMR_BAM_SHIFT                        (16U)                                               /*!< FB_CSMR.BAM Position                    */
-#define FB_CSMR_BAM(x)                           (((uint32_t)(((uint32_t)(x))<<16U))&0xFFFF0000UL)   /*!< FB_CSMR.BAM Field                       */
+#define FLEXBUS_CSMR_V_MASK                      (0x1U)                                              /*!< FLEXBUS_CSMR.V Mask                     */
+#define FLEXBUS_CSMR_V_SHIFT                     (0U)                                                /*!< FLEXBUS_CSMR.V Position                 */
+#define FLEXBUS_CSMR_V(x)                        (((uint32_t)(((uint32_t)(x))<<0U))&0x1UL)           /*!< FLEXBUS_CSMR.V Field                    */
+#define FLEXBUS_CSMR_WP_MASK                     (0x100U)                                            /*!< FLEXBUS_CSMR.WP Mask                    */
+#define FLEXBUS_CSMR_WP_SHIFT                    (8U)                                                /*!< FLEXBUS_CSMR.WP Position                */
+#define FLEXBUS_CSMR_WP(x)                       (((uint32_t)(((uint32_t)(x))<<8U))&0x100UL)         /*!< FLEXBUS_CSMR.WP Field                   */
+#define FLEXBUS_CSMR_BAM_MASK                    (0xFFFF0000U)                                       /*!< FLEXBUS_CSMR.BAM Mask                   */
+#define FLEXBUS_CSMR_BAM_SHIFT                   (16U)                                               /*!< FLEXBUS_CSMR.BAM Position               */
+#define FLEXBUS_CSMR_BAM(x)                      (((uint32_t)(((uint32_t)(x))<<16U))&0xFFFF0000UL)   /*!< FLEXBUS_CSMR.BAM Field                  */
 /* ------- CSCR Bit Fields                          ------ */
-#define FB_CSCR_BSTW_MASK                        (0x8U)                                              /*!< FB_CSCR.BSTW Mask                       */
-#define FB_CSCR_BSTW_SHIFT                       (3U)                                                /*!< FB_CSCR.BSTW Position                   */
-#define FB_CSCR_BSTW(x)                          (((uint32_t)(((uint32_t)(x))<<3U))&0x8UL)           /*!< FB_CSCR.BSTW Field                      */
-#define FB_CSCR_BSTR_MASK                        (0x10U)                                             /*!< FB_CSCR.BSTR Mask                       */
-#define FB_CSCR_BSTR_SHIFT                       (4U)                                                /*!< FB_CSCR.BSTR Position                   */
-#define FB_CSCR_BSTR(x)                          (((uint32_t)(((uint32_t)(x))<<4U))&0x10UL)          /*!< FB_CSCR.BSTR Field                      */
-#define FB_CSCR_BEM_MASK                         (0x20U)                                             /*!< FB_CSCR.BEM Mask                        */
-#define FB_CSCR_BEM_SHIFT                        (5U)                                                /*!< FB_CSCR.BEM Position                    */
-#define FB_CSCR_BEM(x)                           (((uint32_t)(((uint32_t)(x))<<5U))&0x20UL)          /*!< FB_CSCR.BEM Field                       */
-#define FB_CSCR_PS_MASK                          (0xC0U)                                             /*!< FB_CSCR.PS Mask                         */
-#define FB_CSCR_PS_SHIFT                         (6U)                                                /*!< FB_CSCR.PS Position                     */
-#define FB_CSCR_PS(x)                            (((uint32_t)(((uint32_t)(x))<<6U))&0xC0UL)          /*!< FB_CSCR.PS Field                        */
-#define FB_CSCR_AA_MASK                          (0x100U)                                            /*!< FB_CSCR.AA Mask                         */
-#define FB_CSCR_AA_SHIFT                         (8U)                                                /*!< FB_CSCR.AA Position                     */
-#define FB_CSCR_AA(x)                            (((uint32_t)(((uint32_t)(x))<<8U))&0x100UL)         /*!< FB_CSCR.AA Field                        */
-#define FB_CSCR_BLS_MASK                         (0x200U)                                            /*!< FB_CSCR.BLS Mask                        */
-#define FB_CSCR_BLS_SHIFT                        (9U)                                                /*!< FB_CSCR.BLS Position                    */
-#define FB_CSCR_BLS(x)                           (((uint32_t)(((uint32_t)(x))<<9U))&0x200UL)         /*!< FB_CSCR.BLS Field                       */
-#define FB_CSCR_WS_MASK                          (0xFC00U)                                           /*!< FB_CSCR.WS Mask                         */
-#define FB_CSCR_WS_SHIFT                         (10U)                                               /*!< FB_CSCR.WS Position                     */
-#define FB_CSCR_WS(x)                            (((uint32_t)(((uint32_t)(x))<<10U))&0xFC00UL)       /*!< FB_CSCR.WS Field                        */
-#define FB_CSCR_WRAH_MASK                        (0x30000U)                                          /*!< FB_CSCR.WRAH Mask                       */
-#define FB_CSCR_WRAH_SHIFT                       (16U)                                               /*!< FB_CSCR.WRAH Position                   */
-#define FB_CSCR_WRAH(x)                          (((uint32_t)(((uint32_t)(x))<<16U))&0x30000UL)      /*!< FB_CSCR.WRAH Field                      */
-#define FB_CSCR_RDAH_MASK                        (0xC0000U)                                          /*!< FB_CSCR.RDAH Mask                       */
-#define FB_CSCR_RDAH_SHIFT                       (18U)                                               /*!< FB_CSCR.RDAH Position                   */
-#define FB_CSCR_RDAH(x)                          (((uint32_t)(((uint32_t)(x))<<18U))&0xC0000UL)      /*!< FB_CSCR.RDAH Field                      */
-#define FB_CSCR_ASET_MASK                        (0x300000U)                                         /*!< FB_CSCR.ASET Mask                       */
-#define FB_CSCR_ASET_SHIFT                       (20U)                                               /*!< FB_CSCR.ASET Position                   */
-#define FB_CSCR_ASET(x)                          (((uint32_t)(((uint32_t)(x))<<20U))&0x300000UL)     /*!< FB_CSCR.ASET Field                      */
-#define FB_CSCR_EXTS_MASK                        (0x400000U)                                         /*!< FB_CSCR.EXTS Mask                       */
-#define FB_CSCR_EXTS_SHIFT                       (22U)                                               /*!< FB_CSCR.EXTS Position                   */
-#define FB_CSCR_EXTS(x)                          (((uint32_t)(((uint32_t)(x))<<22U))&0x400000UL)     /*!< FB_CSCR.EXTS Field                      */
-#define FB_CSCR_SWSEN_MASK                       (0x800000U)                                         /*!< FB_CSCR.SWSEN Mask                      */
-#define FB_CSCR_SWSEN_SHIFT                      (23U)                                               /*!< FB_CSCR.SWSEN Position                  */
-#define FB_CSCR_SWSEN(x)                         (((uint32_t)(((uint32_t)(x))<<23U))&0x800000UL)     /*!< FB_CSCR.SWSEN Field                     */
-#define FB_CSCR_SWS_MASK                         (0xFC000000U)                                       /*!< FB_CSCR.SWS Mask                        */
-#define FB_CSCR_SWS_SHIFT                        (26U)                                               /*!< FB_CSCR.SWS Position                    */
-#define FB_CSCR_SWS(x)                           (((uint32_t)(((uint32_t)(x))<<26U))&0xFC000000UL)   /*!< FB_CSCR.SWS Field                       */
+#define FLEXBUS_CSCR_BSTW_MASK                   (0x8U)                                              /*!< FLEXBUS_CSCR.BSTW Mask                  */
+#define FLEXBUS_CSCR_BSTW_SHIFT                  (3U)                                                /*!< FLEXBUS_CSCR.BSTW Position              */
+#define FLEXBUS_CSCR_BSTW(x)                     (((uint32_t)(((uint32_t)(x))<<3U))&0x8UL)           /*!< FLEXBUS_CSCR.BSTW Field                 */
+#define FLEXBUS_CSCR_BSTR_MASK                   (0x10U)                                             /*!< FLEXBUS_CSCR.BSTR Mask                  */
+#define FLEXBUS_CSCR_BSTR_SHIFT                  (4U)                                                /*!< FLEXBUS_CSCR.BSTR Position              */
+#define FLEXBUS_CSCR_BSTR(x)                     (((uint32_t)(((uint32_t)(x))<<4U))&0x10UL)          /*!< FLEXBUS_CSCR.BSTR Field                 */
+#define FLEXBUS_CSCR_BEM_MASK                    (0x20U)                                             /*!< FLEXBUS_CSCR.BEM Mask                   */
+#define FLEXBUS_CSCR_BEM_SHIFT                   (5U)                                                /*!< FLEXBUS_CSCR.BEM Position               */
+#define FLEXBUS_CSCR_BEM(x)                      (((uint32_t)(((uint32_t)(x))<<5U))&0x20UL)          /*!< FLEXBUS_CSCR.BEM Field                  */
+#define FLEXBUS_CSCR_PS_MASK                     (0xC0U)                                             /*!< FLEXBUS_CSCR.PS Mask                    */
+#define FLEXBUS_CSCR_PS_SHIFT                    (6U)                                                /*!< FLEXBUS_CSCR.PS Position                */
+#define FLEXBUS_CSCR_PS(x)                       (((uint32_t)(((uint32_t)(x))<<6U))&0xC0UL)          /*!< FLEXBUS_CSCR.PS Field                   */
+#define FLEXBUS_CSCR_AA_MASK                     (0x100U)                                            /*!< FLEXBUS_CSCR.AA Mask                    */
+#define FLEXBUS_CSCR_AA_SHIFT                    (8U)                                                /*!< FLEXBUS_CSCR.AA Position                */
+#define FLEXBUS_CSCR_AA(x)                       (((uint32_t)(((uint32_t)(x))<<8U))&0x100UL)         /*!< FLEXBUS_CSCR.AA Field                   */
+#define FLEXBUS_CSCR_BLS_MASK                    (0x200U)                                            /*!< FLEXBUS_CSCR.BLS Mask                   */
+#define FLEXBUS_CSCR_BLS_SHIFT                   (9U)                                                /*!< FLEXBUS_CSCR.BLS Position               */
+#define FLEXBUS_CSCR_BLS(x)                      (((uint32_t)(((uint32_t)(x))<<9U))&0x200UL)         /*!< FLEXBUS_CSCR.BLS Field                  */
+#define FLEXBUS_CSCR_WS_MASK                     (0xFC00U)                                           /*!< FLEXBUS_CSCR.WS Mask                    */
+#define FLEXBUS_CSCR_WS_SHIFT                    (10U)                                               /*!< FLEXBUS_CSCR.WS Position                */
+#define FLEXBUS_CSCR_WS(x)                       (((uint32_t)(((uint32_t)(x))<<10U))&0xFC00UL)       /*!< FLEXBUS_CSCR.WS Field                   */
+#define FLEXBUS_CSCR_WRAH_MASK                   (0x30000U)                                          /*!< FLEXBUS_CSCR.WRAH Mask                  */
+#define FLEXBUS_CSCR_WRAH_SHIFT                  (16U)                                               /*!< FLEXBUS_CSCR.WRAH Position              */
+#define FLEXBUS_CSCR_WRAH(x)                     (((uint32_t)(((uint32_t)(x))<<16U))&0x30000UL)      /*!< FLEXBUS_CSCR.WRAH Field                 */
+#define FLEXBUS_CSCR_RDAH_MASK                   (0xC0000U)                                          /*!< FLEXBUS_CSCR.RDAH Mask                  */
+#define FLEXBUS_CSCR_RDAH_SHIFT                  (18U)                                               /*!< FLEXBUS_CSCR.RDAH Position              */
+#define FLEXBUS_CSCR_RDAH(x)                     (((uint32_t)(((uint32_t)(x))<<18U))&0xC0000UL)      /*!< FLEXBUS_CSCR.RDAH Field                 */
+#define FLEXBUS_CSCR_ASET_MASK                   (0x300000U)                                         /*!< FLEXBUS_CSCR.ASET Mask                  */
+#define FLEXBUS_CSCR_ASET_SHIFT                  (20U)                                               /*!< FLEXBUS_CSCR.ASET Position              */
+#define FLEXBUS_CSCR_ASET(x)                     (((uint32_t)(((uint32_t)(x))<<20U))&0x300000UL)     /*!< FLEXBUS_CSCR.ASET Field                 */
+#define FLEXBUS_CSCR_EXTS_MASK                   (0x400000U)                                         /*!< FLEXBUS_CSCR.EXTS Mask                  */
+#define FLEXBUS_CSCR_EXTS_SHIFT                  (22U)                                               /*!< FLEXBUS_CSCR.EXTS Position              */
+#define FLEXBUS_CSCR_EXTS(x)                     (((uint32_t)(((uint32_t)(x))<<22U))&0x400000UL)     /*!< FLEXBUS_CSCR.EXTS Field                 */
+#define FLEXBUS_CSCR_SWSEN_MASK                  (0x800000U)                                         /*!< FLEXBUS_CSCR.SWSEN Mask                 */
+#define FLEXBUS_CSCR_SWSEN_SHIFT                 (23U)                                               /*!< FLEXBUS_CSCR.SWSEN Position             */
+#define FLEXBUS_CSCR_SWSEN(x)                    (((uint32_t)(((uint32_t)(x))<<23U))&0x800000UL)     /*!< FLEXBUS_CSCR.SWSEN Field                */
+#define FLEXBUS_CSCR_SWS_MASK                    (0xFC000000U)                                       /*!< FLEXBUS_CSCR.SWS Mask                   */
+#define FLEXBUS_CSCR_SWS_SHIFT                   (26U)                                               /*!< FLEXBUS_CSCR.SWS Position               */
+#define FLEXBUS_CSCR_SWS(x)                      (((uint32_t)(((uint32_t)(x))<<26U))&0xFC000000UL)   /*!< FLEXBUS_CSCR.SWS Field                  */
 /* ------- CSPMCR Bit Fields                        ------ */
-#define FB_CSPMCR_GROUP5_MASK                    (0xF000U)                                           /*!< FB_CSPMCR.GROUP5 Mask                   */
-#define FB_CSPMCR_GROUP5_SHIFT                   (12U)                                               /*!< FB_CSPMCR.GROUP5 Position               */
-#define FB_CSPMCR_GROUP5(x)                      (((uint32_t)(((uint32_t)(x))<<12U))&0xF000UL)       /*!< FB_CSPMCR.GROUP5 Field                  */
-#define FB_CSPMCR_GROUP4_MASK                    (0xF0000U)                                          /*!< FB_CSPMCR.GROUP4 Mask                   */
-#define FB_CSPMCR_GROUP4_SHIFT                   (16U)                                               /*!< FB_CSPMCR.GROUP4 Position               */
-#define FB_CSPMCR_GROUP4(x)                      (((uint32_t)(((uint32_t)(x))<<16U))&0xF0000UL)      /*!< FB_CSPMCR.GROUP4 Field                  */
-#define FB_CSPMCR_GROUP3_MASK                    (0xF00000U)                                         /*!< FB_CSPMCR.GROUP3 Mask                   */
-#define FB_CSPMCR_GROUP3_SHIFT                   (20U)                                               /*!< FB_CSPMCR.GROUP3 Position               */
-#define FB_CSPMCR_GROUP3(x)                      (((uint32_t)(((uint32_t)(x))<<20U))&0xF00000UL)     /*!< FB_CSPMCR.GROUP3 Field                  */
-#define FB_CSPMCR_GROUP2_MASK                    (0xF000000U)                                        /*!< FB_CSPMCR.GROUP2 Mask                   */
-#define FB_CSPMCR_GROUP2_SHIFT                   (24U)                                               /*!< FB_CSPMCR.GROUP2 Position               */
-#define FB_CSPMCR_GROUP2(x)                      (((uint32_t)(((uint32_t)(x))<<24U))&0xF000000UL)    /*!< FB_CSPMCR.GROUP2 Field                  */
-#define FB_CSPMCR_GROUP1_MASK                    (0xF0000000U)                                       /*!< FB_CSPMCR.GROUP1 Mask                   */
-#define FB_CSPMCR_GROUP1_SHIFT                   (28U)                                               /*!< FB_CSPMCR.GROUP1 Position               */
-#define FB_CSPMCR_GROUP1(x)                      (((uint32_t)(((uint32_t)(x))<<28U))&0xF0000000UL)   /*!< FB_CSPMCR.GROUP1 Field                  */
+#define FLEXBUS_CSPMCR_GROUP5_MASK               (0xF000U)                                           /*!< FLEXBUS_CSPMCR.GROUP5 Mask              */
+#define FLEXBUS_CSPMCR_GROUP5_SHIFT              (12U)                                               /*!< FLEXBUS_CSPMCR.GROUP5 Position          */
+#define FLEXBUS_CSPMCR_GROUP5(x)                 (((uint32_t)(((uint32_t)(x))<<12U))&0xF000UL)       /*!< FLEXBUS_CSPMCR.GROUP5 Field             */
+#define FLEXBUS_CSPMCR_GROUP4_MASK               (0xF0000U)                                          /*!< FLEXBUS_CSPMCR.GROUP4 Mask              */
+#define FLEXBUS_CSPMCR_GROUP4_SHIFT              (16U)                                               /*!< FLEXBUS_CSPMCR.GROUP4 Position          */
+#define FLEXBUS_CSPMCR_GROUP4(x)                 (((uint32_t)(((uint32_t)(x))<<16U))&0xF0000UL)      /*!< FLEXBUS_CSPMCR.GROUP4 Field             */
+#define FLEXBUS_CSPMCR_GROUP3_MASK               (0xF00000U)                                         /*!< FLEXBUS_CSPMCR.GROUP3 Mask              */
+#define FLEXBUS_CSPMCR_GROUP3_SHIFT              (20U)                                               /*!< FLEXBUS_CSPMCR.GROUP3 Position          */
+#define FLEXBUS_CSPMCR_GROUP3(x)                 (((uint32_t)(((uint32_t)(x))<<20U))&0xF00000UL)     /*!< FLEXBUS_CSPMCR.GROUP3 Field             */
+#define FLEXBUS_CSPMCR_GROUP2_MASK               (0xF000000U)                                        /*!< FLEXBUS_CSPMCR.GROUP2 Mask              */
+#define FLEXBUS_CSPMCR_GROUP2_SHIFT              (24U)                                               /*!< FLEXBUS_CSPMCR.GROUP2 Position          */
+#define FLEXBUS_CSPMCR_GROUP2(x)                 (((uint32_t)(((uint32_t)(x))<<24U))&0xF000000UL)    /*!< FLEXBUS_CSPMCR.GROUP2 Field             */
+#define FLEXBUS_CSPMCR_GROUP1_MASK               (0xF0000000U)                                       /*!< FLEXBUS_CSPMCR.GROUP1 Mask              */
+#define FLEXBUS_CSPMCR_GROUP1_SHIFT              (28U)                                               /*!< FLEXBUS_CSPMCR.GROUP1 Position          */
+#define FLEXBUS_CSPMCR_GROUP1(x)                 (((uint32_t)(((uint32_t)(x))<<28U))&0xF0000000UL)   /*!< FLEXBUS_CSPMCR.GROUP1 Field             */
 /**
- * @} */ /* End group FB_Register_Masks_GROUP 
+ * @} */ /* End group FLEXBUS_Register_Masks_GROUP 
  */
 
-/* FB - Peripheral instance base addresses */
-#define FB_BasePtr                     0x4000C000UL //!< Peripheral base address
-#define FB                             ((FB_Type *) FB_BasePtr) //!< Freescale base pointer
-#define FB_BASE_PTR                    (FB) //!< Freescale style base pointer
+/* FLEXBUS - Peripheral instance base addresses */
+#define FLEXBUS_BasePtr                0x4000C000UL //!< Peripheral base address
+#define FLEXBUS                        ((FLEXBUS_Type *) FLEXBUS_BasePtr) //!< Freescale base pointer
+#define FLEXBUS_BASE_PTR               (FLEXBUS) //!< Freescale style base pointer
 /**
- * @} */ /* End group FB_Peripheral_access_layer_GROUP 
+ * @} */ /* End group FLEXBUS_Peripheral_access_layer_GROUP 
  */
 /**
 * @addtogroup FMC_Peripheral_access_layer_GROUP FMC Peripheral Access Layer

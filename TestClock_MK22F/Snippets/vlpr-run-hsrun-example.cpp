@@ -23,7 +23,7 @@ using namespace USBDM;
 
 // Map clock settings for each mode to available settings
 static constexpr ClockConfig ClockConfig_HSRUN = ClockConfig_PEE_120MHz;
-static constexpr ClockConfig ClockConfig_RUN   = ClockConfig_PEE_80MHz;
+static constexpr ClockConfig ClockConfig_RUN   = ClockConfig_PEE_120MHz;
 static constexpr ClockConfig ClockConfig_VLPR  = ClockConfig_BLPE_4MHz;
 
 using namespace USBDM;
@@ -35,12 +35,16 @@ void report() {
 }
 
 int main() {
+   // Change clock so console (LPUART) will continue working
+   SimInfo::setLpuartClock(SimLpuartClockSource_OscerClk);
+   console.setBaudRate(defaultBaudRate);
    console.writeln("Starting\n");
    console.write("SystemCoreClock = ").writeln(::SystemCoreClock);
    console.write("SystemBusClock  = ").writeln(::SystemBusClock);
-   
+
    // Monitor clock changes on CLKOUT pin
-   ControlInfo::initPCRs(pcrValue());
+   using ClkOut = PcrTable_T<ControlInfo,10>; // Check this
+   ClkOut::setPCR();
    SimInfo::setClkout(SimClkoutSel_FlexBus);
 
    report();

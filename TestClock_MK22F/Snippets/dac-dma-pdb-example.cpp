@@ -18,7 +18,7 @@
  * under the "Peripheral Parameters"->DMA tab.
  * Select irqHandlers option (Class Method - Software ...)
  */
-#include "math.h"
+#include <math.h>
 #include "hardware.h"
 #include "dma.h"
 #include "pdb.h"
@@ -29,7 +29,7 @@ using namespace USBDM;
 
 // 100 samples => Sine period = 100 * PIT period
 static constexpr unsigned NUM_SAMPLES = 100;
-static constexpr float    PDB_PERIOD  = 10 * us;
+static constexpr float    PDB_PERIOD  = 10_us;
 
 // Table of values for a sine wave
 static uint16_t sineTable[NUM_SAMPLES];
@@ -117,7 +117,7 @@ void initSineTable() {
  * @param errorFlags Channel error information (DMA_ES)
  */
 void dmaErrorCallbackFunction(uint32_t errorFlags) {
-   console.write("DMA error DMA_ES = 0b").writeln(errorFlags, Radix_2);
+   console.writeln("DMA error DMA_ES = 0b", errorFlags, Radix_2);
    __BKPT();
 }
 
@@ -164,10 +164,10 @@ static void configurePdb() {
    Pdb0::setPeriod(PDB_PERIOD);
 
    // Any phase will do (<PDB_PERIOD)
-   Pdb0::setInterruptDelay(0);
+   Pdb0::setInterruptDelay(0_ticks);
 
    // Registers load on next event
-   Pdb0::confirmRegisterLoad(PdbLoadMode_Event);
+   Pdb0::configureRegisterLoad(PdbLoadMode_Event);
 
    // Start timer and load values
    Pdb0::softwareTrigger();
@@ -204,10 +204,10 @@ int main() {
    // DMA channel number to use (determines which PIT channel used)
    static const DmaChannelNum dmaChannel = Dma0::allocatePeriodicChannel();
    if (dmaChannel == DmaChannelNum_None) {
-      console.write("Failed to allocate DMA channel, rc= ").writeln(E_NO_RESOURCE);
+      console.writeln("Failed to allocate DMA channel, rc= ", E_NO_RESOURCE);
       __BKPT();
    }
-   console.write("Allocated DMA channel  #").writeln(dmaChannel);
+   console.writeln("Allocated DMA channel  #", dmaChannel);
 
    configureDac();
 

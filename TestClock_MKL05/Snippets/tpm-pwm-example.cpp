@@ -8,6 +8,7 @@
  ============================================================================
  */
 #include "hardware.h"
+#include "tpm.h"
 
 using namespace USBDM;
 
@@ -27,7 +28,7 @@ using namespace USBDM;
  */
 // Connection mapping - change as required
 using Timer = Tpm2;
-using Led   = tpm_LED_RED;
+using Led   = Tpm2::Channel<1>;
 
 int main() {
 
@@ -40,14 +41,13 @@ int main() {
     * Change PWM period
     * Note - Setting the period affects all channels of the Timer
     */
-   Timer::setPeriod(5*us);
+   Timer::setPeriod(5_us);
 
    // Configure channel as high-pulses
    Led::configure(TpmChMode_PwmHighTruePulses);
 
    // Configure pin associated with channel
-   Led::setDriveStrength(PinDriveStrength_High);
-   Led::setDriveMode(PinDriveMode_PushPull);
+   Led::setOutput(PinDriveStrength_High, PinDriveMode_PushPull, PinSlewRate_Slow);
 
    // Check if configuration failed
    checkError();
@@ -60,7 +60,7 @@ int main() {
       }
       // Using high-time
       for (int i=99; i>0; i--) {
-         Led::setHighTime((i*5*us)/100.0);
+         Led::setHighTime((i*5_us)/100.0);
          waitMS(10);
       }
    }

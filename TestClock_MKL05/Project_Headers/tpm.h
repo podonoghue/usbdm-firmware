@@ -18,43 +18,12 @@
  * Any manual changes will be lost.
  */
 #include <stddef.h>
-#include "derivative.h"
 #include <cmath>
+#include "pin_mapping.h"
 
 /*
  * Default port information
  */
-
-#ifndef TPM0_CLOCK_MASK
-#ifdef SIM_SCGC6_TPM0_MASK
-#define TPM0_CLOCK_MASK SIM_SCGC6_TPM0_MASK
-#define TPM0_CLOCK_REG  SCGC6
-#endif
-#ifdef SIM_SCGC6_TPM1_MASK
-#define TPM1_CLOCK_MASK SIM_SCGC6_TPM1_MASK
-#define TPM1_CLOCK_REG  SCGC6
-#endif
-#ifdef SIM_SCGC6_TPM2_MASK
-#define TPM2_CLOCK_MASK SIM_SCGC6_TPM2_MASK
-#define TPM2_CLOCK_REG  SCGC6
-#elif defined SIM_SCGC3_TPM2_MASK
-#define TPM2_CLOCK_MASK SIM_SCGC3_TPM2_MASK
-#define TPM2_CLOCK_REG  SCGC3
-#endif
-#ifdef SIM_SCGC6_TPM3_MASK
-#define TPM3_CLOCK_MASK SIM_SCGC6_TPM3_MASK
-#define TPM3_CLOCK_REG  SCGC6
-#endif
-#ifdef SIM_SCGC3_TPM3_MASK
-#define TPM3_CLOCK_MASK SIM_SCGC3_TPM3_MASK
-#define TPM3_CLOCK_REG  SCGC3
-#endif
-#ifdef SIM_SCGC3_TPM3_MASKC
-#define TPM3_CLOCK_MASK SIM_SCGC3_TPM3_MASKC
-#define TPM3_CLOCK_REG  SCGC3
-#endif
-#endif
-
 namespace USBDM {
 
 /**
@@ -139,29 +108,89 @@ typedef void (*TpmCallbackFunction)();
 typedef void (*TpmChannelCallbackFunction)(uint8_t status);
 
 /**
- * Provides common unhandledCallback for all Timers.
- * This class is not intended to be instantiated.
+ * Provides shared methods.
  */
 class TpmBase {
 
+private:
+   TpmBase(const TpmBase&) = delete;
+   TpmBase(TpmBase&&) = delete;
+
 protected:
-   /** Class to static check channel is mapped to a pin */
-   template<class Info, int channel> class CheckPinMapping {
-      static_assert((channel>=Info::numSignals)||(Info::info[channel].gpioBit != UNMAPPED_PCR),
-            "TPM channel is not mapped to a pin - Modify Configure.usbdm");
+   // Constructor
+   constexpr TpmBase(uint32_t baseAddress) : tmr(baseAddress) {};
+   ~TpmBase() = default;
+
+   /** Allow access owning TPM */
+   const HardwarePtr<TPM_Type> tmr;
+
+   /**
+    * Limit index to permitted pin index range
+    * Used to prevent noise from static assertion checks that detect a condition already detected in a more useful fashion.
+    *
+    * @tparam Inf    Associated info table
+    * @param index   Index to limit
+    *
+    * @return Index limited to permitted range
+    */
+   template <class Inf>
+   static inline constexpr int limitIndex(int index) {
+      if (index<0) {
+         return 0;
+      }
+      if (index>(Inf::numSignals-1)) {
+         return Inf::numSignals-1;
+      }
+      return index;
+   }
+
+   /** Class to static check channel exists and is mapped to a pin */
+   template<class Info, int channel> class CheckChannelExistsAndMapped {
+      // Tests are chained so only a single assertion can fail so as to reduce noise
+
+      // Out of bounds value for function index
+      static constexpr bool Test1 = (channel>=0) && (channel<(Info::numSignals));
+      // Function is not currently mapped to a pin
+      static constexpr bool Test2 = !Test1 || (Info::info[channel].gpioBit != UNMAPPED_PCR);
+      // Non-existent function and catch-all. (should be INVALID_PCR)
+      static constexpr bool Test3 = !Test1 || !Test2 || (Info::info[channel].gpioBit >= 0);
+
+      static_assert(Test1, "Illegal TPM channel - Check Configure.usbdm for available inputs");
+      static_assert(Test2, "TPM input is not mapped to a pin - Modify Configure.usbdm");
+      static_assert(Test3, "TPM channel doesn't exist in this device/package - Check Configure.usbdm for available input pins");
+
    public:
       /** Dummy function to allow convenient in-line checking */
       static constexpr void check() {}
    };
 
-   /** Class to static check valid channel - it does not check that it is mapped to a pin */
+   /** Class to static check channel is mapped to a pin - Ignores non-existence etc. */
+   template<class Info, int channel> class CheckChannelIsMappedToPinOnly {
+
+      // Out of bounds value for function index
+      static constexpr bool Test1 = (channel>=0) && (channel<(Info::numSignals));
+      // Function is not currently mapped to a pin
+      static constexpr bool Test2 = !Test1 || (Info::info[channel].gpioBit != UNMAPPED_PCR);
+
+      static_assert(Test2, "TPM channel is not mapped to a pin - Modify Configure.usbdm");
+
+   public:
+      /** Dummy function to allow convenient in-line checking */
+      static constexpr void check() {}
+   };
+
+   /** Class to static check channel exists - it does not check that it is mapped to a pin */
    template<class Info, int channel> class CheckChannel {
-      static_assert((channel<Info::numSignals),
-            "Non-existent TPM channel - Check Configure.usbdm for available channels");
-      static_assert((channel>=Info::numSignals)||(Info::info[channel].gpioBit != INVALID_PCR),
-            "TPM channel doesn't exist in this device/package - Check Configure.usbdm for available channels");
-      static_assert((channel>=Info::numSignals)||((Info::info[channel].gpioBit == UNMAPPED_PCR)||(Info::info[channel].gpioBit == INVALID_PCR)||(Info::info[channel].gpioBit >= 0)),
-            "Illegal TPM channel - Check Configure.usbdm for available channels");
+      // Tests are chained so only a single assertion can fail so as to reduce noise
+
+      // Out of bounds value for function index
+      static constexpr bool Test1 = (channel>=0) && (channel<(Info::numSignals));
+      // Non-existent function
+      static constexpr bool Test2 = !Test1 || (Info::info[channel].gpioBit != INVALID_PCR);
+
+      static_assert(Test1, "Illegal TPM channel - Check Configure.usbdm for available channels");
+      static_assert(Test2, "TPM channel doesn't exist in this device/package - Check Configure.usbdm for available channels");
+
    public:
       /** Dummy function to allow convenient in-line checking */
       static constexpr void check() {}
@@ -182,198 +211,22 @@ protected:
    static void unhandledCallback() {
       setAndCheckErrorCode(E_NO_HANDLER);
    }
-};
 
-/**
- * Base class representing a TPM.
- *
- *
- * @tparam Info  Class describing TPM hardware instance
- */
-template<class Info>
-class TpmBase_T : public TpmBase {
+   /**
+    * Get Timer input frequency.
+    *
+    * @return Clock frequency in Hz
+    */
+   virtual float getInputClockFrequencyVirtual() const = 0;
 
 public:
    /**
-    * Hardware instance pointer
-    *
-    * @return Reference to TPM hardware
+    * Structure for TPM channel.
     */
-   static __attribute__((always_inline)) volatile TPM_Type &tmr() { return Info::tpm(); }
-
-   /** Get reference to TPM hardware as struct */
-   static volatile TPM_Type &tpm() { return Info::tpm(); }
-
-   /** @return Base address of SPI hardware as uint32_t */
-   static constexpr uint32_t tpmBase() { return Info::baseAddress; }
-   /** @return Base address of TPM.SC register as uint32_t */
-   static constexpr uint32_t tpmSC() { return tpmBase() + offsetof(TPM_Type, SC); }
-   /** @return Base address of TPM.CNT register as uint32_t */
-   static constexpr uint32_t tpmCNT() { return tpmBase() + offsetof(TPM_Type, CNT); }
-   /** @return Base address of TPM.MOD register as uint32_t */
-   static constexpr uint32_t tpmMOD() { return tpmBase() + offsetof(TPM_Type, MOD); }
-   /** @return Base address of TPM.CONTROL[n] struct as uint32_t */
-   static constexpr uint32_t tpmCONTROL(int index) { return tpmBase() + offsetof(TPM_Type, CONTROLS[index]); }
-   /** @return Base address of TPM.CONTROL[n].CnSC struct as uint32_t */
-   static constexpr uint32_t tpmCnSC(int index) { return tpmBase() + offsetof(TPM_Type, CONTROLS[index])+0; }
-   /** @return Base address of TPM.CONTROL[n].CnV struct as uint32_t */
-   static constexpr uint32_t tpmCnV(int index) { return tpmBase() + offsetof(TPM_Type, CONTROLS[index])+sizeof(uint32_t); }
-
-private:
-   /**
-    * This class is not intended to be instantiated
-    */
-   TpmBase_T() = delete;
-   TpmBase_T(const TpmBase_T&) = delete;
-   TpmBase_T(TpmBase_T&&) = delete;
-
-   /** Callback function for TOI ISR */
-   static TpmCallbackFunction sToiCallback;
-
-   /** Callback function for Channel Fault */
-   static TpmCallbackFunction sFaultCallback;
-
-   /** Callback function for Channel ISR */
-   static TpmChannelCallbackFunction sChannelCallback;
-
-public:
-   /**
-    * IRQ handler
-    */
-   static void irqHandler() {
-      if ((tmr().SC&(TPM_SC_TOF_MASK|TPM_SC_TOIE_MASK)) == (TPM_SC_TOF_MASK|TPM_SC_TOIE_MASK)) {
-         // Clear TOI flag (w1c)
-         tmr().SC |= TPM_SC_TOF_MASK;
-         sToiCallback();
-      }
-      // Get status for channels
-      uint32_t status = tmr().STATUS;
-      if (status) {
-         // Clear flags for channel events being handled (w1c register if read)
-         tmr().STATUS = status;
-         sChannelCallback(status);
-      }
-   }
-
-   /**
-    * Set channel Callback function\n
-    * Note that one callback is shared by all channels of the timer
-    *
-    * @param[in] callback Callback function to execute on channel interrupt.\n
-    *                     Use nullptr to remove callback.
-    *
-    * @return E_NO_ERROR            No error
-    * @return E_HANDLER_ALREADY_SET Handler already set
-    *
-    * @note One channel event callback is shared by all channels of the timer.
-    *       It is necessary to identify the originating channel in the callback
-    */
-   static ErrorCode INLINE_RELEASE setChannelCallback(TpmChannelCallbackFunction callback) {
-      static_assert(Info::irqHandlerInstalled, "TPM not configure for interrupts");
-      if (callback == nullptr) {
-         sChannelCallback = unhandledChannelCallback;
-         return E_NO_ERROR;
-      }
-#ifdef DEBUG_BUILD
-      // Callback is shared across all channels. Check if callback already assigned
-      if ((sChannelCallback != unhandledChannelCallback) && 
-            (sChannelCallback != nullptr) &&
-            (sChannelCallback != callback)) {
-         return setErrorCode(ErrorCode::E_HANDLER_ALREADY_SET);
-      }
-#endif
-      sChannelCallback = callback;
-      return E_NO_ERROR;
-   }
-   /**
-    * Set TOI Callback function\n
-    * Note that one callback is shared by all channels of the timer
-    *
-    * @param[in] theCallback Callback function to execute when timer overflows. \n
-    *                        nullptr to indicate none
-    */
-   static INLINE_RELEASE void setTimerOverflowCallback(TpmCallbackFunction theCallback) {
-      static_assert(Info::irqHandlerInstalled, "TPM not configure for interrupts");
-      if (theCallback == nullptr) {
-         sToiCallback = unhandledCallback;
-         return;
-      }
-      sToiCallback = theCallback;
-   }
-
-public:
-   /**
-    * Configures all mapped pins associated with this peripheral
-    */
-   static INLINE_RELEASE void configureAllPins() {
-      // Configure pins
-      Info::initPCRs();
-   }
-
-   /**
-    * Enables clock to peripheral and configures all pins if
-    * mapPinsOnEnable setting is true
-    */
-   static INLINE_RELEASE void enable() {
-      if (Info::mapPinsOnEnable) {
-         configureAllPins();
-      }
-
-      // Enable clock to peripheral interface
-      Info::enableClock();
-      __DMB();
-   }
-
-   /**
-    * Disables peripheral including clocks
-    */
-   static INLINE_RELEASE void disable() {
-      // Disable (clock source disabled)
-      tmr().SC = 0;
-
-      // Disable clock to peripheral interface
-      Info::disableClock();
-      __DMB();
-   }
-
-   /**
-    * Configure with settings from Configure.usbdmProject.
-    * Includes configuring all pins
-    */
-   static void defaultConfigure() {
-      enable();
-
-      // Disable so immediate effect
-      tmr().SC = 0;
-      (void)tmr().SC;
-      // Common registers
-      tmr().CNT     = 0;
-      tmr().MOD     = Info::modulo;
-      tmr().SC      = Info::sc;
-
-      enableNvicInterrupts(Info::irqLevel);
-   }
-
-   /**
-    * Enables clock to peripheral and configures all pins.
-    * Configures main operating settings for timer.
-    *
-    * @param[in] tpmMode        Mode of operation.
-    * @param[in] tpmClockSource Clock source for timer.
-    * @param[in] tpmPrescale    Clock prescaler. Used to divide input clock.
-    */
-   static void configure(
-         TpmMode        tpmMode,
-         TpmClockSource tpmClockSource = TpmClockSource_Internal,
-         TpmPrescale    tpmPrescale    = TpmPrescale_128) {
-
-      enable();
-
-      // Disable so immediate effect
-      tmr().SC = 0;
-      (void)tmr().SC;
-      tmr().SC  = tpmMode|tpmClockSource|tpmPrescale;
-   }
+   struct TpmChannelRegs {
+      __IO uint32_t  CnSC; /**< 000C: Channel  Status and Control */
+      __IO uint32_t  CnV;  /**< 0010: Channel  Value              */
+   };
 
    /**
     * Set timer mode
@@ -383,14 +236,14 @@ public:
     * @note This function will affect all channels of the timer.
     * @note The timer will be disabled while making changes.
     */
-   static void setMode(TpmMode tpmMode) {
+   void setMode(TpmMode tpmMode) const {
       // Disable timer to allow change
-      uint32_t sc = tmr().SC;
-      tmr().SC = 0;
-      (void)tmr().SC;
+      uint32_t sc = tmr->SC;
+      tmr->SC = 0;
+      (void)tmr->SC;
 
       // Set new mode
-      tmr().SC = (sc&~TPM_SC_CPWMS_MASK)|tpmMode;
+      tmr->SC = (sc&~TPM_SC_CPWMS_MASK)|tpmMode;
    }
 
    /**
@@ -400,9 +253,9 @@ public:
     *
     * @note This function will affect all channels of the timer.
     */
-   static void stopCounter() {
+   void stopCounter() const {
       //if (isEnabled()) {
-      tmr().SC = (tmr().SC&~TPM_SC_CMOD_MASK);
+      tmr->SC = (tmr->SC&~TPM_SC_CMOD_MASK);
       //}
    }
 
@@ -414,15 +267,15 @@ public:
     * @note This function will affect all channels of the timer.
     * @note The timer will be disabled while making changes.
     */
-   static void setClockSource(TpmClockSource tpmClockSource=TpmClockSource_Internal) {
+   void setClockSource(TpmClockSource tpmClockSource=TpmClockSource_Internal) const {
       // Calculate new SC value
-      uint32_t sc = (tmr().SC&~TPM_SC_CMOD_MASK)|tpmClockSource;
+      uint32_t sc = (tmr->SC&~TPM_SC_CMOD_MASK)|tpmClockSource;
       // Disable timer to change clock (can't switch directly between clock sources)
-      tmr().SC = 0;
+      tmr->SC = 0;
       // Make sure write has completed (disabled)
-      (void)tmr().SC;
+      (void)tmr->SC;
       // Write new value
-      tmr().SC = sc;
+      tmr->SC = sc;
    }
 
    /**
@@ -433,41 +286,15 @@ public:
     * @note This function will affect all channels of the timer.
     * @note The timer will be disabled while making changes.
     */
-   static void setPrescaler(TpmPrescale tpmPrescale=TpmPrescale_128) {
+   void setPrescaler(TpmPrescale tpmPrescale=TpmPrescale_128) const {
       // Disable timer to allow change
-      uint32_t sc = tmr().SC;
-      tmr().SC = 0;
+      uint32_t sc = tmr->SC;
+      tmr->SC = 0;
       // Make sure write completes
-      (void)tmr().SC;
+      (void)tmr->SC;
       // Write new value
-      tmr().SC = (sc&~TPM_SC_PS_MASK)|tpmPrescale;
+      tmr->SC = (sc&~TPM_SC_PS_MASK)|tpmPrescale;
    }
-
-   /**
-    * Enable interrupts in NVIC
-    */
-   static void enableNvicInterrupts() {
-      NVIC_EnableIRQ(Info::irqNums[0]);
-   }
-
-   /**
-    * Enable and set priority of interrupts in NVIC
-    *
-    * @param[in]  nvicPriority  Interrupt priority
-    *
-    * @note Any pending interrupts are cleared before enabling.
-    */
-   static void enableNvicInterrupts(uint32_t nvicPriority) {
-      enableNvicInterrupt(Info::irqNums[0], nvicPriority);
-   }
-
-   /**
-    * Disable interrupts in NVIC
-    */
-   static void disableNvicInterrupts() {
-      NVIC_DisableIRQ(Info::irqNums[0]);
-   }
-
    /**
     * Set maximum value of timer counter.
     *
@@ -479,17 +306,17 @@ public:
     * @note This value is write-buffered and updated by MOD synchronisation
     *       unless suspend is true.
     */
-   static INLINE_RELEASE void setCounterMaximumValue(uint16_t endValue, bool suspend=false) {
+   void setCounterMaximumValue(uint16_t endValue, bool suspend=false) const {
       uint32_t sc;
       if (suspend) {
          // Disable timer so register changes are immediate
-         sc = tmr().SC;
-         tmr().SC = 0;
-         (void)tmr().SC;
+         sc = tmr->SC;
+         tmr->SC = 0;
+         (void)tmr->SC;
       }
-      tmr().MOD = endValue;
+      tmr->MOD = endValue;
       if (suspend) {
-         tmr().SC = sc;
+         tmr->SC = sc;
       }
    }
 
@@ -498,8 +325,8 @@ public:
     *
     * @return Counter modulo value in ticks (<65535), 0 = 65536.
     */
-   static INLINE_RELEASE uint16_t getCounterMaximumValue() {
-      return tmr().MOD;
+   uint16_t getCounterMaximumValue() const {
+      return tmr->MOD;
    }
 
    /**
@@ -518,10 +345,10 @@ public:
     * @note This value is write-buffered and updated by MOD synchronisation
     *       unless suspend is true.
     */
-   static ErrorCode setPeriodInTicks(uint32_t period, bool suspend=false) {
+   ErrorCode setPeriodInTicks(uint32_t period, bool suspend=false) const {
 
       // Check if CPWMS is set (affects period)
-      bool centreAlign = (tmr().SC&TPM_SC_CPWMS_MASK);
+      bool centreAlign = (tmr->SC&TPM_SC_CPWMS_MASK);
 
       if (centreAlign) {
          // Centre-aligned period is 2*MOD value but MOD is
@@ -546,22 +373,1089 @@ public:
       }
       uint32_t sc;
       if (suspend) {
-         sc = tmr().SC;
-         tmr().SC = 0;
+         sc = tmr->SC;
+         tmr->SC = 0;
       }
       // Change modulo
-      tmr().MOD = period;
+      tmr->MOD = period;
 
       if (suspend) {
          // Restart timer
-         tmr().SC = sc;
+         tmr->SC = sc;
       }
       // OK period
       return E_NO_ERROR;
    }
 
    /**
-    * Calculate FTM timing parameters to achieve a given period
+    * Calculate TPM timing parameters to achieve a given period
+    *
+    * @param period           Period in seconds
+    * @param pPrescalerValue  Calculated prescaler value (for SC register)
+    * @param pPeriodInTicks   Calculated period in ticks.
+    *
+    * @return E_NO_ERROR   Success.
+    * @return E_TOO_SMALL  Requested period is too small for resolution (required resolution check to be enabled).
+    * @return E_TOO_LARGE  Requested period is too large.
+    */
+   ErrorCode calculateTimingParameters(float period, unsigned &pPrescalerValue, unsigned &pPeriodInTicks) const {
+      float inputClock = getInputClockFrequencyVirtual();
+      unsigned prescaleFactor=1;
+      unsigned prescalerValue=0;
+
+      // Maximum period value in ticks
+      uint32_t maxPeriodInTicks = 65536;
+
+      // Check if CPWMS is set (affects period calculation)
+      if (tmr->SC&TPM_SC_CPWMS_MASK) {
+         // Centre-aligned period is ~double the MOD value but MOD is
+         // limited to 0x7FFF for sensible PWM operation so
+         // period in ticks is limited to 2*0x7FFF
+         maxPeriodInTicks = 65534;
+      }
+      while (prescalerValue<=7) {
+         float    clock = inputClock/prescaleFactor;
+         uint32_t periodInTicks   = round(period*clock);
+         if (periodInTicks <= 10) {
+            usbdm_assert(false, "Interval is too short");
+            // Too short a period for minimum resolution
+            return setErrorCode(E_TOO_SMALL);
+         }
+         if (periodInTicks <= maxPeriodInTicks) {
+            pPrescalerValue = prescalerValue;
+            pPeriodInTicks  = periodInTicks;
+            return E_NO_ERROR;
+         }
+         prescalerValue++;
+         prescaleFactor <<= 1;
+      }
+      // Too long a period
+      usbdm_assert(false, "Interval is too long");
+      return setErrorCode(E_TOO_LARGE);
+   }
+
+   /**
+    * Set period
+    *
+    * @param[in] period   Period in seconds as a float
+    *
+    * @return E_NO_ERROR  => success
+    * @return E_TOO_SMALL  Requested period is too small for resolution (required resolution check to be enabled).
+    * @return E_TOO_LARGE  Requested period is too large.
+    *
+    * @note This function will affect all channels of the timer.
+    * @note Adjusts Timer pre-scaler to appropriate value.
+    * @note The counter modulo value (MOD) is modified to obtain the requested period
+    * @note The Timer is stopped while being modified.
+    * @note The Timer counter is restarted from zero
+    */
+   ErrorCode setPeriod(float period) const {
+
+      unsigned prescalerValue = 0;
+      unsigned periodInTicks = 0;
+      ErrorCode rc = calculateTimingParameters(period, prescalerValue, periodInTicks);
+
+      if (rc != E_NO_ERROR) {
+         return rc;
+      }
+      // Disable timer to change prescaler and period
+      uint32_t sc = tmr->SC;
+      tmr->SC = 0;
+      (void)tmr->SC;
+      setPeriodInTicks(periodInTicks, false);
+
+      // Restart counter
+      tmr->CNT   = 0;
+
+      tmr->SC = (sc&~TPM_SC_PS_MASK)|TPM_SC_PS(prescalerValue);
+
+      return E_NO_ERROR;
+   }
+
+   /**
+    * Set maximum interval for input-capture or output compare.
+    * Input Capture and Output Compare will be able to operate over
+    * at least this period without overflow.
+    *
+    * @param[in] interval Interval in seconds as a float
+    *
+    * @return E_NO_ERROR  => success
+    * @return E_TOO_SMALL  Requested period is too small for resolution (required resolution check to be enabled).
+    * @return E_TOO_LARGE  Requested period is too large.
+    *
+    * @note This function will affect all channels of the timer.
+    * @note Adjusts Timer pre-scaler to appropriate value.
+    * @note TPM counter is configured for free-running mode i.e. 0-65535
+    * @note The Timer is stopped while being modified.
+    * @note The Timer counter is restarted from zero
+    */
+   ErrorCode setMaximumInterval(float interval) const {
+
+      unsigned prescalerValue;
+      unsigned periodInTicks;
+      ErrorCode rc = calculateTimingParameters(interval, prescalerValue, periodInTicks);
+
+      if (rc != E_NO_ERROR) {
+         return rc;
+      }
+      // Disable timer to change prescaler and period
+      uint32_t sc = tmr->SC;
+      tmr->SC = 0;
+      (void)tmr->SC;
+
+      // Configure for free-running mode
+      // This is the usual value for IC or OC set-up
+      tmr->MOD = 0;
+
+      // Restart counter
+      tmr->CNT   = 0;
+
+      tmr->SC = (sc&~TPM_SC_PS_MASK)|TPM_SC_PS(prescalerValue);
+
+      return E_NO_ERROR;
+   }
+
+   /**
+    * Get frequency of timer tick
+    *
+    * @return Timer frequency in Hz
+    */
+   float getTickFrequencyAsFloat() const {
+
+      // Calculate timer prescale factor
+      int prescaleFactor = 1<<((tmr->SC&TPM_SC_PS_MASK)>>TPM_SC_PS_SHIFT);
+
+      return static_cast<float>(getInputClockFrequencyVirtual())/prescaleFactor;
+   }
+
+   /**
+    * Get clock frequency
+    *
+    * @return Frequency as a uint32_t in Hz (may underflow)
+    */
+   uint32_t getTickFrequencyAsInt() const {
+
+      // Calculate timer prescale factor
+      int prescaleFactor = 1<<((tmr->SC&TPM_SC_PS_MASK)>>TPM_SC_PS_SHIFT);
+
+      return getInputClockFrequencyVirtual()/prescaleFactor;
+   }
+
+   /**
+    * Set approximate frequency of timer tick
+    *
+    * @param[in] frequency Frequency as a float
+    * @param[in] tolerance Tolerance in percent
+    *
+    * @return E_NO_ERROR       Success
+    * @return E_ILLEGAL_PARAM  Failed to find suitable pre-scaler values
+    *
+    * @note Adjusts Timer pre-scaler to appropriate value.
+    * @note This function will affect all channels of the timer.
+    */
+   ErrorCode setTickFrequency(float frequency, float tolerance) const {
+      float inputClockFrequency = getInputClockFrequencyVirtual();
+
+      int prescaleFactor=1;
+      int prescalerValue=0;
+      while (prescalerValue<=7) {
+         float tickFrequency = inputClockFrequency/prescaleFactor;
+
+         if ((100*std::abs((tickFrequency/frequency)-1)) < tolerance) {
+            // Clear SC so immediate effect on prescale change
+            uint32_t sc = tmr->SC&~TPM_SC_PS_MASK;
+            tmr->SC = 0;
+            (void)tmr->SC;
+            tmr->SC     = sc|TPM_SC_PS(prescalerValue);
+            return E_NO_ERROR;
+         }
+         prescalerValue++;
+         prescaleFactor <<= 1;
+      }
+      // Too long a period
+      return setErrorCode(E_ILLEGAL_PARAM);
+   }
+
+   /**
+    * Convert time in microseconds to time in ticks
+    *
+    * @param[in] time Time in microseconds
+    *
+    * @return Time in ticks
+    *
+    * @note Assumes prescale has been chosen as a appropriate value. Rudimentary range checking.
+    * @note Will set error code if calculated value is less the Timer minimum resolution
+    */
+   uint32_t convertMicrosecondsToTicks(int time) const {
+
+      // Calculate period
+      uint32_t tickRate = getTickFrequencyAsInt();
+      uint64_t rv       = (static_cast<uint64_t>(time)*tickRate)/1000000;
+      usbdm_assert(rv <= 0xFFFFUL, "Interval is too long");
+      if (rv > 0xFFFFUL) {
+         // Attempt to set too long a period
+         setErrorCode(E_TOO_LARGE);
+      }
+      if (rv < 10) {
+         // Attempt to set too short a period
+         setErrorCode(E_TOO_SMALL);
+      }
+      return rv;
+   }
+
+   /**
+    * Converts time in seconds to time in ticks
+    *
+    * @param[in] seconds Time interval in seconds
+    *
+    * @return Time in ticks
+    *
+    * @note Assumes prescale has been chosen as a appropriate value (see setMaximumInterval()). \n
+    * @note Will set error code if calculated value is less the minimum resolution
+    */
+   uint32_t convertSecondsToTicks(float seconds) const {
+
+      // Calculate period
+      float    tickRate = getTickFrequencyAsFloat();
+      uint64_t rv       = rintf(seconds*tickRate);
+      usbdm_assert(rv <= 0xFFFFUL, "Interval is too long");
+      if (rv > 0xFFFFUL) {
+         // Attempt to set too long a period
+         setErrorCode(E_TOO_LARGE);
+      }
+      if (rv < 10) {
+         // Attempt to set too short a period
+         setErrorCode(E_TOO_SMALL);
+      }
+      return rv;
+   }
+
+   /**
+    * Convert time in ticks to time in microseconds
+    *
+    * @param[in] timeInTicks Time in ticks
+    *
+    * @return Time in microseconds
+    *
+    * @note Assumes prescale has been chosen as a appropriate value. Rudimentary range checking.
+    */
+   uint32_t convertTicksToMicroseconds(int timeInTicks) const {
+
+      // Calculate period
+      uint64_t rv = (static_cast<uint64_t>(timeInTicks)*1000000)/getTickFrequencyAsInt();
+#ifdef DEBUG_BUILD
+      if (rv > 0xFFFFUL) {
+         // Attempt to set too long a period
+         setErrorCode(E_TOO_LARGE);
+      }
+      if (rv == 0) {
+         // Attempt to set too short a period
+         setErrorCode(E_TOO_SMALL);
+      }
+#endif
+      return rv;
+   }
+
+   /**
+    * Convert time in ticks to time in milliseconds
+    *
+    * @param[in] timeInTicks Time in ticks
+    *
+    * @return Time in milliseconds
+    *
+    * @note Assumes prescale has been chosen as a appropriate value. Rudimentary range checking.
+    */
+   uint32_t convertTicksToMilliseconds(int timeInTicks) const {
+
+      // Calculate period
+      uint64_t rv = (static_cast<uint64_t>(timeInTicks)*1000)/getTickFrequencyAsInt();
+#ifdef DEBUG_BUILD
+      if (rv > 0xFFFFUL) {
+         // Attempt to set too long a period
+         setErrorCode(E_TOO_LARGE);
+      }
+      if (rv == 0) {
+         // Attempt to set too short a period
+         setErrorCode(E_TOO_SMALL);
+      }
+#endif
+      return rv;
+   }
+
+   /**
+    * Convert time in ticks to time in seconds
+    *
+    * @param[in] timeInTicks Time in ticks
+    *
+    * @return Time in seconds
+    */
+   float convertTicksToSeconds(int timeInTicks) {
+      return static_cast<float>(timeInTicks)/getTickFrequencyAsFloat();
+   }
+
+   /**
+    * Get Timer count
+    *
+    * @return Timer count value
+    */
+   uint16_t getTime() {
+      return tmr->CNT;
+   }
+
+   /**
+    * Reset counter to initial value
+    */
+   void resetTime() const {
+      // Note: writing ANY value loads CNT from CNTIN
+      tmr->CNT = 0;
+   }
+
+   /**
+    * Get timer event flags
+    *
+    * @return Flags indicating if an event has occurred on a channel
+    *         There is one bit for each channel
+    */
+   unsigned getInterruptFlags() const {
+      return tmr->STATUS;
+   }
+
+   /**
+    * Clear selected timer event flags
+    *
+    * @param channelMask Mask indicating which channel flags to clear
+    *                    There is one bit for each channel
+	*
+	* @note Flags will not be cleared if the channel is configured for DMA
+    */
+   void clearSelectedInterruptFlags(uint32_t channelMask) const {
+      (void)tmr->STATUS;
+      tmr->STATUS = ~channelMask;
+   }
+
+   /**
+    * Get and clear timer event flags
+    *
+    * @return Flags indicating if an event has occurred on a channel
+    *         There is one bit for each channel
+    *
+    * @note Only flags captured in the return value are cleared
+	* @note Flags will not be cleared if the channel is configured for DMA
+    */
+   unsigned getAndClearInterruptFlags() const {
+      // Note requires read and write zero to clear flags
+      // so only flags captured in status are cleared
+      unsigned status = tmr->STATUS;
+      tmr->STATUS = ~status;
+      return status;
+   }
+
+   /**
+    * Enable/disable Timer Overflow interrupts
+    */
+   void enableTimerOverflowInterrupts() const {
+      tmr->SC = tmr->SC | TPM_SC_TOIE_MASK;
+   }
+
+   /**
+    * Disable Timer Overflow interrupts
+    */
+   void disableTimerOverflowInterrupts() const {
+      tmr->SC = tmr->SC & ~TPM_SC_TOIE_MASK;
+   }
+
+   /**
+    * Set PWM duty cycle.
+    * Higher precision float version
+    *
+    * @param[in] dutyCycle  Duty-cycle as percentage (float)
+    * @param[in] channel    Timer channel
+    *
+    * @note The actual CnV register update may be delayed by the register synchronisation mechanism
+    */
+   void setDutyCycle(float dutyCycle, int channel) const {
+      if (tmr->SC&TPM_SC_CPWMS_MASK) {
+         tmr->CONTROLS[channel].CnV  = round((dutyCycle*tmr->MOD)/100.0f);
+      }
+      else {
+         tmr->CONTROLS[channel].CnV  = round((dutyCycle*(tmr->MOD+1))/100.0f);
+      }
+   }
+
+   /**
+    * Set PWM duty cycle
+    *
+    * @param[in] dutyCycle  Duty-cycle as percentage
+    * @param[in] channel    Timer channel
+    *
+    * @note The actual CnV register update may be delayed by the register synchronisation mechanism
+    */
+   void setDutyCycle(int dutyCycle, int channel) const {
+      if (tmr->SC&TPM_SC_CPWMS_MASK) {
+         tmr->CONTROLS[channel].CnV  = (dutyCycle*tmr->MOD)/100;
+      }
+      else {
+         tmr->CONTROLS[channel].CnV  = (dutyCycle*(tmr->MOD+1))/100;
+      }
+   }
+
+   /**
+    * Set PWM high time in ticks
+    * Assumes value is less than period
+    *
+    * @param[in] highTime   PWM high time in ticks
+    * @param[in] channel    Timer channel
+    *
+    * @return E_NO_ERROR on success
+    * @return E_TOO_LARGE on success
+    *
+    * @note The actual CnV register update may be delayed by the register synchronisation mechanism
+    */
+   ErrorCode setHighTimeInTicks(uint32_t highTime, int channel) const {
+
+      if (tmr->SC&TPM_SC_CPWMS_MASK) {
+         // In CPWM the pulse width is doubled
+         highTime = (highTime+1)/2;
+      }
+#ifdef DEBUG_BUILD
+      if (highTime > tmr->MOD) {
+         return setErrorCode(E_TOO_LARGE);
+      }
+#endif
+      tmr->CONTROLS[channel].CnV  = highTime;
+      return E_NO_ERROR;
+   }
+};
+
+class TpmChannel : public TpmBase {
+
+private:
+   TpmChannel(const TpmChannel&) = delete;
+   TpmChannel(TpmChannel&&) = delete;
+
+protected:
+   // Empty constructor
+   constexpr TpmChannel(uint32_t baseAddress, unsigned channelNum) :
+   TpmBase(baseAddress),
+   channelRegs((uint32_t)(tmr->CONTROLS+channelNum)),
+   CHANNEL(channelNum),
+   CHANNEL_MASK(1<<channelNum) {
+   }
+   ~TpmChannel() = default;
+
+public:
+   /** Allow access to TPM channel registers */
+   const HardwarePtr<TpmBase::TpmChannelRegs> channelRegs;
+
+   /** Timer channel number */
+   const unsigned CHANNEL;
+
+   /** Mask for Timer channel */
+   const uint32_t CHANNEL_MASK;
+
+   /**
+    * Configure channel.
+    * Doesn't affect shared settings of owning Timer
+    *
+    * @param[in] tpmChMode         Mode of operation for channel
+    * @param[in] tpmChannelAction  Whether to enable the interrupt or DMA function on this channel
+    *
+    * @note This method has the side-effect of clearing the register update synchronisation i.e.
+    *       pending CnV register updates are discarded.
+    */
+   void configure(
+         TpmChMode         tpmChMode,
+         TpmChannelAction  tpmChannelAction = TpmChannelAction_None) const {
+
+      tmr->CONTROLS[CHANNEL].CnSC = tpmChMode|tpmChannelAction;
+   }
+
+   /**
+    * Disables timer channel (sets mode to TpmChMode_Disabled)
+    */
+   void disable() const {
+      setMode(TpmChMode_Disabled);
+   }
+
+   /**
+    * Get channel mode.
+    *
+    * @return Current mode of operation for the channel
+    */
+   TpmChMode getMode() const {
+      return (TpmChMode)(tmr->CONTROLS[CHANNEL].CnSC &
+            (TPM_CnSC_MSA_MASK|TPM_CnSC_ELS_MASK));
+   }
+
+   /**
+    * Set channel mode
+    *
+    * @param[in] tpmChMode      Mode of operation for channel
+    *
+    * @note This method has the side-effect of clearing the register update synchronisation i.e.
+    *       pending CnV register updates are discarded.
+    */
+   void setMode(TpmChMode tpmChMode) const {
+      tmr->CONTROLS[CHANNEL].CnSC =
+            (tmr->CONTROLS[CHANNEL].CnSC & ~(TPM_CnSC_MSA_MASK|TPM_CnSC_ELS_MASK))|
+            tpmChMode;
+   }
+
+   /**
+    * Set channel action on event.
+    *
+    * @param[in] tpmChannelAction      Action to take on channel event (DMA or Interrupt)
+    *
+    * @note This method has the side-effect of clearing the register update synchronisation i.e.
+    *       pending CnV register updates are discarded.
+    */
+   void setAction(TpmChannelAction tpmChannelAction) const {
+#if !defined(TPM_CnSC_DMA_MASK)
+      static constexpr uint32_t TPM_CnSC_DMA_MASK = 0;
+#endif
+      tmr->CONTROLS[CHANNEL].CnSC =
+            (tmr->CONTROLS[CHANNEL].CnSC & ~(TPM_CnSC_CHIE_MASK|TPM_CnSC_DMA_MASK))|
+            tpmChannelAction;
+   }
+
+   /**
+    * Set PWM high time in ticks.
+    * Assumes value is less than period
+    *
+    * @param[in] highTime   PWM high time in ticks
+    *
+    * @return E_NO_ERROR on success
+    *
+    * @note The actual CnV register update will be delayed by the register synchronisation mechanism
+    */
+   ErrorCode setHighTimeInTicks(uint32_t highTime) const {
+      return TpmBase::setHighTimeInTicks(highTime, CHANNEL);
+   }
+
+   /**
+    * Set PWM high time in seconds.
+    * Higher precision float version
+    *
+    * @param[in] highTime   PWM high time in seconds
+    *
+    * @return E_NO_ERROR on success
+    *
+    * @note The actual CnV register update will be delayed by the register synchronisation mechanism
+    */
+   ErrorCode setHighTime(float highTime) const {
+      return TpmBase::setHighTimeInTicks(convertSecondsToTicks(highTime), CHANNEL);
+   }
+   /**
+    * Set PWM duty cycle.
+    *
+    * @param[in] dutyCycle  Duty-cycle as percentage
+    *
+    * @note The actual CnV register update will be delayed by the register synchronisation mechanism
+    */
+   void setDutyCycle(int dutyCycle) const {
+      TpmBase::setDutyCycle(dutyCycle, CHANNEL);
+   }
+
+   /**
+    * Set PWM duty cycle
+    *
+    * @param[in] dutyCycle  Duty-cycle as percentage
+    *
+    * @note The actual CnV register update will be delayed by the register synchronisation mechanism
+    */
+   void setDutyCycle(float dutyCycle) const {
+      TpmBase::setDutyCycle(dutyCycle, CHANNEL);
+   }
+
+   /**
+    * Set Timer event time.
+    *
+    * @param[in] offset  Event time in ticks relative to current event time (i.e. Timer channel CnV value)
+    *
+    * @note The actual CnV register update will be delayed by the register synchronisation mechanism
+    */
+   void setDeltaEventTime(uint16_t offset) {
+      tmr->CONTROLS[CHANNEL].CnV = tmr->CONTROLS[CHANNEL].CnV + offset;
+   }
+
+   /**
+    * Set Timer event time relative to current timer count value.
+    *
+    * @param[in] offset  Event time in ticks relative to current time (i.e. Timer CNT value)
+    *
+    * @note The actual CnV register update will be delayed by the register synchronisation mechanism
+    */
+   void setRelativeEventTime(uint16_t offset) const {
+      tmr->CONTROLS[CHANNEL].CnV = tmr->CNT + offset;
+   }
+
+   /**
+    * Set Absolute Timer event time.
+    *
+    * @param[in] eventTime  Absolute event time in ticks i.e. value to use as timer comparison value
+    *
+    * @note The actual CnV register update will be delayed by the register synchronisation mechanism
+    */
+   void setEventTime(uint16_t eventTime) const {
+      tmr->CONTROLS[CHANNEL].CnV = eventTime;
+   }
+
+   /**
+    * Get Absolute Timer event time.
+    *
+    * @return Absolute time of last event in ticks i.e. value from timer event register
+    */
+   uint16_t getEventTime() const {
+      return tmr->CONTROLS[CHANNEL].CnV;
+   }
+
+   /**
+    * Get Timer interrupt/event flag.
+    *
+    * @return true  Indicates an event has occurred on a channel
+    * @return false Indicates no event has occurred on a channel since last polled
+    */
+   bool getInterruptFlag() const {
+      return (tmr->STATUS&CHANNEL_MASK) != 0;
+   }
+
+   /**
+    * Get and Clear Timer channel interrupt flag.
+    *
+    * @return true  Indicates an event has occurred on a channel
+    * @return false Indicates no event has occurred on a channel since last polled
+    *
+    * @note Only flags captured in the return value are cleared
+    */
+   bool getAndClearInterruptFlag() const {
+      // Note - requires read and write zero to clear flags
+      // so only flags captured in status are cleared
+      bool status = (tmr->STATUS&CHANNEL_MASK) != 0;
+      tmr->STATUS = ~CHANNEL_MASK;
+      return status;
+   }
+
+   /**
+    * Clear interrupt flag on channel.
+    */
+   void clearInterruptFlag() const {
+      // Note - requires read and write zero to clear flag
+      tmr->CONTROLS[CHANNEL].CnSC = tmr->CONTROLS[CHANNEL].CnSC & ~TPM_CnSC_CHF_MASK;
+   }
+
+};
+
+/**
+ * Base class representing a TPM.
+ *
+ *
+ * @tparam Info  Class describing TPM hardware instance
+ */
+template<class Info>
+class TpmBase_T : public TpmBase {
+
+private:
+   /**
+    * This class is not intended to be instantiated
+    */
+   TpmBase_T(const TpmBase_T&) = delete;
+   TpmBase_T(TpmBase_T&&) = delete;
+
+public:
+
+   // Empty constructor
+   constexpr TpmBase_T() : TpmBase(Info::baseAddress) {}
+   virtual ~TpmBase_T() = default;
+
+   /** Hardware instance pointer */
+   static constexpr HardwarePtr<TPM_Type> tmr = Info::baseAddress;
+
+   /** Get reference to TPM hardware as struct */
+   static constexpr HardwarePtr<TPM_Type> tpm = Info::baseAddress;
+
+   /** @return Base address of SPI hardware as uint32_t */
+   static constexpr uint32_t tpmBase() { return Info::baseAddress; }
+   /** @return Base address of TPM.SC register as uint32_t */
+   static constexpr uint32_t tpmSC() { return tpmBase() + offsetof(TPM_Type, SC); }
+   /** @return Base address of TPM.CNT register as uint32_t */
+   static constexpr uint32_t tpmCNT() { return tpmBase() + offsetof(TPM_Type, CNT); }
+   /** @return Base address of TPM.MOD register as uint32_t */
+   static constexpr uint32_t tpmMOD() { return tpmBase() + offsetof(TPM_Type, MOD); }
+   /** @return Base address of TPM.CONTROL[n] struct as uint32_t */
+   static constexpr uint32_t tpmCONTROL(int index) { return tpmBase() + offsetof(TPM_Type, CONTROLS[index]); }
+   /** @return Base address of TPM.CONTROL[n].CnSC struct as uint32_t */
+   static constexpr uint32_t tpmCnSC(int index) { return tpmBase() + offsetof(TPM_Type, CONTROLS[index])+0; }
+   /** @return Base address of TPM.CONTROL[n].CnV struct as uint32_t */
+   static constexpr uint32_t tpmCnV(int index) { return tpmBase() + offsetof(TPM_Type, CONTROLS[index])+sizeof(uint32_t); }
+
+private:
+   /** Callback function for TOI ISR */
+   static TpmCallbackFunction sToiCallback;
+
+   /** Callback function for Channel Fault */
+   static TpmCallbackFunction sFaultCallback;
+
+   /** Callback function for Channel ISR */
+   static TpmChannelCallbackFunction sChannelCallback;
+
+
+protected:
+   /**
+    * Get frequency of timer tick
+    *
+    * @return Timer frequency in Hz
+    */
+   virtual float getInputClockFrequencyVirtual() const override {
+      return Info::getInputClockFrequency();
+   }
+
+public:
+   /**
+    * IRQ handler
+    */
+   static void irqHandler() {
+      if ((tmr->SC&(TPM_SC_TOF_MASK|TPM_SC_TOIE_MASK)) == (TPM_SC_TOF_MASK|TPM_SC_TOIE_MASK)) {
+         // Clear TOI flag (w1c)
+         tmr->SC = tmr->SC | TPM_SC_TOF_MASK;
+         sToiCallback();
+      }
+      // Get status for channels
+      uint32_t status = tmr->STATUS;
+      if (status) {
+         // Clear flags for channel events being handled (w1c register if read)
+         tmr->STATUS = status;
+         sChannelCallback(status);
+      }
+   }
+
+   /**
+    * Wrapper to allow the use of a class member as a callback function
+    * @note Only usable with static objects.
+    *
+    * @tparam T         Type of the object containing the callback member function
+    * @tparam callback  Member function pointer
+    * @tparam object    Object containing the member function
+    *
+    * @return  Pointer to a function suitable for the use as a callback
+    *
+    * @code
+    * class AClass {
+    * public:
+    *    int y;
+    *
+    *    // Member function used as callback
+    *    // This function must match TpmChannelCallbackFunction
+    *    void callback(uint8_t status) {
+    *       ...;
+    *    }
+    * };
+    * ...
+    * // Instance of class containing callback member function
+    * static AClass aClass;
+    * ...
+    * // Wrap member function
+    * auto fn = Tpm0::wrapCallback<AClass, &AClass::callback, aClass>();
+    * // Use as callback
+    * Tpm0::setCallback(fn);
+    * @endcode
+    */
+   template<class T, void(T::*callback)(uint8_t), T &object>
+   static TpmChannelCallbackFunction wrapCallback() {
+      static TpmChannelCallbackFunction fn = [](uint8_t status) {
+         (object.*callback)(status);
+      };
+      return fn;
+   }
+
+   /**
+    * Wrapper to allow the use of a class member as a callback function
+    * @note There is a considerable space and time overhead to using this method
+    *
+    * @tparam T         Type of the object containing the callback member function
+    * @tparam callback  Member function pointer
+    * @tparam object    Object containing the member function
+    *
+    * @return  Pointer to a function suitable for the use as a callback
+    *
+    * @code
+    * class AClass {
+    * public:
+    *    int y;
+    *
+    *    // Member function used as callback
+    *    // This function must match TpmChannelCallbackFunction
+    *    void callback(uint8_t status) {
+    *       ...;
+    *    }
+    * };
+    * ...
+    * // Instance of class containing callback member function
+    * AClass aClass;
+    * ...
+    * // Wrap member function
+    * auto fn = Tpm0::wrapCallback<AClass, &AClass::callback>(aClass);
+    * // Use as callback
+    * Tpm0::setCallback(fn);
+    * @endcode
+    */
+   template<class T, void(T::*callback)(uint8_t)>
+   static TpmChannelCallbackFunction wrapCallback(T &object) {
+      static T &obj = object;
+      static TpmChannelCallbackFunction fn = [](uint8_t status) {
+         (obj.*callback)(status);
+      };
+      return fn;
+   }
+
+   /**
+    * Set channel Callback function\n
+    * Note that one callback is shared by all channels of the timer
+    *
+    * @param[in] callback Callback function to execute on channel interrupt.\n
+    *                     Use nullptr to remove callback.
+    *
+    * @return E_NO_ERROR            No error
+    * @return E_HANDLER_ALREADY_SET Handler already set
+    *
+    * @note One channel event callback is shared by all channels of the timer.
+    *       It is necessary to identify the originating channel in the callback
+    */
+   static ErrorCode setChannelCallback(TpmChannelCallbackFunction callback) {
+      static_assert(Info::irqLevel>=0, "TPM not configured for interrupts - Modify Configure.usbdm");
+      if (callback == nullptr) {
+         sChannelCallback = unhandledChannelCallback;
+         return E_NO_ERROR;
+      }
+#ifdef DEBUG_BUILD
+      // Callback is shared across all channels. Check if callback already assigned
+      if ((sChannelCallback != unhandledChannelCallback) &&
+            (sChannelCallback != nullptr) &&
+            (sChannelCallback != callback)) {
+         return setErrorCode(ErrorCode::E_HANDLER_ALREADY_SET);
+      }
+#endif
+      sChannelCallback = callback;
+      return E_NO_ERROR;
+   }
+   /**
+    * Set TOI Callback function\n
+    * Note that one callback is shared by all channels of the timer
+    *
+    * @param[in] theCallback Callback function to execute when timer overflows. \n
+    *                        nullptr to indicate none
+    */
+   static void setTimerOverflowCallback(TpmCallbackFunction theCallback) {
+      static_assert(Info::irqLevel>=0, "TPM not configured for interrupts - Modify Configure.usbdmF");
+      if (theCallback == nullptr) {
+         sToiCallback = unhandledCallback;
+         return;
+      }
+      sToiCallback = theCallback;
+   }
+
+public:
+   // No class Info found
+   /**
+    * Configure with settings from Configure.usbdmProject.
+    * Includes configuring all pins
+    */
+   static void defaultConfigure() {
+      enable();
+
+      // Disable so immediate effect
+      tmr->SC = 0;
+      (void)tmr->SC;
+      // Common registers
+      tmr->CNT     = 0;
+      tmr->MOD     = Info::modulo;
+      tmr->SC      = Info::sc;
+
+      enableNvicInterrupts(Info::irqLevel);
+   }
+
+   /**
+    * Enables clock to peripheral and configures all pins.
+    * Configures main operating settings for timer.
+    *
+    * @param[in] tpmMode        Mode of operation.
+    * @param[in] tpmClockSource Clock source for timer.
+    * @param[in] tpmPrescale    Clock prescaler. Used to divide input clock.
+    */
+   static void configure(
+         TpmMode        tpmMode,
+         TpmClockSource tpmClockSource = TpmClockSource_Internal,
+         TpmPrescale    tpmPrescale    = TpmPrescale_128) {
+
+      enable();
+
+      // Disable so immediate effect
+      tmr->SC = 0;
+      (void)tmr->SC;
+      tmr->SC  = tpmMode|tpmClockSource|tpmPrescale;
+   }
+
+   /**
+    * Set timer mode
+    *
+    * @param[in] tpmMode        Mode of operation
+    *
+    * @note This function will affect all channels of the timer.
+    * @note The timer will be disabled while making changes.
+    */
+   static void setMode(TpmMode tpmMode) {
+      // Disable timer to allow change
+      uint32_t sc = tmr->SC;
+      tmr->SC = 0;
+      (void)tmr->SC;
+
+      // Set new mode
+      tmr->SC = (sc&~TPM_SC_CPWMS_MASK)|tpmMode;
+   }
+
+   /**
+    * Stop timer counter.
+    * This simply disables the counter clock source. \n
+    * To restart use setClockSource() or configure();
+    *
+    * @note This function will affect all channels of the timer.
+    */
+   static void stopCounter() {
+      //if (isEnabled()) {
+      tmr->SC = (tmr->SC&~TPM_SC_CMOD_MASK);
+      //}
+   }
+
+   /**
+    * Set timer clock source
+    *
+    * @param[in] tpmClockSource Clock source for timer
+    *
+    * @note This function will affect all channels of the timer.
+    * @note The timer will be disabled while making changes.
+    */
+   static void setClockSource(TpmClockSource tpmClockSource=TpmClockSource_Internal) {
+      // Calculate new SC value
+      uint32_t sc = (tmr->SC&~TPM_SC_CMOD_MASK)|tpmClockSource;
+      // Disable timer to change clock (can't switch directly between clock sources)
+      tmr->SC = 0;
+      // Make sure write has completed (disabled)
+      (void)tmr->SC;
+      // Write new value
+      tmr->SC = sc;
+   }
+
+   /**
+    *  Set timer prescaler
+    *
+    * @param[in] tpmPrescale    Clock prescaler. Used to divide counter clock source before use
+    *
+    * @note This function will affect all channels of the timer.
+    * @note The timer will be disabled while making changes.
+    */
+   static void setPrescaler(TpmPrescale tpmPrescale=TpmPrescale_128) {
+      // Disable timer to allow change
+      uint32_t sc = tmr->SC;
+      tmr->SC = 0;
+      // Make sure write completes
+      (void)tmr->SC;
+      // Write new value
+      tmr->SC = (sc&~TPM_SC_PS_MASK)|tpmPrescale;
+   }
+
+   /**
+    * Set maximum value of timer counter.
+    *
+    * @param[in] endValue Modulo value in ticks (<65535), 0 = 65536.
+    * @param[in] suspend  Whether to suspend timer during change.
+    *
+    * @note This function will affect all channels of the timer.
+    * @note The timer will be disabled while making changes.
+    * @note This value is write-buffered and updated by MOD synchronisation
+    *       unless suspend is true.
+    */
+   static void setCounterMaximumValue(uint16_t endValue, bool suspend=false) {
+      uint32_t sc;
+      if (suspend) {
+         // Disable timer so register changes are immediate
+         sc = tmr->SC;
+         tmr->SC = 0;
+         (void)tmr->SC;
+      }
+      tmr->MOD = endValue;
+      if (suspend) {
+         tmr->SC = sc;
+      }
+   }
+
+   /**
+    * Get maximum value of timer counter.
+    *
+    * @return Counter modulo value in ticks (<65535), 0 = 65536.
+    */
+   static uint16_t getCounterMaximumValue() {
+      return tmr->MOD;
+   }
+
+   /**
+    * Set period.
+    *
+    * @param[in] period   Period in ticks (<65535)
+    * @param[in] suspend  Whether to suspend timer during change.
+    *
+    * @return E_NO_ERROR       Success
+    * @return E_TOO_LARGE      Requested period is too large
+    *
+    * @note Prescaler is not affected.
+    * @note Assumes prescale has been set to an appropriate value.
+    * @note Only rudimentary range checking.
+    * @note This function will affect all channels of the timer.
+    * @note This value is write-buffered and updated by MOD synchronisation
+    *       unless suspend is true.
+    */
+   static ErrorCode setPeriodInTicks(uint32_t period, bool suspend=false) {
+
+      // Check if CPWMS is set (affects period)
+      bool centreAlign = (tmr->SC&TPM_SC_CPWMS_MASK);
+
+      if (centreAlign) {
+         // Centre-aligned period is 2*MOD value but MOD is
+         // limited to 0x7FFF for sensible PWM operation
+
+         // Halve with rounding
+         period = (period+1)/2;
+         if (period > 0x7FFFUL) {
+            // Attempt to set too long a period
+            usbdm_assert(false, "Interval is too long");
+            return setErrorCode(E_TOO_LARGE);
+         }
+      }
+      else {
+         // Left-aligned period is MOD+1 value
+         period = period-1;
+         if (period > 0xFFFF) {
+            // Attempt to set too long a period
+            usbdm_assert(false, "Interval is too long");
+            return setErrorCode(E_TOO_LARGE);
+         }
+      }
+      uint32_t sc;
+      if (suspend) {
+         sc = tmr->SC;
+         tmr->SC = 0;
+      }
+      // Change modulo
+      tmr->MOD = period;
+
+      if (suspend) {
+         // Restart timer
+         tmr->SC = sc;
+      }
+      // OK period
+      return E_NO_ERROR;
+   }
+
+   /**
+    * Calculate TPM timing parameters to achieve a given period
     *
     * @param period           Period in seconds
     * @param pPrescalerValue  Calculated prescaler value (for SC register)
@@ -580,7 +1474,7 @@ public:
       uint32_t maxPeriodInTicks = 65536;
 
       // Check if CPWMS is set (affects period calculation)
-      if (tmr().SC&TPM_SC_CPWMS_MASK) {
+      if (tmr->SC&TPM_SC_CPWMS_MASK) {
          // Centre-aligned period is ~double the MOD value but MOD is
          // limited to 0x7FFF for sensible PWM operation so
          // period in ticks is limited to 2*0x7FFF
@@ -632,22 +1526,22 @@ public:
          return rc;
       }
       // Disable timer to change prescaler and period
-      uint32_t sc = tmr().SC;
-      tmr().SC = 0;
-      (void)tmr().SC;
+      uint32_t sc = tmr->SC;
+      tmr->SC = 0;
+      (void)tmr->SC;
       setPeriodInTicks(periodInTicks, false);
 
       // Restart counter
-      tmr().CNT   = 0;
+      tmr->CNT   = 0;
 
-      tmr().SC = (sc&~TPM_SC_PS_MASK)|TPM_SC_PS(prescalerValue);
+      tmr->SC = (sc&~TPM_SC_PS_MASK)|TPM_SC_PS(prescalerValue);
 
       return E_NO_ERROR;
    }
 
    /**
     * Set maximum interval for input-capture or output compare.
-    * Input Capture and Output Compare will be able to operate over 
+    * Input Capture and Output Compare will be able to operate over
     * at least this period without overflow.
     *
     * @param[in] interval Interval in seconds as a float
@@ -658,11 +1552,11 @@ public:
     *
     * @note This function will affect all channels of the timer.
     * @note Adjusts Timer pre-scaler to appropriate value.
-    * @note FTM counter is configured for free-running mode i.e. 0-65535
+    * @note TPM counter is configured for free-running mode i.e. 0-65535
     * @note The Timer is stopped while being modified.
     * @note The Timer counter is restarted from zero
     */
-   static INLINE_RELEASE ErrorCode setMaximumInterval(float interval) {
+   static ErrorCode setMaximumInterval(float interval) {
 
       unsigned prescalerValue;
       unsigned periodInTicks;
@@ -672,18 +1566,18 @@ public:
          return rc;
       }
       // Disable timer to change prescaler and period
-      uint32_t sc = tmr().SC;
-      tmr().SC = 0;
-      (void)tmr().SC;
+      uint32_t sc = tmr->SC;
+      tmr->SC = 0;
+      (void)tmr->SC;
 
       // Configure for free-running mode
       // This is the usual value for IC or OC set-up
-      tmr().MOD = 0;
+      tmr->MOD = 0;
 
       // Restart counter
-      tmr().CNT   = 0;
+      tmr->CNT   = 0;
 
-      tmr().SC = (sc&~TPM_SC_PS_MASK)|TPM_SC_PS(prescalerValue);
+      tmr->SC = (sc&~TPM_SC_PS_MASK)|TPM_SC_PS(prescalerValue);
 
       return E_NO_ERROR;
    }
@@ -693,10 +1587,10 @@ public:
     *
     * @return Timer frequency in Hz
     */
-   static INLINE_RELEASE float getTickFrequencyAsFloat() {
+   static float getTickFrequencyAsFloat() {
 
       // Calculate timer prescale factor
-      int prescaleFactor = 1<<((tmr().SC&TPM_SC_PS_MASK)>>TPM_SC_PS_SHIFT);
+      int prescaleFactor = 1<<((tmr->SC&TPM_SC_PS_MASK)>>TPM_SC_PS_SHIFT);
 
       return static_cast<float>(Info::getInputClockFrequency())/prescaleFactor;
    }
@@ -706,10 +1600,10 @@ public:
     *
     * @return Frequency as a uint32_t in Hz (may underflow)
     */
-   static INLINE_RELEASE uint32_t getTickFrequencyAsInt() {
+   static uint32_t getTickFrequencyAsInt() {
 
       // Calculate timer prescale factor
-      int prescaleFactor = 1<<((tmr().SC&TPM_SC_PS_MASK)>>TPM_SC_PS_SHIFT);
+      int prescaleFactor = 1<<((tmr->SC&TPM_SC_PS_MASK)>>TPM_SC_PS_SHIFT);
 
       return Info::getInputClockFrequency()/prescaleFactor;
    }
@@ -736,10 +1630,10 @@ public:
 
          if ((100*std::abs((tickFrequency/frequency)-1)) < tolerance) {
             // Clear SC so immediate effect on prescale change
-            uint32_t sc = tmr().SC&~TPM_SC_PS_MASK;
-            tmr().SC = 0;
-            (void)tmr().SC;
-            tmr().SC     = sc|TPM_SC_PS(prescalerValue);
+            uint32_t sc = tmr->SC&~TPM_SC_PS_MASK;
+            tmr->SC = 0;
+            (void)tmr->SC;
+            tmr->SC     = sc|TPM_SC_PS(prescalerValue);
             return E_NO_ERROR;
          }
          prescalerValue++;
@@ -862,7 +1756,7 @@ public:
     *
     * @return Time in seconds
     */
-   static float INLINE_RELEASE convertTicksToSeconds(int timeInTicks) {
+   static float convertTicksToSeconds(int timeInTicks) {
       return static_cast<float>(timeInTicks)/getTickFrequencyAsFloat();
    }
 
@@ -871,16 +1765,16 @@ public:
     *
     * @return Timer count value
     */
-   static INLINE_RELEASE uint16_t getTime() {
-      return tmr().CNT;
+   static uint16_t getTime() {
+      return tmr->CNT;
    }
 
    /**
     * Reset counter to initial value
     */
-   static INLINE_RELEASE void resetTime() {
+   static void resetTime() {
       // Note: writing ANY value loads CNT from CNTIN
-      tmr().CNT = 0;
+      tmr->CNT = 0;
    }
 
    /**
@@ -889,8 +1783,8 @@ public:
     * @return Flags indicating if an event has occurred on a channel
     *         There is one bit for each channel
     */
-   static INLINE_RELEASE unsigned getInterruptFlags() {
-      return tmr().STATUS;
+   static unsigned getInterruptFlags() {
+      return tmr->STATUS;
    }
 
    /**
@@ -898,12 +1792,12 @@ public:
     *
     * @param channelMask Mask indicating which channel flags to clear
     *                    There is one bit for each channel
-	*
-	* @note Flags will not be cleared if the channel is configured for DMA
+   *
+   * @note Flags will not be cleared if the channel is configured for DMA
     */
-   static INLINE_RELEASE void clearSelectedInterruptFlags(uint32_t channelMask) {
-      (void)tmr().STATUS;
-      tmr().STATUS = ~channelMask;
+   static void clearSelectedInterruptFlags(uint32_t channelMask) {
+      (void)tmr->STATUS;
+      tmr->STATUS = ~channelMask;
    }
 
    /**
@@ -913,28 +1807,28 @@ public:
     *         There is one bit for each channel
     *
     * @note Only flags captured in the return value are cleared
-	* @note Flags will not be cleared if the channel is configured for DMA
+   * @note Flags will not be cleared if the channel is configured for DMA
     */
-   static INLINE_RELEASE unsigned getAndClearInterruptFlags() {
+   static unsigned getAndClearInterruptFlags() {
       // Note requires read and write zero to clear flags
       // so only flags captured in status are cleared
-      unsigned status = tmr().STATUS;
-      tmr().STATUS = ~status;
+      unsigned status = tmr->STATUS;
+      tmr->STATUS = ~status;
       return status;
    }
 
    /**
     * Enable/disable Timer Overflow interrupts
     */
-   static INLINE_RELEASE void enableTimerOverflowInterrupts() {
-      tmr().SC |= TPM_SC_TOIE_MASK;
+   static void enableTimerOverflowInterrupts() {
+      tmr->SC = tmr->SC | TPM_SC_TOIE_MASK;
    }
 
    /**
     * Disable Timer Overflow interrupts
     */
-   static INLINE_RELEASE void disableTimerOverflowInterrupts() {
-      tmr().SC &= ~TPM_SC_TOIE_MASK;
+   static void disableTimerOverflowInterrupts() {
+      tmr->SC = tmr->SC & ~TPM_SC_TOIE_MASK;
    }
 
 
@@ -950,8 +1844,8 @@ public:
     *
     * @return Absolute time of last event in ticks i.e. value from timer event register
     */
-   static INLINE_RELEASE uint16_t getEventTime(int channel) {
-      return tmr().CONTROLS[channel].CnV;
+   static uint16_t getEventTime(int channel) {
+      return tmr->CONTROLS[channel].CnV;
    }
 
    /**
@@ -962,32 +1856,32 @@ public:
     * @param[in] eventTime  Absolute event time in ticks i.e. value to use as timer comparison value
     * @param[in] channel    Timer channel
     */
-   static INLINE_RELEASE void setEventTime(uint16_t eventTime, int channel) {
-      tmr().CONTROLS[channel].CnV = eventTime;
+   static void setEventTime(uint16_t eventTime, int channel) {
+      tmr->CONTROLS[channel].CnV = eventTime;
    }
 
    /**
     * Set Timer event time relative to current event time
     *
-    * @param[in] eventTime  Event time in ticks relative to current event time (i.e. Timer channel CnV value)
+    * @param[in] offset     Event time in ticks relative to current event time (i.e. Timer channel CnV value)
     * @param[in] channel    Timer channel
     *
     * @note This value is write-buffered and updated by CnV synchronisation.
     */
-   static INLINE_RELEASE void setDeltaEventTime(uint16_t eventTime, int channel) {
-      tmr().CONTROLS[channel].CnV += eventTime;
+   static void setDeltaEventTime(uint16_t offset, int channel) {
+      tmr->CONTROLS[channel].CnV = tmr->CONTROLS[channel].CnV + offset;
    }
 
    /**
     * Set Timer event time relative to current timer count value
     *
-    * @param[in] eventTime  Event time in ticks relative to current time (i.e. Timer CNT value)
+    * @param[in] offset     Event time in ticks relative to current time (i.e. Timer CNT value)
     * @param[in] channel    Timer channel
     *
     * @note This value is write-buffered and updated by CnV synchronisation.
     */
-   static INLINE_RELEASE void setRelativeEventTime(uint16_t eventTime, int channel) {
-      tmr().CONTROLS[channel].CnV = tmr().CNT + eventTime;
+   static void setRelativeEventTime(uint16_t offset, int channel) {
+      tmr->CONTROLS[channel].CnV = tmr->CNT + offset;
    }
 
    /**
@@ -1000,11 +1894,11 @@ public:
     * @note The actual CnV register update may be delayed by the register synchronisation mechanism
     */
    static void setDutyCycle(float dutyCycle, int channel) {
-      if (tmr().SC&TPM_SC_CPWMS_MASK) {
-         tmr().CONTROLS[channel].CnV  = round((dutyCycle*tmr().MOD)/100.0f);
+      if (tmr->SC&TPM_SC_CPWMS_MASK) {
+         tmr->CONTROLS[channel].CnV  = round((dutyCycle*tmr->MOD)/100.0f);
       }
       else {
-         tmr().CONTROLS[channel].CnV  = round((dutyCycle*(tmr().MOD+1))/100.0f);
+         tmr->CONTROLS[channel].CnV  = round((dutyCycle*(tmr->MOD+1))/100.0f);
       }
    }
 
@@ -1017,11 +1911,11 @@ public:
     * @note The actual CnV register update may be delayed by the register synchronisation mechanism
     */
    static void setDutyCycle(int dutyCycle, int channel) {
-      if (tmr().SC&TPM_SC_CPWMS_MASK) {
-         tmr().CONTROLS[channel].CnV  = (dutyCycle*tmr().MOD)/100;
+      if (tmr->SC&TPM_SC_CPWMS_MASK) {
+         tmr->CONTROLS[channel].CnV  = (dutyCycle*tmr->MOD)/100;
       }
       else {
-         tmr().CONTROLS[channel].CnV  = (dutyCycle*(tmr().MOD+1))/100;
+         tmr->CONTROLS[channel].CnV  = (dutyCycle*(tmr->MOD+1))/100;
       }
    }
 
@@ -1039,16 +1933,16 @@ public:
     */
    static ErrorCode setHighTime(uint32_t highTime, int channel) {
 
-      if (tmr().SC&TPM_SC_CPWMS_MASK) {
+      if (tmr->SC&TPM_SC_CPWMS_MASK) {
          // In CPWM the pulse width is doubled
          highTime = (highTime+1)/2;
       }
 #ifdef DEBUG_BUILD
-      if (highTime > tmr().MOD) {
+      if (highTime > tmr->MOD) {
          return setErrorCode(E_TOO_LARGE);
       }
 #endif
-      tmr().CONTROLS[channel].CnV  = highTime;
+      tmr->CONTROLS[channel].CnV  = highTime;
       return E_NO_ERROR;
    }
 
@@ -1062,10 +1956,36 @@ public:
     *
     * @note The actual CnV register update may be delayed by the TPM register synchronisation mechanism
     */
-   static INLINE_RELEASE ErrorCode setHighTime(float highTime, int channel) {
+   static ErrorCode setHighTime(float highTime, int channel) {
       return setHighTime(convertSecondsToTicks(highTime), channel);
    }
 
+
+
+   /**
+    * Enable interrupts in NVIC
+    */
+   static void enableNvicInterrupts() {
+      NVIC_EnableIRQ(Info::irqNums[0]);
+   }
+
+   /**
+    * Enable and set priority of interrupts in NVIC
+    *
+    * @param[in]  nvicPriority  Interrupt priority
+    *
+    * @note Any pending interrupts are cleared before enabling.
+    */
+   static void enableNvicInterrupts(NvicPriority nvicPriority) {
+      enableNvicInterrupt(Info::irqNums[0], nvicPriority);
+   }
+
+   /**
+    * Disable interrupts in NVIC
+    */
+   static void disableNvicInterrupts() {
+      NVIC_DisableIRQ(Info::irqNums[0]);
+   }
 
 public:
    /**
@@ -1098,19 +2018,9 @@ public:
    private:
       TpmBase::CheckChannel<Info, channel> check;
 
-      /**
-       * Used to suppress error messages that are already checked
-       * by static assertions in a more meaningful manner.
-       *
-       * @return Unchanged validate channel number or 0
-       */
-      static constexpr int limitChannel() {
-         return (channel>=Info::numSignals)?0:channel;
-      }
-
    public:
       /** Allow access to PCR of associated pin */
-      using Pcr = PcrTable_T<Info, limitChannel()>;
+      using Pcr = PcrTable_T<Info, limitIndex<Info>(channel)>;
 
       /** Allow access owning TPM */
       using Tpm = TpmBase_T<Info>;
@@ -1136,7 +2046,7 @@ public:
        * @return Reference to the TPM channel registers
        */
       static __attribute__((always_inline)) volatile TpmChannelRegs &channelRegs() {
-         return *reinterpret_cast<TpmChannelRegs *>(&Tpm::tmr().CONTROLS[CHANNEL]);
+         return *reinterpret_cast<TpmChannelRegs *>(&Tpm::tmr->CONTROLS[CHANNEL]);
       }
 
       /** Timer channel number */
@@ -1153,7 +2063,7 @@ public:
        */
       static void defaultConfigure() {
 
-         Tpm::tmr().CONTROLS[channel].CnSC = TpmChMode_PwmHighTruePulses|TpmChannelAction_None;
+         Tpm::tmr->CONTROLS[channel].CnSC = TpmChMode_PwmHighTruePulses|TpmChannelAction_None;
       }
 
       /**
@@ -1166,11 +2076,11 @@ public:
        * @note This method has the side-effect of clearing the register update synchronisation i.e.
        *       pending CnV register updates are discarded.
        */
-      static INLINE_RELEASE void configure(
+      static void configure(
             TpmChMode         tpmChMode,
             TpmChannelAction  tpmChannelAction = TpmChannelAction_None) {
 
-         Tpm::tmr().CONTROLS[channel].CnSC = tpmChMode|tpmChannelAction;
+         Tpm::tmr->CONTROLS[channel].CnSC = tpmChMode|tpmChannelAction;
       }
 
       /**
@@ -1185,8 +2095,8 @@ public:
        *
        * @return Current mode of operation for the channel
        */
-      static INLINE_RELEASE TpmChMode getMode() {
-         return static_cast<TpmChMode>(Tpm::tmr().CONTROLS[channel].CnSC &
+      static TpmChMode getMode() {
+         return static_cast<TpmChMode>(Tpm::tmr->CONTROLS[channel].CnSC &
                (TPM_CnSC_MS_MASK|TPM_CnSC_ELS_MASK));
       }
 
@@ -1198,9 +2108,9 @@ public:
        * @note This method has the side-effect of clearing the register update synchronisation i.e.
        *       pending CnV register updates are discarded.
        */
-      static INLINE_RELEASE void setMode(TpmChMode tpmChMode) {
-         Tpm::tmr().CONTROLS[channel].CnSC =
-               (Tpm::tmr().CONTROLS[channel].CnSC & ~(TPM_CnSC_MS_MASK|TPM_CnSC_ELS_MASK))|tpmChMode;
+      static void setMode(TpmChMode tpmChMode) {
+         Tpm::tmr->CONTROLS[channel].CnSC =
+               (Tpm::tmr->CONTROLS[channel].CnSC & ~(TPM_CnSC_MS_MASK|TPM_CnSC_ELS_MASK))|tpmChMode;
       }
 
       /**
@@ -1211,14 +2121,14 @@ public:
        * @note This method has the side-effect of clearing the register update synchronisation i.e.
        *       pending CnV register updates are discarded.
        */
-      static INLINE_RELEASE void setAction(TpmChannelAction tpmChannelAction) {
+      static void setAction(TpmChannelAction tpmChannelAction) {
 #ifdef TPM_CnSC_DMA
-         Tpm::tmr().CONTROLS[channel].CnSC =
-               (Tpm::tmr().CONTROLS[channel].CnSC & ~(TPM_CnSC_CHIE_MASK|TPM_CnSC_DMA_MASK))|
+         Tpm::tmr->CONTROLS[channel].CnSC =
+               (Tpm::tmr->CONTROLS[channel].CnSC & ~(TPM_CnSC_CHIE_MASK|TPM_CnSC_DMA_MASK))|
                tpmChannelAction;
 #else
-         Tpm::tmr().CONTROLS[channel].CnSC =
-               (Tpm::tmr().CONTROLS[channel].CnSC & ~TPM_CnSC_CHIE_MASK)|tpmChannelAction;
+         Tpm::tmr->CONTROLS[channel].CnSC =
+               (Tpm::tmr->CONTROLS[channel].CnSC & ~TPM_CnSC_CHIE_MASK)|tpmChannelAction;
 #endif
       }
 
@@ -1232,7 +2142,7 @@ public:
        *
        * @note The actual CnV register update will be delayed by the register synchronisation mechanism
        */
-      static INLINE_RELEASE ErrorCode setHighTimeInTicks(uint32_t highTime) {
+      static ErrorCode setHighTimeInTicks(uint32_t highTime) {
          return Tpm::setHighTime(highTime, channel);
       }
 
@@ -1246,7 +2156,7 @@ public:
        *
        * @note The actual CnV register update will be delayed by the register synchronisation mechanism
        */
-      static INLINE_RELEASE ErrorCode setHighTime(float highTime) {
+      static ErrorCode setHighTime(float highTime) {
          return Tpm::setHighTime(highTime, channel);
       }
       /**
@@ -1256,7 +2166,7 @@ public:
        *
        * @note The actual CnV register update will be delayed by the register synchronisation mechanism
        */
-      static INLINE_RELEASE void setDutyCycle(int dutyCycle) {
+      static void setDutyCycle(int dutyCycle) {
          Tpm::setDutyCycle(dutyCycle, channel);
       }
 
@@ -1267,7 +2177,7 @@ public:
        *
        * @note The actual CnV register update will be delayed by the register synchronisation mechanism
        */
-      static INLINE_RELEASE void setDutyCycle(float dutyCycle) {
+      static void setDutyCycle(float dutyCycle) {
          Tpm::setDutyCycle(dutyCycle, channel);
       }
 
@@ -1278,7 +2188,7 @@ public:
        *
        * @note The actual CnV register update will be delayed by the register synchronisation mechanism
        */
-      static INLINE_RELEASE void setDeltaEventTime(uint16_t offset) {
+      static void setDeltaEventTime(uint16_t offset) {
          Tpm::setDeltaEventTime(offset, channel);
       }
 
@@ -1289,7 +2199,7 @@ public:
        *
        * @note The actual CnV register update will be delayed by the register synchronisation mechanism
        */
-      static INLINE_RELEASE void setRelativeEventTime(uint16_t offset) {
+      static void setRelativeEventTime(uint16_t offset) {
          Tpm::setRelativeEventTime(offset, channel);
       }
 
@@ -1300,7 +2210,7 @@ public:
        *
        * @note The actual CnV register update will be delayed by the register synchronisation mechanism
        */
-      static INLINE_RELEASE void setEventTime(uint16_t eventTime) {
+      static void setEventTime(uint16_t eventTime) {
          Tpm::setEventTime(eventTime, channel);
       }
 
@@ -1309,7 +2219,7 @@ public:
        *
        * @return Absolute time of last event in ticks i.e. value from timer event register
        */
-      static INLINE_RELEASE uint16_t getEventTime() {
+      static uint16_t getEventTime() {
          return Tpm::getEventTime(channel);
       }
 
@@ -1319,8 +2229,8 @@ public:
        * @return true  Indicates an event has occurred on a channel
        * @return false Indicates no event has occurred on a channel since last polled
        */
-      static INLINE_RELEASE bool getInterruptFlag() {
-         return (Tpm::tmr().STATUS&CHANNEL_MASK) != 0;
+      static bool getInterruptFlag() {
+         return (Tpm::tmr->STATUS&CHANNEL_MASK) != 0;
       }
 
       /**
@@ -1331,21 +2241,23 @@ public:
        *
        * @note Only flags captured in the return value are cleared
        */
-      static INLINE_RELEASE bool getAndClearInterruptFlag() {
+      static bool getAndClearInterruptFlag() {
          // Note - requires read and write zero to clear flags
          // so only flags captured in status are cleared
-         bool status = (Tpm::tmr().STATUS&CHANNEL_MASK) != 0;
-         Tpm::tmr().STATUS = CHANNEL_MASK;
+         bool status = (Tpm::tmr->STATUS&CHANNEL_MASK) != 0;
+         Tpm::tmr->STATUS = CHANNEL_MASK;
          return status;
       }
 
       /**
        * Clear interrupt flag on channel.
        */
-      static INLINE_RELEASE void clearInterruptFlag() {
+      static void clearInterruptFlag() {
          // Note - requires one to clear flag
-         Tpm::tmr().STATUS = CHANNEL_MASK;
+         Tpm::tmr->STATUS = CHANNEL_MASK;
       }
+
+
 
 
       /*******************************
@@ -1360,210 +2272,128 @@ public:
        * @note There is a single callback function for all pins on the related port.
        */
       static __attribute__((always_inline)) void setPinCallback(PinCallbackFunction callback) {
-         TpmBase::CheckPinMapping<Info, channel>::check();
-         Pcr::setCallback(callback);
+         TpmBase::CheckChannelIsMappedToPinOnly<Info, channel>::check();
+         static_assert(Pcr::HANDLER_INSTALLED, "Gpio associated with TPM channel not configured for PIN interrupts - Modify Configure.usbdm");
+         Pcr::setPinCallback(callback);
       }
 
-      /**
-       * Clear interrupt flag on pin associated with channel.
-       * Assumes clock to the port has already been enabled.
-       */
-      static __attribute__((always_inline)) void clearPinInterruptFlag() {
-         TpmBase::CheckPinMapping<Info, channel>::check();
-         Pcr::clearInterruptFlag();
-      }
+#if defined(PORT_PCR_ODE_MASK) and defined (PORT_PCR_SRE_MASK)
+   /**
+    * @brief
+    * Set subset of Pin Control Register Attributes associated with output direction \n
+    * Mux value is set appropriately for the pin function being used. Other attributes are cleared.
+    * Assumes clock to the port has already been enabled
+    *
+    * @param[in] pinDriveStrength One of PinDriveStrength_Low, PinDriveStrength_High
+    * @param[in] pinDriveMode     One of PinDriveMode_PushPull, PinDriveMode_OpenDrain
+    * @param[in] pinSlewRate      One of PinSlewRate_Slow, PinSlewRate_Fast
+    */
+   static void setOutput(
+         PinDriveStrength  pinDriveStrength  = Pcr::defaultPcrValue,
+         PinDriveMode      pinDriveMode      = Pcr::defaultPcrValue,
+         PinSlewRate       pinSlewRate       = Pcr::defaultPcrValue) {
+
+      TpmBase::CheckChannelIsMappedToPinOnly<Info, channel>::check();
+
+#ifdef TPM_SC_PWMEN0_SHIFT
+      // Enable output pin in TPM
+      tpm->SC = tpm->SC | (1<<(channel+TPM_SC_PWMEN0_SHIFT));
+#endif
+      Pcr::setPCR(pinDriveStrength|pinDriveMode|pinSlewRate);
+   }
+#elif defined(PORT_PCR_ODE_ASK)
+   /**
+    * @brief
+    * Set subset of Pin Control Register Attributes associated with output direction \n
+    * Mux value is set appropriately for the pin function being used. Other attributes are cleared.
+    * Assumes clock to the port has already been enabled
+    *
+    * @param[in] pinDriveStrength One of PinDriveStrength_Low, PinDriveStrength_High
+    * @param[in] pinDriveMode     One of PinDriveMode_PushPull, PinDriveMode_OpenDrain
+    */
+   static void setOutput(
+         PinDriveStrength  pinDriveStrength  = Pcr::defaultPcrValue,
+         PinDriveMode      pinDriveMode      = Pcr::defaultPcrValue) {
+
+      TpmBase::CheckChannelIsMappedToPinOnly<Info, channel>::check();
+
+#ifdef TPM_SC_PWMEN0_SHIFT
+      // Enable output pin in TPM
+      tpm->SC = tpm->SC | (1<<(channel+TPM_SC_PWMEN0_SHIFT));
+#endif
+      Pcr::setPCR(pinDriveStrength|pinDriveMode);
+   }
+#elif defined(PORT_PCR_SRE_MASK)
+   /**
+    * @brief
+    * Set subset of Pin Control Register Attributes associated with output direction \n
+    * Mux value is set appropriately for the pin function being used. Other attributes are cleared.
+    * Assumes clock to the port has already been enabled
+    *
+    * @param[in] pinDriveStrength One of PinDriveStrength_Low, PinDriveStrength_High
+    * @param[in] pinSlewRate      One of PinSlewRate_Slow, PinSlewRate_Fast
+    */
+   static void setOutput(
+         PinDriveStrength  pinDriveStrength  = Pcr::defaultPcrValue,
+         PinSlewRate       pinSlewRate       = Pcr::defaultPcrValue) {
+
+      TpmBase::CheckChannelIsMappedToPinOnly<Info, channel>::check();
+
+#ifdef TPM_SC_PWMEN0_SHIFT
+      // Enable output pin in TPM
+      tpm->SC = tpm->SC | (1<<(channel+TPM_SC_PWMEN0_SHIFT));
+#endif
+      Pcr::setPCR(pinDriveStrength|pinSlewRate);
+   }
+#else
+   /**
+    * @brief
+    * Set subset of Pin Control Register Attributes associated with output direction \n
+    * Mux value is set appropriately for the pin function being used. Other attributes are cleared.
+    * Assumes clock to the port has already been enabled
+    *
+    * @param[in] pinDriveStrength One of PinDriveStrength_Low, PinDriveStrength_High
+    */
+   static void setOutput(
+         PinDriveStrength  pinDriveStrength  = Pcr::defaultPcrValue) {
+
+      TpmBase::CheckChannelIsMappedToPinOnly<Info, channel>::check();
+
+#ifdef TPM_SC_PWMEN0_SHIFT
+      // Enable output pin in TPM
+      tpm->SC = tpm->SC | (1<<(channel+TPM_SC_PWMEN0_SHIFT));
+#endif
+
+      Pcr::setPCR(pinDriveStrength);
+   }
+#endif
 
       /**
-       * Sets interrupt/DMA action on pin associated with channel.
-       * Assumes clock to the port has already been enabled.
-       *
-       * @param[in] pinAction Interrupt/DMA mode
-       *
-       * @note This is distinct from the timer event action that may be associated with pin changes.
-       */
-      static __attribute__((always_inline)) void setPinAction(PinAction pinAction) {
-         TpmBase::CheckPinMapping<Info, channel>::check();
-         Pcr::setPinAction(pinAction);
-      }
-
-      /**
-       * Enable Pin interrupts in NVIC
-       */
-      static void enablePinNvicInterrupts() {
-         TpmBase::CheckPinMapping<Info, channel>::check();
-         Pcr::enableNvicInterrupts();
-      }
-
-      /**
-       * Enable and set priority of Pin interrupts in NVIC
-       *
-       * @param[in]  nvicPriority  Interrupt priority
-       *
-       * @note Any pending interrupts are cleared before enabling.
-       */
-      static void enablePinNvicInterrupts(uint32_t nvicPriority) {
-         TpmBase::CheckPinMapping<Info, channel>::check();
-         Pcr::enableNvicInterrupts(nvicPriority);
-      }
-
-      /**
-       * Disable Pin interrupts in NVIC
-       */
-      static void disablePinNvicInterrupts() {
-         TpmBase::CheckPinMapping<Info, channel>::check();
-         Pcr::disableNvicInterrupts();
-      }
-
-      /**
-       * Set Pin Control Register Value.
-       * Pin multiplexor value is forced to Timer channel function. \n
-       * The clock to the port will be enabled before changing the PCR
-       *
-       * @param[in] pcrValue PCR value to set
-       */
-      static INLINE_RELEASE void setPCR(PcrValue pcrValue=Info::info[channel].pcrValue) {
-         CheckPinMapping<Info, channel>::check();
-         Pcr::setPCR((pcrValue&~PORT_PCR_MUX_MASK)|(Info::info[channel].pcrValue&PORT_PCR_MUX_MASK));
-      }
-
-      /**
-       * Set Pin Control Register (PCR) value.
-       * The clock to the port will be enabled before changing the PCR
-       *
-       * @param[in] pinPull          One of PinPull_None, PinPull_Up, PinPull_Down
-       * @param[in] pinDriveStrength One of PinDriveStrength_Low, PinDriveStrength_High (defaults to PinDriveLow)
-       * @param[in] pinDriveMode     One of PinDriveMode_PushPull, PinDriveMode_OpenDrain (defaults to PinPushPull)
-       * @param[in] pinAction        One of PinAction_None, etc (defaults to PinAction_None)
-       * @param[in] pinFilter        One of PinFilter_None, PinFilter_Passive (defaults to PinFilter_None)
-       * @param[in] pinSlewRate      One of PinSlewRate_Slow, PinSlewRate_Fast (defaults to PinSlewRate_Fast)
-       * @param[in] pinMux           One of PinMux_Analogue, PinMux_Gpio etc (defaults to Timer selection value)
-       */
-      static INLINE_RELEASE void setPCR(
-            PinPull           pinPull,
-            PinDriveStrength  pinDriveStrength  = PinDriveStrength_Low,
-            PinDriveMode      pinDriveMode      = PinDriveMode_PushPull,
-            PinAction         pinAction         = PinAction_None,
-            PinFilter         pinFilter         = PinFilter_None,
-            PinSlewRate       pinSlewRate       = PinSlewRate_Fast,
-            PinMux            pinMux            = static_cast<PinMux>(Info::info[channel].pcrValue&PORT_PCR_MUX_MASK)
-      ) {
-         CheckPinMapping<Info, channel>::check();
-         Pcr::setPCR(pinPull,pinDriveStrength,pinDriveMode,pinAction,pinFilter,pinSlewRate,pinMux);
-      }
-
-      /**
-       * Configures Pin Control Register (PCR) value for a Timer pin to default values.
-       * This will map the pin to the Timer function (mux value) \n
-       * The clock to the port will be enabled before changing the PCR
-       *
-       * @note Resets the Pin Control Register value (PCR value).
-       */
-      static void setOutput() {
-         TpmBase::CheckPinMapping<Info, channel>::check();
-         Pcr::setPCR(Info::info[channel].pcrValue);
-      }
-
-      /**
-       * Set Pin Control Register (PCR) value.
-       * This will map the pin to the Timer function (mux value) \n
-       * The clock to the port will be enabled before changing the PCR
-       *
-       * @param[in] pinDriveStrength One of PinDriveStrength_Low, PinDriveStrength_High
-       * @param[in] pinDriveMode     One of PinDriveMode_PushPull, PinDriveMode_OpenDrain (defaults to PinPushPull)
-       * @param[in] pinSlewRate      One of PinSlewRate_Slow, PinSlewRate_Fast (defaults to PinSlewRate_Fast)
-       */
-      static void setOutput(
-            PinDriveStrength  pinDriveStrength,
-            PinDriveMode      pinDriveMode      = PinDriveMode_PushPull,
-            PinSlewRate       pinSlewRate       = PinSlewRate_Fast
-      ) {
-         TpmBase::CheckPinMapping<Info, channel>::check();
-         Pcr::setPCR(pinDriveStrength|pinDriveMode|pinSlewRate|(Info::info[channel].pcrValue&PORT_PCR_MUX_MASK));
-      }
-
-      /**
-       * Configures Pin Control Register (PCR) value for a Timer pin to default values.
-       * This will map the pin to the Timer function (mux value) \n
-       * The clock to the port will be enabled before changing the PCR.
-       *
-       * @note Resets the Pin Control Register value (PCR value).
-       */
-      static void setInput() {
-         TpmBase::CheckPinMapping<Info, channel>::check();
-         Pcr::setPCR(Info::info[channel].pcrValue);
-      }
-
-      /**
-       * Set Pin Control Register (PCR) value.
-       * This will map the pin to the Timer function (mux value) \n
+       * @brief
+       * Set subset of Pin Control Register Attributes associated with input direction \n
+       * Mux value is set appropriately for the pin function being used. Other attributes are cleared.\n
        * The clock to the port will be enabled before changing the PCR.
        *
        * @param[in] pinPull          One of PinPull_None, PinPull_Up, PinPull_Down
-       * @param[in] pinAction        One of PinAction_None, etc (defaults to PinAction_None)
-       * @param[in] pinFilter        One of PinFilter_None, PinFilter_Passive (defaults to PinFilter_None)
+       * @param[in] pinAction        One of PinAction_None, etc
+       * @param[in] pinFilter        One of PinFilter_None, PinFilter_Passive
+       *
+       *  @note see also configureDigitalFilter(), enableDigitalFilter(), disableDigitalFilter()
        */
       static void setInput(
-            PinPull           pinPull,
-            PinAction         pinAction         = PinAction_None,
-            PinFilter         pinFilter         = PinFilter_None
-      ) {
-         TpmBase::CheckPinMapping<Info, channel>::check();
-         Pcr::setPCR(pinPull|pinAction|pinFilter|(Info::info[channel].pcrValue&PORT_PCR_MUX_MASK));
-      }
+            PinPull           pinPull           = Pcr::defaultPcrValue,
+            PinAction         pinAction         = Pcr::defaultPcrValue,
+            PinFilter         pinFilter         = Pcr::defaultPcrValue) {
 
-      /**
-       * Set pull device on associated pin.
-       * Assumes clock to the port has already been enabled
-       *
-       *  @param[in] pinPull Pull selection mode
-       */
-      static INLINE_RELEASE void setPullDevice(PinPull pinPull) {
-         TpmBase::CheckPinMapping<Info, channel>::check();
-         Pcr::setPullDevice(pinPull);
-      }
+         TpmBase::CheckChannelIsMappedToPinOnly<Info, channel>::check();
+//         TpmBase::CheckChannelExistsAndMapped<Info, channel>::check(); // More noisy errors
 
-      /**
-       * Set drive mode on associated pin.
-       * Assumes clock to the port has already been enabled
-       *
-       *  @param[in] pinDriveMode Drive mode
-       */
-      static INLINE_RELEASE void setDriveMode(PinDriveMode pinDriveMode) {
-         TpmBase::CheckPinMapping<Info, channel>::check();
-         Pcr::setDriveMode(pinDriveMode);
-      }
+#ifdef TPM_SC_PWMEN0_SHIFT
+         // Disable output pin in TPM
+         tpm->SC = tpm->SC & ~(1<<(channel+TPM_SC_PWMEN0_SHIFT));
+#endif
 
-      /**
-       * Set slew rate on associated pin.
-       * Assumes clock to the port has already been enabled
-       *
-       *  @param[in] pinSlewRate Slew rate. Either PinSlewRate_Slow or PinSlewRate_Fast
-       */
-      static INLINE_RELEASE void setSlewRate(PinSlewRate  pinSlewRate) {
-         TpmBase::CheckPinMapping<Info, channel>::check();
-         Pcr::setSlewRate(pinSlewRate);
-      }
-
-      /**
-       * Set filter on associated pin.
-       * Assumes clock to the port has already been enabled
-       *
-       *  @param[in] pinFilter Pin filter option. Either PinFilter_None or PinFilter_Passive
-       */
-      static INLINE_RELEASE void setFilter(PinFilter pinFilter) {
-         TpmBase::CheckPinMapping<Info, channel>::check();
-         Pcr::setFilter(pinFilter);
-      }
-
-      /**
-       * Set drive strength on associated pin.
-       * Assumes clock to the port has already been enabled
-       *
-       *  @param[in] pinDriveStrength Drive strength to set
-       */
-      static INLINE_RELEASE void setDriveStrength(PinDriveStrength pinDriveStrength) {
-         TpmBase::CheckPinMapping<Info, channel>::check();
-         Pcr::setDriveStrength(pinDriveStrength);
+         Pcr::setInput(pinPull,pinAction,pinFilter);
       }
 
    };
@@ -1578,7 +2408,6 @@ template<class Info> TpmChannelCallbackFunction  TpmBase_T<Info>::sChannelCallba
  * Class representing TPM0.
  */
 using Tpm0 = TpmBase_T<Tpm0Info>;
-
 #endif
 
 #ifdef USBDM_TPM1_IS_DEFINED
@@ -1586,7 +2415,6 @@ using Tpm0 = TpmBase_T<Tpm0Info>;
  * Class representing TPM1.
  */
 using Tpm1 = TpmBase_T<Tpm1Info>;
-
 #endif
 
 #ifdef USBDM_TPM2_IS_DEFINED
@@ -1594,7 +2422,6 @@ using Tpm1 = TpmBase_T<Tpm1Info>;
  * Class representing TPM2
  */
 using Tpm2 = TpmBase_T<Tpm2Info>;
-
 #endif
 
 #ifdef USBDM_TPM3_IS_DEFINED
@@ -1602,7 +2429,6 @@ using Tpm2 = TpmBase_T<Tpm2Info>;
  * Class representing TPM3
  */
 using Tpm3 = TpmBase_T<Tpm3Info>;
-
 #endif
 
 #ifdef TPM_QDCTRL_QUADEN_MASK
@@ -1642,12 +2468,18 @@ template <class Info>
 class TpmQuadDecoder_T {
 
 private:
+   TpmQuadDecoder_T(const TpmQuadDecoder_T&) = delete;
+   TpmQuadDecoder_T(TpmQuadDecoder_T&&) = delete;
+
    TpmBase::CheckChannel<typename Info::InfoQUAD, 0> checkQ0;
    TpmBase::CheckChannel<typename Info::InfoQUAD, 1> checkQ1;
 
 public:
+   // Default constructor
+   constexpr TpmQuadDecoder_T() {};
+
    /** Hardware instance pointer */
-   static __attribute__((always_inline)) volatile TPM_Type &tmr() { return Info::tpm(); }
+   static constexpr HardwarePtr<TPM_Type>tmr = Info::baseAddress;
 
    /** Allow more convenient access associated Tpm */
    using Tpm = TpmBase_T<Info>;
@@ -1668,14 +2500,12 @@ public:
     * @param[in] pinFilter        One of PinFilter_None, PinFilter_Passive (defaults to PinFilter_None)
     */
    static void setInput(
-         PinPull           pinPull,
-         PinAction         pinAction         = PinAction_None,
-         PinFilter         pinFilter         = PinFilter_None
-   ) {
-      TpmBase::CheckPinMapping<typename Info::InfoQUAD, 0>::check();
-      TpmBase::CheckPinMapping<typename Info::InfoQUAD, 1>::check();
-      Pcr0::setPCR(pinPull|pinAction|pinFilter|(Info::InfoQUAD::info[0].pcrValue&PORT_PCR_MUX_MASK));
-      Pcr1::setPCR(pinPull|pinAction|pinFilter|(Info::InfoQUAD::info[1].pcrValue&PORT_PCR_MUX_MASK));
+         PinPull           pinPull           = Pcr0::defaultPcrValue,
+         PinAction         pinAction         = Pcr0::defaultPcrValue,
+         PinFilter         pinFilter         = Pcr0::defaultPcrValue) {
+
+      Pcr0::setPCR(pinPull|pinAction|pinFilter);
+      Pcr1::setPCR(pinPull|pinAction|pinFilter);
    }
 
    /**
@@ -1717,7 +2547,7 @@ public:
     *
     * @note Any pending interrupts are cleared before enabling.
     */
-   static void enableNvicInterrupts(uint32_t nvicPriority) {
+   static void enableNvicInterrupts(NvicPriority nvicPriority) {
       enableNvicInterrupt(Info::irqNums[0], nvicPriority);
    }
 
@@ -1731,7 +2561,7 @@ public:
    /**
     * Configures all mapped pins associated with this peripheral
     */
-   static INLINE_RELEASE void configureAllPins() {
+   static void configureAllPins() {
       // Configure pins
       Info::InfoQUAD::initPCRs();
    }
@@ -1740,7 +2570,7 @@ public:
     * Enables clock to peripheral and configures all pins if
     * mapPinsOnEnable setting is true
     */
-   static INLINE_RELEASE void enable() {
+   static void enable() {
       if (Info::mapPinsOnEnable) {
          configureAllPins();
       }
@@ -1752,8 +2582,9 @@ public:
    /**
     * Disables peripheral including clocks
     */
-   static INLINE_RELEASE void disable() {
-      tmr().QDCTRL = 0;
+   static void disable() {
+      // Disable TPM (clock source disabled)
+      tmr->QDCTRL = 0;
 
       // Disable clock to peripheral interface
       Info::disableClock();
@@ -1773,28 +2604,28 @@ public:
          TpmQuadratureMode tpmQuadratureMode = TpmQuadratureMode_Phase_AB_Mode
    ) {
       // Assertions placed here so only checked if TpmQuadDecoder actually used
-      static_assert(Info::InfoQUAD::info[0].gpioBit != UNMAPPED_PCR, "QuadDecoder_T: TPM PHA is not mapped to a pin - Modify Configure.usbdm");
-      static_assert(Info::InfoQUAD::info[1].gpioBit != UNMAPPED_PCR, "QuadDecoder_T: TPM PHB is not mapped to a pin - Modify Configure.usbdm");
+      static_assert(Info::InfoQUAD::info[0].gpioBit >= 0, "TpmQuadDecoder_T PHA is not mapped to a pin - Modify Configure.usbdm");
+      static_assert(Info::InfoQUAD::info[1].gpioBit >= 0, "TpmQuadDecoder_T PHB is not mapped to a pin - Modify Configure.usbdm");
 
       enable();
 
       // Disable so immediate effect
-      tmr().SC = 0;
-      (void)tmr().SC;
-      tmr().SC = TpmMode_Quadrature|TpmClockSource_Disabled|tpmPrescale;
+      tmr->SC = 0;
+      (void)tmr->SC;
+      tmr->SC = TpmMode_Quadrature|TpmClockSource_Disabled|tpmPrescale;
 
-      tmr().QDCTRL =
+      tmr->QDCTRL =
             TPM_QDCTRL_QUADEN_MASK|      // Enable Quadrature decoder
             tpmQuadratureMode;           // Quadrature mode
-      tmr().CONF   = TPM_CONF_DBGMODE(3);
+      tmr->CONF   = TPM_CONF_DBGMODE(3);
    }
 
    /**
     * Reset position to zero
     */
-   static INLINE_RELEASE void resetPosition() {
+   static void resetPosition() {
       // Note: writing ANY value clears CNT (cannot set value)
-      tmr().CNT = 0;
+      tmr->CNT = 0;
    }
 
    /**
@@ -1806,8 +2637,8 @@ public:
     * @note This can be viewed as an unsigned number counting up from 0
     *       with overflow at 0xFFFF and underflow at 0.
     */
-   static INLINE_RELEASE int16_t getPosition() {
-      return (int16_t)(tmr().CNT);
+   static int16_t getPosition() {
+      return (int16_t)(tmr->CNT);
    }
 
    /**
@@ -1818,8 +2649,8 @@ public:
     *
     * @note Overflow occurs at MOD -> CNTIN, Underflow occurs at CNTIN -> MOD.
     */
-   static INLINE_RELEASE bool getOverflowDirection() {
-      return (bool)(tmr().QDCTRL & FTM_QDCTRL_TOFDIR_MASK);
+   static bool getOverflowDirection() {
+      return (bool)(tmr->QDCTRL & TPM_QDCTRL_TOFDIR_MASK);
    }
 };
 #endif // defined(TPM_QDCTRL_QUADEN_MASK)

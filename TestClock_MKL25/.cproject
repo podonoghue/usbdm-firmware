@@ -62,7 +62,7 @@
 								</option>
 							</tool>
 							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.linker.1428762102" name="ARM C++ Linker" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.linker">
-								<option id="net.sourceforge.usbdm.cdt.toolchain.cpp.linker.linkerFile.1109707070" name="Linker File (-T option):" superClass="net.sourceforge.usbdm.cdt.toolchain.cpp.linker.linkerFile" value="Linker-rom.ld" valueType="string"/>
+								<option id="net.sourceforge.usbdm.cdt.toolchain.cpp.linker.linkerFile.1109707070" name="Linker File (-T option):" superClass="net.sourceforge.usbdm.cdt.toolchain.cpp.linker.linkerFile" useByScannerDiscovery="false" value="MemoryMap.ld" valueType="string"/>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.cpp.link.option.paths.446417786" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Project_Settings/Linker_Files&quot;"/>
 								</option>
@@ -147,7 +147,7 @@
 								</option>
 							</tool>
 							<tool id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.linker.966747039" name="ARM C++ Linker" superClass="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.linker">
-								<option id="net.sourceforge.usbdm.cdt.toolchain.cpp.linker.linkerFile.1134215284" name="Linker File (-T option):" superClass="net.sourceforge.usbdm.cdt.toolchain.cpp.linker.linkerFile" value="Linker-rom.ld" valueType="string"/>
+								<option id="net.sourceforge.usbdm.cdt.toolchain.cpp.linker.linkerFile.1134215284" name="Linker File (-T option):" superClass="net.sourceforge.usbdm.cdt.toolchain.cpp.linker.linkerFile" useByScannerDiscovery="false" value="MemoryMap.ld" valueType="string"/>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.cpp.link.option.paths.625800847" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Project_Settings/Linker_Files&quot;"/>
 								</option>
@@ -177,4 +177,5 @@
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
 	<storageModule moduleId="refreshScope"/>
+	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
 </cproject>

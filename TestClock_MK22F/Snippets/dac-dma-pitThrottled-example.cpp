@@ -30,7 +30,7 @@ using namespace USBDM;
 
 // 100 samples => Sine period = 100 * PIT period
 static constexpr unsigned NUM_SAMPLES = 100;
-static constexpr float PIT_PERIOD = 10 * us;
+static constexpr float    PIT_PERIOD = 10_us;
 
 // Table of values for a sine wave
 static uint16_t sineTable[NUM_SAMPLES];
@@ -118,7 +118,7 @@ void initSineTable() {
  * @param errorFlags Channel error information (DMA_ES)
  */
 void dmaErrorCallbackFunction(uint32_t errorFlags) {
-   console.write("DMA error DMA_ES = 0b").writeln(errorFlags, Radix_2);
+   console.writeln("DMA error DMA_ES = 0b", errorFlags, Radix_2);
    __BKPT();
 }
 
@@ -198,18 +198,18 @@ int main() {
    // DMA channel number to use (determines which PIT channel used)
    static const DmaChannelNum dmaChannel = Dma0::allocatePeriodicChannel();
    if (dmaChannel == DmaChannelNum_None) {
-      console.write("Failed to allocate DMA channel, rc= ").writeln(E_NO_RESOURCE);
+      console.writeln("Failed to allocate DMA channel, rc= ", E_NO_RESOURCE);
       __BKPT();
    }
-   console.write("Allocated DMA channel  #").writeln(dmaChannel);
+   console.writeln("Allocated DMA channel  #", dmaChannel);
 
    // Get Pit channel associated with DMA channel
    PitChannelNum pitChannel = Pit::allocateDmaAssociatedChannel(dmaChannel);
    if (pitChannel == PitChannelNum_None) {
-      console.write("Failed to allocate PIT channel, rc= ").writeln(E_NO_RESOURCE);
+      console.writeln("Failed to allocate PIT channel, rc= ", E_NO_RESOURCE);
       __BKPT();
    }
-   console.write("Allocated PIT channel  #").writeln(pitChannel);
+   console.writeln("Allocated PIT channel  #", pitChannel);
 
    configureDac();
 

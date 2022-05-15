@@ -20,8 +20,8 @@
 using namespace USBDM;
 
 // Connections - change as required
-using Led      = USBDM::GpioA<2,USBDM::ActiveLow>;
-using Switch   = USBDM::GpioD<5,USBDM::ActiveLow>;
+using Switch =   GpioB<17, ActiveLow>;
+using Led    =   GpioA<1,  ActiveLow>;
 
 #if 1
 /**
@@ -32,11 +32,11 @@ using Switch   = USBDM::GpioD<5,USBDM::ActiveLow>;
  */
 static void callBack(uint32_t status) {
    static int count = 0;
-   if (status & Switch::MASK) {
-      console.write(count++).write(": Status = 0x").writeln(status, Radix_2);
+   if (status & Switch::BITMASK) {
+      console.writeln(count++, ": Status = 0x", status, Radix_2);
    }
    else {
-      console.write("Unexpected Pin interrupt");
+      console.writeln("Unexpected Pin interrupt");
    }
 }
 #else
@@ -54,10 +54,10 @@ void Switch::Port::irqHandler() {
    uint32_t status = port().ISFR;
    port().ISFR = status;
    if (status & Switch::MASK) {
-      console.write(count++).write(": Status = 0x").writeln(status, Radix_2);
+      console.writeln(count++, ": Status = 0x", status, Radix_2);
    }
    else {
-      console.write("Unexpected Pin interrupt");
+      console.writeln("Unexpected Pin interrupt");
    }
 }
 #endif
@@ -66,7 +66,7 @@ int main() {
    Led::setOutput();
 
    // Install interrupt call-back
-   Switch::setCallback(callBack);
+   Switch::setPinCallback(callBack);
 
    // PUP + IRQ on falling edge
    Switch::setInput(

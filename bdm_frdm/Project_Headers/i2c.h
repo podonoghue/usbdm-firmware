@@ -213,6 +213,8 @@ public:
     * Transmit message.
     * Note: 0th byte of Tx is often register address.
     *
+    * @tparam txSize number of bytes to transmit
+    *
     * @param[in]  address  Address of slave to communicate with (should include LSB = R/W bit = 0)
     * @param[in]  data     Data to transmit (size of transmission is inferred from array size).
     *
@@ -221,6 +223,38 @@ public:
    template<unsigned txSize>
    ErrorCode transmit(uint8_t address, const uint8_t (&data)[txSize]) {
       return transmit(address, txSize, data);
+   }
+
+   /**
+    * Transmit message.
+    * Note: 0th byte of Tx is often register address.
+    *
+    * @tparam N number of bytes to transmit (inferred)
+    *
+    * @param[in]  address  Address of slave to communicate with (should include LSB = R/W bit = 0)
+    * @param[in]  data     Data to transmit (size of transmission is inferred from array size).
+    *
+    * @return E_NO_ERROR on success
+    */
+   template<unsigned N>
+   ErrorCode transmit(uint8_t address, const std::array<uint8_t, N> &data) {
+      return transmit(address, N, data.data());
+   }
+
+   /**
+    * Transmit message.
+    * Note: 0th byte of Tx is often register address.
+    *
+    * @tparam N number of bytes to transmit (inferred)
+    *
+    * @param[in]  address  Address of slave to communicate with (should include LSB = R/W bit = 0)
+    * @param[in]  data     Data to transmit (size of transmission is inferred from array size).
+    *
+    * @return E_NO_ERROR on success
+    */
+   template<unsigned N>
+   ErrorCode transmit(uint8_t address, const std::array<const uint8_t, N> &data) {
+      return transmit(address, N, data.data());
    }
 
    /**
@@ -237,6 +271,8 @@ public:
    /**
     * Receive message
     *
+    * @tparam rxSize number of bytes to receive (inferred)
+    *
     * @param[in]  address  Address of slave to communicate with (should include LSB = R/W bit = 0)
     * @param[out] data     Data buffer for reception (size of reception is inferred from array size)
     *
@@ -245,6 +281,21 @@ public:
    template<unsigned rxSize>
    ErrorCode receive(uint8_t address, uint8_t (&data)[rxSize]) {
       return receive(address, rxSize, data);
+   }
+
+   /**
+    * Receive message
+    *
+    * @tparam rxSize number of bytes to receive (inferred)
+    *
+    * @param[in]  address  Address of slave to communicate with (should include LSB = R/W bit = 0)
+    * @param[out] data     Data buffer for reception (size of reception is inferred from array size)
+    *
+    * @return E_NO_ERROR on success
+    */
+   template<unsigned rxSize>
+   ErrorCode receive(uint8_t address, std::array<uint8_t, rxSize> &data) {
+      return receive(address, rxSize, data.data());
    }
 
    /**
@@ -269,6 +320,9 @@ public:
     *
     * Uses repeated-start.
     *
+    * @tparam TxSize Number of bytes to transmit (inferred)
+    * @tparam RxSize Number of bytes to receive (inferred)
+    *
     * @param[in]  address  Address of slave to communicate with (should include LSB = R/W bit = 0)
     * @param[in]  txData   Data for transmission (Tx size inferred from array size)
     * @param[out] rxData   Date buffer for reception (Rx size inferred from array size)
@@ -285,6 +339,48 @@ public:
     * Note: 0th byte of Tx is often register address.
     *
     * Uses repeated-start.
+    *
+    * @tparam TxSize Number of bytes to transmit (inferred)
+    * @tparam RxSize Number of bytes to receive (inferred)
+    *
+    * @param[in]  address  Address of slave to communicate with (should include LSB = R/W bit = 0)
+    * @param[in]  txData   Data for transmission (Tx size inferred from array size)
+    * @param[out] rxData   Date buffer for reception (Rx size inferred from array size)
+    *
+    * @return E_NO_ERROR on success
+    */
+   template<unsigned TxSize, unsigned RxSize>
+   ErrorCode txRx(uint8_t address, const std::array<uint8_t, TxSize> &txData, std::array<uint8_t, RxSize> &rxData) {
+      return txRx(address, TxSize, txData.data(), RxSize, rxData.data());
+   }
+
+   /**
+    * Transmit message followed by receive message.
+    * Note: 0th byte of Tx is often register address.
+    *
+    * Uses repeated-start.
+    *
+    * @tparam TxSize Number of bytes to transmit (inferred)
+    * @tparam RxSize Number of bytes to receive (inferred)
+    *
+    * @param[in]  address  Address of slave to communicate with (should include LSB = R/W bit = 0)
+    * @param[in]  txData   Data for transmission (Tx size inferred from array size)
+    * @param[out] rxData   Date buffer for reception (Rx size inferred from array size)
+    *
+    * @return E_NO_ERROR on success
+    */
+   template<unsigned TxSize, unsigned RxSize>
+   ErrorCode txRx(uint8_t address, const std::array<const uint8_t, TxSize> &txData, std::array<uint8_t, RxSize> &rxData) {
+      return txRx(address, TxSize, txData.data(), RxSize, rxData.data());
+   }
+
+   /**
+    * Transmit message followed by receive message.
+    * Note: 0th byte of Tx is often register address.
+    *
+    * Uses repeated-start.
+    *
+    * @tparam RxSize Number of bytes to receive (inferred)
     *
     * @param[in]  address  Address of slave to communicate with (should include LSB = R/W bit = 0)
     * @param[in]  txSize   Size of transmission data
@@ -303,6 +399,8 @@ public:
     * Note: 0th byte of Tx is often register address.
     *
     * Uses repeated-start.
+    *
+    * @tparam TxSize Number of bytes to transmit (inferred)
     *
     * @param[in]  address  Address of slave to communicate with (should include LSB = R/W bit = 0)
     * @param[in]  txData   Data for transmission (Tx size inferred from array size)

@@ -154,7 +154,7 @@ int main() {
       if (ch == DmaChannelNum_None) {
          break;
       }
-      console.write("Channel allocated = ").writeln(ch);
+      console.writeln("Channel allocated = ", ch);
    }
 #endif
 
@@ -166,7 +166,7 @@ int main() {
 
    console.writeln("Starting Transfer");
    ErrorCode rc = dmaTransfer(source, destination, sizeof(source));
-   console.write("Completed Transfer rc = ").writeln(getErrorMessage(rc));
+   console.writeln("Completed Transfer rc = ", getErrorMessage(rc));
 
    if (rc == E_NO_ERROR) {
       console.writeln("Destination buffer contents");

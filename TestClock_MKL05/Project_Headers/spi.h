@@ -19,7 +19,7 @@
  */
 #include <stdint.h>
 #include "derivative.h"
-#include "hardware.h"
+#include "pin_mapping.h"
 #ifdef __CMSIS_RTOS
 #include "cmsis.h"
 #endif
@@ -99,7 +99,8 @@ struct SpiConfig {
 class Spi {
 
 protected:
-   volatile  SPI_Type * const spi; //!< SPI hardware
+   /** Pointer to hardware */
+   const HardwarePtr<SPI_Type> spi;  //!< SPI hardware
 
    /** Callback function for ISR */
    SpiCallbackFunction callback;
@@ -117,7 +118,7 @@ protected:
     *
     * @param[in]  baseAddress    Base address of SPI
     */
-   constexpr Spi(volatile SPI_Type *baseAddress) :
+   constexpr Spi(uint32_t baseAddress) :
       spi(baseAddress), callback(unhandledCallback), bytesRemaining(0), rxDataPtr(nullptr), txDataPtr(nullptr) {
    }
 
@@ -538,13 +539,13 @@ protected:
    }
 
 public:
-   // SPI SCK (clock) Pin
+   /** SPI SCK (clock) Pin */
    using sckGpio  = GpioTable_T<Info, 0, ActiveHigh>;
 
-   // SPI SIN (data in = usually MISO) Pin
+   /** SPI SIN (data in = usually MISO) Pin */
    using sinGpio  = GpioTable_T<Info, 1, ActiveHigh>;
 
-   // SPI SOUT (data out = usually MOSI) Pin
+   /** SPI SOUT (data out = usually MOSI) Pin */
    using soutGpio = GpioTable_T<Info, 2, ActiveHigh>;
 
    /**
@@ -630,7 +631,7 @@ public:
     *
     * @param[in]  nvicPriority  Interrupt priority
     */
-   static void enableNvicInterrupts(uint32_t nvicPriority) {
+   static void enableNvicInterrupts(NvicPriority nvicPriority) {
       enableNvicInterrupt(Info::irqNums[0], nvicPriority);
    }
 
@@ -662,7 +663,7 @@ template<class Info> CMSIS::Mutex     SpiBase_T<Info>::mutex;
  * @endcode
  *
  */
-using Spi0 = SpiBase_T<Spi0Info>;
+class Spi0 : public SpiBase_T<Spi0Info> {};
 #endif
 
 #if defined(USBDM_SPI1_IS_DEFINED)
@@ -679,8 +680,41 @@ using Spi0 = SpiBase_T<Spi0Info>;
  * @endcode
  *
  */
-using Spi1 = SpiBase_T<Spi1Info>;
+class Spi1 : public SpiBase_T<Spi1Info> {};
+#endif
 
+#if defined(USBDM_SPI2_IS_DEFINED)
+/**
+ * @brief Template class representing a SPI2 interface
+ *
+ * <b>Example</b>
+ * @code
+ * USBDM::Spi *spi = new USBDM::Spi2();
+ *
+ * uint8_t txData[] = {1,2,3};
+ * uint8_t rxData[10];
+ * spi->txRxBytes(sizeof(txData), txData, rxData);
+ * @endcode
+ *
+ */
+class Spi2 : public SpiBase_T<Spi2Info> {};
+#endif
+
+#if defined(USBDM_SPI3_IS_DEFINED)
+/**
+ * @brief Template class representing a SPI3 interface
+ *
+ * <b>Example</b>
+ * @code
+ * USBDM::Spi *spi = new USBDM::Spi3();
+ *
+ * uint8_t txData[] = {1,2,3};
+ * uint8_t rxData[10];
+ * spi->txRxBytes(sizeof(txData), txData, rxData);
+ * @endcode
+ *
+ */
+class Spi3 : public SpiBase_T<Spi3Info> {};
 #endif
 /**
  * End SPI_Group

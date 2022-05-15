@@ -13,7 +13,7 @@
  * Note - Requires RTC interrupt handlers to be installed.
  ============================================================================
  */
-#include <ctime>
+#include <time.h>
 #include "hardware.h"
 #include "rtc.h"
 #include "smc.h"

@@ -17,7 +17,7 @@
  * Any manual changes will be lost.
  */
 #include "derivative.h"
-#include "hardware.h"
+#include "pin_mapping.h"
 
 namespace USBDM {
 
@@ -100,7 +100,7 @@ public:
     *
     * @return Reference to RNGA hardware
     */
-   static __attribute__((always_inline)) volatile RNGA_Type &rnga() { return Info::rnga(); }
+   static constexpr HardwarePtr<RNGA_Type> rnga = Info::baseAddress;
 
    /**
     * IRQ handler
@@ -141,7 +141,7 @@ public:
    static void defaultConfigure() {
       enable();
       // Initialise hardware
-      rnga().CR = RngaHighAssurance_Enabled|RngaMode_Normal|RngaInterrupt_Disabled|RNGA_CR_CLRI(1)|RNGA_CR_GO(1);
+      rnga->CR = RngaHighAssurance_Enabled|RngaMode_Normal|RngaInterrupt_Disabled|RNGA_CR_CLRI(1)|RNGA_CR_GO(1);
    }
 
    /**
@@ -157,7 +157,7 @@ public:
          RngaMode          rngaMode				= RngaMode_Normal
          ) {
       enable();
-      rnga().CR = rngaHighAssurance|rngaMode|rngaInterrupt|RNGA_CR_CLRI(1)|RNGA_CR_GO(1);
+      rnga->CR = rngaHighAssurance|rngaMode|rngaInterrupt|RNGA_CR_CLRI(1)|RNGA_CR_GO(1);
    }
 
    /**
@@ -170,7 +170,7 @@ public:
     * You can write to this field at any time during operation.
     */
    static void writeEntropyValue(uint32_t entropyValue) {
-      rnga().ER = entropyValue;
+      rnga->ER = entropyValue;
    }
 
    /**
@@ -182,7 +182,7 @@ public:
     * @note This function may fail!
     */
    static uint32_t getRandomValue() {
-      return rnga().OR;
+      return rnga->OR;
    }
 
    /**
@@ -195,10 +195,11 @@ public:
     */
    static uint32_t getSafeRandomValue() {
       for(;;) {
-         if ((rnga().SR&RNGA_SR_OREG_LVL_MASK) != 0) {
-            return rnga().OR;
+         if ((rnga->SR&RNGA_SR_OREG_LVL_MASK) != 0) {
+            break;
          }
       }
+      return rnga->OR;
    }
 
    /**
@@ -208,7 +209,7 @@ public:
     * @return >0, Calling getRandomValue() will return a valid number.
     */
    static bool getLevel() {
-      return (rnga().SR & RNGA_SR_OREG_LVL_MASK)>>RNGA_SR_OREG_LVL_SHIFT;
+      return (rnga->SR & RNGA_SR_OREG_LVL_MASK)>>RNGA_SR_OREG_LVL_SHIFT;
    }
 
    /**
@@ -224,14 +225,14 @@ public:
     *  @return Status value.
     */
    static uint32_t getStatus() {
-      return rnga().SR & (RNGA_SR_SLP_MASK|RNGA_SR_ERRI_MASK|RNGA_SR_ORU_MASK|RNGA_SR_LRS_MASK|RNGA_SR_SECV_MASK);
+      return rnga->SR & (RNGA_SR_SLP_MASK|RNGA_SR_ERRI_MASK|RNGA_SR_ORU_MASK|RNGA_SR_LRS_MASK|RNGA_SR_SECV_MASK);
    }
 
    /**
     * Clear interrupt flag.
     */
    static void clearInterruptFlag() {
-      rnga().CR |= RNGA_CR_CLRI_MASK;
+      rnga->CR = rnga->CR | RNGA_CR_CLRI_MASK;
    }
    
    /**
@@ -247,7 +248,7 @@ public:
     *
     * @param[in]  nvicPriority  Interrupt priority
     */
-   static void enableNvicInterrupts(uint32_t nvicPriority) {
+   static void enableNvicInterrupts(NvicPriority nvicPriority) {
       enableNvicInterrupt(Info::irqNums[0], nvicPriority);
    }
 
@@ -265,11 +266,11 @@ public:
    static void enableInterrupt(bool enable=true) {
       if (enable) {
          // Unmask
-         rnga().CR &= ~RNGA_CR_INTM_MASK;
+         rnga->CR = rnga->CR & ~RNGA_CR_INTM_MASK;
       }
       else {
          // Mask
-         rnga().CR |= RNGA_CR_INTM_MASK;
+         rnga->CR = rnga->CR | RNGA_CR_INTM_MASK;
       }
    }
 };
@@ -278,10 +279,12 @@ template<class Info> RNGACallbackFunction RngaBase_T<Info>::callback = RngaBase_
 
 #if defined(USBDM_RNGA_IS_DEFINED)
 class Rnga : public RngaBase_T<RngaInfo> {};
+// No declarations Found
 #endif
 
 #if defined(USBDM_RNGA0_IS_DEFINED)
 class Rnga0 : public RngaBase_T<Rnga0Info> {};
+// No declarations Found
 #endif
 
 /**

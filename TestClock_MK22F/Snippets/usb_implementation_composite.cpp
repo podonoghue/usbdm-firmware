@@ -318,9 +318,13 @@ void Usb0::epCdcSendNotification() {
 //      // Only send notifications if configured.
 //      return;
 //   }
-   static const CDCNotification cdcNotification = {
-         CDC_NOTIFICATION, SERIAL_STATE, 0, RT_INTERFACE, nativeToLe16(2)
-   };
+   static const struct CDCNotificationData {
+      CDCNotification notification;
+      uint8_t         data[2];
+   } cdcNotification = {
+      { CDC_NOTIFICATION, SERIAL_STATE, 0, RT_INTERFACE, nativeToLe16(2) },
+      {0,0}};
+
    static uint8_t lastStatus = -1;
    uint8_t status = cdcInterface::getSerialState().bits;
 
@@ -332,18 +336,19 @@ void Usb0::epCdcSendNotification() {
       // Busy with previous
       return;
    }
-   static_assert(epCdcNotification.BUFFER_SIZE>=sizeof(CDCNotification), "Buffer size insufficient");
+   static_assert(epCdcNotification.BUFFER_SIZE>=sizeof(cdcNotification), "Buffer size insufficient");
 
    lastStatus = status;
 
    // Copy the data to Tx buffer
-   Endpoint::safeCopy(epCdcNotification.getBuffer(), &cdcNotification, sizeof(cdcNotification));
-   epCdcNotification.getBuffer()[sizeof(cdcNotification)+0] = status;
-   epCdcNotification.getBuffer()[sizeof(cdcNotification)+1] = 0;
+   CDCNotificationData *buff = (CDCNotificationData*)epCdcNotification.getTxBuffer();
+   Endpoint::safeCopy(buff, &cdcNotification, sizeof(cdcNotification));
+   buff->data[0] = status;
+   buff->data[1] = 0;
 
    // Set up to Tx packet
 //   console.write("epCdcSendNotification() 0x").writeln(epCdcNotification.getBuffer()[sizeof(cdcNotification)+0], USBDM::Radix_16);
-   epCdcNotification.startTxStage(EPDataIn, sizeof(cdcNotification)+2);
+   epCdcNotification.startTxStage(EPDataIn, sizeof(cdcNotification));
 }
 
 static uint8_t cdcOutBuff[10] = "Welcome\n";
@@ -418,6 +423,7 @@ EndpointState Usb0::cdcOutTransactionCallback(EndpointState state) {
    cdcInterface::putData(epCdcDataOut.getDataTransferredSize(), epCdcDataOut.getBuffer());
    // Set up for next transfer
    epCdcDataOut.startRxStage(EPDataOut, epCdcDataOut.BUFFER_SIZE);
+   return EPDataOut;
 }
 
 /**
@@ -546,19 +552,19 @@ void Usb0::sendBulkData(uint8_t size, const uint8_t *buffer) {
  */
 void Usb0::handleSetLineCoding() {
 //   console.WRITELN("handleSetLineCoding()");
-   static LineCodingStructure lineCoding;
 
    // Call-back to do after transaction complete
    static auto callback = []() {
       // The controlEndpoint buffer will contain the LineCodingStructure data at call-back time
-      cdcInterface::setLineCoding(&lineCoding);
-      setSetupCompleteCallback(nullptr);
+      cdcInterface::setLineCoding((LineCodingStructure *)fControlEndpoint.getRxBuffer());
+      fControlEndpoint.setCallback(nullptr);
+      return EPIdle;
    };
-   setSetupCompleteCallback(callback);
+   fControlEndpoint.setCallback(callback);
 
    // Don't use external buffer - this requires response to fit in internal EP buffer
    static_assert(sizeof(LineCodingStructure) < fControlEndpoint.BUFFER_SIZE, "Buffer insufficient size");
-   fControlEndpoint.startRxStage(EPDataOut, sizeof(LineCodingStructure), (uint8_t*)&lineCoding);
+   fControlEndpoint.startRxStage(EPDataOut, sizeof(LineCodingStructure));
 }
 
 /**
@@ -598,7 +604,7 @@ void Usb0::handleSendBreak() {
  * @note Provides CDC extensions
  */
 ErrorCode Usb0::handleUserEp0SetupRequests(const SetupPacket &setup) {
-   //console.WRITELN("handleUserEp0SetupRequests()");
+   //console.WRITE("handleUserEp0SetupRequests(").WRITE(setup.bRequest).WRITELN(")");
    switch(REQ_TYPE(setup.bmRequestType)) {
       case UsbRequestType_CLASS :
          // Class requests

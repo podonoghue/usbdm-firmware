@@ -14,9 +14,7 @@
 #ifndef SOURCES_FLASH_H_
 #define SOURCES_FLASH_H_
 
-#include "derivative.h"
-#include "hardware.h"
-#include "delay.h"
+#include "pin_mapping.h"
 #include "smc.h"
 
 namespace USBDM {
@@ -42,7 +40,7 @@ enum FlashDriverError_t {
    FLASH_ERR_ILLEGAL_SECURITY  = (12), // Kinetis/CFV1+ - Illegal value for security location
    FLASH_ERR_UNKNOWN           = (13), // Unspecified error
    FLASH_ERR_PROG_RDCOLERR     = (14), // Read Collision
-   FLASH_ERR_NEW_EEPROM        = (15), // Indicates EEPROM has just bee partitioned and need initialisation
+   FLASH_ERR_NEW_EEPROM        = (15), // Indicates EEPROM has just been partitioned and needs initialisation
    FLASH_ERR_NOT_AVAILABLE     = (16), // Attempt to do flash operation when not available (e.g. while in VLPR mode)
 };
 
@@ -62,9 +60,15 @@ public:
 protected:
 
    /**
-    * Constructor
+    * Constructor.
+    * Typically this method would be overridden in a derived class
+    * to do the initialisation of the flash and non-volatile variables.
+    * Alternatively, the startup code may call the static methods directly.
     */
    Flash() {
+      static int singletonFlag __attribute__((unused)) = false;
+      usbdm_assert (!singletonFlag, "Creating multiple instances of Flash");
+      singletonFlag = true;
       waitForFlashReady();
    }
 
@@ -97,7 +101,8 @@ public:
     *
     * @return Reference to Flash hardware
     */
-   __attribute__((always_inline)) static volatile FTFA_Type &flashController() { return ftfa(); }
+   static constexpr HardwarePtr<FTFA_Type> flashController = baseAddress;
+
    /**
     * Wait until flash is ready.
     * Any flash operations will have completed.
@@ -106,7 +111,7 @@ public:
     */
    static bool waitForFlashReady() {
       for(int timeout=0; timeout<100000; timeout++) {
-         if ((flashController().FSTAT&FTFA_FSTAT_CCIF_MASK) != 0) {
+         if ((flashController->FSTAT&FTFA_FSTAT_CCIF_MASK) != 0) {
             return true;
          }
       }
@@ -129,7 +134,7 @@ public:
     * This is used to wait until a FlexRAM write has completed.
     *
     * @return true  => Operation complete and FlexRAM idle
-    * @return false => timeout or flash not available
+    * @return false => Timeout or flash not available
     */
    static bool waitUntilFlexIdle() {
       usbdm_assert(isFlashAvailable(), "Flash use in unsuitable run mode");
@@ -151,7 +156,7 @@ public:
     *
     * @param[in]  nvicPriority  Interrupt priority
     */
-   static void enableNvicInterrupts(uint32_t nvicPriority) {
+   static void enableNvicInterrupts(NvicPriority nvicPriority) {
       enableNvicInterrupt(irqNums[0], nvicPriority);
    }
 
@@ -189,7 +194,7 @@ public:
 
 private:
    /**
-    * Program a phrase to Flash memory.
+    * Program phrase to Flash memory
     *
     * @param[in]  data       Location of data to program
     * @param[out] address    Memory address to program - must be phrase boundary
@@ -209,7 +214,7 @@ private:
 
 public:
    /**
-    * Program a range of bytes to Flash memory.
+    * Program a range of bytes to Flash memory
     *
     * @param[in]  data       Location of data to program
     * @param[out] address    Memory address to program - must be phrase boundary

@@ -14,7 +14,7 @@
 
 using namespace USBDM;
 
-using BlueLed = GpioA<2, ActiveLow>;
+using BlueLED  = GpioD<5,  ActiveLow>;
 
 __attribute__ ((section (".noinit")))
 static bool watchdogHandlerRan;
@@ -51,12 +51,7 @@ int main(){
 
    console.write("Reset source = 0x").write(Rcm::getResetSource(), Radix_16).write(" = ").writeln(Rcm::getResetSourceDescription());
 
-   BlueLed::setOutput(PinDriveStrength_High);
-
-   // Set up interrupt handling
-   Wdog::setCallback(callback);
-   Wdog::enableNvicInterrupts(NvicPriority_Normal);
-   Wdog::enableInterrupt();
+   Led::setOutput(PinDriveStrength_High);
 
    // Configure
    Wdog::configure(
@@ -69,14 +64,15 @@ int main(){
          WdogEnableInWait_Disabled);   // Disable WDOG while CPU waiting
 
    // Time-out ~5s (LPO ~1kHz)
-   Wdog::setTimeout(5*seconds);
-
-   // No window (not used)
-   Wdog::setWindow(0);
+   Wdog::setTimeout(5.0_s);
 
    // Lock registers
    // Now no watchdog changes are possible unless reset
    Wdog::lockRegisters();
+
+   // Set up interrupt handling
+   Wdog::setCallback(callback);
+   Wdog::enableNvicInterrupts(NvicPriority_Normal);
 
    // Check for error so far
    checkError();
@@ -87,7 +83,7 @@ int main(){
    // Watch for key-press while servicing watchdog
    while (console.peek()<0) {
       // Flash LED
-      BlueLed::toggle();
+      Led::toggle();
       waitMS(200);
 
       // Feed the dog - This is not a sensible way to service a watchdog!
@@ -99,9 +95,9 @@ int main(){
    // Wait for Reset
    unsigned count = 5;
    for(;;) {
-      // Flash LED while countig down
-      BlueLed::toggle();
-      waitMS(1000);
+      // Flash LED while counting down
+      Led::toggle();
+      wait(1_s);
       console.write(count--).write(",");
    }
 

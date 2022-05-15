@@ -1,5 +1,5 @@
 /**
- * @file    console.h  (180.ARM_Peripherals/Project_Headers/console.h)
+ * @file    console.h (100.ARM_DeviceOptions/Project_Headers/console.h)
  * @brief   Basic UART routines for console
  * @date    13 June 2015
  */
@@ -16,46 +16,37 @@
 #ifndef INCLUDE_USBDM_CONSOLE_H_
 #define INCLUDE_USBDM_CONSOLE_H_
 #include <derivative.h>
-#include "hardware.h"
-
-#if defined(USBDM_UART0_IS_DEFINED) || defined(USBDM_UART1_IS_DEFINED) || defined(USBDM_UART2_IS_DEFINED) || defined(USBDM_UART3_IS_DEFINED) || defined(USBDM_UART4_IS_DEFINED)
-#include "uart.h"
-#endif
-#if defined(USBDM_LPUART0_IS_DEFINED) || defined(USBDM_LPUART1_IS_DEFINED) || defined(USBDM_LPUART2_IS_DEFINED)
-#include "lpuart.h"
-#endif
-
-#define USE_CONSOLE 1
-
-#if USE_CONSOLE
-
-#ifdef __cplusplus
-namespace USBDM {
-
-/**
- * @addtogroup CONSOLE_Group Console, Console Interface
- * @brief Abstraction for Console Interface
- * @{
- */
-
-//! Default baud rate for console
-constexpr int defaultBaudRate = 115200;
-
-//! Maps console to UART used
-using  Console = USBDM::Uart0;
-
-//! Console instance
-extern Console console;
-
-/**
- * @}
- */
-
-} // End namespace USBDM
-#endif
 
 #ifdef __cplusplus
 extern "C" {
+#endif
+
+//-------- <<< Use Configuration Wizard in Context Menu >>> -----------------
+
+//   <o> UART default baud rate
+//   <i> Used by default UART setup for stdio
+//   <i> Note: Manually change Custom value
+//     <110=> 110
+//     <300=> 300
+//     <600=> 600
+//     <1200=> 1200
+//     <2400=> 2400
+//     <4800=> 4800
+//     <9600=> 9600
+//     <14400=> 14400
+//     <19200=> 19200
+//     <28800=> 28800
+//     <38400=> 38400
+//     <56000=> 56000
+//     <57600=> 57600
+//     <115200=> 115200
+//     <115200=> Default
+
+#ifndef DEFAULT_BAUD_RATE
+/**
+ * Default baud rate for UART used for stdio
+ */
+#define DEFAULT_BAUD_RATE 115200
 #endif
 
 /**
@@ -88,7 +79,4 @@ int  console_rxChar(void);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* USE_CONSOLE */
-
 #endif /* INCLUDE_USBDM_CONSOLE_H_ */

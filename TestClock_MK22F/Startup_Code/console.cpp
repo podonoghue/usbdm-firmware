@@ -5,9 +5,9 @@
  *      Author: pgo
  */
 
-#include <derivative.h>
+#include "derivative.h"
 #include "system.h"
-#include "hardware.h"
+#include "pin_mapping.h"
 #include "console.h"
 
  /*
@@ -19,9 +19,19 @@
   * Any manual changes will be lost.
   */
 
+namespace USBDM {
+
 #if USE_CONSOLE
 
-namespace USBDM {
+/**
+ * Print simple log message to console
+ *
+ * @param msg Message to print
+ */
+void log_error(const char *msg) {
+   (void)msg;
+   console.WRITELN(msg);
+}
 
 /**
  * @addtogroup CONSOLE_Group Console
@@ -37,6 +47,7 @@ Console console;
  */
 extern "C"
 void console_initialise() {
+   console.initialise();
    console.setBaudRate(defaultBaudRate);
    console.setEcho();
    console.configureAllPins();
@@ -73,17 +84,12 @@ int console_rxChar(void) {
 }
 
 /**
- * Print simple log message to console
- *
- * @param msg Message to print
- */
-void log_error(const char *msg) {
-   console.writeln(msg);
-}
-/**
  * @}
  */
+#else
 
-} // End namespace USBDM
+Console console;
 
 #endif /* USE_CONSOLE */
+
+} // End namespace USBDM

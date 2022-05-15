@@ -17,7 +17,7 @@
  * Any manual changes will be lost.
  */
 #include "derivative.h"
-#include "hardware.h"
+#include "pin_mapping.h"
 
 namespace USBDM {
 
@@ -144,7 +144,7 @@ enum DacWaterMark {
 /**
  * DAC status value as individual flags
  */
-union DacStatusValue {
+union DacStatus {
    uint8_t raw;
    struct {
       bool     readPointerBottomFlag:1;
@@ -153,7 +153,7 @@ union DacStatusValue {
       bool     watermarkFlag:1;
 #endif
    };
-   constexpr DacStatusValue(uint8_t value) : raw(value) {
+   constexpr DacStatus(uint8_t value) : raw(value) {
    }
 };
 
@@ -165,7 +165,7 @@ union DacStatusValue {
 /**
  * Type definition for DAC interrupt call back
  */
-typedef void (*DACCallbackFunction)(DacStatusValue);
+typedef void (*DacCallbackFunction)(DacStatus);
 
 /**
  * Template class representing a Digital to Analogue Converter
@@ -183,39 +183,29 @@ template<class Info>
 class Dac_T {
 
 protected:
-   /** Class to static check outputNum is mapped to a pin */
-   template<int outputNum> class CheckPinMapping {
-      static_assert((outputNum>=Info::numSignals)||(Info::info[outputNum].gpioBit != UNMAPPED_PCR),
-            "DAC output is not mapped to a pin - Modify Configure.usbdm");
+
+   /** Class to static check output is mapped to a pin - Assumes existence */
+   template<int dacOutput> class CheckOutputIsMapped {
+
+      // Check mapping - no need to check existence
+      static constexpr bool Test1 = (Info::info[dacOutput].gpioBit >= 0);
+
+      static_assert(Test1, "DAC output is not mapped to a pin - Modify Configure.usbdm");
+
    public:
       /** Dummy function to allow convenient in-line checking */
       static constexpr void check() {}
    };
-
-   /** Class to static check valid outputNum - it does not check that it is mapped to a pin */
-   template<int outputNum> class CheckOutput {
-      static_assert((outputNum<Info::numSignals),
-            "Non-existent DAC output  - Check Configure.usbdm for available outputs");
-      static_assert((outputNum>=Info::numSignals)||(Info::info[outputNum].gpioBit != INVALID_PCR),
-            "DAC output  doesn't exist in this device/package - Check Configure.usbdm for available outputs");
-      static_assert((outputNum>=Info::numSignals)||((Info::info[outputNum].gpioBit == UNMAPPED_PCR)||(Info::info[outputNum].gpioBit == INVALID_PCR)||(Info::info[outputNum].gpioBit >= 0)),
-            "Illegal DAC output - Check Configure.usbdm for available outputs");
-   public:
-      /** Dummy function to allow convenient in-line checking */
-      static constexpr void check() {}
-   };
-
-//   CheckPinMapping<0> check;
 
    /**
     * Callback to catch unhandled interrupt
     */
-   static void unhandledCallback(DacStatusValue) {
+   static void unhandledCallback(DacStatus) {
       setAndCheckErrorCode(E_NO_HANDLER);
    }
 
    /** Callback function for ISR */
-   static DACCallbackFunction sCallback;
+   static DacCallbackFunction sCallback;
 
 public:
    /**
@@ -223,7 +213,7 @@ public:
     *
     * @return Reference to CMT hardware
     */
-   static __attribute__((always_inline)) volatile DAC_Type &dac() { return Info::dac(); }
+   static constexpr HardwarePtr<DAC_Type> dac = Info::baseAddress;
 
    /** Get base address of DAC hardware as uint32_t */
    static constexpr uint32_t dacBase() { return Info::baseAddress; }
@@ -242,39 +232,147 @@ public:
       sCallback(getAndClearStatus());
    }
 
+// Template _mapPinsOption.xml
+
+   /**
+    * Configures all mapped pins associated with DAC
+    *
+    * @note Locked pins will be unaffected
+    */
+   static void configureAllPins() {
+   
+      // Configure pins if selected and not already locked
+      if constexpr (Info::mapPinsOnEnable && !(MapAllPinsOnStartup && (ForceLockedPins == PinLock_Locked))) {
+         Info::initPCRs();
+      }
+   }
+
+   /**
+    * Disabled all mapped pins associated with DAC
+    *
+    * @note Only the lower 16-bits of the PCR registers are modified
+    *
+    * @note Locked pins will be unaffected
+    */
+   static void disableAllPins() {
+   
+      // Disable pins if selected and not already locked
+      if constexpr (Info::mapPinsOnEnable && !(MapAllPinsOnStartup && (ForceLockedPins == PinLock_Locked))) {
+         Info::clearPCRs();
+      }
+   }
+
+   /**
+    * Basic enable of DAC
+    * Includes enabling clock and configuring all mapped pins if mapPinsOnEnable is selected in configuration
+    */
+   static void enable() {
+      Info::enableClock();
+      configureAllPins();
+   }
+
+   /**
+    * Disables the clock to DAC and all mapped pins
+    */
+   static void disable() {
+      disableNvicInterrupts();
+      dac->C0 = DAC_C0_DACEN(0);
+      disableAllPins();
+      Info::disableClock();
+   }
+// End Template _mapPinsOption.xml
+
+   /**
+    * Wrapper to allow the use of a class member as a callback function
+    * @note Only usable with static objects.
+    *
+    * @tparam T         Type of the object containing the callback member function
+    * @tparam callback  Member function pointer
+    * @tparam object    Object containing the member function
+    *
+    * @return  Pointer to a function suitable for the use as a callback
+    *
+    * @code
+    * class AClass {
+    * public:
+    *    int y;
+    *
+    *    // Member function used as callback
+    *    // This function must match DacCallbackFunction
+    *    void callback() {
+    *       ...;
+    *    }
+    * };
+    * ...
+    * // Instance of class containing callback member function
+    * static AClass aClass;
+    * ...
+    * // Wrap member function
+    * auto fn = Dac::wrapCallback<AClass, &AClass::callback, aClass>();
+    * // Use as callback
+    * Dac::setCallback(fn);
+    * @endcode
+    */
+   template<class T, void(T::*callback)(DacStatus), T &object>
+   static DacCallbackFunction wrapCallback() {
+      static DacCallbackFunction fn = [](DacStatus status) {
+         (object.*callback)(status);
+      };
+      return fn;
+   }
+
+   /**
+    * Wrapper to allow the use of a class member as a callback function
+    * @note There is a considerable space and time overhead to using this method
+    *
+    * @tparam T         Type of the object containing the callback member function
+    * @tparam callback  Member function pointer
+    * @tparam object    Object containing the member function
+    *
+    * @return  Pointer to a function suitable for the use as a callback
+    *
+    * @code
+    * class AClass {
+    * public:
+    *    int y;
+    *
+    *    // Member function used as callback
+    *    // This function must match DacCallbackFunction
+    *    void callback() {
+    *       ...;
+    *    }
+    * };
+    * ...
+    * // Instance of class containing callback member function
+    * AClass aClass;
+    * ...
+    * // Wrap member function
+    * auto fn = Pit::wrapCallback<AClass, &AClass::callback>(aClass);
+    * // Use as callback
+    * Dac::setCallback(fn);
+    * @endcode
+    */
+   template<class T, void(T::*callback)(DacStatus)>
+   static DacCallbackFunction wrapCallback(T &object) {
+      static T &obj = object;
+      static DacCallbackFunction fn = [](DacStatus status) {
+         (obj.*callback)(status);
+      };
+      return fn;
+   }
+
    /**
     * Set callback function
     *
     * @param[in] callback Callback function to execute on interrupt.\n
     *                     Use nullptr to remove callback.
     */
-   static void setCallback(DACCallbackFunction callback) {
+   static void setCallback(DacCallbackFunction callback) {
       static_assert(Info::irqHandlerInstalled, "DAC not configured for interrupts");
       if (callback == nullptr) {
          callback = unhandledCallback;
       }
       sCallback = callback;
-   }
-
-   /**
-    * Configures all mapped pins associated with this peripheral
-    */
-   static void __attribute__((always_inline)) configureAllPins() {
-      // Configure pins
-      Info::initPCRs();
-   }
-
-   /**
-    * Basic enable DAC.
-    * Includes enabling clock and configuring all pins of mapPinsOnEnable is selected on configuration
-    */
-   static void enable() {
-      if (Info::mapPinsOnEnable) {
-         configureAllPins();
-      }
-
-      // Enable clock to DAC interface
-      Info::enableClock();
    }
 
    /**
@@ -285,9 +383,9 @@ public:
       enable();
 
       // Initialise hardware
-      dac().C0 = Info::c0|DAC_C0_DACEN_MASK;
-      dac().C1 = Info::c1;
-      dac().C2 = Info::c2;
+      dac->C0 = Info::c0|DAC_C0_DACEN_MASK;
+      dac->C1 = Info::c1;
+      dac->C2 = Info::c2;
    }
 
    /**
@@ -304,7 +402,7 @@ public:
          DacTriggerSelect   dacTriggerSelect   = DacTriggerSelect_Software) {
 
       enable();
-      dac().C0 = DAC_C0_DACEN_MASK|dacReferenceSelect|dacTriggerSelect|dacPower;
+      dac->C0 = DAC_C0_DACEN_MASK|dacReferenceSelect|dacTriggerSelect|dacPower;
    }
 
 #ifdef DAC_C1_DACBFWM
@@ -318,8 +416,8 @@ public:
          DacBufferMode dacBufferMode  = DacBufferMode_Disabled,
          DacWaterMark  dacWaterMark   = DacWaterMark_Normal1
           ) {
-      dac().C1 =
-            (dac().C1&~(DAC_C1_DACBFEN_MASK|DAC_C1_DACBFMD_MASK|DAC_C1_DACBFWM_MASK))|
+      dac->C1 =
+            (dac->C1&~(DAC_C1_DACBFEN_MASK|DAC_C1_DACBFMD_MASK|DAC_C1_DACBFWM_MASK))|
             dacBufferMode|dacWaterMark;
    }
 #else
@@ -331,8 +429,8 @@ public:
    static void configureBuffer(
          DacBufferMode dacBufferMode  = DacBufferMode_Disabled
           ) {
-      dac().C1 =
-            (dac().C1&~(DAC_C1_DACBFEN_MASK|DAC_C1_DACBFMD_MASK))|
+      dac->C1 =
+            (dac->C1&~(DAC_C1_DACBFEN_MASK|DAC_C1_DACBFMD_MASK))|
             dacBufferMode;
    }
 #endif
@@ -352,7 +450,7 @@ public:
     * @return size in entries
     */
    static constexpr unsigned getBufferSize() {
-      return sizeof(dac().DATA)/sizeof(dac().DATA[0]);
+      return sizeof(dac->DATA)/sizeof(dac->DATA[0]);
    }
 
    /**
@@ -364,14 +462,14 @@ public:
    static void setFifoPointers(uint8_t writePtr, uint8_t readPtr) {
       usbdm_assert(readPtr<getBufferSize(), "Illegal read pointer");
       usbdm_assert(writePtr<getBufferSize(),"Illegal write pointer");
-      dac().C2 = DAC_C2_DACBFRP(readPtr)|DAC_C2_DACBFUP(writePtr);
+      dac->C2 = DAC_C2_DACBFRP(readPtr)|DAC_C2_DACBFUP(writePtr);
    }
 
    /**
     * Clear (empty) FIFO.
     */
    static void clearFifo() {
-      dac().C2 = DAC_C2_DACBFRP(0)|DAC_C2_DACBFUP(0);
+      dac->C2 = DAC_C2_DACBFRP(0)|DAC_C2_DACBFUP(0);
    }
 
    /**
@@ -381,7 +479,7 @@ public:
     */
    static void setBufferLimit(uint8_t limit) {
       usbdm_assert(limit<getBufferSize(),"Illegal limit value");
-      dac().C2 = (dac().C2&~DAC_C2_DACBFUP_MASK)|DAC_C2_DACBFUP(limit);
+      dac->C2 = (dac->C2&~DAC_C2_DACBFUP_MASK)|DAC_C2_DACBFUP(limit);
    }
 
    /**
@@ -391,21 +489,21 @@ public:
     */
    static void setBufferWritePointer(uint8_t index) {
       usbdm_assert(index<getBufferSize(),"Illegal write index");
-      dac().C2 = (dac().C2&~DAC_C2_DACBFRP_MASK)|DAC_C2_DACBFRP(index);
+      dac->C2 = (dac->C2&~DAC_C2_DACBFRP_MASK)|DAC_C2_DACBFRP(index);
    }
 
    /**
     * Enable DMA mode
     */
    static void enableDma() {
-      dac().C1 |= DAC_C1_DMAEN_MASK;
+      dac->C1 = dac->C1 | DAC_C1_DMAEN_MASK;
    }
 
    /**
     * Disable DMA mode
     */
    static void disableDma() {
-      dac().C1 &= ~DAC_C1_DMAEN_MASK;
+      dac->C1 = dac->C1 & ~DAC_C1_DMAEN_MASK;
    }
 
    /**
@@ -414,7 +512,7 @@ public:
     * the buffer read pointer will be advanced once.
     */
    static void softwareTrigger() {
-      dac().C0 |= DAC_C0_DACSWTRG_MASK;
+      dac->C0 = dac->C0 | DAC_C0_DACSWTRG_MASK;
    }
 
 #ifdef DAC_C0_DACBWIEN_MASK
@@ -432,10 +530,10 @@ public:
          DacWatermarkIrq    dacWatermarkIrq   = DacWatermarkIrq_Disabled) {
 
       // Clear flags
-      dac().SR = DAC_SR_DACBFRPBF_MASK|DAC_SR_DACBFRPTF_MASK|DAC_SR_DACBFWMF_MASK;
+      dac->SR = DAC_SR_DACBFRPBF_MASK|DAC_SR_DACBFRPTF_MASK|DAC_SR_DACBFWMF_MASK;
 
       // Enable/disable flags
-      dac().C0 = (dac().C0&~(DAC_C0_DACBWIEN_MASK|DAC_C0_DACBTIEN_MASK|DAC_C0_DACBBIEN_MASK)) |
+      dac->C0 = (dac->C0&~(DAC_C0_DACBWIEN_MASK|DAC_C0_DACBTIEN_MASK|DAC_C0_DACBBIEN_MASK)) |
             dacTopFlagIrq|dacBottomFlagIrq|dacWatermarkIrq;
    }
 #else
@@ -451,10 +549,10 @@ public:
          DacBottomFlagIrq   dacBottomFlagIrq) {
 
       // Clear flags
-      dac().SR = 0;
+      dac->SR = 0;
 
       // Enable/disable flags
-      dac().C0 = (dac().C0&~(DAC_C0_DACBTIEN_MASK|DAC_C0_DACBBIEN_MASK)) |
+      dac->C0 = (dac->C0&~(DAC_C0_DACBTIEN_MASK|DAC_C0_DACBBIEN_MASK)) |
             dacTopFlagIrq|dacBottomFlagIrq;
    }
 #endif
@@ -472,7 +570,7 @@ public:
     *
     * @param[in]  nvicPriority  Interrupt priority
     */
-   static void enableNvicInterrupts(uint32_t nvicPriority) {
+   static void enableNvicInterrupts(NvicPriority nvicPriority) {
       enableNvicInterrupt(Info::irqNums[0], nvicPriority);
    }
 
@@ -488,42 +586,44 @@ public:
     * Configures all Pin Control Register (PCR) values
     */
    static void setOutput() {
-      CheckOutput<0>::check();
-      using Pcr = PcrTable_T<Info, 0>;
+
+      CheckOutputIsMapped<Info::outputPin>::check();
+
+      using Pcr = PcrTable_T<Info, Info::outputPin>;
 
       // Enable and map pin to CMP_OUT
-      Pcr::setPCR(Info::info[0].pcrValue&PORT_PCR_MUX_MASK);
+      Pcr::setPCR();
    }
 
    /**
     * Get DAC status
     *
-    * @return DAC status value see DacStatusValue
+    * @return DAC status value see DacStatus
     */
-   static DacStatusValue getStatus() {
-      return (DacStatusValue)dac().SR;
+   static DacStatus getStatus() {
+      return (DacStatus)dac->SR;
    }
 
    /**
     * Get and clear DAC status
     *
-    * @return DAC status value see DacStatusValue
+    * @return DAC status value see DacStatus
     */
-   static DacStatusValue getAndClearStatus() {
+   static DacStatus getAndClearStatus() {
       // Get status
-      uint8_t status = dac().SR;
+      uint8_t status = dac->SR;
       // Clear set flags
-      dac().SR = ~status;
+      dac->SR = ~status;
       // return original status
-      return (DacStatusValue)status;
+      return (DacStatus)status;
    }
    /**
     *   Disable the DAC
     */
    static void finalise() {
       // Enable timer
-      dac().C0 = 0;
-      dac().C1 = 0;
+      dac->C0 = 0;
+      dac->C1 = 0;
       Info::disableClock();
    }
    /**
@@ -532,7 +632,7 @@ public:
     * @param value 12-bit value to write to DAC or FIFO
     */
    static void writeValue(uint16_t value) {
-      dac().DATA[0] = DAC_DATA_DATA(value);
+      dac->DATA[0] = DAC_DATA_DATA(value);
    }
 
    /**
@@ -543,7 +643,7 @@ public:
     */
    static void writeValue(unsigned index, uint16_t value) {
       usbdm_assert(index<getBufferSize(), "Buffer index out of range");
-      dac().DATA[index] = DAC_DATA_DATA(value);
+      dac->DATA[index] = DAC_DATA_DATA(value);
    }
 
 };
@@ -551,14 +651,14 @@ public:
 /**
  * Callback table for programmatically set handlers
  */
-template<class Info> DACCallbackFunction Dac_T<Info>::sCallback =  Dac_T<Info>::unhandledCallback;
+template<class Info> DacCallbackFunction Dac_T<Info>::sCallback =  Dac_T<Info>::unhandledCallback;
 
 #if defined(USBDM_DAC0_IS_DEFINED)
-using Dac0 = Dac_T<Dac0Info>;
+typedef Dac_T<Dac0Info> Dac0;
 #endif
 
 #if defined(USBDM_DAC1_IS_DEFINED)
-using Dac1 = Dac_T<Dac1Info>;
+typedef Dac_T<Dac1Info> Dac1;
 #endif
 /**
  * @}

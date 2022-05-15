@@ -23,7 +23,7 @@ using namespace USBDM;
 #define SET_HANDLERS_PROGRAMMATICALLY
 
 // Connection mapping - change as required
-using RedLed   = USBDM::GpioC<3>;
+using Led   = GpioA<2,  ActiveLow>;
 
 // Timer to use
 using Lptmr = Lptmr0;
@@ -32,7 +32,7 @@ using Lptmr = Lptmr0;
  * This handler is set programmatically
  */
 void flash(void) {
-   RedLed::toggle();
+   Led::toggle();
 }
 
 #ifndef SET_HANDLERS_PROGRAMMATICALLY
@@ -45,14 +45,14 @@ namespace USBDM {
 template<>
 void Lptmr::irqHandler() {
    clearInterruptFlag();
-   RedLed::toggle();
+   Led::toggle();
 }
 
 }
 #endif
 
 int main() {
-   RedLed::setOutput();
+   Led::setOutput();
 
    // Enable LPTMR in time counting mode
    Lptmr::configureTimeCountingMode(
@@ -61,7 +61,7 @@ int main() {
          LptmrClockSel_Lpoclk);
 
    // Set period of timer event
-   Lptmr::setPeriod(5*seconds);
+   Lptmr::setPeriod(2_s);
 
 #ifdef SET_HANDLERS_PROGRAMMATICALLY
    // This handler is set programmatically

@@ -26,8 +26,8 @@ using namespace USBDM;
 #define SET_HANDLERS_PROGRAMMATICALLY
 
 // Connection mapping - change as required
-using Led1 = gpio_LED_BLUE;
-using Led2 = gpio_LED_RED;
+using Led1 = GpioA<1,  ActiveLow>;
+using Led2 = GpioA<2,  ActiveLow>;
 
 using Timer         = Pit;
 using TimerChannelA = Timer::Channel<0>;
@@ -91,15 +91,18 @@ int main() {
    TimerChannelB::setCallback(flashB);
 #endif
 
+   // Number of PIT ticks per second
+   const Ticks ticksPerSecond = Pit::convertSecondsToTicks(1_s);
+
    // Flash 1st LED @ 2Hz
-   TimerChannelA::configureInTicks(::SystemBusClock/2, PitChannelIrq_Enabled);
+   TimerChannelA::configure(ticksPerSecond/2U, PitChannelIrq_Enabled); // Configured in 'ticks'
    // or
-//   TimerChannelA::configure(500*ms, PitChannelIrq_Enabled);
+//   TimerChannelA::configure(500_ms, PitChannelIrq_Enabled); // Configured in 'seconds'
 
    // Flash 2nd LED @ 1Hz
-   TimerChannelB::configureInTicks(::SystemBusClock, PitChannelIrq_Enabled);
+   TimerChannelB::configure(ticksPerSecond, PitChannelIrq_Enabled); // Configured in 'ticks'
    // or
-//   TimerChannelB::configure(1*seconds, PitChannelIrq_Enabled);
+//   TimerChannelB::configure(1_s, PitChannelIrq_Enabled); // Configured in 'seconds'
 
    TimerChannelA::enableNvicInterrupts(NvicPriority_Normal);
    TimerChannelB::enableNvicInterrupts(NvicPriority_Normal);

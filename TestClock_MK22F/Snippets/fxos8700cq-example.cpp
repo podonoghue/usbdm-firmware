@@ -7,7 +7,6 @@
  * @note You may need to change the pin-mapping of the I2C interface
 =================================================================================
  */
-#include <math.h>
 #include "system.h"
 #include "derivative.h"
 #include "hardware.h"
@@ -42,20 +41,20 @@ void report(FXOS8700CQ &accelerometer) {
 
    accelerometer.readAccelerometerXYZ(&accelStatus, &accelX, &accelY, &accelZ);
    accelerometer.readMagnetometerXYZ(&magStatus, &magX, &magY, &magZ);
-   printf("s=0x%02X, aX=%10d, aY=%10d, aZ=%10d, ", accelStatus, accelX, accelY, accelZ);
-   printf("s=0x%02X, mX=%10d, mY=%10d, mZ=%10d, ", magStatus,   magX,   magY,   magZ);
-   printf("a=%d\n", (int)(180*atan2(magX, magY)/M_PI));
+   console.write("s=0x", accelStatus, Radix_16, ", aX=", accelX, "aY=", accelY, ", aZ=", accelZ);
+   console.write("s=0x", magStatus, Radix_16, ", aX=", magX, "aY=", magY, ", aZ=", magZ);
+   console.writeln("a=", (int)(180*atan2(magX, magY)/3.14159));
 }
 
 int main() {
-   printf("Starting\n");
+   console.writeln("Starting\n");
 
-   console.write("Device ID = 0x").write(accelerometer.readID(), Radix_16).writeln("(should be 0xC7)");
+   console.writeln("Device ID = 0x", accelmag.readID(), Radix_16, "(should be 0xC7)");
 
    // Enable both Accelerometer and magnetometer
    accelmag.enable(FXOS8700CQ::ACCEL_MAG);
 
-   printf("Before simple calibration (make sure the device is level!)\n");
+   console.writeln("Before simple calibration (make sure the device is level!)\n");
    report(accelmag);
    report(accelmag);
    report(accelmag);

@@ -16,7 +16,8 @@
  * This file is generated automatically.
  * Any manual changes will be lost.
  */
-#include "hardware.h"
+#include "string.h"
+#include "pin_mapping.h"
 
 namespace USBDM {
 
@@ -217,6 +218,44 @@ enum SmcStatus {
    SmcStatus_VLLS   = SMC_PMSTAT_PMSTAT(1<<6),    //!< Processor is in Very Low Leakage Stop mode
 };
 
+class SmcBase {
+
+public:
+   /**
+    * Enter Stop Mode (STOP, VLPS, LLSx, VLLSx)
+    * (ARM core DEEPSLEEP mode)
+    *
+    * The processor will stop execution and enter the currently configured STOP mode.\n
+    * Peripherals affected will depend on the stop mode selected.\n
+    * The stop mode to enter may be set by setStopMode().
+    * Other options that affect stop mode may be set by setStopOptions().
+    */
+   static void enterStopMode() {
+      // Space for RAM copy of executeRamStopCommand_asm()
+      __attribute__ ((section(".data")))
+      static uint16_t const space[] = {
+               //                // executeRamStopCommand_asm()
+               0x200a,           //        movs  r0, #10
+               //                // loop:
+               0xf110, 0x30ff,   //        adds  r0, r0, #-1
+               0xd1fc,           //        bne   loop
+               0xf3bf, 0x8f4f,   //        dsb
+               0xbf30,           //        wfi
+               0xf3bf, 0x8f6f,   //        isb
+               0x4770,           //        bx lr
+      };
+      // Pointer to function in RAM
+      void (*fp)() = (void (*)())((uint32_t)space|1);
+
+      // Set deep sleep
+      SCB->SCR = SCB->SCR | SCB_SCR_SLEEPDEEP_Msk;
+
+      // Call executeRamStopCommand() on the stack
+      (*fp)();
+   }
+
+};
+
 /**
  * @brief Template class representing the System Mode Controller (SMC)
  *
@@ -226,13 +265,15 @@ enum SmcStatus {
  * @image html KinetisPowerModes.png
  */
 template <class Info>
-class SmcBase_T {
+class SmcBase_T : public SmcBase {
 
 protected:
 	   /** Hardware instance pointer */
-	   static __attribute__((always_inline)) volatile SMC_Type &smc() { return Info::smc(); }
+	   static constexpr HardwarePtr<SMC_Type> smc = Info::baseAddress;
 
 public:
+
+	   using SmcBase::enterStopMode;
 
    /**
     * Get name from SMC status e.g. RUN, VLPR, HSRUN
@@ -276,8 +317,8 @@ public:
     * Configure with settings from <b>Configure.usbdmProject</b>.
     */
    static void defaultConfigure() {
-      smc().PMPROT   = Info::pmprot;
-      smc().STOPCTRL = Info::stopctrl;
+      smc->PMPROT   = Info::pmprot;
+      smc->STOPCTRL = Info::stopctrl;
    }
    
    /* smc_alls_mkl04z4.xml */
@@ -296,7 +337,7 @@ public:
          SmcLowLeakageStop       smcLowLeakageStop       = SmcLowLeakageStop_Disabled,
          SmcVeryLowLeakageStop   smcVeryLowLeakageStop   = SmcVeryLowLeakageStop_Disabled) {
    
-      smc().PMPROT = smcVeryLowPower|smcLowLeakageStop|smcVeryLowLeakageStop;
+      smc->PMPROT = smcVeryLowPower|smcLowLeakageStop|smcVeryLowLeakageStop;
       return E_NO_ERROR;
    }
 
@@ -314,7 +355,7 @@ public:
          SmcPartialStopMode      smcPartialStopMode      = SmcPartialStopMode_Normal,
          SmcPowerOnReset         smcPowerOnReset         = SmcPowerOnReset_Disabled ) {
    
-      smc().STOPCTRL = smcLowLeakageStopMode|smcPartialStopMode|smcPowerOnReset;
+      smc->STOPCTRL = smcLowLeakageStopMode|smcPartialStopMode|smcPowerOnReset;
    }
 
 
@@ -325,7 +366,7 @@ public:
     */
    static SmcStatus getStatus() {
 
-      return static_cast<SmcStatus>(smc().PMSTAT);
+      return static_cast<SmcStatus>(smc->PMSTAT);
    }
 
    /**
@@ -345,7 +386,7 @@ public:
 #endif
       switch(smcRunMode) {
          case SmcRunMode_Normal:
-            smc().PMCTRL = (smc().PMCTRL&~SMC_PMCTRL_RUNM_MASK)|smcRunMode;
+            smc->PMCTRL = (smc->PMCTRL&~SMC_PMCTRL_RUNM_MASK)|smcRunMode;
             // Wait for power status to change
             while (getStatus() != SmcStatus_RUN) {
                __asm__("nop");
@@ -357,7 +398,7 @@ public:
                // Can only transition from RUN mode
                return setErrorCode(E_ILLEGAL_POWER_TRANSITION);
             }
-            smc().PMCTRL = (smc().PMCTRL&~SMC_PMCTRL_RUNM_MASK)|smcRunMode;
+            smc->PMCTRL = (smc->PMCTRL&~SMC_PMCTRL_RUNM_MASK)|smcRunMode;
             // Wait for power status to change
             while (getStatus() != SmcStatus_HSRUN) {
                __asm__("nop");
@@ -371,7 +412,7 @@ public:
                return setErrorCode(E_ILLEGAL_POWER_TRANSITION);
             }
 #endif
-            smc().PMCTRL = (smc().PMCTRL&~SMC_PMCTRL_RUNM_MASK)|smcRunMode;
+            smc->PMCTRL = (smc->PMCTRL&~SMC_PMCTRL_RUNM_MASK)|smcRunMode;
             // Wait for power status to change
             while (getStatus() != SmcStatus_VLPR) {
                __asm__("nop");
@@ -394,27 +435,9 @@ public:
     * @param[in]  smcStopMode Stop mode to set
     */
    static void setStopMode(SmcStopMode smcStopMode) {
-      smc().PMCTRL = (smc().PMCTRL&~SMC_PMCTRL_STOPM_MASK)|smcStopMode;
+      smc->PMCTRL = (smc->PMCTRL&~SMC_PMCTRL_STOPM_MASK)|smcStopMode;
       // Make sure write completes
       __DSB();
-   }
-
-   /**
-    * Enter Stop Mode (STOP, VLPS, LLSx, VLLSx)
-    * (ARM core DEEPSLEEP mode)
-    *
-    * The processor will stop execution and enter the currently configured STOP mode.\n
-    * Peripherals affected will depend on the stop mode selected.\n
-    * The stop mode to enter may be set by setStopMode().
-    * Other options that affect stop mode may be set by setStopOptions().
-    */
-   static void enterStopMode() {
-      SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
-      // Make sure write completes
-      (void)(SCB->SCR);
-      __asm volatile( "dsb" ::: "memory" );
-      __asm volatile( "wfi" );
-      __asm volatile( "isb" );
    }
 
    /**
@@ -428,7 +451,7 @@ public:
     */
    static void enterStopMode(SmcStopMode smcStopMode) {
       setStopMode(smcStopMode);
-      enterStopMode();
+      SmcBase::enterStopMode();
    }
 
    /**
@@ -437,7 +460,7 @@ public:
     * See enterStopMode();
     */
    static void deepSleep() {
-      enterStopMode();
+      SmcBase::enterStopMode();
    }
 
    /**
@@ -471,7 +494,7 @@ public:
     * generate interrupts to wake the core.
     */
    static void enterWaitMode() {
-      SCB->SCR &= ~SCB_SCR_SLEEPDEEP_Msk;
+      SCB->SCR = SCB->SCR & ~SCB_SCR_SLEEPDEEP_Msk;
       // Make sure write completes
       (void)(SCB->SCR);
       __asm volatile( "dsb" ::: "memory" );
@@ -502,9 +525,9 @@ public:
          // Can only change in RUN mode
          return setErrorCode(E_ILLEGAL_POWER_TRANSITION);
       }
-      smc().PMCTRL = (smc().PMCTRL&SMC_PMCTRL_STOPM_MASK) | smcExitVeryLowPowerOnInt;
+      smc->PMCTRL = (smc->PMCTRL&SMC_PMCTRL_STOPM_MASK) | smcExitVeryLowPowerOnInt;
       // Make sure write completes
-      (void)smc().PMCTRL;
+      (void)smc->PMCTRL;
       return E_NO_ERROR;
    }
 #endif
@@ -521,10 +544,10 @@ public:
     */
    static void setSleepOnExit(SmcSleepOnExit smcSleepOnExit=SmcSleepOnExit_Enabled) {
       if (smcSleepOnExit) {
-         SCB->SCR |= SCB_SCR_SLEEPONEXIT_Msk;
+         SCB->SCR = SCB->SCR | SCB_SCR_SLEEPONEXIT_Msk;
       }
       else {
-         SCB->SCR &= ~SCB_SCR_SLEEPONEXIT_Msk;
+         SCB->SCR = SCB->SCR & ~SCB_SCR_SLEEPONEXIT_Msk;
       }
       // Make sure write completes
       (void)(SCB->SCR);
@@ -536,7 +559,6 @@ public:
  * Class representing SMC
  */
 class Smc : public SmcBase_T<SmcInfo> {};
-
 #endif
 
 /**

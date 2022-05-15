@@ -1,6 +1,6 @@
-/* ARMLtd_GCC-rom-mk-sramu.ld (Packages\100.ARM_DeviceOptions\Project_Settings\Linker_Files)
+/* ARMLtd_GCC-rom-mk.ld (180.ARM_Peripherals/Project_Settings/Linker_Files/)
  *
- * Kinetis version with optional SRAM_U allocation and bitband
+ * Kinetis version with bitband
  *
  * Linker script based on example scripts provided with ARM Ltd GCC
  *
@@ -35,9 +35,6 @@
 OUTPUT_FORMAT ("elf32-littlearm", "elf32-bigarm", "elf32-littlearm")
 SEARCH_DIR(.)
 
-/* Include external memory map defining ram and Flash memory etc */
-INCLUDE "MemoryMap-frdm_k22f.ld"
-
 ENTRY(Reset_Handler)
 
 PROVIDE(__stack_size__ = __stack_size);
@@ -62,18 +59,21 @@ SECTIONS
       ASSERT (. != __flash_start, "No reset vector found");
       __VECTOR_TABLE_END = .;
       
-      /* Uncomment to Emit a Bootloader configuration if present */
-      /*
+      /* Emit a Freescale Bootloader configuration @0x3C0 if present */
       . = __flash_start + 0x3C0;
       KEEP(*(.bootloader_configuration))
-      */
       
+      /* Emit USBDM Bootloader information @0x3C0 if present */
+      __bootloaderInformation = .;
+      KEEP(*(.bootloaderInformation))
+      ASSERT ((BOOT_LOADER_SIZE == 0) || (. != __bootloaderInformation), "No bootloader information");
+
       /* Emit a Security field */
       . = __flash_start + 0x400;
       KEEP(*(.security_information))
       KEEP(*(.FlashConfig))    /* KDS Flash Configuration Field (FCF) */
       ASSERT (. == __flash_start + 0x410, "No Freescale security information");
-    } > flash
+   } > flash
 
 /* Size of RAM vector table (if needed) */
 M_VECTOR_RAM_SIZE = DEFINED(__ram_vector_table__) ? (__VECTOR_TABLE_END - __VECTOR_TABLE) : 0x0000;
@@ -82,8 +82,6 @@ M_VECTOR_RAM_SIZE = DEFINED(__ram_vector_table__) ? (__VECTOR_TABLE_END - __VECT
    {
       *(.text)                 /* .text sections (code) */
       *(.text*)                /* .text* sections (code) */
-      *(.rodata)               /* .rodata sections (constants, strings, etc.) */
-      *(.rodata*)              /* .rodata* sections (constants, strings, etc.) */
       KEEP(*(.init))
       KEEP(*(.fini))
 
@@ -126,21 +124,25 @@ M_VECTOR_RAM_SIZE = DEFINED(__ram_vector_table__) ? (__VECTOR_TABLE_END - __VECT
 
       KEEP(*(.jcr*))
 
-      *(.rodata*)
-
       KEEP(*(.eh_frame*))
-    } > flash
+   } > text_rom
 
+   .rodata :
+   {
+      *(.rodata)               /* .rodata sections (constants, strings, etc.) */
+      *(.rodata*)              /* .rodata* sections (constants, strings, etc.) */
+   } > rodata_rom
+   
    .ARM.extab : 
    {
       *(.ARM.extab* .gnu.linkonce.armextab.*)
-   } > flash
+   } > rodata_rom
 
    __exidx_start = .;
    .ARM.exidx :
    {
       *(.ARM.exidx* .gnu.linkonce.armexidx.*)
-   } > flash
+   } > rodata_rom
    __exidx_end = .;
 
    /* Flash region for programming */
@@ -148,17 +150,17 @@ M_VECTOR_RAM_SIZE = DEFINED(__ram_vector_table__) ? (__VECTOR_TABLE_END - __VECT
    {
       . = ALIGN(4);
       KEEP(*(.flash))
-   } > flash
+   } > rodata_rom
 
-   __etext = .;    /* define a global symbol at end of code */
-   __DATA_ROM = .; /* Symbol is used by startup for data initialization */
+   __etext = .;     /* Symbol for .data image at end of .rodata */
+   __DATA_ROM = .;  /* Symbol is used by startup for data initialization */
 
   /* reserve MTB memory at the beginning of data */
   .mtb : /* MTB buffer no0load */
   {
     . = ALIGN(8);
     _mtb_start = .;
-    KEEP(*(.mtb_buf)) /* May not referenced by application */
+    KEEP(*(.mtb_buf)) /* May not be referenced by application */
     . = ALIGN(8);
     _mtb_end = .;
   } > mtb_ram
@@ -182,6 +184,7 @@ M_VECTOR_RAM_SIZE = DEFINED(__ram_vector_table__) ? (__VECTOR_TABLE_END - __VECT
       *(.bss*endPointBdts*) /* Load USB BDTs here as they are aligned */
    } > bdts_ram
   
+   /* Initialised data in RAM copied from flash */
    .data : AT (__etext)
    {
       __data_start__ = .;
@@ -244,34 +247,35 @@ M_VECTOR_RAM_SIZE = DEFINED(__ram_vector_table__) ? (__VECTOR_TABLE_END - __VECT
       __StackTop = .;
    } > stack_ram
 
-
    /* 
-    * SRAM_U region
+    * Bitband region
     *
     * This area is partitioned from the top of SRAM
     *
     * Each bit in this region maps to a word in the .bitband region (if present)
     * This region is also accessible to BME (if present and supports RAM access) 
     */
-   .sram_u (NOLOAD) :
+   .bitband_ram (NOLOAD) :
    {
-      *(.sram_u)
-   } > sram_u_ram
+   __start_bitband = .;
+      *(.bitband_ram)
+   } > bitband_ram
 
    /*
     * Bitband region
     *
-    * Each word in this region maps to a bit in the .bitband_byte region 
+    * Each word in this region maps to a bit in the .bitband_ram region 
     */
    .bitband (NOLOAD) :
    {
-      /* Allocate variables from top of region */
-      . = ORIGIN(bitband) + ((ORIGIN(sram_u_ram) + LENGTH(sram_u_ram) - __sram_u_size) & 0xFFFFFF) * 32;
+      /* Allocate variables with an offset scaled from bitband_ram offset */
+      . = ORIGIN(bitband) + 32*(ABSOLUTE(__start_bitband) - ABSOLUTE(ORIGIN(bitband_ram)));
       *(.bitband)
    } > bitband
     
   PROVIDE(__stack = __StackTop);
   PROVIDE(__cs3_stack = __StackTop);
+  
   
   /*
    * These are very 'weak' to ensure semi-hosting version 
@@ -305,7 +309,7 @@ M_VECTOR_RAM_SIZE = DEFINED(__ram_vector_table__) ? (__VECTOR_TABLE_END - __VECT
   | Stack                |
   | (__stack_size__)     |                                   (size=0x100)
   +----------------------+ __StackTop                        0x200002ff
-  | Bitband/BME (sram_u) |
+  | Bitband/BME (sram_u) |                                   (if present)
   | (__sram_u_size)      |                                   (size=1)
   +----------------------+                                   0x20000300
   

@@ -1,5 +1,5 @@
 /**
- * @file     system.h (180.ARM_Peripherals/Project_Headers/system.h)
+ * @file     system.h (100.ARM_DeviceOptions/Project_Headers/system.h)
  * @brief    System initialisation routines
  * @version  V4.11.1.70
  * @date     13 Nov 2012
@@ -30,6 +30,13 @@ void SystemInitLowLevel(void);
  * Setup the microcontroller system.
  */
 void SystemInit(void);
+
+/**
+ * @brief Update SystemCoreClock variable
+ *
+ * Updates the SystemCoreClock & SystemBusClock variables with current core Clock retrieved from CPU registers.
+ */
+void SystemCoreClockUpdate(void);
 
 #if defined(__CM3_REV) || defined(__CM4_REV) // Only available on Cortex M3 & M4
 /**
@@ -68,8 +75,8 @@ static inline void unlock(volatile uint32_t *lockVar) {
 }
 #else
 // Not available on Cortex M0
-static inline void lock(volatile uint32_t * dummy) {(void)dummy;}
-static inline void unlock(volatile uint32_t * dummy) {(void)dummy;}
+static inline void lock(uint32_t * dummy) {(void)dummy;}
+static inline void unlock(uint32_t * dummy) {(void)dummy;}
 #endif
 
 #ifndef __cplusplus

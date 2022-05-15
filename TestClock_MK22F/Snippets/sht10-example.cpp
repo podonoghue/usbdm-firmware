@@ -34,7 +34,7 @@ int main() {
 
    status = sht10.readStatus();
    console.write("Status = 0b").writeln(status,Radix_2);
-   console.reset();
+   console.resetFormat();
 
    console.write("Battery status = ").writeln(sht10.readBatteryLevel()?"OK":"Low");
 
@@ -89,11 +89,11 @@ int main() {
          errCount++;
          continue;
       }
-      console.setWidth(2).setPadding(Padding_LeadingSpaces).write(errCount).reset();
-      console.setWidth(6).setPadding(Padding_LeadingSpaces).write(count).reset();
+      console.setWidth(2).setPadding(Padding_LeadingSpaces).write(errCount).resetFormat();
+      console.setWidth(6).setPadding(Padding_LeadingSpaces).write(count).resetFormat();
       console.write(": Temperature ").write(temperature);
       console.write(", Humidity    ").writeln(humidity);
-      console.reset();
+      console.resetFormat();
 
       waitMS(100);
    }

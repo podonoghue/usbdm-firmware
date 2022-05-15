@@ -8,6 +8,7 @@
  ============================================================================
  */
 #include "hardware.h"
+#include "ftm.h"
 
 /*
  * Note - Not all FTMs support quadrature decoder functions
@@ -16,7 +17,7 @@ using namespace USBDM;
 
 // Use FTM1 as the quadrature decoder
 // Not all FTMs support this mode
-using QuadDecoder = QuadDecoder1;
+using QuadDecoder = FtmQuadDecoder1;
 
 /**
  * Callback executed on timer overflow/underflow
@@ -36,7 +37,7 @@ int main() {
    // Configure decoder
    QuadDecoder::configure(
          FtmPrescale_1,
-         QuadratureMode_Phase_AB_Mode);
+         FtmQuadratureMode_Phase_AB_Mode);
 
    // Connect QuadDecoder to pins and configure input characteristics
    QuadDecoder::setInput(PinPull_Up);
@@ -64,7 +65,7 @@ int main() {
       int16_t position = QuadDecoder::getPosition();
       if (position != lastPosition) {
          // Report position
-         console.write("Shaft position = ").writeln(position);
+         console.write("Shaft position = ", position);
          lastPosition = position;
       }
    }

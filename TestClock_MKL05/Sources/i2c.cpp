@@ -221,10 +221,11 @@ void I2c::poll(void) {
 
 /**
  * Transmit message
+ * Note: 0th byte of Tx is often register address.
  *
  * @param[in]  address  Address of slave to communicate with (should include LSB = R/W bit = 0)
  * @param[in]  size     Size of transmission data
- * @param[in]  data     Data to transmit, 0th byte is often register address
+ * @param[in]  data     Data to transmit
  *
  * @return E_NO_ERROR on success
  */
@@ -294,6 +295,8 @@ ErrorCode I2c::receive(uint8_t address, uint16_t size,  uint8_t data[]) {
 
 /**
  * Transmit message followed by receive message.
+ * Note: 0th byte of Tx is often register address.
+ *
  * Uses repeated-start.
  *
  * @param[in]  address  Address of slave to communicate with (should include LSB = R/W bit = 0)

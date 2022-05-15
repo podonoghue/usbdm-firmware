@@ -17,6 +17,7 @@
  */
 #include <stdlib.h>
 #include <time.h>       /* time */
+#include "hardware.h"
 #include "flash.h"
 
 using namespace USBDM;
@@ -70,23 +71,23 @@ void printDump(uint8_t *address, uint32_t size) {
    console.setPadding(Padding_LeadingZeroes).setWidth(2);
    console.write("          ");
    for (unsigned index=0; index<RowWidth; index++) {
-      console.write(index).write(" ");
+      console.write(index, " ");
    }
    console.writeln();
    bool needNewline = true;
    for (unsigned index=0; index<size; index++) {
       if (needNewline) {
          console.setPadding(Padding_LeadingZeroes).setWidth(8);
-         console.write((int)address+index, Radix_16).write(": ");
+         console.write((int)address+index, Radix_16, ": ");
          console.setPadding(Padding_LeadingZeroes).setWidth(2);
       }
-      console.write(address[index], Radix_16).write(" ");
+      console.write(address[index], Radix_16, " ");
       needNewline = (((index+1)&(RowWidth-1))==0);
       if (needNewline) {
          console.writeln();
       }
    }
-   console.writeln().reset();
+   console.writeln().resetFormat();
 }
 
 /**
@@ -116,9 +117,7 @@ int main(void) {
    // Verify programmed data
    for (unsigned index=0; index<sizeof(copy); index++) {
       if (copy[index] != 0xFF) {
-         console.
-         write("Flash failed erase @").write(&copy[index]).
-         write(": (data[").write(index).write("],").write(copy[index]).writeln(") != 0xFF");
+         console.writeln("Flash failed erase @", &copy[index], ": (data[", index, "],", copy[index], ") != 0xFF");
          console.writeln("Verify of flash erasing failed\n\r");
          __BKPT();
       }
@@ -144,10 +143,9 @@ int main(void) {
    // Verify programmed data
    for (unsigned index=0; index<sizeof(data); index++) {
       if (data[index] != copy[index]) {
-         console.
-         write("Flash failed verify @").write(&copy[index]).
-         write(": (data[").write(index).write("],").write(data[index]).write(") != ").
-         write(": (copy[").write(index).write("],").writeln(copy[index]);
+         console.writeln(
+               "Flash failed verify @", &copy[index],
+               ": (data[", index).write("],", data[index], ") != ", ": (copy[", index, "],", copy[index]);
          console.writeln("Verify of flash programming failed\n\r");
          __BKPT();
       }

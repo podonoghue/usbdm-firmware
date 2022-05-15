@@ -97,7 +97,7 @@ static constexpr DmaTcd tcd = DmaTcd (
    /* Source modulo                  */ DmaModulo_Disabled,            // Disabled
    /* Last source adjustment         */ -(int)sizeof(message),         // Reset source address to start of array on completion
 
-   /* Destination address            */ console.uartD(),               // Destination is UART data register
+   /* Destination address            */ console.uartDATA,              // Destination is UART data register
    /* Destination offset             */ 0,                             // Destination address doesn't change
    /* Destination size               */ dmaSize(message[0]),           // 8-bit write to destination address
    /* Destination modulo             */ DmaModulo_Disabled,            // Disabled
@@ -120,7 +120,7 @@ static constexpr DmaTcd tcd = DmaTcd (
  * @param errorFlags Channel error information (DMA_ES)
  */
 void dmaErrorCallbackFunction(uint32_t errorFlags) {
-   console.write("DMA error DMA_ES = 0x").writeln(errorFlags, Radix_2);
+   console.writeln("DMA error DMA_ES = 0b", errorFlags, Radix_2);
    __BKPT();
 }
 
@@ -160,7 +160,7 @@ static void configureDma(DmaChannelNum dmaChannel) {
    Dma0::setCallback(dmaChannel, dmaCallback);
    Dma0::setErrorCallback(dmaErrorCallbackFunction);
    Dma0::enableNvicInterrupts(dmaChannel, NvicPriority_Normal);
-   Dma0::enableNvicErrorInterrupt();
+   Dma0::enableNvicErrorInterrupt(NvicPriority_Normal);
 
    // Connect DMA channel to UART but throttle by PIT Channel N (matches DMA channel N)
    DmaMux0::configure(dmaChannel, DMA_SLOT, DmaMuxEnable_Triggered);
@@ -184,14 +184,14 @@ static void configureDma(DmaChannelNum dmaChannel) {
  * Configure the PIT
  * - Generates regular events which throttles the DMA -> UART Tx.
  *
- * @param dmaChannel  PIT channel being used.  Must be associated with DMA channel.
+ * @param pitChannel  PIT channel being used.  Must be associated with DMA channel.
  */
 static void configurePit(PitChannelNum pitChannel) {
    // Configure base PIT
    Pit::configure(PitDebugMode_Stop);
 
    // Configure channel for 100ms + interrupts
-   Pit::configureChannel(pitChannel, 100*ms, PitChannelIrq_Enabled);
+   Pit::configureChannel(pitChannel, 100_ms, PitChannelIrq_Enabled);
 }
 
 /**
@@ -204,13 +204,13 @@ void changeRunMode(SmcRunMode smcRunMode) {
    SmcStatus smcStatus = Smc::getStatus();
 
    // Check if transition needed
-   if (((smcStatus == SmcStatus_hsrun) && (smcRunMode == SmcRunMode_HighSpeed)) ||
+   if (((smcStatus == SmcStatus_HSRUN) && (smcRunMode == SmcRunMode_HighSpeed)) ||
        ((smcStatus == SmcStatus_RUN) && (smcRunMode == SmcRunMode_Normal)) ||
        ((smcStatus == SmcStatus_VLPR) && (smcRunMode == SmcRunMode_VeryLowPower))) {
       return;
    }
    // If changing go via RUN
-   if (smcStatus == SmcStatus_hsrun) {
+   if (smcStatus == SmcStatus_HSRUN) {
       // Do HSRUN->RUN
       Mcg::configure(RUN_MODE);
       Smc::enterRunMode(SmcRunMode_Normal);
@@ -248,10 +248,7 @@ void changeRunMode(SmcRunMode smcRunMode) {
          break;
    }
 
-   console.write(Smc::getSmcStatusName()).
-         write(":").
-         write(Mcg::getClockModeName()).
-         write("@").writeln(::SystemCoreClock);
+   console.writeln(Smc::getSmcStatusName(), ":", Mcg::getClockModeName(), "@", ::SystemCoreClock);
 }
 
 int main() {
@@ -273,10 +270,10 @@ int main() {
    // DMA channel number to use (determines which PIT channel used)
    static const DmaChannelNum dmaChannel = Dma0::allocatePeriodicChannel();
    if (dmaChannel == DmaChannelNum_None) {
-      console.write("Failed to allocate DMA channel, rc= ").writeln(E_NO_RESOURCE);
+      console.writeln("Failed to allocate DMA channel, rc= ", E_NO_RESOURCE);
       __asm__("bkpt");
    }
-   console.write("Allocated DMA channel  #").writeln(dmaChannel);
+   console.writeln("Allocated DMA channel  #", dmaChannel);
 
    // Set up throttled DMA transfer from memory -> UART
    configureDma(dmaChannel);
@@ -284,10 +281,10 @@ int main() {
    // Get Pit channel associated with DMA channel
    PitChannelNum pitChannel = Pit::allocateDmaAssociatedChannel(dmaChannel);
    if (pitChannel == PitChannelNum_None) {
-      console.write("Failed to allocate PIT channel, rc= ").writeln(E_NO_RESOURCE);
+      console.writeln("Failed to allocate PIT channel, rc= ", E_NO_RESOURCE);
       __asm__("bkpt");
    }
-   console.write("Allocated PIT channel  #").writeln(pitChannel);
+   console.writeln("Allocated PIT channel  #", pitChannel);
    configurePit(pitChannel);
 
    // Start the UART DMA requests

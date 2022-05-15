@@ -19,7 +19,7 @@
  */
 #include "derivative.h"
 #include "system.h"
-#include "hardware.h"
+#include "pin_mapping.h"
 
 namespace USBDM {
 
@@ -41,7 +41,7 @@ extern volatile uint32_t SystemMcgPllClock;
 extern void setSysDividersStub(uint32_t simClkDiv1);
 
 /**
- * Clock configuration names
+ * Clock configurations
  */
 enum ClockConfig : uint8_t {
    ClockConfig_FEI_42MHz,
@@ -76,7 +76,7 @@ private:
    static MCGCallbackFunction callback;
 
    /** Hardware instance */
-   static __attribute__((always_inline)) volatile MCG_Type &mcg() { return McgInfo::mcg(); }
+   static constexpr HardwarePtr<MCG_Type> mcg = McgInfo::baseAddress;
 
 public:
    /**
@@ -87,11 +87,11 @@ public:
    /**
     * Transition from current clock mode to mode given
     *
-    * @param[in]  to Clock mode to transition to
+    * @param[in]  clockInfo Clock mode to transition to
     *
     * @return E_NO_ERROR on success
     */
-   static ErrorCode clockTransition(const McgInfo::ClockInfo &to);
+   static ErrorCode clockTransition(const McgInfo::ClockInfo &clockInfo);
 
    /**
     * Update SystemCoreClock variable
@@ -122,7 +122,7 @@ public:
     *
     * @param[in]  nvicPriority  Interrupt priority
     */
-   static void enableNvicInterrupts(uint32_t nvicPriority) {
+   static void enableNvicInterrupts(NvicPriority nvicPriority) {
       enableNvicInterrupt(McgInfo::irqNums[0], nvicPriority);
    }
 

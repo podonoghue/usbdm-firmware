@@ -248,7 +248,7 @@ M_VECTOR_RAM_SIZE = DEFINED(__ram_vector_table__) ? (__VECTOR_TABLE_END - __VECT
    } > stack_ram
 
    /* 
-    * SRAM_U region
+    * Bitband region
     *
     * This area is partitioned from the top of SRAM
     *
@@ -264,7 +264,7 @@ M_VECTOR_RAM_SIZE = DEFINED(__ram_vector_table__) ? (__VECTOR_TABLE_END - __VECT
    /*
     * Bitband region
     *
-    * Each word in this region maps to a bit in the .sram_u region 
+    * Each word in this region maps to a bit in the .bitband_ram region 
     */
    .bitband (NOLOAD) :
    {

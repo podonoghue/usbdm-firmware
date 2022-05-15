@@ -131,7 +131,7 @@ REGION_ALIAS("noinit_ram",     "ram_low");
 REGION_ALIAS("mtb_ram",        "ram_low");
 /*  <s1>  USB Endpoint buffers               <constant> bdts_ram       */
 REGION_ALIAS("bdts_ram",       "ram_low");
-/*  <s1>  Bitband RAM - must be in ram_high  <constant> bdts_ram       */
+/*  <s1>  Bitband RAM - must be in ram_high  <constant> bitband_ram       */
 REGION_ALIAS("bitband_ram",    "ram_high");
 /* </h> */
 

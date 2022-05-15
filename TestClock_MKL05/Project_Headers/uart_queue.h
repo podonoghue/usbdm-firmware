@@ -78,8 +78,9 @@ public:
       USBDM::CriticalSection cs;
       bool hasSpace = !isFull();
       if (hasSpace) {
-         *fTail++ = element;
-         fNumberOfElements++;
+         *fTail = element;
+         fTail = fTail + 1;
+         fNumberOfElements = fNumberOfElements + 1;
          if (fTail>=(fBuff+QUEUE_SIZE)) {
             fTail = fBuff;
          }
@@ -94,8 +95,9 @@ public:
    T deQueue() {
       USBDM::CriticalSection cs;
       usbdm_assert(!isEmpty(), "Queue empty");
-      T t = *fHead++;
-      fNumberOfElements--;
+      T t = *fHead;
+      fHead = fHead + 1;
+      fNumberOfElements = fNumberOfElements -1;
       if (fHead>=(fBuff+QUEUE_SIZE)) {
          fHead = fBuff;
       }

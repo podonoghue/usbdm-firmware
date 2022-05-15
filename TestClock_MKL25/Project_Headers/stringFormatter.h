@@ -47,20 +47,40 @@ protected:
 
 public:
    /**
-    * Create String Formatter
+    * Create String Formatter using pre-allocated buffer
     *
     * @param[in] buffer      Buffer for characters
     * @param[in] bufferSize  Size of buffer - Note space will be reserved for a terminator
     *
     * Example:
     * @code
-    *   char buff[100];
-    *   StringFormatter sf(buff, sizeof(buff));
+    *   char *buff = (char*)malloc(100);
+    *   StringFormatter sf(buff, 100);
     *   sf.write("Hello ").writeln("and bye bye");
+    *   free(buff);
     * @endcode
     */
    StringFormatter(char buffer[], size_t bufferSize) : buff(buffer), ptr(buffer), sizeMinusOne(bufferSize-1) {
-      usbdm_assert(bufferSize>=1, "Buffer size must be > 1");
+      usbdm_assert(bufferSize>=1, "Buffer size must be >= 1");
+      // String is always terminated
+      *ptr = '\0';
+   }
+
+   /**
+    * Create String Formatter using pre-allocated buffer
+    *
+    * @param[in] buffer      Buffer for characters (Size is inferred from this parameter)
+    *
+    * Example:
+    * @code
+    *   char buff[100];
+    *   StringFormatter sf(buff);
+    *   sf.write("Hello ").writeln("and bye bye");
+    * @endcode
+    */
+   template<size_t N>
+   StringFormatter(char (&buffer)[N]) : buff(buffer), ptr(buffer), sizeMinusOne(N-1) {
+      static_assert(N>=1, "Buffer size must be >= 1");
       // String is always terminated
       *ptr = '\0';
    }
@@ -75,15 +95,9 @@ public:
     *  Flush output data
     *  Resets buffer to empty
     */
-   virtual void flushOutput() override {
+   virtual StringFormatter &flushOutput() override {
       ptr = buff;
-   };
-
-   /**
-    *  Flush input data - not applicable
-    */
-   virtual void flushInput() override {
-      lookAhead = -1;
+      return *this;
    };
 
    /**
@@ -113,23 +127,6 @@ public:
    }
 
 protected:
-   /**
-    * Check if character is available - not applicable.
-    *
-    * @return false No character available
-    */
-   virtual bool _isCharAvailable() override {
-      return false;
-   }
-
-   /**
-    * Receives a single character - not applicable.
-    *
-    * @return -1
-    */
-   virtual int _readChar() override {
-      return -1;
-   }
 
    /**
     * Writes a character.

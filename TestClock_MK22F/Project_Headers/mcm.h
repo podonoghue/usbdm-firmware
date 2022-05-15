@@ -16,7 +16,7 @@
  * This file is generated automatically.
  * Any manual changes will be lost.
  */
-#include "hardware.h"
+#include "pin_mapping.h"
 
 namespace USBDM {
 
@@ -29,7 +29,7 @@ namespace USBDM {
 /**
  * Type definition for MCM interrupt call back
  */
-typedef void (*MCMCallbackFunction)();
+typedef void (*McmCallbackFunction)();
 
 /**
  * Template class providing interface to Low Leakage Wake-up Unit
@@ -48,7 +48,7 @@ class McmBase_T {
 
 protected:
    /** Callback function for ISR */
-   static MCMCallbackFunction sCallback;
+   static McmCallbackFunction sCallback;
 
    /** Callback to catch unhandled interrupt */
    static void unhandledCallback() {
@@ -64,12 +64,91 @@ public:
    }
 
    /**
+    * Wrapper to allow the use of a class member as a callback function
+    * @note Only usable with static objects.
+    *
+    * @tparam T         Type of the object containing the callback member function
+    * @tparam callback  Member function pointer
+    * @tparam object    Object containing the member function
+    *
+    * @return  Pointer to a function suitable for the use as a callback
+    *
+    * @code
+    * class AClass {
+    * public:
+    *    int y;
+    *
+    *    // Member function used as callback
+    *    // This function must match McmCallbackFunction
+    *    void callback() {
+    *       ...;
+    *    }
+    * };
+    * ...
+    * // Instance of class containing callback member function
+    * static AClass aClass;
+    * ...
+    * // Wrap member function
+    * auto fn = Mcm::wrapCallback<AClass, &AClass::callback, aClass>();
+    * // Use as callback
+    * Mcm::setCallback(fn);
+    * @endcode
+    */
+   template<class T, void(T::*callback)(), T &object>
+   static McmCallbackFunction wrapCallback() {
+      static McmCallbackFunction fn = []() {
+         (object.*callback)();
+      };
+      return fn;
+   }
+
+   /**
+    * Wrapper to allow the use of a class member as a callback function
+    * @note There is a considerable space and time overhead to using this method
+    *
+    * @tparam T         Type of the object containing the callback member function
+    * @tparam callback  Member function pointer
+    * @tparam object    Object containing the member function
+    *
+    * @return  Pointer to a function suitable for the use as a callback
+    *
+    * @code
+    * class AClass {
+    * public:
+    *    int y;
+    *
+    *    // Member function used as callback
+    *    // This function must match McmCallbackFunction
+    *    void callback() {
+    *       ...;
+    *    }
+    * };
+    * ...
+    * // Instance of class containing callback member function
+    * AClass aClass;
+    * ...
+    * // Wrap member function
+    * auto fn = Mcm::wrapCallback<AClass, &AClass::callback>(aClass);
+    * // Use as callback
+    * Mcm::setCallback(fn);
+    * @endcode
+    */
+   template<class T, void(T::*callback)()>
+   static McmCallbackFunction wrapCallback(T &object) {
+      static T &obj = object;
+      static McmCallbackFunction fn = []() {
+         (obj.*callback)();
+      };
+      return fn;
+   }
+
+   /**
     * Set Callback function
     *
     *   @param[in]  callback Callback function to be executed on interrupt\n
     *                        Use nullptr to remove callback.
     */
-   static void setCallback(MCMCallbackFunction callback) {
+   static void setCallback(McmCallbackFunction callback) {
       static_assert(Info::irqHandlerInstalled, "MCM not configured for interrupts");
       if (callback == nullptr) {
          callback = unhandledCallback;
@@ -79,7 +158,7 @@ public:
 
 protected:
    /** Pointer to hardware */
-   static __attribute__((always_inline)) volatile MCM_Type &mcm() { return Info::mcm(); }
+   static constexpr HardwarePtr<MCM_Type> mcm = McgInfo::baseAddress;
 
 public:
 
@@ -111,7 +190,7 @@ public:
     *
     * @param[in]  nvicPriority  Interrupt priority
     */
-   static void enableNvicInterrupts(uint32_t nvicPriority) {
+   static void enableNvicInterrupts(NvicPriority nvicPriority) {
       enableNvicInterrupt(Info::irqNums[0], nvicPriority);
    }
 
@@ -123,7 +202,7 @@ public:
    }
 };
 
-template<class Info> MCMCallbackFunction McmBase_T<Info>::sCallback = McmBase_T<Info>::unhandledCallback;
+template<class Info> McmCallbackFunction McmBase_T<Info>::sCallback = McmBase_T<Info>::unhandledCallback;
 
 #ifdef USBDM_MCM_IS_DEFINED
 /**

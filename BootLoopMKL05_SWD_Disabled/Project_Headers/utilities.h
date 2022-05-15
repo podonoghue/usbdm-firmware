@@ -1,6 +1,6 @@
 /**
  * @file     utilities.h (derived from utilities-mke.h)
- * @brief    Convenience macros for port access
+ * @brief    Utility Routines
  * @version  V4.11.1.70
  * @date     13 May 2013
  */

@@ -13,8 +13,9 @@
 extern "C" {
 #endif
 
-extern uint32_t SystemCoreClock; //!< System core clock frequency in Hz
-extern uint32_t SystemBusClock;  //!< System bus clock frequency in Hz
+extern uint32_t SystemCoreClock;    //!< System core clock frequency in Hz
+extern uint32_t SystemBusClock;     //!< System bus clock frequency in Hz
+extern uint32_t SystemFlexbusClock; //!< System Flexbus clock frequency in Hz
 
 /**
  *  @brief Low-level initialize the system
@@ -117,106 +118,5 @@ static inline void exitCriticalSection(uint8_t *cpuSR) {
 }
 #endif
 
-#ifdef __cplusplus
-
-namespace USBDM {
-
-/**
- * Enter critical section
- *
- * Disables interrupts for a critical section
- *
- * @param cpuSR Variable to hold interrupt state so it can be restored
- *
- * @code
- * uint8_t cpuSR;
- * ...
- * enterCriticalSection(cpuSR);
- *  // Critical section
- * exitCriticalSection(cpuSR);
- * @endcode
- */
-static inline void enterCriticalSection(uint8_t &cpuSR) {
-   __asm__ volatile (
-         "  MRS   r0, PRIMASK       \n"   // Copy flags
-         // It may be possible for a ISR to run here but it
-         // would save/restore PRIMASK so this code is OK
-         "  CPSID I                 \n"   // Disable interrupts
-         "  STRB  r0, %[output]     \n"   // Save flags
-         : [output] "=m" (cpuSR) : : "r0");
-}
-
-/**
- * Exit critical section
- *
- * Restores interrupt state saved by enterCriticalSection()
- *
- * @param cpuSR Variable to holding interrupt state to be restored
- */
-static inline void exitCriticalSection(uint8_t &cpuSR) {
-   __asm__ volatile (
-         "  LDRB r0, %[input]    \n"  // Retrieve original flags
-         "  MSR  PRIMASK,r0;     \n"  // Restore
-         : :[input] "m" (cpuSR) : "r0");
-}
-
-/**
- * Class to implement simple critical sections by disabling interrupts.
- *
- * Disables interrupts for a critical section.
- * This would be from the declaration of the object until the end of
- * enclosing block. An object of this class should be declared at the
- * start of a block. e.g.
- * @code
- *    {
- *       CriticalSection cs;
- *       ...
- *       Protected code
- *       ...
- *    }
- * @endcode
- *
- * @note uses PRIMASK
- */
-class CriticalSection {
-
-private:
-   /** Used to record interrupt state on entry */
-   volatile uint32_t cpuSR;
-
-public:
-   /**
-    * Constructor - Enter critical section
-    *
-    * Disables interrupts for a critical section
-    * This would be from the declaration of the object until end of enclosing block.
-    */
-   CriticalSection() __attribute__((always_inline)) {
-      __asm__ volatile (
-            "  MRS   r0, PRIMASK       \n"   // Copy flags
-            // It may be possible for a ISR to run here but it
-            // would save/restore PRIMASK so this code is OK
-            "  CPSID I                 \n"   // Disable interrupts
-            "  STR  r0, %[output]      \n"   // Save flags
-            : [output] "=m" (cpuSR) : : "r0");
-   }
-
-   /**
-    * Destructor - Exit critical section
-    *
-    * Enables interrupts IFF previously disabled by this object
-    * This would be done implicitly by exiting the enclosing block.
-    */
-   inline ~CriticalSection() __attribute__((always_inline)) {
-      __asm__ volatile (
-            "  LDR r0, %[input]     \n"  // Retrieve original flags
-            "  MSR  PRIMASK,r0;     \n"  // Restore
-            : :[input] "m" (cpuSR) : "r0");
-   }
-};
-
-}  // namespace USBDM
-
-#endif // __cplusplus
 
 #endif /* INCLUDE_USBDM_SYSTEM_H_ */

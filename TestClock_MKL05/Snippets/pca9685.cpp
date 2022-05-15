@@ -64,13 +64,6 @@ constexpr uint32_t OUTx_OFF_H_COUNT_MASK = (0xF<<0);
 
 constexpr uint32_t ALL_CALL_ADDDRESS  =  (0xE0);
 
-inline void assert_helper( bool test ) {
-  usbdm_assert(test);
-}
-inline constexpr bool constexpr_assert( bool test ) {
-  return test?true:(assert_helper(test),false);
-}
-
 /**
  * Constructor with default values
  *
@@ -119,7 +112,7 @@ void PCA9685::allHigh(void) {
       /* offLow   */ (uint8_t) 0,
       /* offHigh  */ (uint8_t) OUTx_OFF_H_FULL_MASK,
    };
-   i2c.transmit(ALL_CALL_ADDDRESS, sizeof(data), data);
+   i2c.transmit(ALL_CALL_ADDDRESS, data);
 }
 
 /**
@@ -133,7 +126,7 @@ void PCA9685::allLow(void) {
       /* offLow   */ (uint8_t) 0,
       /* offHigh  */ (uint8_t) 0,
    };
-   i2c.transmit(ALL_CALL_ADDDRESS, sizeof(data), data);
+   i2c.transmit(ALL_CALL_ADDDRESS, data);
 }
 
 /**
@@ -156,7 +149,7 @@ void PCA9685::set_pin_pwm(unsigned pinNum, unsigned dutyCycle) {
       /* offLow   */ (uint8_t) offCount,
       /* offHigh  */ (uint8_t) ((offCount>>8)&OUTx_OFF_H_COUNT_MASK),
    };
-   i2c.transmit(slaveAddress, sizeof(data), data);
+   i2c.transmit(slaveAddress, data);
 }
 
 /**
@@ -172,7 +165,7 @@ void PCA9685::set_pin_low(unsigned pinNum) {
       /* offLow   */ (uint8_t) 0,
       /* offHigh  */ (uint8_t) 0,
    };
-   i2c.transmit(slaveAddress, sizeof(data), data);
+   i2c.transmit(slaveAddress, data);
 }
 
 /**
@@ -188,7 +181,7 @@ void PCA9685::set_pin_high(unsigned pinNum) {
       /* offLow   */ (uint8_t) 0,
       /* offHigh  */ (uint8_t) OUTx_OFF_H_FULL_MASK,
    };
-   i2c.transmit(slaveAddress, sizeof(data), data);
+   i2c.transmit(slaveAddress, data);
 }
 
 } // End namespace USBDM

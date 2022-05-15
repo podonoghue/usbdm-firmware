@@ -376,9 +376,9 @@ template <typename T>
 class Nonvolatile {
 
    static_assert((sizeof(T) == 1)||(sizeof(T) == 2)||(sizeof(T) == 4), "Size of non-volatile object must be 1, 2 or 4 bytes in size");
-    
+
     // Don't allow construction of copies
-   Nonvolatile<T>(const Nonvolatile<T> &) = delete;
+   Nonvolatile(const Nonvolatile<T> &) = delete;
 
 private:
    /**
@@ -395,7 +395,7 @@ public:
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #pragma GCC diagnostic ignored "-Wuninitialized"
 
-   Nonvolatile<T>() = default;
+   Nonvolatile() = default;
 
    /**
     * Assignment

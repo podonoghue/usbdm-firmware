@@ -1292,11 +1292,11 @@ public:
    /** @return Base address of FTM.MOD register as uint32_t */
    static constexpr uint32_t ftmMOD() { return ftmBase() + offsetof(FTM_Type, MOD); }
    /** @return Base address of FTM.CONTROL[n] struct as uint32_t */
-   static constexpr uint32_t ftmCONTROL(int index) { return ftmBase() + offsetof(FTM_Type, CONTROLS[index]); }
+   static constexpr uint32_t ftmCONTROL(int index) { return ftmBase() + offsetof(FTM_Type, CONTROLS) + index*sizeof(FTM_Type::CONTROLS[0]); }
    /** @return Base address of FTM.CONTROL[n].CnSC struct as uint32_t */
-   static constexpr uint32_t ftmCnSC(int index) { return ftmBase() + offsetof(FTM_Type, CONTROLS[index])+0; }
+   static constexpr uint32_t ftmCnSC(int index) { return ftmBase() + offsetof(FTM_Type, CONTROLS) + index*sizeof(FTM_Type::CONTROLS[0])+0; }
    /** @return Base address of FTM.CONTROL[n].CnV struct as uint32_t */
-   static constexpr uint32_t ftmCnV(int index) { return ftmBase() + offsetof(FTM_Type, CONTROLS[index])+sizeof(uint32_t); }
+   static constexpr uint32_t ftmCnV(int index) { return ftmBase() + offsetof(FTM_Type, CONTROLS) + index*sizeof(FTM_Type::CONTROLS[0])+sizeof(uint32_t); }
 
 private:
    /** Callback function for TOI ISR */

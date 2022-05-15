@@ -28,7 +28,7 @@ int main() {
    console.write(" SystemMcgFllClock     = ").writeln(SystemMcgFllClock);
    console.write(" SystemMcgPllClock     = ").writeln(SystemMcgPllClock);
    console.write(" SystemMcgOutClock     = ").writeln(SystemMcgOutClock);
-   console.write(" SystemLpoClock        = ").writeln(SystemLpoClock);
+//   console.write(" SystemLpoClock        = ").writeln(SystemLpoClock);
 
    // These clocks are determined dynamically
    console.write(" SystemMcgirClock      = ").writeln(McgInfo::getMcgIrClock());

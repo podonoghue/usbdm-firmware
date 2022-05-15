@@ -1,4 +1,6 @@
-/* ARMLtd_GCC-rom-mkl.ld (Packages\100.ARM_DeviceOptions\Project_Settings\Linker_Files)
+/* ARMLtd_GCC-rom-mkl.ld (180.ARM_Peripherals/Project_Settings/Linker_Files/)
+ *
+ * Kinetis version without bitband
  *
  * Linker script based on example scripts provided with ARM Ltd GCC
  *
@@ -33,9 +35,6 @@
 OUTPUT_FORMAT ("elf32-littlearm", "elf32-bigarm", "elf32-littlearm")
 SEARCH_DIR(.)
 
-/* Include external memory map defining ram and Flash memory etc */
-INCLUDE "MemoryMap-frdm_kl05z.ld"
-
 ENTRY(Reset_Handler)
 
 PROVIDE(__stack_size__ = __stack_size);
@@ -60,16 +59,21 @@ SECTIONS
       ASSERT (. != __flash_start, "No reset vector found");
       __VECTOR_TABLE_END = .;
       
-      /* Uncomment to Emit a Bootloader configuration if present */
+      /* Emit a Freescale Bootloader configuration @0x3C0 if present */
       . = __flash_start + 0x3C0;
       KEEP(*(.bootloader_configuration))
       
+      /* Emit USBDM Bootloader information @0x3C0 if present */
+      __bootloaderInformation = .;
+      KEEP(*(.bootloaderInformation))
+      ASSERT ((BOOT_LOADER_SIZE == 0) || (. != __bootloaderInformation), "No bootloader information");
+
       /* Emit a Security field */
       . = __flash_start + 0x400;
       KEEP(*(.security_information))
       KEEP(*(.FlashConfig))    /* KDS Flash Configuration Field (FCF) */
       ASSERT (. == __flash_start + 0x410, "No Freescale security information");
-    } > flash
+   } > flash
 
 /* Size of RAM vector table (if needed) */
 M_VECTOR_RAM_SIZE = DEFINED(__ram_vector_table__) ? (__VECTOR_TABLE_END - __VECTOR_TABLE) : 0x0000;
@@ -78,8 +82,6 @@ M_VECTOR_RAM_SIZE = DEFINED(__ram_vector_table__) ? (__VECTOR_TABLE_END - __VECT
    {
       *(.text)                 /* .text sections (code) */
       *(.text*)                /* .text* sections (code) */
-      *(.rodata)               /* .rodata sections (constants, strings, etc.) */
-      *(.rodata*)              /* .rodata* sections (constants, strings, etc.) */
       KEEP(*(.init))
       KEEP(*(.fini))
 
@@ -122,21 +124,25 @@ M_VECTOR_RAM_SIZE = DEFINED(__ram_vector_table__) ? (__VECTOR_TABLE_END - __VECT
 
       KEEP(*(.jcr*))
 
-      *(.rodata*)
-
       KEEP(*(.eh_frame*))
-    } > flash
+   } > text_rom
 
+   .rodata :
+   {
+      *(.rodata)               /* .rodata sections (constants, strings, etc.) */
+      *(.rodata*)              /* .rodata* sections (constants, strings, etc.) */
+   } > rodata_rom
+   
    .ARM.extab : 
    {
       *(.ARM.extab* .gnu.linkonce.armextab.*)
-   } > flash
+   } > rodata_rom
 
    __exidx_start = .;
    .ARM.exidx :
    {
       *(.ARM.exidx* .gnu.linkonce.armexidx.*)
-   } > flash
+   } > rodata_rom
    __exidx_end = .;
 
    /* Flash region for programming */
@@ -144,20 +150,20 @@ M_VECTOR_RAM_SIZE = DEFINED(__ram_vector_table__) ? (__VECTOR_TABLE_END - __VECT
    {
       . = ALIGN(4);
       KEEP(*(.flash))
-   } > flash
+   } > rodata_rom
 
-   __etext = .;    /* define a global symbol at end of code */
-   __DATA_ROM = .; /* Symbol is used by startup for data initialization */
+   __etext = .;     /* Symbol for .data image at end of .rodata */
+   __DATA_ROM = .;  /* Symbol is used by startup for data initialization */
 
   /* reserve MTB memory at the beginning of data */
   .mtb : /* MTB buffer no0load */
   {
     . = ALIGN(8);
     _mtb_start = .;
-    KEEP(*(.mtb_buf)) /* May not referenced by application */
+    KEEP(*(.mtb_buf)) /* May not be referenced by application */
     . = ALIGN(8);
     _mtb_end = .;
-  } > ram
+  } > mtb_ram
 
   .interrupts_ram :
   {
@@ -168,7 +174,7 @@ M_VECTOR_RAM_SIZE = DEFINED(__ram_vector_table__) ? (__VECTOR_TABLE_END - __VECT
     . += M_VECTOR_RAM_SIZE;
     . = ALIGN(4);
     __interrupts_ram_end__ = .; 
-  } > ram
+  } > interrupts_ram
 
   __VECTOR_RAM = DEFINED(__ram_vector_table__) ? __VECTOR_RAM__ : __VECTOR_TABLE;
   __RAM_VECTOR_TABLE_SIZE_BYTES = __interrupts_ram_end__ - __interrupts_ram_start__;
@@ -176,8 +182,9 @@ M_VECTOR_RAM_SIZE = DEFINED(__ram_vector_table__) ? (__VECTOR_TABLE_END - __VECT
    .bdts :
    {
       *(.bss*endPointBdts*) /* Load USB BDTs here as they are aligned */
-   } > ram
+   } > bdts_ram
   
+   /* Initialised data in RAM copied from flash */
    .data : AT (__etext)
    {
       __data_start__ = .;
@@ -188,7 +195,7 @@ M_VECTOR_RAM_SIZE = DEFINED(__ram_vector_table__) ? (__VECTOR_TABLE_END - __VECT
       . = ALIGN(4);
       /* All data end */
       __data_end__ = .;
-   } > ram
+   } > data_ram
    
   /* KDS defines __DATA_END as the end of DATA in Flash */
   __DATA_END = __DATA_ROM + SIZEOF(.data);
@@ -198,7 +205,7 @@ M_VECTOR_RAM_SIZE = DEFINED(__ram_vector_table__) ? (__VECTOR_TABLE_END - __VECT
    {
       . = ALIGN(4);
       *(.noinit)
-   } > ram
+   } > noinit_ram
    
    /* Start of BSS */
    .bss :
@@ -212,7 +219,7 @@ M_VECTOR_RAM_SIZE = DEFINED(__ram_vector_table__) ? (__VECTOR_TABLE_END - __VECT
       . = ALIGN(4);
       __bss_end__ = .;
       __END_BSS = .;
-   } > ram
+   } > bss_ram
     
    /* Start of HEAP - usually from top of BSS */
    .heap :
@@ -224,25 +231,25 @@ M_VECTOR_RAM_SIZE = DEFINED(__ram_vector_table__) ? (__VECTOR_TABLE_END - __VECT
       __HeapBase = .;
       __heap_addr = .;
       . = . + __heap_size__;
-   } > ram
+      /* Heap limit is at Top of ram_low or bottom of stack */
+      __HeapLimit = MIN( ABSOLUTE(ORIGIN(heap_ram)+LENGTH(heap_ram)-1), __StackLimit);
+   } > heap_ram
 
    /* STACK space - between HEAP and end of RAM (or bitband_bytes) */
    PROVIDE ( __sram_u_size = 0 );
    .stack :
    {
       /* Make sure location doesn't move backwards as causes cryptic messages */
-      . = MAX( ., ABSOLUTE(ORIGIN(ram) + LENGTH(ram) - __stack_size__ - __sram_u_size - 3));
+      . = MAX( ., ABSOLUTE(ORIGIN(stack_ram) + LENGTH(stack_ram) - __stack_size__ - __sram_u_size - 3));
       . = ALIGN(4);
-      /* Heap limit is at bottom of stack */
-      __HeapLimit = .;
       __StackLimit = .;
       . = . + __stack_size__;
       __StackTop = .;
-   } > ram
-
+   } > stack_ram
 
   PROVIDE(__stack = __StackTop);
   PROVIDE(__cs3_stack = __StackTop);
+  
   
   /*
    * These are very 'weak' to ensure semi-hosting version 
@@ -270,10 +277,15 @@ M_VECTOR_RAM_SIZE = DEFINED(__ram_vector_table__) ? (__VECTOR_TABLE_END - __VECT
   | (__heap_size__)      |  (minimum heap)                   (size=0x120)
   +----------------------+                                   0x200000A4
   |//////////////////////|
+  |----------------------| <-- RAM Lower/Upper boundary
+  |//////////////////////|
   +----------------------+ __HeapLimit = __StackLimit        0x200001fc
   | Stack                |
   | (__stack_size__)     |                                   (size=0x100)
   +----------------------+ __StackTop                        0x200002ff
+  | Bitband/BME (sram_u) |                                   (if present)
+  | (__sram_u_size)      |                                   (size=1)
+  +----------------------+                                   0x20000300
   
   */
 }

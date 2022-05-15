@@ -38,7 +38,7 @@ using TimerChannel = Timer::Channel<1>;
 static volatile uint16_t periodInTicks = 0;
 
 // Maximum measurement time
-static constexpr float MEASUREMENT_TIME = 100*ms;
+static constexpr float MEASUREMENT_TIME = 100_ms;
 
 // Maximum IC interval - the IC interval between measurement events should not exceed this value.
 static constexpr float MAX_IC_INTERVAL = (1.1 * MEASUREMENT_TIME);
