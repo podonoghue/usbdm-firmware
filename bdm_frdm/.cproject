@@ -48,7 +48,7 @@
 								</option>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="net.sourceforge.usbdm.gnu.cpp.compiler.option.preprocessor.def.symbols.568914059" name="Defined symbols (-D)" superClass="net.sourceforge.usbdm.gnu.cpp.compiler.option.preprocessor.def.symbols" useByScannerDiscovery="false" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="TARGET_HARDWARE=H_USBDM_OPENSDA"/>
-									<listOptionValue builtIn="false" value="NEED_ENDIAN_CONVERSIONSNEED_ENDIAN_CONVERSIONS"/>
+									<listOptionValue builtIn="false" value="NEED_ENDIAN_CONVERSIONS"/>
 									<listOptionValue builtIn="false" value="CPU=MK20D5"/>
 									<listOptionValue builtIn="false" value="INITIAL_CLOCK_STATE=ClockMode_PEE"/>
 									<listOptionValue builtIn="false" value="OPEN_SDA_V1"/>

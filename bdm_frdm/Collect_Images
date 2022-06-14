@@ -3,7 +3,7 @@
 HOME_DIR="$(dirname $(readlink -f $0))"
 echo HOME_DIR=${HOME_DIR}
 
-VERSION=V4.12.1.280 
+VERSION=V4.12.1.300 
 
 pausing() {
    x=10
@@ -37,6 +37,9 @@ FLASH_IMAGES="${ECLIPSE_ROOT}/PackageFiles/FlashImages"
 MK_FLASH_DIR="${FLASH_IMAGES}/MKxx_${VERSION}"
 MK_FLASH_REFERENCE="${MK_FLASH_DIR}/Reference"
 
+echo "FLASH_IMAGES=${FLASH_IMAGES}"
+echo
+
 mkdir -p ${FLASH_IMAGES}
 mkdir -p ${MK_FLASH_DIR}
 mkdir -p ${MK_FLASH_REFERENCE}
@@ -44,12 +47,20 @@ mkdir -p ${MK_FLASH_REFERENCE}
 echo "***  Doing reference OpenSDA v1"
 FIRMWARE_VERSIONS="OpenSDAv1 OpenSDAv1_Power OpenSDAv1_Unique_ID OpenSDAv1_Unique_ID_Power"
 for file in ${FIRMWARE_VERSIONS}; do
+   if ! [ -f "${SOURCE_ROOT}/${file}/"*.sx ]; then
+      echo "${SOURCE_ROOT}/${file}/"*.sx not found
+      exit
+   fi
    cp -p "${SOURCE_ROOT}/${file}/"*.sx "${MK_FLASH_REFERENCE}"
 done
 
 echo "***  Doing reference OpenSDA v2"
 FIRMWARE_VERSIONS="OpenSDAv2_0 OpenSDAv2_0_Power OpenSDAv2_0_Unique_ID OpenSDAv2_0_Unique_ID_Power OpenSDAv2_1_Power OpenSDAv2_1_Unique_ID_Power" 
 for file in ${FIRMWARE_VERSIONS}; do
+   if ! [ -f "${SOURCE_ROOT}/${file}/"*.sx ]; then
+      echo "${SOURCE_ROOT}/${file}/"*.sx not found
+      exit
+   fi
    cp -p "${SOURCE_ROOT}/${file}/"*.bin "${MK_FLASH_REFERENCE}"
 done
 
