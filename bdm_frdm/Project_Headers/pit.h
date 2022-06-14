@@ -773,6 +773,10 @@ public:
    class PitChannel {
 
    public:
+
+      // PIT Owning this channel
+      using Owner = PitBase_T<Info>;
+
       constexpr PitChannel(PitChannelNum channel) : chan(channel) {}
 
       /** Timer channel number */
@@ -1255,6 +1259,24 @@ uint8_t PitBase_T<Info>::clearOnEvent = 0;
  * @brief class representing the PIT
  */
 using Pit = PitBase_T<PitInfo>;
+
+/**
+ * MACRO defining the start of a interrupt handler for a PIT channel
+ * This will override the handler incorporated within the PIT class.
+ *
+ * @param channel Channel being used.
+ *
+ * @example
+ * PIT_CHANNEL0_HANDLER() {
+ *    console.writeln("PIT Channel 0 Handler");
+ *    // Clear interrupt flag
+ *    pit->CHANNEL[0].TFLG = PIT_TFLG_TIF_MASK;
+ * }
+ */
+#define PIT_CHANNEL0_HANDLER() template<>template<> void Pit::Channel<0>::irqHandler()
+#define PIT_CHANNEL1_HANDLER() template<>template<> void Pit::Channel<1>::irqHandler()
+#define PIT_CHANNEL2_HANDLER() template<>template<> void Pit::Channel<2>::irqHandler()
+#define PIT_CHANNEL3_HANDLER() template<>template<> void Pit::Channel<3>::irqHandler()
 
 /**
  * @brief class representing a PIT channel

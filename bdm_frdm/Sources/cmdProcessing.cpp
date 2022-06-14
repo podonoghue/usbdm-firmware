@@ -23,6 +23,8 @@
 #include "bdm.h"
 #endif
 
+#include "Names.h"
+
 using namespace USBDM;
 
 /** Buffer for USB command in, result out */
@@ -271,6 +273,8 @@ USBDM_ErrorCode f_CMD_DEBUG(void) {
             return rc;
          }
          commandBuffer[1] = (uint8_t)makeStatusWord(); // return the status byte
+
+         // ToDo - Consider conversion from timer ticks to standard HCS12 sync value. On this processor they are equal
          (*(uint16_t*)(commandBuffer+2)) = cable_status.sync_length;
          returnSize = 4;
       }
@@ -1101,7 +1105,7 @@ static void commandExec(void) {
    BDMCommands command    = (BDMCommands)commandBuffer[1];  // Command is 1st byte
    FunctionPtr commandPtr = f_CMD_ILLEGAL;                  // Default to illegal command
 
-   USBDM::console.WRITE("Command = ").WRITELN(command);
+   USBDM::console.WRITE("Command = ").WRITELN(getCommandName(command));
 
    if (((uint8_t)command >= CMD_USBDM_CONTROL_PINS) && (currentFunctions == nullptr)) {
       // Command greater than this require the interface to have been set up i.e.

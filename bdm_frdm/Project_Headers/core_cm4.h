@@ -275,7 +275,7 @@
 #define     __OM     volatile            /*! Defines 'write only' structure member permissions */
 #define     __IOM    volatile            /*! Defines 'read / write' structure member permissions */
 
-/*@} end of group Cortex_M4 */
+/**@} end of group Cortex_M4 */
 
 
 
@@ -435,7 +435,7 @@ typedef union
 #define CONTROL_nPRIV_Pos                   0U                                            /*!< CONTROL: nPRIV Position */
 #define CONTROL_nPRIV_Msk                  (1UL /*<< CONTROL_nPRIV_Pos*/)                 /*!< CONTROL: nPRIV Mask */
 
-/*@} end of group CMSIS_CORE */
+/**@} end of group CMSIS_CORE */
 
 
 /**
@@ -469,7 +469,7 @@ typedef struct
 #define NVIC_STIR_INTID_Pos                 0U                                         /*!< STIR: INTLINESNUM Position */
 #define NVIC_STIR_INTID_Msk                (0x1FFUL /*<< NVIC_STIR_INTID_Pos*/)        /*!< STIR: INTLINESNUM Mask */
 
-/*@} end of group CMSIS_NVIC */
+/**@} end of group CMSIS_NVIC */
 
 
 /**
@@ -688,7 +688,7 @@ typedef struct
 #define SCB_DFSR_HALTED_Pos                 0U                                            /*!< SCB DFSR: HALTED Position */
 #define SCB_DFSR_HALTED_Msk                (1UL /*<< SCB_DFSR_HALTED_Pos*/)               /*!< SCB DFSR: HALTED Mask */
 
-/*@} end of group CMSIS_SCB */
+/**@} end of group CMSIS_SCB */
 
 
 /**
@@ -728,7 +728,7 @@ typedef struct
 #define SCnSCB_ACTLR_DISMCYCINT_Pos         0U                                         /*!< ACTLR: DISMCYCINT Position */
 #define SCnSCB_ACTLR_DISMCYCINT_Msk        (1UL /*<< SCnSCB_ACTLR_DISMCYCINT_Pos*/)    /*!< ACTLR: DISMCYCINT Mask */
 
-/*@} end of group CMSIS_SCnotSCB */
+/**@} end of group CMSIS_SCnotSCB */
 
 
 /**
@@ -780,7 +780,7 @@ typedef struct
 #define SysTick_CALIB_TENMS_Pos             0U                                            /*!< SysTick CALIB: TENMS Position */
 #define SysTick_CALIB_TENMS_Msk            (0xFFFFFFUL /*<< SysTick_CALIB_TENMS_Pos*/)    /*!< SysTick CALIB: TENMS Mask */
 
-/*@} end of group CMSIS_SysTick */
+/**@} end of group CMSIS_SysTick */
 
 
 /**
@@ -883,7 +883,7 @@ typedef struct
 #define ITM_LSR_Present_Pos                 0U                                            /*!< ITM LSR: Present Position */
 #define ITM_LSR_Present_Msk                (1UL /*<< ITM_LSR_Present_Pos*/)               /*!< ITM LSR: Present Mask */
 
-/*@}*/ /* end of group CMSIS_ITM */
+/**@}*/ /* end of group CMSIS_ITM */
 
 
 /**
@@ -1030,7 +1030,7 @@ typedef struct
 #define DWT_FUNCTION_FUNCTION_Pos           0U                                         /*!< DWT FUNCTION: FUNCTION Position */
 #define DWT_FUNCTION_FUNCTION_Msk          (0xFUL /*<< DWT_FUNCTION_FUNCTION_Pos*/)    /*!< DWT FUNCTION: FUNCTION Mask */
 
-/*@}*/ /* end of group CMSIS_DWT */
+/**@}*/ /* end of group CMSIS_DWT */
 
 
 /**
@@ -1185,7 +1185,7 @@ typedef struct
 #define TPI_DEVTYPE_SubType_Pos             0U                                         /*!< TPI DEVTYPE: SubType Position */
 #define TPI_DEVTYPE_SubType_Msk            (0xFUL /*<< TPI_DEVTYPE_SubType_Pos*/)      /*!< TPI DEVTYPE: SubType Mask */
 
-/*@}*/ /* end of group CMSIS_TPI */
+/**@}*/ /* end of group CMSIS_TPI */
 
 
 #if (__MPU_PRESENT == 1U)
@@ -1279,7 +1279,7 @@ typedef struct
 #define MPU_RASR_ENABLE_Pos                 0U                                            /*!< MPU RASR: Region enable bit Position */
 #define MPU_RASR_ENABLE_Msk                (1UL /*<< MPU_RASR_ENABLE_Pos*/)               /*!< MPU RASR: Region enable bit Disable Mask */
 
-/*@} end of group CMSIS_MPU */
+/**@} end of group CMSIS_MPU */
 #endif
 
 
@@ -1387,7 +1387,7 @@ typedef struct
 #define FPU_MVFR1_FtZ_mode_Pos              0U                                            /*!< MVFR1: FtZ mode bits Position */
 #define FPU_MVFR1_FtZ_mode_Msk             (0xFUL /*<< FPU_MVFR1_FtZ_mode_Pos*/)          /*!< MVFR1: FtZ mode bits Mask */
 
-/*@} end of group CMSIS_FPU */
+/**@} end of group CMSIS_FPU */
 #endif
 
 
@@ -1493,7 +1493,7 @@ typedef struct
 #define CoreDebug_DEMCR_VC_CORERESET_Pos    0U                                            /*!< CoreDebug DEMCR: VC_CORERESET Position */
 #define CoreDebug_DEMCR_VC_CORERESET_Msk   (1UL /*<< CoreDebug_DEMCR_VC_CORERESET_Pos*/)  /*!< CoreDebug DEMCR: VC_CORERESET Mask */
 
-/*@} end of group CMSIS_CoreDebug */
+/**@} end of group CMSIS_CoreDebug */
 
 
 /**
@@ -1519,7 +1519,7 @@ typedef struct
 */
 #define _FLD2VAL(field, value)    ((value & field ## _Msk) >> field ## _Pos)
 
-/*@} end of group CMSIS_core_bitfield */
+/**@} end of group CMSIS_core_bitfield */
 
 
 /**
@@ -1558,7 +1558,7 @@ typedef struct
   #define FPU               ((FPU_Type       *)     FPU_BASE      )   /*!< Floating Point Unit */
 #endif
 
-/*@} */
+/**@} */
 
 
 
@@ -1802,7 +1802,7 @@ __STATIC_INLINE void NVIC_SystemReset(void)
   }
 }
 
-/*@} end of CMSIS_Core_NVICFunctions */
+/**@} end of CMSIS_Core_NVICFunctions */
 
 
 
@@ -1845,7 +1845,7 @@ __STATIC_INLINE uint32_t SysTick_Config(uint32_t ticks)
 
 #endif
 
-/*@} end of CMSIS_Core_SysTickFunctions */
+/**@} end of CMSIS_Core_SysTickFunctions */
 
 
 
@@ -1923,7 +1923,7 @@ __STATIC_INLINE int32_t ITM_CheckChar (void)
   }
 }
 
-/*@} end of CMSIS_core_DebugFunctions */
+/**@} end of CMSIS_core_DebugFunctions */
 
 
 

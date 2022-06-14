@@ -714,6 +714,19 @@ template<class Info> LptmrCallbackFunction LptmrBase_T<Info>::sCallback = LptmrB
  * @endcode
  */
 using Lptmr0 = LptmrBase_T<Lptmr0Info>;
+/**
+ * MACRO defining the start of a interrupt handler for a LPTMR
+ * This will override the handler incorporated within the LPTMR class.
+ *
+ * @example
+ * LPTMR0_HANDLER_HANDLER() {
+ *    console.writeln("PIT Channel 0 Handler");
+ *    // Clear interrupt flag
+ *    lptmr->CSR = lptmr->CSR | LPTMR_CSR_TCF_MASK;
+ * }
+ */
+#define LPTMR0_HANDLER() template<> void Lptmr0::irqHandler()
+
 #endif
 
 #ifdef USBDM_LPTMR1_IS_DEFINED
@@ -744,6 +757,19 @@ using Lptmr0 = LptmrBase_T<Lptmr0Info>;
  * @endcode
  */
 using Lptmr1 = LptmrBase_T<Lptmr1Info>;
+/**
+ * MACRO defining the start of a interrupt handler for a LPTMR
+ * This will override the handler incorporated within the LPTMR class.
+ *
+ * @example
+ * LPTMR1_HANDLER_HANDLER() {
+ *    console.writeln("PIT Channel 0 Handler");
+ *    // Clear interrupt flag
+ *    lptmr->CSR = lptmr->CSR | LPTMR_CSR_TCF_MASK;
+ * }
+ */
+#define LPTMR1_HANDLER() template<> void Lptmr1::irqHandler()
+
 #endif
 
 /**

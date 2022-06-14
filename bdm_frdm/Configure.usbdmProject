@@ -78,9 +78,6 @@
    <item key="/MCG/ClockConfig[0]"                         value="ClockConfig_PEE_48MHz" />
    <item key="/MCG/ClockConfig[1]"                         value="ClockConfig_BLPE_4MHz" />
    <item key="/MCG/ClockConfig[2]"                         value="ClockConfig_FEE_40MHz" />
-   <item key="/MCG/DummyClockConfig[0]"                    value="ClockConfig_0" />
-   <item key="/MCG/DummyClockConfig[1]"                    value="ClockConfig_1" />
-   <item key="/MCG/DummyClockConfig[2]"                    value="ClockConfig_2" />
    <item key="/MCG/clock_mode[0]"                          value="ClockMode_PEE" />
    <item key="/MCG/clock_mode[1]"                          value="ClockMode_BLPE" />
    <item key="/MCG/clock_mode[2]"                          value="ClockMode_FEE" />
@@ -96,6 +93,8 @@
    <item key="/SIM/system_core_clock[2]"                   value="40000000" />
    <item key="/SIM/system_flash_clock[1]"                  value="1000000" />
    <item key="/SIM/system_flash_clock[2]"                  value="20000000" />
+   <item key="/UART0/irqHandlingMethod"                    value="$ClassMethod" />
+   <item key="/UART0/uartClass"                            value="true" />
    <item key="/UART1/irqHandlingMethod"                    value="$ClassMethod" />
    <item key="/USB0/irqHandlingMethod"                     value="$ClassMethod" />
 </section>

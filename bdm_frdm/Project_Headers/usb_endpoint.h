@@ -35,7 +35,7 @@ namespace USBDM {
 extern volatile EndpointBdtEntry endPointBdts[];
 
 /** BDTs as simple array */
-static volatile BdtEntry *bdts() { return endPointBdts[0].bdts; }
+static BdtEntry *bdts() { return (BdtEntry *)endPointBdts; }
 
 /** Endpoint state values */
 enum EndpointState {
@@ -777,7 +777,7 @@ public:
    /** End point number */
    static constexpr unsigned fEndpointNumber = 0;
 
-   /// Value used to initialise an Endpoint Control Register - Tx and Rx
+   // Value used to initialise an Endpoint Control Register - Tx and Rx
    static constexpr uint8_t fEpControlValue = USB_ENDPT_EPRXEN_MASK|USB_ENDPT_EPTXEN_MASK|USB_ENDPT_EPHSHK_MASK;
 
    /**
@@ -825,7 +825,6 @@ public:
     * Data Toggle = unchanged
     */
    void checkSetupReady() {
-
       // Get BDT to use
       volatile BdtEntry &bdt = getFreeBdtReceiveEntry();
 

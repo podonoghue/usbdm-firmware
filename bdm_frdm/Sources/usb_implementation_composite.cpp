@@ -393,7 +393,7 @@ EndpointState Usb0::cdcOutTransactionCallback(EndpointState state) {
    //   console.WRITELN("cdc_out");
    (void)state;
    usbdm_assert(state == EPDataOut, "Incorrect endpoint state");
-   
+
    volatile const uint8_t *buff = epCdcDataOut.getRxBuffer();
    for (int i=epCdcDataOut.getDataTransferredSize(); i>0; i--) {
       if (!Uart::putChar(*buff++)) {
@@ -543,7 +543,7 @@ void Usb0::sendBulkData(uint8_t size, const uint8_t *buffer) {
 //   commandBusyFlag = false;
    //   enableUSBIrq();
    while (epBulkIn.getState() != EPIdle) {
-      __WFI();
+      Smc::enterWaitMode();
    }
    epBulkIn.startTxStage(EPDataIn, size, buffer);
 }

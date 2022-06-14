@@ -346,7 +346,7 @@ __attribute__( ( always_inline ) ) __STATIC_INLINE void __set_FPSCR(uint32_t fps
 
 
 
-/*@} end of CMSIS_Core_RegAccFunctions */
+/**@} end of CMSIS_Core_RegAccFunctions */
 
 
 /* ##########################  Core Instruction Access  ######################### */
@@ -818,7 +818,7 @@ __attribute__((always_inline)) __STATIC_INLINE void __STRT(uint32_t value, volat
 
 #endif /* (__CORTEX_M >= 0x03U) || (__CORTEX_SC >= 300U) */
 
-/*@}*/ /* end of group CMSIS_Core_InstructionInterface */
+/**@}*/ /* end of group CMSIS_Core_InstructionInterface */
 
 
 /* ###################  Compiler specific Intrinsics  ########################### */
@@ -1363,8 +1363,7 @@ __attribute__( ( always_inline ) ) __STATIC_INLINE uint32_t __SMMLA (int32_t op1
 }
 
 #endif /* (__CORTEX_M >= 0x04) */
-/*@} end of group CMSIS_SIMD_intrinsics */
-
+/**@} end of group CMSIS_SIMD_intrinsics */
 
 #if defined ( __GNUC__ )
 #pragma GCC diagnostic pop

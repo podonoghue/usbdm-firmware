@@ -198,11 +198,12 @@ public:
    static const Descriptors otherDescriptors;
 
    /**
-    * Handler for Token Complete USB interrupts for\n
+    * Handler for Token Complete USB interrupts for
     * end-points other than EP0
+    *
+    * @param usbStat USB Status value from USB hardware
     */
-   static void handleTokenComplete(UsbStat   usbStat);
-
+   static void handleTokenComplete(UsbStat usbStat);
    /**
     * Clear value reflecting selected hardware based ping-pong buffer.
     * This would normally only be called when resetting the USB hardware or using
@@ -296,6 +297,7 @@ protected:
    /*
     * TODO Add additional End-points here
     */
+    
    static bool forceCommandHandlerInitialise;
 
    /**
@@ -332,18 +334,18 @@ protected:
    /**
     * Call-back handling BULK-OUT transaction complete
     *
-    * @param[in] state Current end-point state
+    * @param[in] state Current end-point state (always EPDataOut)
     *
-    * @return The endpoint state to set after call-back (EPIdle)
+    * @return The endpoint state to set after call-back (EPDataOut)
     */
    static EndpointState bulkOutTransactionCallback(EndpointState state);
 
    /**
     * Call-back handling BULK-IN transaction complete
     *
-    * @param[in] state Current end-point state
+    * @param[in] state Current end-point state (always EPDataIn)
     *
-    * @return The endpoint state to set after call-back (EPIdle)
+    * @return The endpoint state to set after call-back (EPIdle/EPDataIn)
     */
    static EndpointState bulkInTransactionCallback(EndpointState state);
 

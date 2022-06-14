@@ -82,6 +82,6 @@
 
 #endif
 
-/*@} end of CMSIS_Core_RegAccFunctions */
+/**@} end of CMSIS_Core_RegAccFunctions */
 
 #endif /* __CORE_CMFUNC_H */

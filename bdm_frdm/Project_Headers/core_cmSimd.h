@@ -86,7 +86,7 @@
 
 #endif
 
-/*@} end of group CMSIS_SIMD_intrinsics */
+/**@} end of group CMSIS_SIMD_intrinsics */
 
 
 #ifdef __cplusplus

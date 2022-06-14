@@ -65,34 +65,39 @@ public:
    /**
     * Set SWDIO as output driving high
     *
-    * @note SWDIO control is transferred to GPIO from SPI
+    * @note SWDIO control is transferred from SPI to GPIO
     */
    static void driveHigh() {
       swdOut::high();
+      swdOut::setOut();       // Ready to drive
       swdOut::setPCR();       // Pin controlled by GPIO (rather that SPI)
       swdDir::on();
+      swdDir::setOut();       // Ready to drive
       swdDir::setPCR();       // Pin controlled by GPIO (rather that SPI)
    }
 
    /**
     * Set SWDIO direction as output driving low
     *
-    * @note SWDIO control is transferred to GPIO from SPI
+    * @note SWDIO control is transferred from SPI to GPIO
     */
    static void driveLow()  {
       swdOut::low();
+      swdOut::setOut();       // Ready to drive
       swdOut::setPCR();       // Pin controlled by GPIO (rather that SPI)
       swdDir::on();
+      swdDir::setOut();       // Ready to drive
       swdDir::setPCR();       // Pin controlled by GPIO (rather that SPI)
    }
 
    /**
     * Set SWDIO direction as output driving low
     *
-    * @note SWDIO control is transferred to GPIO from SPI
+    * @note SWDIO control is transferred from SPI to GPIO
     */
    static void triState()  {
       swdDir::off();
+      swdDir::setOut();       // Ready to drive
       swdDir::setPCR();       // Pin controlled by GPIO (rather that SPI)
    }
 
@@ -146,6 +151,7 @@ public:
     */
    static void driveHigh() {
       swdClk::high();
+      swdClk::setOut();       // Ready to drive
       swdClk::setPCR();       // Pin controlled by GPIO (rather that SPI)
    }
 
@@ -156,17 +162,7 @@ public:
     */
    static void driveLow()  {
       swdClk::low();
-      swdClk::setPCR();       // Pin controlled by GPIO (rather that SPI)
-   }
-
-   /**
-    * 3-state control of SWDCLK is not available as buffer disable interacts with Debug_Tx
-    * Set SWCLK direction as output driving low
-    *
-    * @note SWCLK control is transferred to GPIO from SPI
-    */
-   static void triState()  {
-      swdClk::off();
+      swdClk::setOut();       // Ready to drive
       swdClk::setPCR();       // Pin controlled by GPIO (rather that SPI)
    }
 
@@ -426,7 +422,7 @@ PinLevelMasks_t getPinState() {
  */
 void initialiseInterface() {
 
-   console.WRITELN("initialise()");
+   console.WRITELN("initialiseInterface()");
 
    SpiInfo::enableClock();
 
@@ -738,7 +734,7 @@ USBDM_ErrorCode writeReg(const SwdWrite swdWrite, const uint32_t data) {
       }
       break;
    } while (true);
-   
+
 //   spi->MCR |= SPI_MCR_HALT_MASK;
 
    return rc;

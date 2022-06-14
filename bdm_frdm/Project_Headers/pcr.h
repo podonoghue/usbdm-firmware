@@ -30,8 +30,10 @@
  */
 namespace USBDM {
 
+#if __GNUC__ > 10
 // USBDM makes extensive use of enums as bit masks
 #pragma GCC diagnostic ignored "-Wdeprecated-enum-enum-conversion"
+#endif
 
 #pragma GCC push_options
 #pragma GCC optimize ("Os")

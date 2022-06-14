@@ -380,6 +380,24 @@ protected:
       return getConversionResult();
    };
 
+   /**
+    * Initiates a conversion and waits for it to complete.
+    *
+    * @param[in] sc1Value SC1 register value including the ADC channel to use and differential mode
+    * @param[in] adcResolution Resolution for converter e.g. AdcResolution_16bit_se
+    *
+    * @return - The result of the conversion as an integer converted from 16-bit ADC value
+    *           For single-ended conversions this will be zero extended
+    *           For differential conversions this will be sign-extended
+    *
+    * @note Result is signed but will always be positive for single-ended conversions.
+    * @note The resolution used affects all future conversion on all channels on the ADC
+    */
+   int readAnalogue(uint32_t sc1Value, AdcResolution adcResolution) const {
+      adc->CFG1 = (adc->CFG1&~ADC_CFG1_MODE_MASK)|adcResolution;
+      return readAnalogue(sc1Value);
+   };
+
 public:
 
    /**
@@ -636,6 +654,22 @@ public:
     */
    int readAnalogue() const {
       return Adc::readAnalogue(sc1Value);
+   };
+
+   /**
+    * Initiates a conversion and waits for it to complete.
+    *
+    * @param[in] adcResolution Resolution for converter e.g. AdcResolution_16bit_se
+    *
+    * @return The result of the conversion as an integer converted from 16-bit ADC value\n
+    *         For single-ended conversions this will be zero extended\n
+    *         For differential conversions this will be sign-extended
+    *
+    * @note Result is signed but will always be positive for single-ended conversions.
+    * @note The resolution used here affects all future conversion on all channels on the ADC
+    */
+   int readAnalogue(AdcResolution adcResolution) const {
+      return Adc::readAnalogue(sc1Value, adcResolution);
    };
 
    /**
@@ -1256,7 +1290,7 @@ protected:
     * @note Result is signed but will always be positive for single-ended channels.
     * @note This will also clear the conversion flag if set
     */
-   static uint16_t getConversionResult() {
+   static int getConversionResult() {
 
       // This is a 32-bit value with leading zeroes i.e unsigned
       int value = ADC_R_D_MASK & (adc->R[0]);
@@ -1267,7 +1301,6 @@ protected:
          return static_cast<int16_t>(value);
       }
 #endif
-
       return value;
    };
 
@@ -1293,6 +1326,25 @@ protected:
 
       return getConversionResult();
    };
+
+   /**
+    * Initiates a conversion and waits for it to complete.
+    *
+    * @param[in] sc1Value SC1 register value including the ADC channel to use and whether differential mode
+    * @param[in] adcResolution Resolution for converter e.g. AdcResolution_16bit_se
+    *
+    * @return - The result of the conversion as an integer converted from 16-bit ADC value\n
+    *           For single-ended conversions this will be zero extended\n
+    *           For differential conversions this will be sign-extended
+    *
+    * @note Result is signed but will always be positive for single-ended conversions.
+    * @note The resolution used here affects all further conversion on all channels on the ADC
+    *
+    */
+   static int readAnalogue(const int sc1Value, AdcResolution adcResolution) {
+      adc->CFG1 = (adc->CFG1&~ADC_CFG1_MODE_MASK)|adcResolution;
+      return readAnalogue(sc1Value);
+   }
 
 public:
 #if defined(ADC_PGA_PGAEN_MASK)
@@ -1443,6 +1495,21 @@ public:
        */
       static int readAnalogue() {
          return AdcBase_T::readAnalogue(channel);
+      };
+      /**
+       * Initiates a conversion and waits for it to complete.
+       *
+       * @param[in] adcResolution Resolution for converter e.g. AdcResolution_16bit_se
+       *
+       * @return - The result of the conversion as an integer converted from 16-bit ADC value\n
+       *           For single-ended conversions this will be zero extended\n
+       *           For differential conversions this will be sign-extended
+       *
+       * @note Result is signed but will always be positive for single-ended conversions.
+       * @note The resolution used here affects all further conversion on all channels on the ADC
+       */
+      static int readAnalogue(AdcResolution adcResolution) {
+         return AdcBase_T::readAnalogue(channel, adcResolution);
       };
 
       /**

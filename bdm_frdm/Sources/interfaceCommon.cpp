@@ -31,6 +31,7 @@
 #include <targetVddInterface.h>
 #include "configure.h"
 #include "interfaceCommon.h"
+#include "interface.h"
 #include "swd.h"
 #if (HW_CAPABILITY&CAP_BDM)
 #include "bdm.h"

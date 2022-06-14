@@ -643,7 +643,7 @@ protected:
     */
    static void handleUnexpectedSetup() {
       if (fUnhandledSetupCallback(fEp0SetupBuffer) != E_NO_ERROR) {
-//         console.WRITE("handleUnexpectedSetup(").WRITE(getSetupPacketDescription(&fEp0SetupBuffer)).WRITELN(")");
+//         console.WRITELN("handleUnexpectedSetup(", getSetupPacketDescription(&fEp0SetupBuffer), ")");
          fControlEndpoint.stall();
       }
    }
@@ -701,7 +701,7 @@ protected:
          // Remove this call-back
          fControlEndpoint.setCallback(ep0DummyTransactionCallback);
          return EPIdle;
-         // console.WRITE("setAddr(").WRITE(newAddress, Radix_16).WRITE(")");
+         // console.WRITE("setAddr(", newAddress, Radix_16, ")");
       };
       // Call-back to execute when transaction completed
       fControlEndpoint.setCallback(callback);
@@ -880,11 +880,11 @@ void UsbBase_T<Info, EP0_SIZE>::handleSetupToken() {
    // Call-backs only persist during a SETUP transaction
    fControlEndpoint.setCallback(ep0DummyTransactionCallback);
 
-//   console.WRITE("handleSetupToken - ").WRITELN(getSetupPacketDescription(&fEp0SetupBuffer));
+//   console.WRITELN("handleSetupToken - ", getSetupPacketDescription(&fEp0SetupBuffer));
 
    switch(REQ_TYPE(fEp0SetupBuffer.bmRequestType)) {
       case UsbRequestType_STANDARD :
-         // console.WRITE("Se(").WRITE(getRequestName(fEp0SetupBuffer.bRequest)).WRITE("),");
+         // console.WRITE("Se(", getRequestName(fEp0SetupBuffer.bRequest), "),");
          // Standard device requests
          switch (fEp0SetupBuffer.bRequest) {
             case CLEAR_FEATURE :       handleClearFeature();         break;
@@ -968,8 +968,8 @@ bool UsbBase_T<Info, EP0_SIZE>::handleTokenComplete(UsbStat usbStat) {
       // Indicate wasn't processed
       return false;
    }
-   // console.WRITE("Tc-").WRITE(fControlEndpoint.getStateName()).WRITE(",");
-   // console.WRITE("Stat(").WRITE(usbStat>>4,Radix_16).WRITE(usbStat&(1<<3)?",Tx,":",Rx,").WRITE(usbStat&(1<<2)?"Odd,":"Even,").WRITE("),");
+   // console.WRITE("Tc-", fControlEndpoint.getStateName(), ",");
+   // console.WRITE("Stat(", usbStat>>4,Radix_16, usbStat&(1<<3)?",Tx,":",Rx,", usbStat&(1<<2)?"Odd,":"Even,", "),");
 
    // Relevant BDT
    volatile BdtEntry *bdt = &bdts()[usbStat.raw>>2];
@@ -980,28 +980,28 @@ bool UsbBase_T<Info, EP0_SIZE>::handleTokenComplete(UsbStat usbStat) {
       console.WRITELN("\n=====");
    }
    console.
-      WRITE("\nTOKEN=").WRITE(getTokenName(bdt->u.result.tok_pid)).
-      WRITE(", STATE=").WRITE(fControlEndpoint.getStateName()).
-      WRITE(", size=").WRITE(bdt->bc).
+      WRITE("\nTOKEN=", getTokenName(bdt->u.result.tok_pid)).
+      WRITE(", STATE=", fControlEndpoint.getStateName()).
+      WRITE(", size=", bdt->bc).
       WRITE((usbStat&USB_STAT_TX_MASK)?", Tx":", Rx").
       WRITE(bdt->u.result.data0_1?", DATA1":", DATA0").
       WRITELN((usbStat&USB_STAT_ODD_MASK)?", Odd":", Even");
 #endif
    switch (bdt->result.tok_pid) {
       case SETUPToken:
+//         console.WRITELN(fControlEndpoint.getStateName(), " Set");
          handleSetupToken();
-//          console.WRITE(fControlEndpoint.getStateName()).WRITELN(" Set");
          break;
       case INToken:
          fControlEndpoint.handleInToken();
-//          console.WRITE(fControlEndpoint.getStateName()).WRITELN(" In");
+//          console.WRITELN(fControlEndpoint.getStateName(), " In");
          break;
       case OUTToken:
          fControlEndpoint.handleOutToken();
-//          console.WRITE(fControlEndpoint.getStateName()).WRITELN(" Out");
+//          console.WRITELN(fControlEndpoint.getStateName(), " Out");
          break;
       default:
-         console.WRITE("Unexpected token on EP0 = ").WRITELN(getTokenName(bdt->result.tok_pid));
+         console.WRITELN("Unexpected token on EP0 = ", getTokenName(bdt->result.tok_pid));
          break;
    }
    // Indicate processed
@@ -1401,9 +1401,9 @@ void UsbBase_T<Info, EP0_SIZE>::handleGetDescriptor() {
    uint16_t        dataSize = 0;
    const uint8_t  *dataPtr = nullptr;
 
-   // console.WRITE("(").WRITE(fEp0SetupBuffer.wValue.hi()).WRITE(")");
+   // console.WRITE("(", fEp0SetupBuffer.wValue.hi(), ")");
 
-//   console.WRITE("handleGetDescriptor").WRITE(fEp0SetupBuffer.wValue.hi()).WRITE(":").WRITELN(fEp0SetupBuffer.wValue.lo());
+//   console.WRITELN("handleGetDescriptor", fEp0SetupBuffer.wValue.hi(), ":", fEp0SetupBuffer.wValue.lo());
    constexpr uint8_t bmRequestType = REQUEST_TYPE(UsbRequestDirection_IN, UsbRequestType_STANDARD, UsbRequestRecipient_DEVICE);
 
    if (fEp0SetupBuffer.bmRequestType != bmRequestType) {
@@ -1432,7 +1432,7 @@ void UsbBase_T<Info, EP0_SIZE>::handleGetDescriptor() {
          fControlEndpoint.stall();
          return;
       case DT_STRING: // Get String Desc.- 3
-         //      console.WRITE("getDescriptor-string - ).WRITELN(descriptorIndex);
+         //      console.WRITELN("getDescriptor-string - , descriptorIndex);
 #ifdef MS_COMPATIBLE_ID_FEATURE
          if (descriptorIndex == 0xEE) {
             //         console.WRITELN("getDescriptor-string - MS_COMPATIBLE_ID_FEATURE");
@@ -1499,7 +1499,7 @@ void UsbBase_T<Info, EP0_SIZE>::handleSetConfiguration() {
    setUSBconfiguredState(fEp0SetupBuffer.wValue.lo());
 
    // Initialise non-control end-points
-//   console.WRITE("RxOdd").WRITELN((bool)UsbImplementation::epBulkOut.fRxOdd);
+//   console.WRITELN("RxOdd", (bool)UsbImplementation::epBulkOut.fRxOdd);
    UsbImplementation::initialiseEndpoints();
    fUserCallbackFunction(UserEvent::UserEvent_Configure);
 
@@ -1552,10 +1552,10 @@ void UsbBase_T<Info, EP0_SIZE>::irqHandler() {
       }
 //      if (pendingInterruptFlags != USB_ISTAT_SOFTOK_MASK) {
 //         // Report other than SOF
-//         console.WRITE("Irq ").WRITELN(pendingInterruptFlags&~USB_ISTAT_SOFTOK_MASK, Radix_2);
+//         console.WRITELN("Irq ", pendingInterruptFlags&~USB_ISTAT_SOFTOK_MASK, Radix_2);
 //      }
       if ((pendingInterruptFlags&USB_ISTAT_USBRST_MASK) != 0) {
-//         console.WRITELN("========\nRes");
+//         console.WRITELN("===");
          // Reset signaled on Bus
          handleUSBReset();
          return;
@@ -1563,14 +1563,14 @@ void UsbBase_T<Info, EP0_SIZE>::irqHandler() {
       if ((pendingInterruptFlags&USB_ISTAT_TOKDNE_MASK) != 0) {
          // Get endpoint status
          UsbStat usbStat = (UsbStat)fUsb->STAT;
-//         console.WRITE("St ").WRITE(usbStat.endp).WRITE(',').WRITE((unsigned)usbStat.tx).WRITE(',').WRITELN((unsigned)usbStat.odd);
+//         console.WRITELN("St ", usbStat.endp, ',', (unsigned)usbStat.tx, ',', (unsigned)usbStat.odd);
          // Token complete interrupt
          if (usbStat.endp == fControlEndpoint.fEndpointNumber) {
             handleTokenComplete(usbStat);
          }
          else {
             // Pass to extension routine
-//            console.WRITE("(").WRITE(usbStat.endp).WRITE(usbStat.tx?",T,":",R,").WRITE(usbStat.odd?"O,":"E,").WRITE("),");
+//            console.WRITE("(", usbStat.endp, usbStat.tx?",T,":",R,", usbStat.odd?"O,":"E,", "),");
 //            console.WRITELN(UsbImplementation::epBulkOut.getStateName());
             UsbImplementation::handleTokenComplete(usbStat);
          }
@@ -1595,7 +1595,7 @@ void UsbBase_T<Info, EP0_SIZE>::irqHandler() {
       }
       if ((pendingInterruptFlags&USB_ISTAT_ERROR_MASK) != 0) {
          // Any Error
-         console.WRITE("Error = 0b").WRITELN(fUsb->ERRSTAT, Radix_2);
+         console.WRITELN("Error = 0b", fUsb->ERRSTAT, Radix_2);
          fUsb->ERRSTAT = 0xFF;
       }
       fUsb->ISTAT = pendingInterruptFlags;

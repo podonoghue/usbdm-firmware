@@ -170,7 +170,7 @@ public:
     * UART hardware instance
     */
    const HardwarePtr<UART_Type> uart;
-   
+
    /**
     * Construct UART interface
     *
@@ -496,7 +496,7 @@ public:
       // Check pin assignments
       static_assert(Info::info[0].gpioBit >= 0, "Uart_Tx has not been assigned to a pin - Modify Configure.usbdm");
       static_assert(Info::info[1].gpioBit >= 0, "Uart_Rx has not been assigned to a pin - Modify Configure.usbdm");
-      
+
       initialise();
    }
 
@@ -836,8 +836,9 @@ protected:
       lock(&fWriteLock);
       // Add character to buffer
       while (!txQueue.enQueueDiscardOnFull(ch)) {
+         __asm__("nop");
       }
-      uart->C2 |= UART_C2_TIE_MASK;
+      uart->C2 = uart->C2 | UART_C2_TIE_MASK;
       unlock(&fWriteLock);
       if (ch=='\n') {
         _writeChar('\r');
@@ -1078,7 +1079,7 @@ template<class Info, int rxSize, int txSize> volatile uint32_t   UartBuffered_T<
  *  }
  *  @endcode
  */
-typedef  Uart_brfa_T<Uart0Info> Uart0;
+typedef  UartBuffered_brfa_T<Uart0Info> Uart0;
 #endif
 
 #ifdef USBDM_UART1_IS_DEFINED

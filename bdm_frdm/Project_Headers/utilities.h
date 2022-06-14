@@ -1,11 +1,11 @@
 /**
- * @file     utilities.h (derived from utilities-mk.h)
+ * @file     utilities.h (derived from 100.ARM_DeviceOptions/Project_Headers/utilities-mk.h)
  * @brief    Utility Routines
  * @version  V4.12.1.160
  * @date     13 May 2013
  */
-#ifndef UTILTIES_H_
-#define UTILTIES_H_
+#ifndef PROJECT_HEADERS_UTILTIES_H_
+#define PROJECT_HEADERS_UTILTIES_H_
 
 #include <stdint.h>
 
@@ -119,35 +119,7 @@
 #error "Unexpected __BYTE_ORDER__ value"
 #endif
 
-// Variable Argument Macro (VA_MACRO) up to 6 arguments
-#define NUM_ARGS_(_1, _2, _3, _4, _5, _6, TOTAL, ...) TOTAL
-#define NUM_ARGS(...) NUM_ARGS_(__VA_ARGS__, 6, 5, 4, 3, 2, 1)
-
-#define CONCATE_(X, Y) X##Y  // Fixed the double '_' from previous code
-#define CONCATE(MACRO, NUMBER) CONCATE_(MACRO, NUMBER)
-#define VA_MACRO(MACRO, ...) CONCATE(MACRO, NUM_ARGS(__VA_ARGS__))(__VA_ARGS__)
-
-// Variadic macros for debug console
-#define WRITE(...)   VA_MACRO(WRITE, __VA_ARGS__)
-#define WRITELN(...) VA_MACRO(WRITELN, __VA_ARGS__)
-
-#if defined(DEBUG_BUILD)
-#define WRITE1(_1)           write(_1)
-#define WRITE2(_1, _2)       write(_1,_2)
-#define WRITE3(_1, _2, _3)   write(_1,_2,_3)
-#define WRITELN1(_1)         writeln(_1)
-#define WRITELN2(_1, _2)     writeln(_1,_2)
-#define WRITELN3(_1, _2, _3) writeln(_1,_2,_3)
-#else
-#define WRITE1(_1)           null()
-#define WRITE2(_1, _2)       null()
-#define WRITE3(_1, _2, _3)   null()
-#define WRITELN1(_1)         null()
-#define WRITELN2(_1, _2)     null()
-#define WRITELN3(_1, _2, _3) null()
-#endif
-
-#if defined(__cplusplus)
+#if defined(__cplusplus) && NEED_ENDIAN_CONVERSIONS
 /**
  * Class to encapsulate 16-bit little-endian values
  */
