@@ -36,6 +36,9 @@ enum InterfaceNumbers {
 /** Force command handler to exit and restart */
 bool Usb0::forceCommandHandlerInitialise = false;
 
+/** Set to discard Rx characters when garbage is expected e.g. when programming target */
+bool Usb0::discardCharacters = false;
+
 /*
  * String descriptors
  */
@@ -446,10 +449,13 @@ EndpointState Usb0::cdcInTransactionCallback(EndpointState state) {
  *
  * @param[in] ch Character to send
  *
- * @return true  Character added
- * @return false Overrun, character not added
+ * @return true  Character accepted or discarded (see discardCharacters)
+ * @return false Overrun, character not accepted
  */
 bool Usb0::putCdcChar(uint8_t ch) {
+   if (discardCharacters) {
+      return true;
+   }
    if (inQueue.isFull()) {
       return false;
    }

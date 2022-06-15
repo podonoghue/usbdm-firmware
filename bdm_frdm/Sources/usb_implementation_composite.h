@@ -277,6 +277,15 @@ public:
     */
    static void initialise();
 
+   /**
+    * Controls discarding of Rx characters
+    *
+    * @param discard
+    */
+   static void setDiscardCharacters(bool discard) {
+      discardCharacters = discard;
+   }
+
 protected:
    /* end-points */
 
@@ -299,6 +308,9 @@ protected:
     */
     
    static bool forceCommandHandlerInitialise;
+
+   /// Set to discard Rx characters when garbage is expected e.g. when programming target
+   static bool discardCharacters;
 
    /**
     * CDC Transmit

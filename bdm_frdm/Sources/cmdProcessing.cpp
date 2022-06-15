@@ -114,10 +114,10 @@ uint16_t makeStatusWord(void) {
 #endif // (HW_CAPABILITY&CAP_RST_IN)
 #if (HW_CAPABILITY&(CAP_VDDSENSE|CAP_VDDCONTROL))
    switch (TargetVddInterface::checkVddState()) {    // Target has power ?
-      case VddState_None     : break;
-      case VddState_Error    : status |= S_POWER_ERR;  break;
-      case VddState_Internal : status |= S_POWER_INT;  break;
-      case VddState_External : status |= S_POWER_EXT;  break;
+      case VddState_None       : break;
+      case VddState_Overloaded : status |= S_POWER_ERR;  break;
+      case VddState_Internal   : status |= S_POWER_INT;  break;
+      case VddState_External   : status |= S_POWER_EXT;  break;
    }
 #else
    // Assume power present
@@ -368,6 +368,14 @@ USBDM_ErrorCode f_CMD_DEBUG(void) {
       case   BDM_DBG_ARM:  //!< - Test ARM-JTAG functions
          return arm_test();
 #endif
+      case BDM_DBG_SERIAL_ON:
+         Usb0::setDiscardCharacters(false);
+         return BDM_RC_OK;
+
+      case BDM_DBG_SERIAL_OFF:
+         Usb0::setDiscardCharacters(true);
+         return BDM_RC_OK;
+
    } // switch
    return BDM_RC_ILLEGAL_PARAMS;
 }
