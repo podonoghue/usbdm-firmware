@@ -67,12 +67,12 @@ static constexpr uint32_t RESET_RECOVERYms = 10;
  * Checks Target Vdd
  *
  * @return BDM_RC_OK              Target Vdd present or no target Vdd sensing
- * @return BDM_RC_VDD_NOT_PRESENT Target Vdd missing
+ * @return BDM_RC_VDD_NOT_PRESENT Target Vdd missing or incorrect
  */
 USBDM_ErrorCode checkTargetVdd(void) {
 #if (HW_CAPABILITY&(CAP_VDDSENSE|CAP_VDDCONTROL))
    switch(TargetVddInterface::checkVddState()) {
-      case VddState_Error:
+      case VddState_Overloaded:
       case VddState_None:
          return BDM_RC_VDD_NOT_PRESENT;
       case VddState_External:
@@ -114,19 +114,27 @@ USBDM_ErrorCode setTargetVdd(TargetVddSelect_t targetVdd) {
       case BDM_TARGET_VDD_3V3 :
          TargetVddInterface::vdd3V3On();
          // Wait for Vdd to rise
-         if (!USBDM::waitMS(VDD_RISE_TIMEms, TargetVddInterface::isVddOK_3V3)) {
+         USBDM::waitMS(VDD_RISE_TIMEms, TargetVddInterface::isVddOK_3V3);
+         // Give opportunity for Vdd to settle further
+         USBDM::waitMS(100);
+         if (!TargetVddInterface::isVddOK_3V3()) {
+            // Vdd may be present but at wrong level
+            rc = TargetVddInterface::isVddPresent()?BDM_RC_VDD_INCORRECT_LEVEL:BDM_RC_VDD_NOT_PRESENT;
             // In case of Vdd overload
             TargetVddInterface::vddOff();
-            rc = BDM_RC_VDD_NOT_PRESENT;
          }
          break;
       case BDM_TARGET_VDD_5V  :
          TargetVddInterface::vdd5VOn();
          // Wait for Vdd to rise
-         if (!USBDM::waitMS(VDD_RISE_TIMEms, TargetVddInterface::isVddOK_5V)) {
+         USBDM::waitMS(VDD_RISE_TIMEms, TargetVddInterface::isVddOK_5V);
+         // Give opportunity for Vdd to settle further
+         USBDM::waitMS(100);
+         if (!TargetVddInterface::isVddOK_5V()) {
+            // Vdd may be present but at wrong level
+            rc = TargetVddInterface::isVddPresent()?BDM_RC_VDD_INCORRECT_LEVEL:BDM_RC_VDD_NOT_PRESENT;
             // In case of Vdd overload
             TargetVddInterface::vddOff();
-            rc = BDM_RC_VDD_NOT_PRESENT;
          }
          break;
       default:

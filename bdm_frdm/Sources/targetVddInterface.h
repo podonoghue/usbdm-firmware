@@ -20,7 +20,7 @@ enum VddState {
    VddState_None,       //!< Vdd Off
    VddState_Internal,   //!< Vdd Internal
    VddState_External,   //!< Vdd External
-   VddState_Error,      //!< Vdd in Error (overloaded & off)
+   VddState_Overloaded,      //!< Vdd in Error (overloaded & off)
 };
 
 /**
@@ -74,7 +74,7 @@ public:
          Control::off();
 
          // Fault (overload) detected
-         vddState = VddState_Error;
+         vddState = VddState_Overloaded;
 
          // Notify callback
          fCallback(vddState);
@@ -122,7 +122,7 @@ public:
     * @note This has no effect if in error state
     */
    static void vddOn() {
-      if (vddState == VddState_Error) {
+      if (vddState == VddState_Overloaded) {
          return;
       }
       vddState  = VddState_Internal;
@@ -220,6 +220,17 @@ public:
    }
 
    /**
+    * Check if target Vdd is present \n
+    * Also updates Target Vdd LED
+    *
+    * @return true  => Target Vdd >= ~1.5V
+    * @return false => Target Vdd <  ~1.5V
+    */
+   static bool isVddPresent() {
+      return isVddOK();
+   }
+
+   /**
     * Check if target Vdd has fallen to POR level\n
     * Also updates Target Vdd LED
     */
@@ -231,13 +242,12 @@ public:
     * Clear VDD change flag
     */
    static void clearVddChangeFlag() {
-
    }
 
 //   /**
 //    * Get Vdd state
 //    *
-//    * @return Vdd state as VddState_None, VddState_Internal, VddState_External or VddState_Error
+//    * @return Vdd state as VddState_None, VddState_Internal, VddState_External or VddState_Overloaded
 //    */
 //   static VddState getState() {
 //      return vddState;
@@ -246,18 +256,18 @@ public:
    /**
     * Update Vdd state
     *
-    * @return Vdd state as VddState_None, VddState_Internal, VddState_External or VddState_Error
+    * @return Vdd state as VddState_None, VddState_Internal, VddState_External or VddState_Overloaded
     */
    static VddState checkVddState() {
       switch(vddState) {
-         case VddState_Error    :
+         case VddState_Overloaded    :
             // No change - requires Vdd to be turned off to clear
             break;
 
          case VddState_Internal :
             if (!isVddOK()) {
                // Power should be present!
-               vddState = VddState_Error;
+               vddState = VddState_Overloaded;
             }
             break;
 
