@@ -324,12 +324,12 @@ public:
    static void initPCRs() {
 
 #if defined(PCC_PCCn_CGC_MASK)
-PCC->PCC_PORTA = PCC_PCCn_CGC_MASK;
+   PCC->PCC_PORTA = PCC_PCCn_CGC_MASK;
 #else
-enablePortClocks(PORTA_CLOCK_MASK);
+   enablePortClocks(PORTA_CLOCK_MASK);
 #endif
 
-PORTA->GPCLR = 0x0100UL|PORT_GPCLR_GPWE(0x0010UL);
+   PORTA->GPCLR = 0x0100UL|PORT_GPCLR_GPWE(0x0010UL);
    }
 
    /**
@@ -340,12 +340,12 @@ PORTA->GPCLR = 0x0100UL|PORT_GPCLR_GPWE(0x0010UL);
    static void clearPCRs() {
 
 #if defined(PCC_PCCn_CGC_MASK)
-PCC->PCC_PORTA = PCC_PCCn_CGC_MASK;
+   PCC->PCC_PORTA = PCC_PCCn_CGC_MASK;
 #else
-enablePortClocks(PORTA_CLOCK_MASK);
+   enablePortClocks(PORTA_CLOCK_MASK);
 #endif
 
-PORTA->GPCLR = PinMux_Disabled|PORT_GPCLR_GPWE(0x0U);
+   PORTA->GPCLR = PinMux_Disabled|PORT_GPCLR_GPWE(0x0010UL);
    }
 
 };
@@ -414,12 +414,12 @@ public:
    static void initPCRs() {
 
 #if defined(PCC_PCCn_CGC_MASK)
-PCC->PCC_PORTB = PCC_PCCn_CGC_MASK;
+   PCC->PCC_PORTB = PCC_PCCn_CGC_MASK;
 #else
-enablePortClocks(PORTB_CLOCK_MASK);
+   enablePortClocks(PORTB_CLOCK_MASK);
 #endif
 
-PORTB->GPCLR = 0x0100UL|PORT_GPCLR_GPWE(0x0003UL);
+   PORTB->GPCLR = 0x0100UL|PORT_GPCLR_GPWE(0x0003UL);
    }
 
    /**
@@ -430,12 +430,12 @@ PORTB->GPCLR = 0x0100UL|PORT_GPCLR_GPWE(0x0003UL);
    static void clearPCRs() {
 
 #if defined(PCC_PCCn_CGC_MASK)
-PCC->PCC_PORTB = PCC_PCCn_CGC_MASK;
+   PCC->PCC_PORTB = PCC_PCCn_CGC_MASK;
 #else
-enablePortClocks(PORTB_CLOCK_MASK);
+   enablePortClocks(PORTB_CLOCK_MASK);
 #endif
 
-PORTB->GPCLR = PinMux_Disabled|PORT_GPCLR_GPWE(0x0U);
+   PORTB->GPCLR = PinMux_Disabled|PORT_GPCLR_GPWE(0x0003UL);
    }
 
 };
@@ -496,12 +496,12 @@ public:
    static void initPCRs() {
 
 #if defined(PCC_PCCn_CGC_MASK)
-PCC->PCC_PORTC = PCC_PCCn_CGC_MASK;
+   PCC->PCC_PORTC = PCC_PCCn_CGC_MASK;
 #else
-enablePortClocks(PORTC_CLOCK_MASK);
+   enablePortClocks(PORTC_CLOCK_MASK);
 #endif
 
-PORTC->GPCLR = 0x0100UL|PORT_GPCLR_GPWE(0x0006UL);
+   PORTC->GPCLR = 0x0100UL|PORT_GPCLR_GPWE(0x0006UL);
    }
 
    /**
@@ -512,12 +512,12 @@ PORTC->GPCLR = 0x0100UL|PORT_GPCLR_GPWE(0x0006UL);
    static void clearPCRs() {
 
 #if defined(PCC_PCCn_CGC_MASK)
-PCC->PCC_PORTC = PCC_PCCn_CGC_MASK;
+   PCC->PCC_PORTC = PCC_PCCn_CGC_MASK;
 #else
-enablePortClocks(PORTC_CLOCK_MASK);
+   enablePortClocks(PORTC_CLOCK_MASK);
 #endif
 
-PORTC->GPCLR = PinMux_Disabled|PORT_GPCLR_GPWE(0x0U);
+   PORTC->GPCLR = PinMux_Disabled|PORT_GPCLR_GPWE(0x0006UL);
    }
 
 };
@@ -574,12 +574,12 @@ public:
    static void initPCRs() {
 
 #if defined(PCC_PCCn_CGC_MASK)
-PCC->PCC_PORTD = PCC_PCCn_CGC_MASK;
+   PCC->PCC_PORTD = PCC_PCCn_CGC_MASK;
 #else
-enablePortClocks(PORTD_CLOCK_MASK);
+   enablePortClocks(PORTD_CLOCK_MASK);
 #endif
 
-PORTD->GPCLR = 0x0100UL|PORT_GPCLR_GPWE(0x00F0UL);
+   PORTD->GPCLR = 0x0100UL|PORT_GPCLR_GPWE(0x00F0UL);
    }
 
    /**
@@ -590,12 +590,12 @@ PORTD->GPCLR = 0x0100UL|PORT_GPCLR_GPWE(0x00F0UL);
    static void clearPCRs() {
 
 #if defined(PCC_PCCn_CGC_MASK)
-PCC->PCC_PORTD = PCC_PCCn_CGC_MASK;
+   PCC->PCC_PORTD = PCC_PCCn_CGC_MASK;
 #else
-enablePortClocks(PORTD_CLOCK_MASK);
+   enablePortClocks(PORTD_CLOCK_MASK);
 #endif
 
-PORTD->GPCLR = PinMux_Disabled|PORT_GPCLR_GPWE(0x0U);
+   PORTD->GPCLR = PinMux_Disabled|PORT_GPCLR_GPWE(0x00F0UL);
    }
 
 };
@@ -745,12 +745,12 @@ public:
    static void initPCRs() {
 
 #if defined(PCC_PCCn_CGC_MASK)
-PCC->PCC_PORTA = PCC_PCCn_CGC_MASK;
+   PCC->PCC_PORTA = PCC_PCCn_CGC_MASK;
 #else
-enablePortClocks(PORTA_CLOCK_MASK);
+   enablePortClocks(PORTA_CLOCK_MASK);
 #endif
 
-PORTA->GPCHR = 0x0000UL|PORT_GPCHR_GPWE(0x000CUL);
+   PORTA->GPCHR = 0x0000UL|PORT_GPCHR_GPWE(0x000CUL);
    }
 
    /**
@@ -761,12 +761,12 @@ PORTA->GPCHR = 0x0000UL|PORT_GPCHR_GPWE(0x000CUL);
    static void clearPCRs() {
 
 #if defined(PCC_PCCn_CGC_MASK)
-PCC->PCC_PORTA = PCC_PCCn_CGC_MASK;
+   PCC->PCC_PORTA = PCC_PCCn_CGC_MASK;
 #else
-enablePortClocks(PORTA_CLOCK_MASK);
+   enablePortClocks(PORTA_CLOCK_MASK);
 #endif
 
-PORTA->GPCHR = PinMux_Disabled|PORT_GPCHR_GPWE(0x0U);
+   PORTA->GPCHR = PinMux_Disabled|PORT_GPCHR_GPWE(0x000CUL);
    }
 
 };
@@ -3325,12 +3325,12 @@ public:
    static void initPCRs() {
 
 #if defined(PCC_PCCn_CGC_MASK)
-PCC->PCC_PORTA = PCC_PCCn_CGC_MASK;
+   PCC->PCC_PORTA = PCC_PCCn_CGC_MASK;
 #else
-enablePortClocks(PORTA_CLOCK_MASK);
+   enablePortClocks(PORTA_CLOCK_MASK);
 #endif
 
-PORTA->GPCLR = 0x0700UL|PORT_GPCLR_GPWE(0x0009UL);
+   PORTA->GPCLR = 0x0700UL|PORT_GPCLR_GPWE(0x0009UL);
    }
 
    /**
@@ -3341,12 +3341,12 @@ PORTA->GPCLR = 0x0700UL|PORT_GPCLR_GPWE(0x0009UL);
    static void clearPCRs() {
 
 #if defined(PCC_PCCn_CGC_MASK)
-PCC->PCC_PORTA = PCC_PCCn_CGC_MASK;
+   PCC->PCC_PORTA = PCC_PCCn_CGC_MASK;
 #else
-enablePortClocks(PORTA_CLOCK_MASK);
+   enablePortClocks(PORTA_CLOCK_MASK);
 #endif
 
-PORTA->GPCLR = PinMux_Disabled|PORT_GPCLR_GPWE(0x0U);
+   PORTA->GPCLR = PinMux_Disabled|PORT_GPCLR_GPWE(0x0009UL);
    }
 
 };
@@ -4537,18 +4537,18 @@ public:
    static void initPCRs() {
 
 #if defined(PCC_PCCn_CGC_MASK)
-PCC->PCC_PORTA = PCC_PCCn_CGC_MASK;
-PCC->PCC_PORTB = PCC_PCCn_CGC_MASK;
-PCC->PCC_PORTC = PCC_PCCn_CGC_MASK;
-PCC->PCC_PORTD = PCC_PCCn_CGC_MASK;
+   PCC->PCC_PORTA = PCC_PCCn_CGC_MASK;
+   PCC->PCC_PORTB = PCC_PCCn_CGC_MASK;
+   PCC->PCC_PORTC = PCC_PCCn_CGC_MASK;
+   PCC->PCC_PORTD = PCC_PCCn_CGC_MASK;
 #else
-enablePortClocks(PORTA_CLOCK_MASK|PORTB_CLOCK_MASK|PORTC_CLOCK_MASK|PORTD_CLOCK_MASK);
+   enablePortClocks(PORTA_CLOCK_MASK|PORTB_CLOCK_MASK|PORTC_CLOCK_MASK|PORTD_CLOCK_MASK);
 #endif
 
-PORTA->GPCLR = 0x0100UL|PORT_GPCLR_GPWE(0x0010UL);
-PORTB->GPCLR = 0x0100UL|PORT_GPCLR_GPWE(0x0001UL);
-PORTC->GPCLR = 0x0100UL|PORT_GPCLR_GPWE(0x0002UL);
-PORTD->GPCLR = 0x0100UL|PORT_GPCLR_GPWE(0x0050UL);
+   PORTA->GPCLR = 0x0100UL|PORT_GPCLR_GPWE(0x0010UL);
+   PORTB->GPCLR = 0x0100UL|PORT_GPCLR_GPWE(0x0001UL);
+   PORTC->GPCLR = 0x0100UL|PORT_GPCLR_GPWE(0x0002UL);
+   PORTD->GPCLR = 0x0100UL|PORT_GPCLR_GPWE(0x0050UL);
    }
 
    /**
@@ -4559,18 +4559,18 @@ PORTD->GPCLR = 0x0100UL|PORT_GPCLR_GPWE(0x0050UL);
    static void clearPCRs() {
 
 #if defined(PCC_PCCn_CGC_MASK)
-PCC->PCC_PORTA = PCC_PCCn_CGC_MASK;
-PCC->PCC_PORTB = PCC_PCCn_CGC_MASK;
-PCC->PCC_PORTC = PCC_PCCn_CGC_MASK;
-PCC->PCC_PORTD = PCC_PCCn_CGC_MASK;
+   PCC->PCC_PORTA = PCC_PCCn_CGC_MASK;
+   PCC->PCC_PORTB = PCC_PCCn_CGC_MASK;
+   PCC->PCC_PORTC = PCC_PCCn_CGC_MASK;
+   PCC->PCC_PORTD = PCC_PCCn_CGC_MASK;
 #else
-enablePortClocks(PORTA_CLOCK_MASK|PORTB_CLOCK_MASK|PORTC_CLOCK_MASK|PORTD_CLOCK_MASK);
+   enablePortClocks(PORTA_CLOCK_MASK|PORTB_CLOCK_MASK|PORTC_CLOCK_MASK|PORTD_CLOCK_MASK);
 #endif
 
-PORTA->GPCLR = PinMux_Disabled|PORT_GPCLR_GPWE(0x0U);
-PORTB->GPCLR = PinMux_Disabled|PORT_GPCLR_GPWE(0x0U);
-PORTC->GPCLR = PinMux_Disabled|PORT_GPCLR_GPWE(0x0U);
-PORTD->GPCLR = PinMux_Disabled|PORT_GPCLR_GPWE(0x0U);
+   PORTA->GPCLR = PinMux_Disabled|PORT_GPCLR_GPWE(0x0010UL);
+   PORTB->GPCLR = PinMux_Disabled|PORT_GPCLR_GPWE(0x0001UL);
+   PORTC->GPCLR = PinMux_Disabled|PORT_GPCLR_GPWE(0x0002UL);
+   PORTD->GPCLR = PinMux_Disabled|PORT_GPCLR_GPWE(0x0050UL);
    }
 
 };
@@ -5258,12 +5258,12 @@ public:
    static void initPCRs() {
 
 #if defined(PCC_PCCn_CGC_MASK)
-PCC->PCC_PORTC = PCC_PCCn_CGC_MASK;
+   PCC->PCC_PORTC = PCC_PCCn_CGC_MASK;
 #else
-enablePortClocks(PORTC_CLOCK_MASK);
+   enablePortClocks(PORTC_CLOCK_MASK);
 #endif
 
-PORTC->GPCLR = 0x0200UL|PORT_GPCLR_GPWE(0x00E0UL);
+   PORTC->GPCLR = 0x0200UL|PORT_GPCLR_GPWE(0x00E0UL);
    }
 
    /**
@@ -5274,12 +5274,12 @@ PORTC->GPCLR = 0x0200UL|PORT_GPCLR_GPWE(0x00E0UL);
    static void clearPCRs() {
 
 #if defined(PCC_PCCn_CGC_MASK)
-PCC->PCC_PORTC = PCC_PCCn_CGC_MASK;
+   PCC->PCC_PORTC = PCC_PCCn_CGC_MASK;
 #else
-enablePortClocks(PORTC_CLOCK_MASK);
+   enablePortClocks(PORTC_CLOCK_MASK);
 #endif
 
-PORTC->GPCLR = PinMux_Disabled|PORT_GPCLR_GPWE(0x0U);
+   PORTC->GPCLR = PinMux_Disabled|PORT_GPCLR_GPWE(0x00E0UL);
    }
 
 };
@@ -5556,12 +5556,12 @@ public:
    static void initPCRs() {
 
 #if defined(PCC_PCCn_CGC_MASK)
-PCC->PCC_PORTA = PCC_PCCn_CGC_MASK;
+   PCC->PCC_PORTA = PCC_PCCn_CGC_MASK;
 #else
-enablePortClocks(PORTA_CLOCK_MASK);
+   enablePortClocks(PORTA_CLOCK_MASK);
 #endif
 
-PORTA->GPCLR = 0x0200UL|PORT_GPCLR_GPWE(0x0006UL);
+   PORTA->GPCLR = 0x0200UL|PORT_GPCLR_GPWE(0x0006UL);
    }
 
    /**
@@ -5572,12 +5572,12 @@ PORTA->GPCLR = 0x0200UL|PORT_GPCLR_GPWE(0x0006UL);
    static void clearPCRs() {
 
 #if defined(PCC_PCCn_CGC_MASK)
-PCC->PCC_PORTA = PCC_PCCn_CGC_MASK;
+   PCC->PCC_PORTA = PCC_PCCn_CGC_MASK;
 #else
-enablePortClocks(PORTA_CLOCK_MASK);
+   enablePortClocks(PORTA_CLOCK_MASK);
 #endif
 
-PORTA->GPCLR = PinMux_Disabled|PORT_GPCLR_GPWE(0x0U);
+   PORTA->GPCLR = PinMux_Disabled|PORT_GPCLR_GPWE(0x0006UL);
    }
 
 };
@@ -5680,12 +5680,12 @@ public:
    static void initPCRs() {
 
 #if defined(PCC_PCCn_CGC_MASK)
-PCC->PCC_PORTC = PCC_PCCn_CGC_MASK;
+   PCC->PCC_PORTC = PCC_PCCn_CGC_MASK;
 #else
-enablePortClocks(PORTC_CLOCK_MASK);
+   enablePortClocks(PORTC_CLOCK_MASK);
 #endif
 
-PORTC->GPCLR = 0x0300UL|PORT_GPCLR_GPWE(0x0018UL);
+   PORTC->GPCLR = 0x0300UL|PORT_GPCLR_GPWE(0x0018UL);
    }
 
    /**
@@ -5696,12 +5696,12 @@ PORTC->GPCLR = 0x0300UL|PORT_GPCLR_GPWE(0x0018UL);
    static void clearPCRs() {
 
 #if defined(PCC_PCCn_CGC_MASK)
-PCC->PCC_PORTC = PCC_PCCn_CGC_MASK;
+   PCC->PCC_PORTC = PCC_PCCn_CGC_MASK;
 #else
-enablePortClocks(PORTC_CLOCK_MASK);
+   enablePortClocks(PORTC_CLOCK_MASK);
 #endif
 
-PORTC->GPCLR = PinMux_Disabled|PORT_GPCLR_GPWE(0x0U);
+   PORTC->GPCLR = PinMux_Disabled|PORT_GPCLR_GPWE(0x0018UL);
    }
 
 };

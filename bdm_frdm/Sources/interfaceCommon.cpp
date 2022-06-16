@@ -597,11 +597,14 @@ void suspend(void){
 
 /**
  *
- *  Turns off the BDM interface
+ *  Turns off the debug interfaces
  *
  *   Depending upon settings, may leave target power on.
  */
 void interfaceOff( void ) {
+
+   ResetInterface::initialise();
+
 #if (HW_CAPABILITY&CAP_SWD_HW)
    Swd::disableInterface();
 #endif
@@ -632,7 +635,7 @@ USBDM_ErrorCode clearStatus(void) {
 USBDM_ErrorCode setTarget(TargetType_t target) {
    USBDM_ErrorCode rc = BDM_RC_OK;
 
-   if (target == T_OFF) {
+   if ((target == T_OFF) || (target != cable_status.target_type)) {
       interfaceOff();
    }
    clearStatus();
