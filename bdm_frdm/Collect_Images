@@ -111,7 +111,7 @@ for file in ${BOARD}; do
 done
 
 echo "***  Doing OpenSDA V2.1 + Power"
-BOARD="FRDM-K22F FRDM-K28F FRDM-K66F FRDM-K82F FRDM-KV10Z FRDM-KV31F FRDM-KE15Z"
+BOARD="FRDM-K22F FRDM-K28F FRDM-K66F FRDM-K82F FRDM-KV10Z FRDM-KV31F FRDM-KE15Z FRDM-KW41Z"
 for file in ${BOARD}; do
    if [ -f "${SOURCE_ROOT}/OpenSDAv2_1_Power/"*.bin ]; then
       cp -p "${SOURCE_ROOT}/OpenSDAv2_1_Power/"*.bin           "${MK_FLASH_DIR}/${file}.bin"   
