@@ -50,12 +50,12 @@ for %%f in (%BOARD%) do copy /B "%Kinetis_ROOT%\OpenSDAv2_0\*.bin"            %M
 for %%f in (%BOARD%) do copy /B "%Kinetis_ROOT%\OpenSDAv2_0_Unique_ID\*.bin"  %MK_FLASH_DIR%\%%f_Unique_ID.bin
 
 REM OpenSDA V2 + Power
-set BOARD=FRDM-K64F
+set BOARD=FRDM-K64F 
 for %%f in (%BOARD%) do copy /B "%Kinetis_ROOT%\OpenSDAv2_0_Power\*.bin"            %MK_FLASH_DIR%\%%f.bin
 for %%f in (%BOARD%) do copy /B "%Kinetis_ROOT%\OpenSDAv2_0_Unique_ID_Power\*.bin"  %MK_FLASH_DIR%\%%f_Unique_ID.bin
 
 REM OpenSDA V2.1 + Power
-set BOARD=FRDM-K22F FRDM-K28F FRDM-K66F FRDM-K82F FRDM-KV10Z FRDM-KV31F FRDM-KE15Z 
+set BOARD=FRDM-K22F FRDM-K28F FRDM-K66F FRDM-K82F FRDM-KV10Z FRDM-KV31F FRDM-KE15Z FRDM_KW41 R41Z_EVAL
 for %%f in (%BOARD%) do copy /B "%Kinetis_ROOT%\OpenSDAv2_1_Power\*.bin"            %MK_FLASH_DIR%\%%f.bin
 for %%f in (%BOARD%) do copy /B "%Kinetis_ROOT%\OpenSDAv2_1_Unique_ID_Power\*.bin"  %MK_FLASH_DIR%\%%f_Unique_ID.bin
 

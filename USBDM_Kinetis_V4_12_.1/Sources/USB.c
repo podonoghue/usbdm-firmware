@@ -37,7 +37,7 @@ Change History
 #include "Commands.h"
 //#include "BDM.h"
 //#include "BDMCommon.h"
-//#include "CmdProcessing.h"
+#include "CmdProcessing.h"
 #include "usb_defs.h"
 #include "USB.h"
 #include "icp.h"
@@ -67,7 +67,7 @@ static void ep5StartTxTransactionIfIdle();
    #error "CPU not set"
 #endif
 
-uint8_t commandBuffer[300];
+//uint8_t commandBuffer[300];
 
 //======================================================================
 // Maximum packet sizes for each endpoint
@@ -814,7 +814,6 @@ static uint8_t ep0SaveRxData( void ) {
  *                - The transfer is < CONTROL_EP_MAXSIZE
  *                - Data may be used directly from ep0OutDataBuffer
  *                - So no additional buffer is needed
- * @param data0_1 - Initial DATA0/DATA1 toggle value
  */
 static void ep0StartRxTransaction( uint8_t bufSize, uint8_t *bufPtr ) {
 
@@ -1185,7 +1184,7 @@ static void ep5InitialiseBdtTx(void) {
       //       ep5DataBuffer0[0]       = '^';
       endPointBdts[5].txEven.raw = BDTEntry_OWN_MASK|BDTEntry_DATA0_MASK;
    }
-   //   epHardwareState[5].data0_1 = !epHardwareState[5].data0_1; // Toggle data0/1
+   //   epHardwareState[5].data0_1 = !epHardwareState[5].data0_1; // Toggle tx buffer
    epHardwareState[5].txOdd     = !epHardwareState[5].txOdd;
 }
 
