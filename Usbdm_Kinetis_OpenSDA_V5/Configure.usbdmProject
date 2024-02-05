@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Configure.usbdmProject -->
+<!-- 
+   Settings
+-->
+
+<section name="USBDM">
+   <item key="$$DeviceInfo_Device_Variant"                 value="MK20DX128VFM5" />
+   <item key="$$DeviceInfo_SubFamily"                      value="MK20D5" />
+   <item key="$$Hardware_Source_Filename"                  value="MK20D5.usbdmHardware" />
+   <item key="$peripheral$GPIOA_polarity"                  value="20" />
+   <item key="$peripheral$GPIOB_polarity"                  value="3" />
+   <item key="$peripheral$GPIOC_polarity"                  value="8" />
+   <item key="$peripheral$GPIOD_polarity"                  value="16" />
+   <item key="$peripheral$I2C0_userDescription"            value="User I2C" />
+   <item key="$peripheral$SPI0_codeIdentifier"             value="SDA_SPI" />
+   <item key="$peripheral$SPI0_userDescription"            value="User SPI" />
+   <item key="$pin$PTA0_pcrSetting_7"                      value="700" />
+   <item key="$pin$PTA18_pcrSetting_0"                     value="0" />
+   <item key="$pin$PTA19_pcrSetting_0"                     value="0" />
+   <item key="$pin$PTA1_pcrSetting_2"                      value="200" />
+   <item key="$pin$PTA2_pcrSetting_2"                      value="200" />
+   <item key="$pin$PTA3_pcrSetting_7"                      value="700" />
+   <item key="$pin$PTA4_pcrSetting_1"                      value="100" />
+   <item key="$pin$PTB0_pcrSetting_1"                      value="100" />
+   <item key="$pin$PTB1_pcrSetting_1"                      value="100" />
+   <item key="$pin$PTC1_pcrSetting_1"                      value="100" />
+   <item key="$pin$PTC2_pcrSetting_1"                      value="100" />
+   <item key="$pin$PTC3_pcrSetting_3"                      value="300" />
+   <item key="$pin$PTC4_pcrSetting_3"                      value="300" />
+   <item key="$pin$PTC5_pcrSetting_2"                      value="200" />
+   <item key="$pin$PTC6_pcrSetting_2"                      value="200" />
+   <item key="$pin$PTC7_pcrSetting_2"                      value="200" />
+   <item key="$pin$PTD4_pcrSetting_1"                      value="100" />
+   <item key="$pin$PTD5_pcrSetting_0"                      value="0" />
+   <item key="$pin$PTD6_pcrSetting_1"                      value="100" />
+   <item key="$pin$PTD7_pcrSetting_1"                      value="100" />
+   <item key="$signal$ADC0_SE14_codeIdentifier"            value="Analogue_A0" />
+   <item key="$signal$ADC0_SE14_descriptionSetting"        value="A0" />
+   <item key="$signal$ADC0_SE19_codeIdentifier"            value="PhotoTransistor" />
+   <item key="$signal$ADC0_SE19_descriptionSetting"        value="Photo-transistor" />
+   <item key="$signal$ADC0_SE21_codeIdentifier"            value="ExternalTemperature" />
+   <item key="$signal$ADC0_SE21_descriptionSetting"        value="External temperature sensor" />
+   <item key="$signal$ADC0_SE26_codeIdentifier"            value="InternalTemperature" />
+   <item key="$signal$ADC0_SE26_descriptionSetting"        value="Internal temperature sensor" />
+   <item key="$signal$ADC0_SE27_codeIdentifier"            value="Bandgap" />
+   <item key="$signal$ADC0_SE27_descriptionSetting"        value="Internal band-gap reference" />
+   <item key="$signal$ADC0_SE6b_codeIdentifier"            value="SDA_USB_P5V_SENSE" />
+   <item key="$signal$ADC0_SE6b_descriptionSetting"        value="SDA_USB_P5V_SENSE" />
+   <item key="$signal$EXTAL0_descriptionSetting"           value="SDA_EXTAL" />
+   <item key="$signal$EXTAL32_descriptionSetting"          value="Reserved(EXTAL32)" />
+   <item key="$signal$GPIOA_12_codeIdentifier"             value="Digital_D8/Lcd_Reset" />
+   <item key="$signal$GPIOA_12_descriptionSetting"         value="D8/LCD Reset" />
+   <item key="$signal$GPIOA_13_codeIdentifier"             value="Digital_D24" />
+   <item key="$signal$GPIOA_13_descriptionSetting"         value="D24" />
+   <item key="$signal$GPIOA_1_descriptionSetting"          value="D5" />
+   <item key="$signal$GPIOA_2_descriptionSetting"          value="D9/Blue LED/LCD CS" />
+   <item key="$signal$GPIOA_4_codeIdentifier"              value="SDA_SWD_EN_B" />
+   <item key="$signal$GPIOA_4_descriptionSetting"          value="SDA_SWD_EN_B" />
+   <item key="$signal$GPIOA_5_codeIdentifier"              value="Digital_D2" />
+   <item key="$signal$GPIOA_5_descriptionSetting"          value="D2" />
+   <item key="$signal$GPIOB_0_codeIdentifier"              value="SDA_SWD_OE_B" />
+   <item key="$signal$GPIOB_0_descriptionSetting"          value="SDA_SWD_OE_B" />
+   <item key="$signal$GPIOB_1_codeIdentifier"              value="SDA_RST_TGTMCU_B" />
+   <item key="$signal$GPIOB_1_descriptionSetting"          value="SDA_RST_TGTMCU_B" />
+   <item key="$signal$GPIOB_2_codeIdentifier"              value="Digital_D15/Lcd_CS" />
+   <item key="$signal$GPIOB_2_descriptionSetting"          value="D15" />
+   <item key="$signal$GPIOB_3_codeIdentifier"              value="Digital_D14" />
+   <item key="$signal$GPIOB_3_descriptionSetting"          value="D14" />
+   <item key="$signal$GPIOC_0_codeIdentifier"              value="Digital_A0" />
+   <item key="$signal$GPIOC_0_descriptionSetting"          value="A0" />
+   <item key="$signal$GPIOC_10_codeIdentifier"             value="Digital_D25" />
+   <item key="$signal$GPIOC_10_descriptionSetting"         value="D25" />
+   <item key="$signal$GPIOC_11_codeIdentifier"             value="Digital_D17" />
+   <item key="$signal$GPIOC_11_descriptionSetting"         value="D17" />
+   <item key="$signal$GPIOC_1_codeIdentifier"              value="SDA_SPI0_RST_B" />
+   <item key="$signal$GPIOC_1_descriptionSetting"          value="SDA_SPI0_RST_B (not used)" />
+   <item key="$signal$GPIOC_2_codeIdentifier"              value="SDA_SPI0_CS" />
+   <item key="$signal$GPIOC_2_descriptionSetting"          value="SDA_SPI0_CS (not used)" />
+   <item key="$signal$GPIOC_3_descriptionSetting"          value="D6/RedLed" />
+   <item key="$signal$GPIOC_4_descriptionSetting"          value="D7" />
+   <item key="$signal$GPIOC_5_descriptionSetting"          value="D18" />
+   <item key="$signal$GPIOC_6_descriptionSetting"          value="D19" />
+   <item key="$signal$GPIOC_7_descriptionSetting"          value="D20" />
+   <item key="$signal$GPIOC_8_codeIdentifier"              value="Digital_D4" />
+   <item key="$signal$GPIOC_8_descriptionSetting"          value="D4" />
+   <item key="$signal$GPIOC_9_codeIdentifier"              value="Digital_D23" />
+   <item key="$signal$GPIOC_9_descriptionSetting"          value="D23" />
+   <item key="$signal$GPIOD_0_codeIdentifier"              value="Digital_D16" />
+   <item key="$signal$GPIOD_0_descriptionSetting"          value="D16" />
+   <item key="$signal$GPIOD_1_codeIdentifier"              value="Digital_D13" />
+   <item key="$signal$GPIOD_1_descriptionSetting"          value="D13" />
+   <item key="$signal$GPIOD_2_codeIdentifier"              value="Digital_D11" />
+   <item key="$signal$GPIOD_2_descriptionSetting"          value="D11" />
+   <item key="$signal$GPIOD_3_codeIdentifier"              value="Digital_D12" />
+   <item key="$signal$GPIOD_3_descriptionSetting"          value="D12" />
+   <item key="$signal$GPIOD_4_codeIdentifier"              value="SDA_LED" />
+   <item key="$signal$GPIOD_4_descriptionSetting"          value="SDA_LED" />
+   <item key="$signal$GPIOE_0_codeIdentifier"              value="Digital_D1" />
+   <item key="$signal$GPIOE_0_descriptionSetting"          value="D1" />
+   <item key="$signal$GPIOE_1_codeIdentifier"              value="Digital_D0" />
+   <item key="$signal$GPIOE_1_descriptionSetting"          value="D0" />
+   <item key="$signal$I2C0_SCL_descriptionSetting"         value="Accelerometer_SCL" />
+   <item key="$signal$I2C0_SDA_descriptionSetting"         value="Accelerometer_SDA" />
+   <item key="$signal$JTAG_TCLK_descriptionSetting"        value="SDA_JTAG_TCLK" />
+   <item key="$signal$JTAG_TDO_descriptionSetting"         value="SDA_JTAG_TDO" />
+   <item key="$signal$JTAG_TMS_descriptionSetting"         value="SDA_JTAG_TMS" />
+   <item key="$signal$LLWU_P0_codeIdentifier"              value="Wakeup_D0" />
+   <item key="$signal$NMI_b_descriptionSetting"            value="NMI" />
+   <item key="$signal$RESET_b_descriptionSetting"          value="Reset button" />
+   <item key="$signal$SPI0_SCK_descriptionSetting"         value="SDA_SPI0_SCK" />
+   <item key="$signal$SPI0_SIN_descriptionSetting"         value="SDA_SPI0_SIN" />
+   <item key="$signal$SPI0_SOUT_descriptionSetting"        value="SDA_SPI0_SOUT" />
+   <item key="$signal$SWD_CLK_descriptionSetting"          value="Debug SWD_CLK" />
+   <item key="$signal$SWD_DIO_descriptionSetting"          value="Debug SWD_DIO" />
+   <item key="$signal$UART0_RX_descriptionSetting"         value="Debug Rx" />
+   <item key="$signal$UART0_TX_descriptionSetting"         value="Debug Tx" />
+   <item key="$signal$UART1_RX_descriptionSetting"         value="UART1_TX_TGTMCU_R" />
+   <item key="$signal$UART1_TX_descriptionSetting"         value="UART1_RX_TGTMCU_R" />
+   <item key="$signal$USB0_DM_descriptionSetting"          value="SDA_USB_DN" />
+   <item key="$signal$USB0_DP_descriptionSetting"          value="SDA_USB_DP" />
+   <item key="$signal$VREF_OUT_descriptionSetting"         value="Vref output" />
+   <item key="$signal$XTAL0_descriptionSetting"            value="SDA_XTAL" />
+   <item key="$signal$XTAL32_descriptionSetting"           value="Reserved(XTAL32)" />
+   <item key="/CMP0/cmp_fpr_filt_per"                      value="0" />
+   <item key="/CMP1/cmp_fpr_filt_per"                      value="0" />
+   <item key="/DMA0/irqHandlingMethod"                     value="$NotInstalled" />
+   <item key="/FTM0/ftm_deadtime_dtval"                    value="0" />
+   <item key="/FTM0/ftm_mode_init"                         value="false" />
+   <item key="/FTM1/ftm_deadtime_dtval"                    value="0" />
+   <item key="/FTM1/ftm_mode_init"                         value="false" />
+   <item key="/GPIOB/irqHandlingMethod"                    value="$ClassMethod" />
+   <item key="/GPIOD/irqHandlingMethod"                    value="$ClassMethod" />
+   <item key="/LINKER/heapSize"                            value="4096" />
+   <item key="/LINKER/stackSize"                           value="4096" />
+   <item key="/LLWU/llwu_filt1_filtsel"                    value="3" />
+   <item key="/LLWU/llwu_filt2_filtsel"                    value="3" />
+   <item key="/MCG/ClockConfig[0]"                         value="ClockConfig_RUN_PEE_48MHz" />
+   <item key="/MCG/ClockConfig[1]"                         value="ClockConfig_VLPR_BLPI_4MHz" />
+   <item key="/MCG/ClockConfig[2]"                         value="ClockConfig_RUN_FEE_40MHz" />
+   <item key="/MCG/ClockConfig[3]"                         value="ClockConfig_RUN_FEI_42MHz" />
+   <item key="/MCG/ERRATA_E7993"                           value="false" />
+   <item key="/MCG/configurePeripheralInStartUp"           value="true" />
+   <item key="/MCG/enablePeripheralSupport"                value="true" />
+   <item key="/MCG/mcgClockMode[0]"                        value="7" />
+   <item key="/MCG/mcgClockMode[1]"                        value="3" />
+   <item key="/MCG/mcgClockMode[2]"                        value="1" />
+   <item key="/MCG/mcg_c2_range0[0]"                       value="1" />
+   <item key="/MCG/mcg_c2_range0[1]"                       value="1" />
+   <item key="/MCG/mcg_c2_range0[2]"                       value="1" />
+   <item key="/MCG/mcg_c2_range0[3]"                       value="1" />
+   <item key="/MCG/pll0OutputFrequency[0]"                 value="96000000" />
+   <item key="/MCG/pll0OutputFrequency[3]"                 value="96000000" />
+   <item key="/MCG/system_mcgfllclk_clock[2]"              value="80000000" />
+   <item key="/MCG/system_mcgfllclk_clock[3]"              value="41943040" />
+   <item key="/OSC0/configurePeripheralInStartUp"          value="true" />
+   <item key="/OSC0/enablePeripheralSupport"               value="true" />
+   <item key="/PDB0/pdb_ch0_dly0"                          value="0" />
+   <item key="/PDB0/pdb_ch0_dly1"                          value="0" />
+   <item key="/PIT/enablePeripheralSupport"                value="true" />
+   <item key="/PMC/pmc_lvdsc1_lvdack"                      value="false" />
+   <item key="/SIM/configurePeripheralInStartUp"           value="true" />
+   <item key="/SIM/enablePeripheralSupport"                value="true" />
+   <item key="/SIM/sim_clkdiv1_outdiv1[1]"                 value="0" />
+   <item key="/SIM/sim_clkdiv1_outdiv1[3]"                 value="0" />
+   <item key="/SIM/sim_clkdiv1_outdiv2[1]"                 value="0" />
+   <item key="/SIM/sim_clkdiv1_outdiv2[3]"                 value="0" />
+   <item key="/SIM/sim_clkdiv1_outdiv4[0]"                 value="3" />
+   <item key="/SIM/sim_clkdiv1_outdiv4[1]"                 value="3" />
+   <item key="/SIM/sim_clkdiv1_outdiv4[2]"                 value="15" />
+   <item key="/SIM/sim_clkdiv2_usb[0]"                     value="2" />
+   <item key="/SIM/sim_clkdiv2_usb[1]"                     value="9" />
+   <item key="/SIM/sim_clkdiv2_usb[2]"                     value="9" />
+   <item key="/SIM/sim_clkdiv2_usb[3]"                     value="3" />
+   <item key="/SIM/sim_sopt1_osc32ksel"                    value="2" />
+   <item key="/SIM/sim_sopt2_clkoutsel[1]"                 value="6" />
+   <item key="/SIM/sim_sopt2_pllfllsel[0]"                 value="1" />
+   <item key="/SMC/enablePeripheralSupport"                value="true" />
+   <item key="/SMC/smc_pmctrl_runm[1]"                     value="2" />
+   <item key="/SPI0/enablePeripheralSupport"               value="true" />
+   <item key="/UART1/enablePeripheralSupport"              value="true" />
+   <item key="/UART1/irqHandlingMethod"                    value="$ClassMethod" />
+   <item key="/UART1/uart_c5_rdmas"                        value="0,1" />
+   <item key="/UART1/uart_c5_tdmas"                        value="0,1" />
+   <item key="/USB0/enablePeripheralSupport"               value="true" />
+   <item key="/USBDCD0/usbdcd_timer0_tunitcon"             value="0" />
+</section>

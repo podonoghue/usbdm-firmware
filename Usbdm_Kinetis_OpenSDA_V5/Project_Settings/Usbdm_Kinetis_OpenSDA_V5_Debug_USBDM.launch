@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="net.sourceforge.usbdm.gdb.launchConfigurationType">
+    <stringAttribute key="net.sourceforge.usbdm.gdb.autoReconnect" value="AUTOCONNECT_ALWAYS"/>
+    <stringAttribute key="net.sourceforge.usbdm.gdb.bdmSerialNumber" value="[Any connected USBDM]"/>
+    <booleanAttribute key="net.sourceforge.usbdm.gdb.bdmSerialNumberMatchRequired" value="false"/>
+    <stringAttribute key="net.sourceforge.usbdm.gdb.buildToolId" value="net.sourceforge.usbdm.cdt.toolchain.processor.usbdmConfigure.armLtdGnuToolsForARM"/>
+    <booleanAttribute key="net.sourceforge.usbdm.gdb.catchVLLSxEvents" value="false"/>
+    <stringAttribute key="net.sourceforge.usbdm.gdb.clockTrimFrequency" value="0"/>
+    <intAttribute key="net.sourceforge.usbdm.gdb.connectionTimeout" value="10"/>
+    <stringAttribute key="net.sourceforge.usbdm.gdb.deviceName" value="FRDM_K20D50M"/>
+    <booleanAttribute key="net.sourceforge.usbdm.gdb.doHalt" value="false"/>
+    <booleanAttribute key="net.sourceforge.usbdm.gdb.doReset" value="false"/>
+    <booleanAttribute key="net.sourceforge.usbdm.gdb.doResume" value="true"/>
+    <booleanAttribute key="net.sourceforge.usbdm.gdb.doStopAtMain" value="true"/>
+    <booleanAttribute key="net.sourceforge.usbdm.gdb.driveReset" value="true"/>
+    <stringAttribute key="net.sourceforge.usbdm.gdb.eraseMethod" value="ERASE_TARGETDEFAULT"/>
+    <booleanAttribute key="net.sourceforge.usbdm.gdb.exitOnClose" value="false"/>
+    <stringAttribute key="net.sourceforge.usbdm.gdb.externalFileName" value=""/>
+    <stringAttribute key="net.sourceforge.usbdm.gdb.gdbBinPath" value="${usbdm_armLtd_arm_path}"/>
+    <stringAttribute key="net.sourceforge.usbdm.gdb.gdbCommand" value="${usbdm_armLtd_arm_prefix}gdb"/>
+    <stringAttribute key="net.sourceforge.usbdm.gdb.initCommands" value=""/>
+    <intAttribute key="net.sourceforge.usbdm.gdb.interfaceFrequency" value="12000000"/>
+    <stringAttribute key="net.sourceforge.usbdm.gdb.interfaceType" value="T_ARM"/>
+    <booleanAttribute key="net.sourceforge.usbdm.gdb.loadImage" value="true"/>
+    <booleanAttribute key="net.sourceforge.usbdm.gdb.maskInterrupts" value="false"/>
+    <stringAttribute key="net.sourceforge.usbdm.gdb.nvmClockTrimLocation" value="3fe"/>
+    <stringAttribute key="net.sourceforge.usbdm.gdb.pcRegisterValue" value="__HardReset"/>
+    <intAttribute key="net.sourceforge.usbdm.gdb.port" value="1234"/>
+    <stringAttribute key="net.sourceforge.usbdm.gdb.resetMethod" value="RESET_TARGETDEFAULT"/>
+    <booleanAttribute key="net.sourceforge.usbdm.gdb.restartDoResume" value="true"/>
+    <booleanAttribute key="net.sourceforge.usbdm.gdb.restartDoStopAtMain" value="true"/>
+    <stringAttribute key="net.sourceforge.usbdm.gdb.restartPcRegisterValue" value="__HardReset"/>
+    <booleanAttribute key="net.sourceforge.usbdm.gdb.restartSetPcRegister" value="false"/>
+    <stringAttribute key="net.sourceforge.usbdm.gdb.restartStopAtMainAdress" value="main"/>
+    <booleanAttribute key="net.sourceforge.usbdm.gdb.restartUsesStartup" value="true"/>
+    <stringAttribute key="net.sourceforge.usbdm.gdb.runCommands" value=""/>
+    <stringAttribute key="net.sourceforge.usbdm.gdb.securityOption" value="SECURITY_SMART"/>
+    <stringAttribute key="net.sourceforge.usbdm.gdb.serverType" value="SERVER_SOCKET"/>
+    <booleanAttribute key="net.sourceforge.usbdm.gdb.setPcRegister" value="false"/>
+    <stringAttribute key="net.sourceforge.usbdm.gdb.stopAtMainAddress" value="main"/>
+    <stringAttribute key="net.sourceforge.usbdm.gdb.targetVdd" value="BDM_TARGET_VDD_3V3"/>
+    <booleanAttribute key="net.sourceforge.usbdm.gdb.trimClock" value="false"/>
+    <intAttribute key="net.sourceforge.usbdm.gdb.ttyPort" value="4321"/>
+    <booleanAttribute key="net.sourceforge.usbdm.gdb.useDebugVersion" value="false"/>
+    <booleanAttribute key="net.sourceforge.usbdm.gdb.useExternalFile" value="false"/>
+    <booleanAttribute key="net.sourceforge.usbdm.gdb.useExternalSymbolFile" value="false"/>
+    <booleanAttribute key="net.sourceforge.usbdm.gdb.usePstSignals" value="false"/>
+    <booleanAttribute key="net.sourceforge.usbdm.gdb.useSemiHosting" value="false"/>
+    <stringAttribute key="org.eclipse.cdt.dsf.gdb.DEBUG_NAME" value="${usbdm_armLtd_arm_path}/${usbdm_armLtd_arm_prefix}gdb"/>
+    <intAttribute key="org.eclipse.cdt.launch.ATTR_BUILD_BEFORE_LAUNCH_ATTR" value="2"/>
+    <stringAttribute key="org.eclipse.cdt.launch.PROGRAM_NAME" value="Debug/Debug.elf"/>
+    <stringAttribute key="org.eclipse.cdt.launch.PROJECT_ATTR" value="Usbdm_Kinetis_OpenSDA_V5"/>
+    <booleanAttribute key="org.eclipse.cdt.launch.PROJECT_BUILD_CONFIG_AUTO_ATTR" value="true"/>
+    <stringAttribute key="org.eclipse.cdt.launch.PROJECT_BUILD_CONFIG_ID_ATTR" value="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration.472898765.262006593"/>
+    <booleanAttribute key="org.eclipse.debug.core.ATTR_FORCE_SYSTEM_CONSOLE_ENCODING" value="false"/>
+    <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
+        <listEntry value="/Usbdm_Kinetis_OpenSDA_V5"/>
+    </listAttribute>
+    <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
+        <listEntry value="4"/>
+    </listAttribute>
+    <stringAttribute key="org.eclipse.dsf.launch.MEMORY_BLOCKS" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&lt;memoryBlockExpressionList context=&quot;reserved-for-future-use&quot;&gt;&lt;gdbmemoryBlockExpression address=&quot;536879072&quot; label=&quot;0x20001fe0&quot;/&gt;&lt;gdbmemoryBlockExpression address=&quot;536805568&quot; label=&quot;0x1fff00c0&quot;/&gt;&lt;/memoryBlockExpressionList&gt;"/>
+    <stringAttribute key="process_factory_id" value="org.eclipse.cdt.dsf.gdb.GdbProcessFactory"/>
+</launchConfiguration>
