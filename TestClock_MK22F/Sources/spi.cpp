@@ -5,7 +5,6 @@
  * @date     13 April 2016
  */
 #include "spi.h"
-#include <cfloat>
 
 /*
  * *****************************
@@ -17,9 +16,16 @@
  */
 namespace USBDM {
 
-
 static const uint16_t pbrFactors[] {2,3,5,7};
 static const uint16_t brFactors[] {2,4,6,8,16,32,64,128,256,512,1024,2048,4096,8192,16384,32768};
+
+#if false||false||false||false||false||false
+// Table used to obtain SPI class instance from static interrupt handler
+Spi::IrqInformation Spi::irqInformation[] = {
+   {nullptr}, // SPI0
+   {nullptr}, // SPI1
+};
+#endif
 
 /**
  * Calculate communication speed from SPI clock frequency and speed factors
@@ -50,16 +56,18 @@ uint32_t Spi::calculateSpeed(uint32_t clockFrequency, uint32_t spiCtarValue) {
  *
  * Note: Determines bestPrescaler and bestDivider for the smallest delay that is not less than delay.
  */
-void Spi::calculateDelay(float clockFrequency, float delay, int &bestPrescale, int &bestDivider) {
-   const float clockPeriod = (1/clockFrequency);
-   float bestDifference = FLT_MAX;
+void Spi::calculateDelay(uint32_t clockFrequency, uint32_t delay_ns, int &bestPrescale, int &bestDivider) {
+
+   const uint32_t clockPeriod_ns = (1'000'000'000+clockFrequency/2)/clockFrequency;
+
+   int bestDifference = std::numeric_limits<int>::max();
 
    bestPrescale = 0;
    bestDivider  = 0;
    for (int prescale = 3; prescale >= 0; prescale--) {
       for (int divider = 15; divider >= 0; divider--) {
-         float calculatedDelay = clockPeriod*((prescale<<1)+1)*(1UL<<(divider+1));
-         float difference = calculatedDelay - delay;
+         uint32_t calculatedDelay = clockPeriod_ns*((prescale<<1)+1)*(1UL<<(divider+1));
+         int32_t  difference = calculatedDelay - delay_ns;
          if (difference < 0) {
             // Too short - stop looking here
             break;
@@ -86,7 +94,7 @@ void Spi::calculateDelay(float clockFrequency, float delay, int &bestPrescale, i
  */
 uint32_t Spi::calculateDividers(uint32_t clockFrequency, uint32_t frequency) {
 
-   if (clockFrequency <= (2*frequency)) {
+   if (clockFrequency <= (2*(unsigned)frequency)) {
       // Use highest possible rate
       return SPI_CTAR_DBR_MASK;
    }
@@ -96,7 +104,7 @@ uint32_t Spi::calculateDividers(uint32_t clockFrequency, uint32_t frequency) {
    for (int pbr = 3; pbr >= 0; pbr--) {
       for (int br = 15; br >= 0; br--) {
          uint32_t calculatedFrequency = clockFrequency/(pbrFactors[pbr]*brFactors[br]);
-         int32_t difference = frequency-calculatedFrequency;
+         int32_t difference = (unsigned)frequency-calculatedFrequency;
          if (difference < 0) {
             // Too high stop looking here
             break;
@@ -110,7 +118,7 @@ uint32_t Spi::calculateDividers(uint32_t clockFrequency, uint32_t frequency) {
       }
    }
    uint32_t clockFactors = SPI_CTAR_BR(bestBR)|SPI_CTAR_PBR(bestPBR);
-   if ((clockFactors == 0) && (clockFrequency<=(2*frequency))) {
+   if ((clockFactors == 0) && (clockFrequency<=(2*(unsigned)frequency))) {
       // Use highest possible rate - but only when prescalers are zero.
       // This still results in 50% duty cycle
       clockFactors = SPI_CTAR_DBR_MASK;
@@ -127,11 +135,14 @@ uint32_t Spi::calculateDividers(uint32_t clockFrequency, uint32_t frequency) {
  * @return Data received
  */
 uint32_t Spi::txRxRaw(uint32_t data) {
+
+   spi->SR = SPI_SR_TCF_MASK;
    spi->PUSHR = data;
    while ((spi->SR & SPI_SR_TCF_MASK)==0) {
    }
+   uint32_t value = spi->POPR;
    spi->SR = SPI_SR_TCF_MASK|SPI_SR_EOQF_MASK;
-   return spi->POPR;  // Return read data
+   return value;  // Return read data
 }
 
 } // End namespace USBDM

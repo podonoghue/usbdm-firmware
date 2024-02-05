@@ -21,10 +21,10 @@ static const char *messages[] {
       "Too small",
       "Too large",
       "Illegal parameter",
-      "Call-back not installed",
+      "Interrupt without call-back installed",
       "Flash initialisation failed",
       "ADC Calibration failed",
-      "Illegal processor run-mode transition",
+      "Illegal power-mode transition",
       "Failed communication",
       "I2C No acknowledge",
       "I2C Lost arbitration for bus",
@@ -32,6 +32,11 @@ static const char *messages[] {
       "Clock initialisation failed",
       "Callback already installed",
       "Failed resource allocation",
+      "Timeout occurred during operation",
+      "Interrupt occurred during operation",
+      "Device is busy",
+      "Match event",
+      "Wrong state",
 };
 #endif
 
@@ -97,16 +102,23 @@ ErrorCode checkError() {
  * @param[in]  nvicPriority  Interrupt priority
  *
  * @note Any pending interrupts are cleared before enabling.
+ * @note NvicPriority_NotInstalled will actually disable interrupts
  */
-void enableNvicInterrupt(IRQn_Type irqNum, uint32_t nvicPriority) {
+void enableNvicInterrupt(IRQn_Type irqNum, NvicPriority nvicPriority) {
 
    // Clear Pending interrupts
    NVIC_ClearPendingIRQ(irqNum);
 
-   // Enable interrupts
-   NVIC_EnableIRQ(irqNum);
+   if(nvicPriority == NvicPriority_NotInstalled) {
+      // Disable interrupts
+      NVIC_DisableIRQ(irqNum);
+   }
+   else {
+      // Enable interrupts
+      NVIC_EnableIRQ(irqNum);
 
-   // Set priority level
-   NVIC_SetPriority(irqNum, nvicPriority);
+      // Set priority level
+      NVIC_SetPriority(irqNum, nvicPriority);
+   }
 }
 } // end namespace USBDM

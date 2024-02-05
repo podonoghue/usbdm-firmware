@@ -16,13 +16,16 @@
  */
 namespace USBDM {
 
+#if false
 // I2C baud rate divisor table
 const uint16_t I2c::I2C_DIVISORS[] = {
-      // Divider assuming MULT == 0
-      20,   22,  24,   26,   28,   30,   34,   40,   28,   32,   36,   40,   44,   48,   56,   68,
-      48,   56,  64,   72,   80,   88,  104,  128,   80,   96,  112,  128,  144,  160,  192,  240,
-      160, 192, 224,  256,  288,  320,  384,  480,  320,  384,  448,  512,  576,  640,  768,  960,
-      640, 768, 896, 1024, 1152, 1280, 1536, 1920, 1280, 1536, 1792, 2048, 2304, 2560, 3072, 3840,
+      20,   22,   24,   26,    28,   30,   34,   40,   28,   32,
+      36,   40,   44,   48,    56,   68,   48,   56,   64,   72,
+      80,   88,   104,  128,   80,   96,  112,  128,  144,  160,
+      192,  240,  160,  192,  224,  256,  288,  320,  384,  480,
+      320,  384,  448,  512,  576,  640,  768,  960,  640,  768,
+      896, 1024, 1152, 1280, 1536, 1920, 1280, 1536, 1792, 2048,
+      2304,2560, 3072, 3840,
 };
 
 /**
@@ -30,37 +33,34 @@ const uint16_t I2c::I2C_DIVISORS[] = {
  *
  * This is calculated from processor bus frequency and given bps
  *
- * @param[in]  bps            Interface speed in bits-per-second
  * @param[in]  clockFrequency Frequency of I2C input clock
+ * @param[in]  speed          Interface speed in bits-per-second
  *
  * @return I2C_F value representing speed
  */
-uint8_t I2c::getBPSValue(uint32_t bps, uint32_t clockFrequency) {
-   uint8_t  best_mul   = 0;
-   uint8_t  best_icr   = (uint8_t)-1u;
-   uint16_t best_error = (uint16_t)-1u;
+uint8_t I2c::calculateBPSValue(uint32_t clockFrequency, uint32_t speed) {
+   uint32_t best_mul   = 2;
+   uint32_t best_icr   = sizeofArray(I2C_DIVISORS)-1;
+   uint32_t best_error = (uint32_t)-1u;
 
+   uint32_t multClock = clockFrequency;
    for (uint8_t mul=0; mul<=2; mul++) {
-      uint32_t divisor = (clockFrequency>>mul)/bps;
-      for(uint8_t icr=0; icr<(sizeof(I2C_DIVISORS)/sizeof(I2C_DIVISORS[0])); icr++) {
-         if (divisor>I2C_DIVISORS[icr]) {
+      for(uint8_t icr=0; icr<sizeofArray(I2C_DIVISORS); icr++) {
+         uint32_t calculatedSpeed = multClock/I2C_DIVISORS[icr];
+         if (calculatedSpeed>speed) {
             // Not suitable - try next
             continue;
          }
-         uint16_t error=(uint16_t)(I2C_DIVISORS[icr]-divisor);
+         uint32_t error = speed-calculatedSpeed;
          if ((error<best_error) || (error==0)) {
             best_error=error;
             best_icr=icr;
             best_mul=mul;
          }
       }
+      multClock = multClock>>1;
    }
-   if (best_icr == (uint8_t)-1u) {
-      return I2C_F_MULT(1)|I2C_F_ICR(5);
-   }
-   else {
-      return I2C_F_MULT(best_mul)|I2C_F_ICR(best_icr);
-   }
+   return I2C_F_MULT(best_mul)|I2C_F_ICR(best_icr);
 }
 
 /**
@@ -83,10 +83,10 @@ void I2c::sendAddress(uint8_t address) {
    addressedDevice = address;
 
    // Configure for Tx of address
-   i2c->C1 = i2cMode|I2C_C1_IICEN_MASK|I2C_C1_TX_MASK;
+   i2c->C1 = i2cInterrupt|I2C_C1_IICEN_MASK|I2C_C1_TX_MASK;
 
    // Generate START
-   i2c->C1 = i2cMode|I2C_C1_IICEN_MASK|I2C_C1_TX_MASK|I2C_C1_MST_MASK;
+   i2c->C1 = i2cInterrupt|I2C_C1_IICEN_MASK|I2C_C1_TX_MASK|I2C_C1_MST_MASK;
 
    // Tx address (starts interrupt process)
    i2c->D  = I2C_D_DATA(address);
@@ -102,7 +102,7 @@ void I2c::poll(void) {
       errorCode = E_LOST_ARBITRATION;
       state = i2c_idle;
       // Generate STOP
-      i2c->C1 = i2cMode|I2C_C1_IICEN_MASK;
+      i2c->C1 = i2cInterrupt|I2C_C1_IICEN_MASK;
       return;
    }
    if ((i2c->S & I2C_S_IICIF_MASK) == 0) {
@@ -128,7 +128,7 @@ void I2c::poll(void) {
          errorCode = E_NO_ACK;
          state = i2c_idle;
          // Generate STOP
-         i2c->C1 = i2cMode|I2C_C1_IICEN_MASK;
+         i2c->C1 = i2cInterrupt|I2C_C1_IICEN_MASK;
          return;
       }
       if (txBytesRemaining-- == 0) {
@@ -143,7 +143,7 @@ void I2c::poll(void) {
                i2c->F&=~I2C_F_MULT(3);
 #endif
                // Generate REPEATED-START
-               i2c->C1 = i2cMode|I2C_C1_IICEN_MASK|I2C_C1_MST_MASK|I2C_C1_TX_MASK|I2C_C1_RSTA_MASK;
+               i2c->C1 = i2cInterrupt|I2C_C1_IICEN_MASK|I2C_C1_MST_MASK|I2C_C1_TX_MASK|I2C_C1_RSTA_MASK;
 #if defined(MCU_MKL25Z4)
                // Restore MULT
                i2c->F = temp;
@@ -163,7 +163,7 @@ void I2c::poll(void) {
             // Complete
             state = i2c_idle;
             // Generate stop signal
-            i2c->C1 = i2cMode|I2C_C1_IICEN_MASK|I2C_C1_TXAK_MASK;
+            i2c->C1 = i2cInterrupt|I2C_C1_IICEN_MASK|I2C_C1_TXAK_MASK;
             return;
          }
       }
@@ -180,7 +180,7 @@ void I2c::poll(void) {
          errorCode = E_NO_ACK;
          state = i2c_idle;
          // Generate STOP
-         i2c->C1 = i2cMode|I2C_C1_IICEN_MASK;
+         i2c->C1 = i2cInterrupt|I2C_C1_IICEN_MASK;
          return;
       }
       // Switch to data reception & trigger reception
@@ -188,11 +188,11 @@ void I2c::poll(void) {
       // Change to reception
       if (rxBytesRemaining == 1) {
          // Receiving only single byte (don't acknowledge the byte)
-         i2c->C1 = i2cMode|I2C_C1_IICEN_MASK|I2C_C1_MST_MASK|I2C_C1_TXAK_MASK;
+         i2c->C1 = i2cInterrupt|I2C_C1_IICEN_MASK|I2C_C1_MST_MASK|I2C_C1_TXAK_MASK;
       }
       else {
          // Switch to Rx mode
-         i2c->C1 = i2cMode|I2C_C1_IICEN_MASK|I2C_C1_MST_MASK;
+         i2c->C1 = i2cInterrupt|I2C_C1_IICEN_MASK|I2C_C1_MST_MASK;
       }
       // Dummy read of data to start Rx of 1st data byte
       (void)i2c->D;
@@ -204,14 +204,14 @@ void I2c::poll(void) {
          // Received last byte - complete
          state = i2c_idle;
          // Generate STOP
-         i2c->C1 = i2cMode|I2C_C1_IICEN_MASK;
+         i2c->C1 = i2cInterrupt|I2C_C1_IICEN_MASK;
       }
       else if (rxBytesRemaining == 1) {
          // Received 2nd last byte (don't acknowledge the last byte to follow)
-         i2c->C1 = i2cMode|I2C_C1_IICEN_MASK|I2C_C1_MST_MASK|I2C_C1_TXAK_MASK;
+         i2c->C1 = i2cInterrupt|I2C_C1_IICEN_MASK|I2C_C1_MST_MASK|I2C_C1_TXAK_MASK;
       }
       else {
-         i2c->C1 = i2cMode|I2C_C1_IICEN_MASK|I2C_C1_MST_MASK;
+         i2c->C1 = i2cInterrupt|I2C_C1_IICEN_MASK|I2C_C1_MST_MASK;
       }
       // Save receive data
       *rxDataPtr++ = i2c->D;
@@ -308,13 +308,11 @@ ErrorCode I2c::receive(uint8_t address, uint16_t size,  uint8_t data[]) {
  * @return E_NO_ERROR on success
  */
 ErrorCode I2c::txRx(uint8_t address, uint16_t txSize, const uint8_t txData[], uint16_t rxSize, uint8_t rxData[] ) {
-#ifdef __CMSIS_RTOS
+#if defined __CMSIS_RTOS && !false
    startTransaction();
 #endif
+   // Clear cumulative error code
    errorCode = E_NO_ERROR;
-
-   // Send address byte at start and move to data transmission
-   state = i2c_txData;
 
    // Set up transmit and receive data
    rxDataPtr        = rxData;
@@ -322,16 +320,21 @@ ErrorCode I2c::txRx(uint8_t address, uint16_t txSize, const uint8_t txData[], ui
    txDataPtr        = txData;
    txBytesRemaining = txSize;
 
-   sendAddress(address);
-   waitWhileBusy();
+   // Send address byte at start and move to data transmission
+   state = i2c_txData;
 
-   ErrorCode tErrorCode = errorCode;
+   sendAddress(address);
+   
+#if !false // !/I2C/irqHandlingMethod
+   // Poll until complete
+   waitWhileBusy();
 
 #ifdef __CMSIS_RTOS
    endTransaction();
 #endif
+#endif
 
-   return tErrorCode;
+   return errorCode;
 }
 
 /**
@@ -369,4 +372,5 @@ void I2C0_1_IRQHandler() {
 }
 #endif
 
+#endif  // /I2C/enablePeripheralSupport)
 } // End namespace USBDM

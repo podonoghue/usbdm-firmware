@@ -1,8 +1,8 @@
 /**
- * @file delay.cpp (100.ARM_DeviceOptions/Sources/delay.cpp)
+ * @file delay.cpp (180.ARM_DeviceOptions/Sources/delay.cpp)
  *
  * @brief Delay routines using Systick Counter
- * 
+ *
  *
  *  Created on: 5 Nov 2015
  *      Author: podonoghue
@@ -132,9 +132,9 @@ void waitMS(uint32_t msToWait) {
  * @note Limited to 2^32 ms (71,582 minutes)
  * @note Uses busy-waiting
  */
-void wait(float seconds) {
+void wait(Seconds seconds) {
    // Convert duration to ticks
-   waitTicks((int)round(seconds * SystemCoreClock));
+   waitTicks((int)round(float(seconds) * SystemCoreClock));
 }
 
 #ifdef __cplusplus

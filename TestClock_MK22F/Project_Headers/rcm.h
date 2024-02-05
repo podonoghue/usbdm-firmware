@@ -27,6 +27,7 @@ namespace USBDM {
  * @{
  */
 
+#if false // /RCM/enablePeripheralSupport
 /**
  * Indicates reason for reset
  */
@@ -47,65 +48,6 @@ enum RcmSource {
    RcmSource_Sackerr = (1<<13),  ///<  Stop Mode Acknowledge Error Reset
    RcmSource_14      = (1<<14),  ///<  Reserved
    RcmSource_15      = (1<<15),  ///<  Reserved
-};
-
-/**
- * Reset pin filter select in run and wait modes.
- * Selects how the reset pin filter is enabled in run and wait modes.
- */
-enum RcmResetPinRunWaitFilter {
-   RcmResetPinRunWaitFilter_Disabled           = RCM_RPFC_RSTFLTSRW(0b00), ///< All Filtering disabled
-   RcmResetPinRunWaitFilter_BusCLock           = RCM_RPFC_RSTFLTSRW(0b01), ///< Bus clock filter enabled for normal operation
-   RcmResetPinRunWaitFilter_LowPowerOscillator = RCM_RPFC_RSTFLTSRW(0b10), ///< LPO clock filter enabled for normal operation
-};
-
-/**
- * Reset pin filter select in stop mode.
- * Selects how the reset pin filter is enabled in STOP and VLPS modes
- */
-enum RcmResetPinStopFilter {
-   RcmResetPinStopFilter_Disabled           = RCM_RPFC_RSTFLTSS(0), ///< All Filtering disabled
-   RcmResetPinStopFilter_LowPowerOscillator = RCM_RPFC_RSTFLTSS(1), ///< LPO clock filter enabled
-};
-
-/**
- * Reset Pin Filter Bus Clock Select
- * Selects the reset pin bus clock filter width.
- */
-enum RcmResetFilterBusClockCount {
-   RcmResetFilterBusClockCount_1  = RCM_RPFW_RSTFLTSEL(0),  ///< Filter reset for 1  clocks
-   RcmResetFilterBusClockCount_2  = RCM_RPFW_RSTFLTSEL(1),  ///< Filter reset for 2  clocks
-   RcmResetFilterBusClockCount_3  = RCM_RPFW_RSTFLTSEL(2),  ///< Filter reset for 3  clocks
-   RcmResetFilterBusClockCount_4  = RCM_RPFW_RSTFLTSEL(3),  ///< Filter reset for 4  clocks
-   RcmResetFilterBusClockCount_5  = RCM_RPFW_RSTFLTSEL(4),  ///< Filter reset for 5  clocks
-   RcmResetFilterBusClockCount_6  = RCM_RPFW_RSTFLTSEL(5),  ///< Filter reset for 6  clocks
-   RcmResetFilterBusClockCount_7  = RCM_RPFW_RSTFLTSEL(6),  ///< Filter reset for 7  clocks
-   RcmResetFilterBusClockCount_8  = RCM_RPFW_RSTFLTSEL(7),  ///< Filter reset for 8  clocks
-   RcmResetFilterBusClockCount_9  = RCM_RPFW_RSTFLTSEL(8),  ///< Filter reset for 9  clocks
-   RcmResetFilterBusClockCount_10 = RCM_RPFW_RSTFLTSEL(9),  ///< Filter reset for 10 clocks
-   RcmResetFilterBusClockCount_11 = RCM_RPFW_RSTFLTSEL(10), ///< Filter reset for 11 clocks
-   RcmResetFilterBusClockCount_12 = RCM_RPFW_RSTFLTSEL(11), ///< Filter reset for 12 clocks
-   RcmResetFilterBusClockCount_13 = RCM_RPFW_RSTFLTSEL(12), ///< Filter reset for 13 clocks
-   RcmResetFilterBusClockCount_14 = RCM_RPFW_RSTFLTSEL(13), ///< Filter reset for 14 clocks
-   RcmResetFilterBusClockCount_15 = RCM_RPFW_RSTFLTSEL(14), ///< Filter reset for 15 clocks
-   RcmResetFilterBusClockCount_16 = RCM_RPFW_RSTFLTSEL(15), ///< Filter reset for 16 clocks
-   RcmResetFilterBusClockCount_17 = RCM_RPFW_RSTFLTSEL(16), ///< Filter reset for 17 clocks
-   RcmResetFilterBusClockCount_18 = RCM_RPFW_RSTFLTSEL(17), ///< Filter reset for 18 clocks
-   RcmResetFilterBusClockCount_19 = RCM_RPFW_RSTFLTSEL(18), ///< Filter reset for 19 clocks
-   RcmResetFilterBusClockCount_20 = RCM_RPFW_RSTFLTSEL(19), ///< Filter reset for 20 clocks
-   RcmResetFilterBusClockCount_21 = RCM_RPFW_RSTFLTSEL(20), ///< Filter reset for 21 clocks
-   RcmResetFilterBusClockCount_22 = RCM_RPFW_RSTFLTSEL(21), ///< Filter reset for 22 clocks
-   RcmResetFilterBusClockCount_23 = RCM_RPFW_RSTFLTSEL(22), ///< Filter reset for 23 clocks
-   RcmResetFilterBusClockCount_24 = RCM_RPFW_RSTFLTSEL(23), ///< Filter reset for 24 clocks
-   RcmResetFilterBusClockCount_25 = RCM_RPFW_RSTFLTSEL(24), ///< Filter reset for 25 clocks
-   RcmResetFilterBusClockCount_26 = RCM_RPFW_RSTFLTSEL(25), ///< Filter reset for 26 clocks
-   RcmResetFilterBusClockCount_27 = RCM_RPFW_RSTFLTSEL(26), ///< Filter reset for 27 clocks
-   RcmResetFilterBusClockCount_28 = RCM_RPFW_RSTFLTSEL(27), ///< Filter reset for 28 clocks
-   RcmResetFilterBusClockCount_29 = RCM_RPFW_RSTFLTSEL(28), ///< Filter reset for 29 clocks
-   RcmResetFilterBusClockCount_30 = RCM_RPFW_RSTFLTSEL(29), ///< Filter reset for 30 clocks
-   RcmResetFilterBusClockCount_31 = RCM_RPFW_RSTFLTSEL(30), ///< Filter reset for 31 clocks
-   RcmResetFilterBusClockCount_32 = RCM_RPFW_RSTFLTSEL(31), ///< Filter reset for 32 clocks
-
 };
 
 #ifdef RCM_FM_FORCEROM_MASK
@@ -139,45 +81,20 @@ enum RcmBootSource {
  * @tparam info      Information class for RCM
  *
  * @code
- * using rcm = RcmBase_T<RcmInfo>;
+ * using rcm = RcmBase<RcmInfo>;
  *
  *  rcm::configure();
  *
  * @endcode
  */
-template <class Info>
-class RcmBase_T {
+class RcmBase : public RcmInfo {
 
 public:
    /** Hardware instance pointer */
-   static constexpr HardwarePtr<RCM_Type> rcm = Info::baseAddress;
+   static constexpr HardwarePtr<RCM_Type> rcm = baseAddress;
 
 public:
-   /**
-    * Initialise RCM to default settings as determined by Configure.usbdmProject
-    */
-   static void defaultConfigure() {
-      // Configure RCM
-      rcm->RPFC  = Info::rcm_rpfc;
-      rcm->RPFW  = Info::rcm_rpfw;
-   }
-
-   /**
-    * Configure filtering.
-    *
-    * @param rcmResetPinRunWaitFilter  Reset pin filter enable and clock select in run and wait modes.
-    * @param rcmResetPinStopFilter     Reset pin filter enable and clock select in stop mode.
-    * @param rcmResetFilterCount       Reset pin filter bus clock filter width [1..32 clock cycles]
-    *
-    * @note These settings persist through resets other than POR
-    */
-   static void configure(
-         RcmResetPinRunWaitFilter      rcmResetPinRunWaitFilter,
-         RcmResetPinStopFilter         rcmResetPinStopFilter,
-         RcmResetFilterBusClockCount   rcmResetFilterCount = RcmResetFilterBusClockCount_10) {
-      rcm->RPFC = rcmResetPinRunWaitFilter|rcmResetPinStopFilter;
-      rcm->RPFW = rcmResetFilterCount;
-   }
+// /RCM/publicMethods not found
 
    /**
     * Returns a bit mask indicating the source of the last reset.
@@ -283,7 +200,7 @@ public:
     * at 0x1C00_0000.
     */
    static RcmBootSource getBootSource() {
-      return reinterpret_cast<RcmBootSource>(rcm->MR&RCM_MR_BOOTROM_MASK);
+      return RcmBootSource(rcm->MR&RCM_MR_BOOTROM_MASK);
    }
 
    /**
@@ -297,12 +214,9 @@ public:
 
 };
 
-#ifdef USBDM_RCM_IS_DEFINED
-/**
- * Class providing interface to Reset Control Module
- */
-using Rcm = RcmBase_T<RcmInfo>;
-#endif
+// No static declarations found
+
+#endif  // /RCM/enablePeripheralSupport
 
 /**
  * End RMC_Group

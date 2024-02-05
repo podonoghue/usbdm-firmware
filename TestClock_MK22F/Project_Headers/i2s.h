@@ -31,21 +31,11 @@ namespace USBDM {
  */
 
 /**
- * Type definition for interrupt call back
- */
-typedef void (*I2sCallbackFunction)();
-
-/**
  * Virtual Base class for I2S interface
  */
 class I2s {
 
 protected:
-   /** Callback to catch unhandled interrupt */
-   static void unhandledCallback() {
-      // Not considered an error as may be using polling
-   }
-
    const HardwarePtr<I2S_Type> i2s;                 //!< I2S hardware instance
 
    /**
@@ -74,7 +64,7 @@ public:
  *
  * @tparam Info            Class describing I2S hardware
  */
-template<class Info> class I2sBase_T : public I2s {
+template<class Info> class I2sBase_T : public I2s, public Info {
 
 public:
    // Handle on I2S hardware
@@ -89,84 +79,8 @@ public:
    /** Used by ISR to obtain handle of object */
    static I2S_Type *thisPtr;
 
-   /** Callback function for ISR */
-   static I2sCallbackFunction sCallback;
-
-   /**
-    * Enable interrupts in NVIC
-    */
-   static void enableNvicInterrupts() {
-      NVIC_EnableIRQ(Info::irqNums[0]);
-   }
-
-   /**
-    * Enable and set priority of interrupts in NVIC
-    * Any pending NVIC interrupts are first cleared.
-    *
-    * @param[in]  nvicPriority  Interrupt priority
-    */
-   static void enableNvicInterrupts(NvicPriority nvicPriority) {
-      enableNvicInterrupt(Info::irqNums[0], nvicPriority);
-   }
-
-   /**
-    * Disable interrupts in NVIC
-    */
-   static void disableNvicInterrupts() {
-      NVIC_DisableIRQ(Info::irqNums[0]);
-   }
-
 public:
-   // Template _mapPinsOption_on.xml
-
-   /**
-    * Configures all mapped pins associated with I2S
-    *
-    * @note Locked pins will be unaffected
-    */
-   static void configureAllPins() {
-   
-      // Configure pins if selected and not already locked
-      if constexpr (Info::mapPinsOnEnable && !(MapAllPinsOnStartup && (ForceLockedPins == PinLock_Locked))) {
-         Info::initPCRs();
-      }
-   }
-
-   /**
-    * Disabled all mapped pins associated with I2S
-    *
-    * @note Only the lower 16-bits of the PCR registers are modified
-    *
-    * @note Locked pins will be unaffected
-    */
-   static void disableAllPins() {
-   
-      // Disable pins if selected and not already locked
-      if constexpr (Info::mapPinsOnEnable && !(MapAllPinsOnStartup && (ForceLockedPins == PinLock_Locked))) {
-         Info::clearPCRs();
-      }
-   }
-
-   /**
-    * Basic enable of I2S
-    * Includes enabling clock and configuring all mapped pins if mapPinsOnEnable is selected in configuration
-    */
-   static void enable() {
-      Info::enableClock();
-      configureAllPins();
-   }
-
-   /**
-    * Disables the clock to I2S and all mapped pins
-    */
-   static void disable() {
-      disableNvicInterrupts();
-      
-      disableAllPins();
-      Info::disableClock();
-   }
-// End Template _mapPinsOption_on.xml
-
+   // No class Info found
 
    /**
     * Construct I2S interface
@@ -190,60 +104,12 @@ public:
     */
    virtual ~I2sBase_T() {}
 
-   /**
-    * Set channel Callback function\n
-    * This callback is executed when the I2S state machine returns to the IDLE state
-    * at the end of a transaction.
-    *
-    * @param[in] callback Callback function to execute on interrupt.\n
-    *                     Use nullptr to remove callback.
-    */
-   static __attribute__((always_inline)) void setCallback(I2sCallbackFunction callback) {
-      static_assert(Info::irqHandlerInstalled, "I2S not configured for interrupts");
-      if (callback == nullptr) {
-         callback = I2s::unhandledCallback;
-      }
-      sCallback = callback;
-   }
-
-   static void irqHandler() {
-   }
+// No declarations found
 };
-
-template<class Info> I2sCallbackFunction I2sBase_T<Info>::sCallback = I2s::unhandledCallback;
 
 /** Used by ISR to obtain handle of object */
 template<class Info> I2S_Type *I2sBase_T<Info>::thisPtr = 0;
 
-#if defined(USBDM_I2S0_IS_DEFINED)
-/**
- * @brief Class representing the I2S0 interface
- *
- * <b>Example</b>\n
- * Refer @ref I2sBase_T
- */
-using I2s0 = I2sBase_T<I2s0Info>;
-#endif
-
-#if defined(USBDM_I2S1_IS_DEFINED)
-/**
- * @brief Class representing the I2S1 interface
- *
- * <b>Example</b>
- * Refer @ref I2sBase_T
- */
-using I2s1 = I2sBase_T<I2s1Info>;
-#endif
-
-#if defined(USBDM_I2S2_IS_DEFINED)
-/**
- * @brief Class representing the I2S2 interface
- *
- * <b>Example</b>
- * Refer @ref I2SBase_T
- */
-using I2s2 = I2sBase_T<I2s2Info>;
-#endif
 
 /**
  * End I2S_Group

@@ -410,7 +410,7 @@ public:
     *
     * @param[in] ch Character to push
     */
-   void NOINLINE_DEBUG pushBack(char ch) {
+   void pushBack(char ch) {
       lookAhead = static_cast<uint8_t>(ch);
    }
 
@@ -419,7 +419,7 @@ public:
     *
     * @param[in]  ch - character to send
     */
-   void NOINLINE_DEBUG writeChar(char ch) {
+   void writeChar(char ch) {
       _writeChar(ch);
    }
 
@@ -429,7 +429,7 @@ public:
     * @return >0 Character received
     * @return <0 No character available
     */
-   int NOINLINE_DEBUG readChar() {
+   int readChar() {
       int ch;
       do {
          ch = peek();
@@ -585,15 +585,15 @@ public:
     * @return Pointer to '\0' null character at end of converted number\n
     *         May be used for incrementally writing to a buffer.
     */
-   static NOINLINE_DEBUG char *ultoa(
+   static char *ultoa(
          char *ptr,
          unsigned long value,
-         Radix radix=Radix_10,
-         Padding padding=Padding_None,
+         Radix radix,
+         Padding padding,
          int width=0
          ) {
       return ultoa(ptr, value, radix, padding, width, false);
-}
+   }
 
    /**
     * Converts a long to a string
@@ -607,11 +607,11 @@ public:
     * @return Pointer to '\0' null character at end of converted number\n
     *         May be used for incrementally writing to a buffer.
     */
-   static NOINLINE_DEBUG char *ltoa(
+   static char *ltoa(
          char *ptr,
          long value,
-         Radix radix=Radix_10,
-         Padding padding=Padding_None,
+         Radix radix,
+         Padding padding,
          int width=0
          ) {
       bool isNegative = value<0;
@@ -630,7 +630,7 @@ public:
     * @return Pointer to '\0' null character at end of concatenated string.\n
     *         May be used for incrementally writing to a buffer.
     */
-   static NOINLINE_DEBUG char *strcpy(char *dst, const char *src) {
+   static char *strcpy(char *dst, const char *src) {
 #ifdef DEBUG_BUILD
       if (dst == nullptr) {
          __BKPT();
@@ -648,7 +648,7 @@ public:
     * @param[in]  data     Data to transmit
     * @param[in]  size     Size of transmission data
     */
-   void NOINLINE_DEBUG transmit(const uint8_t data[], uint16_t size) {
+   void transmit(const uint8_t data[], uint16_t size) {
       while (size-->0) {
          writeChar(*data++);
       }
@@ -660,7 +660,7 @@ public:
     * @param[out] data     Data buffer for reception
     * @param[in]  size     Size of data to receive
     */
-   void NOINLINE_DEBUG receive(uint8_t data[], uint16_t size) {
+   void receive(uint8_t data[], uint16_t size) {
       while (size-->0) {
          *data++ = readChar();
       }
@@ -728,7 +728,7 @@ protected:
     *
     * @return Reference to self
     */
-   FormattedIO NOINLINE_DEBUG &private_write(char ch) {
+   FormattedIO &private_write(char ch) {
       writeChar(ch);
       return *this;
    }
@@ -738,7 +738,7 @@ protected:
     *
     * @return Reference to self
     */
-   FormattedIO NOINLINE_DEBUG &private_writeln() {
+   FormattedIO &private_writeln() {
       return private_write('\n');
    }
 
@@ -749,7 +749,7 @@ protected:
     *
     * @return Reference to self
     */
-   FormattedIO  NOINLINE_DEBUG &private_writeln(char ch) {
+   FormattedIO  &private_writeln(char ch) {
       private_write(ch);
       return private_writeln();
    }
@@ -856,7 +856,7 @@ protected:
     * @return Reference to self
     */
    FormattedIO &private_write(unsigned long value) {
-      return private_write(value, Radix_10);
+      return private_write(value, fFormat.fRadix);
    }
 
    /**
@@ -885,7 +885,7 @@ protected:
     * @return Reference to self
     */
    FormattedIO &private_write(long value) {
-      return private_write(value, Radix_10);
+      return private_write(value, fFormat.fRadix);
    }
 
    /**
@@ -909,7 +909,7 @@ protected:
     * @return Reference to self
     */
    FormattedIO &private_writeln(unsigned long value) {
-      return private_writeln(value, Radix_10);
+      return private_writeln(value, fFormat.fRadix);
    }
 
    /**
@@ -967,7 +967,7 @@ protected:
     *
     * @return Reference to self
     */
-   FormattedIO NOINLINE_DEBUG &private_writeln(long value, Radix radix) {
+   FormattedIO &private_writeln(long value, Radix radix) {
       private_write(value, radix);
       return private_writeln();
    }
@@ -980,7 +980,7 @@ protected:
     * @return Reference to self
     */
    FormattedIO &private_writeln(long value) {
-      return private_writeln(value, Radix_10);
+      return private_writeln(value, fFormat.fRadix);
    }
 
    /**
@@ -991,7 +991,7 @@ protected:
     *
     * @return Reference to self
     */
-   FormattedIO NOINLINE_DEBUG &private_write(unsigned value, Radix radix) {
+   FormattedIO &private_write(unsigned value, Radix radix) {
       return private_write(static_cast<unsigned long>(value), radix);
    }
 
@@ -1002,8 +1002,8 @@ protected:
     *
     * @return Reference to self
     */
-   FormattedIO NOINLINE_DEBUG &private_write(unsigned value) {
-      return private_write(static_cast<unsigned long>(value), Radix_10);
+   FormattedIO &private_write(unsigned value) {
+      return private_write(static_cast<unsigned long>(value), fFormat.fRadix);
    }
 
    /**
@@ -1014,7 +1014,7 @@ protected:
     *
     * @return Reference to self
     */
-   FormattedIO NOINLINE_DEBUG &private_writeln(unsigned value, Radix radix) {
+   FormattedIO &private_writeln(unsigned value, Radix radix) {
       return private_writeln(static_cast<unsigned long>(value), radix);
    }
 
@@ -1025,8 +1025,8 @@ protected:
     *
     * @return Reference to self
     */
-   FormattedIO NOINLINE_DEBUG &private_writeln(unsigned value) {
-      return private_writeln(static_cast<unsigned long>(value), Radix_10);
+   FormattedIO &private_writeln(unsigned value) {
+      return private_writeln(static_cast<unsigned long>(value), fFormat.fRadix);
    }
 
    /**
@@ -1037,7 +1037,7 @@ protected:
     *
     * @return Reference to self
     */
-   FormattedIO NOINLINE_DEBUG &private_write(int value, Radix radix) {
+   FormattedIO &private_write(int value, Radix radix) {
       return private_write(static_cast<long>(value), radix);
    }
 
@@ -1048,8 +1048,8 @@ protected:
     *
     * @return Reference to self
     */
-   FormattedIO NOINLINE_DEBUG &private_write(int value) {
-      return private_write(static_cast<long>(value), Radix_10);
+   FormattedIO &private_write(int value) {
+      return private_write(static_cast<long>(value), fFormat.fRadix);
    }
 
    /**
@@ -1060,7 +1060,7 @@ protected:
     *
     * @return Reference to self
     */
-   FormattedIO NOINLINE_DEBUG  &private_writeln(int value, Radix radix) {
+   FormattedIO  &private_writeln(int value, Radix radix) {
       return private_writeln(static_cast<long>(value), radix);
    }
 
@@ -1071,8 +1071,8 @@ protected:
     *
     * @return Reference to self
     */
-   FormattedIO NOINLINE_DEBUG  &private_writeln(int value) {
-      return private_writeln(static_cast<long>(value), Radix_10);
+   FormattedIO  &private_writeln(int value) {
+      return private_writeln(static_cast<long>(value), fFormat.fRadix);
    }
 
    void convertToEngineeringNotation(double value, bool &isNegative, unsigned &mantissa, int &exponent) {
@@ -1116,7 +1116,7 @@ protected:
     * @note To use this function it is necessary to enable floating point printing\n
     *       in the linker options (Support %f format in printf -u _print_float)).
     */
-   FormattedIO NOINLINE_DEBUG &private_write(double value) {
+   FormattedIO &private_write(double value) {
       char buff[20];
       snprintf(buff, sizeof(buff), "%f", value);
       return private_write(buff);
@@ -1195,7 +1195,7 @@ protected:
     *
     * @return Reference to self
     */
-   FormattedIO NOINLINE_DEBUG &private_write(float value) {
+   FormattedIO &private_write(float value) {
       return private_write(static_cast<double>(value));
    }
 
@@ -1206,7 +1206,7 @@ protected:
     *
     * @return Reference to self
     */
-   FormattedIO NOINLINE_DEBUG &private_writeln(float value) {
+   FormattedIO &private_writeln(float value) {
       return private_writeln(static_cast<double>(value));
    }
 
@@ -1217,7 +1217,7 @@ protected:
     * @return
     */
    template <size_t N>
-   FormattedIO NOINLINE_DEBUG &private_write(const char (&array)[N]) {
+   FormattedIO &private_write(const char (&array)[N]) {
       return private_write((const char*)array);
    }
 
@@ -1228,7 +1228,7 @@ protected:
     * @return
     */
    template <size_t N>
-   FormattedIO NOINLINE_DEBUG &private_writeln(const char (&array)[N]) {
+   FormattedIO &private_writeln(const char (&array)[N]) {
       return private_writeln((const char*)array);
    }
 
@@ -1240,7 +1240,7 @@ protected:
     *
     * @return Reference to self
     */
-   FormattedIO NOINLINE_DEBUG &private_write(const Seconds value) {
+   FormattedIO &private_write(const Seconds value) {
       unsigned mantissa;
       int      exponent;
       bool     isNegative;
@@ -1281,7 +1281,7 @@ protected:
     *
     * @return Reference to self
     */
-   FormattedIO NOINLINE_DEBUG &operator <<(const Seconds value) {
+   FormattedIO &operator <<(const Seconds value) {
       return private_write(value);
    }
 
@@ -1292,7 +1292,7 @@ protected:
     *
     * @return Reference to self
     */
-   FormattedIO NOINLINE_DEBUG &private_writeln(const Seconds value) {
+   FormattedIO &private_writeln(const Seconds value) {
       return private_write(value).private_writeln();
    }
 
@@ -1303,7 +1303,7 @@ protected:
     *
     * @return Reference to self
     */
-   FormattedIO NOINLINE_DEBUG &private_write(const Ticks value) {
+   FormattedIO &private_write(const Ticks value) {
       return private_write(value.getValue()).private_write(" ticks");
    }
 
@@ -1314,7 +1314,7 @@ protected:
     *
     * @return Reference to self
     */
-   FormattedIO NOINLINE_DEBUG &operator <<(const Ticks value) {
+   FormattedIO &operator <<(const Ticks value) {
       return private_write(value);
    }
 
@@ -1325,7 +1325,7 @@ protected:
     *
     * @return Reference to self
     */
-   FormattedIO NOINLINE_DEBUG &private_writeln(const Ticks value) {
+   FormattedIO &private_writeln(const Ticks value) {
       return private_write(value).private_writeln();
    }
 
@@ -1336,7 +1336,7 @@ protected:
     *
     * @return Reference to self
     */
-   FormattedIO NOINLINE_DEBUG &private_write(const Hertz value) {
+   FormattedIO &private_write(const Hertz value) {
       unsigned mantissa;
       int      exponent;
       bool     isNegative;
@@ -1372,7 +1372,7 @@ protected:
     *
     * @return Reference to self
     */
-   FormattedIO NOINLINE_DEBUG &private_writeln(const Hertz value) {
+   FormattedIO &private_writeln(const Hertz value) {
       return private_write(value).private_writeln();
    }
 
@@ -1383,7 +1383,7 @@ protected:
     *
     * @return Reference to self
     */
-   FormattedIO NOINLINE_DEBUG &operator <<(const Hertz value) {
+   FormattedIO &operator <<(const Hertz value) {
       return private_write(value);
    }
 #endif
@@ -1396,7 +1396,7 @@ public:
     *
     * @return Reference to self
      */
-   FormattedIO NOINLINE_DEBUG &operator <<(char ch) {
+   FormattedIO &operator <<(char ch) {
       return private_write(ch);
    }
 
@@ -1407,7 +1407,7 @@ public:
     *
     * @return Reference to self
      */
-   FormattedIO NOINLINE_DEBUG &operator <<(bool b) {
+   FormattedIO &operator <<(bool b) {
       return private_write(b);
    }
 
@@ -1418,7 +1418,7 @@ public:
     *
     * @return Reference to self
     */
-   FormattedIO NOINLINE_DEBUG &operator <<(const char *str) {
+   FormattedIO &operator <<(const char *str) {
       return private_write(str);
    }
 
@@ -1429,7 +1429,7 @@ public:
     *
     * @return Reference to self
     */
-   FormattedIO NOINLINE_DEBUG &operator <<(unsigned long value) {
+   FormattedIO &operator <<(unsigned long value) {
       return private_write(value, fFormat.fRadix);
    }
 
@@ -1440,7 +1440,7 @@ public:
     *
     * @return Reference to self
     */
-   FormattedIO NOINLINE_DEBUG &operator <<(long value) {
+   FormattedIO &operator <<(long value) {
       return private_write(value, fFormat.fRadix);
    }
 
@@ -1451,7 +1451,7 @@ public:
     *
     * @return Reference to self
     */
-   FormattedIO NOINLINE_DEBUG &operator <<(unsigned int value) {
+   FormattedIO &operator <<(unsigned int value) {
       return private_write(value, fFormat.fRadix);
    }
 
@@ -1462,7 +1462,7 @@ public:
     *
     * @return Reference to self
     */
-   FormattedIO NOINLINE_DEBUG &operator <<(int value) {
+   FormattedIO &operator <<(int value) {
       return private_write(value, fFormat.fRadix);
    }
 
@@ -1473,7 +1473,7 @@ public:
     *
     * @return Reference to self
     */
-   FormattedIO NOINLINE_DEBUG &operator <<(const void *value) {
+   FormattedIO &operator <<(const void *value) {
       return private_write(reinterpret_cast<unsigned long>(value), fFormat.fRadix);
    }
 
@@ -1484,7 +1484,7 @@ public:
     *
     * @return Reference to self
     */
-   FormattedIO NOINLINE_DEBUG &operator <<(float value) {
+   FormattedIO &operator <<(float value) {
       return private_write(static_cast<double>(value));
    }
 
@@ -1495,7 +1495,7 @@ public:
     *
     * @return Reference to self
     */
-   FormattedIO NOINLINE_DEBUG &operator <<(double value) {
+   FormattedIO &operator <<(double value) {
       return private_write(value);
    }
 
@@ -1508,7 +1508,7 @@ public:
     *
     * @note Only applies for operator<< methods
     */
-   FormattedIO NOINLINE_DEBUG &operator <<(Radix radix) {
+   FormattedIO &operator <<(Radix radix) {
       fFormat.fRadix = radix;
       return *this;
    }
@@ -1518,7 +1518,7 @@ public:
     *
     * @return Reference to self
     */
-   FormattedIO NOINLINE_DEBUG &operator <<(EndOfLineType) {
+   FormattedIO &operator <<(EndOfLineType) {
       return private_writeln();
    }
 
@@ -1527,7 +1527,7 @@ public:
     *
     * @return Reference to self
     */
-   FormattedIO NOINLINE_DEBUG &operator <<(EchoMode echoMode) {
+   FormattedIO &operator <<(EchoMode echoMode) {
       return setEcho(echoMode);
    }
 
@@ -1536,7 +1536,7 @@ public:
     *
     * @return Reference to self
     */
-   FormattedIO NOINLINE_DEBUG &operator >>(EchoMode echoMode) {
+   FormattedIO &operator >>(EchoMode echoMode) {
       return setEcho(echoMode);
    }
 
@@ -1545,7 +1545,7 @@ public:
     *
     * @return Reference to self
     */
-   FormattedIO NOINLINE_DEBUG &operator <<(FlushType) {
+   FormattedIO &operator <<(FlushType) {
       flushOutput();
       return *this;
    }
@@ -1555,7 +1555,7 @@ public:
     *
     * @return Reference to self
     */
-   FormattedIO NOINLINE_DEBUG &null() {
+   FormattedIO &null() {
       return *this;
    }
 
@@ -1592,7 +1592,7 @@ public:
     *
     * @return Reference to self
     */
-   FormattedIO NOINLINE_DEBUG &read(char &ch) {
+   FormattedIO &read(char &ch) {
       ch = readChar();
       return *this;
    }
@@ -1610,6 +1610,18 @@ public:
    }
 
    /**
+    * Controls echoing of input characters
+    *
+    * @param echoMode
+    *
+    * @return Reference to self
+    */
+   FormattedIO &setEcho(EchoMode echoMode=EchoMode_On) {
+      fFormat.fEcho = echoMode;
+      return *this;
+   }
+
+   /**
     * Receives an unsigned long
     *
     * @param[out] value Where to place value read
@@ -1619,7 +1631,7 @@ public:
     *
     * @note Skips leading whitespace
     */
-   FormattedIO __attribute__((noinline)) &read(unsigned long &value, Radix radix=Radix_10) {
+   FormattedIO __attribute__((noinline)) &read(unsigned long &value, Radix radix) {
       // Skip white space
       int ch;
       do {
@@ -1657,18 +1669,19 @@ public:
       }
       return *this;
    }
-
    /**
-    * Controls echoing of input characters
+    * Receives an unsigned long
     *
-    * @param echoMode
+    * @param[out] value Where to place value read
     *
     * @return Reference to self
+    *
+    * @note Skips leading whitespace
     */
-   FormattedIO NOINLINE_DEBUG &setEcho(EchoMode echoMode=EchoMode_On) {
-      fFormat.fEcho = echoMode;
-      return *this;
+   FormattedIO &read(unsigned long &value) {
+      return read(value, fFormat.fRadix);
    }
+
    /**
     * Receives an unsigned long and then discards characters until end of line.
     *
@@ -1679,9 +1692,21 @@ public:
     *
     * @note Skips leading whitespace
     */
-   FormattedIO NOINLINE_DEBUG &readln(unsigned long &value, Radix radix=Radix_10) {
+   FormattedIO &readln(unsigned long &value, Radix radix) {
       read(value, radix);
       return readln();
+   }
+   /**
+    * Receives an unsigned long and then discards characters until end of line.
+    *
+    * @param[out] value Where to place value read
+    *
+    * @return Reference to self
+    *
+    * @note Skips leading whitespace
+    */
+   FormattedIO &readln(unsigned long &value) {
+      return readln(value,fFormat.fRadix);
    }
 
    /**
@@ -1694,11 +1719,23 @@ public:
     *
     * @note Skips leading whitespace
     */
-   FormattedIO NOINLINE_DEBUG &read(long &value, Radix radix=Radix_10) {
+   FormattedIO &read(long &value, Radix radix) {
       unsigned long temp;
       read(temp, radix);
       value = temp;
       return *this;
+   }
+   /**
+    * Receives a long
+    *
+    * @param[out] value Where to place value read
+    *
+    * @return Reference to self
+    *
+    * @note Skips leading whitespace
+    */
+   FormattedIO &read(long &value) {
+      return read(value,fFormat.fRadix);
    }
 
    /**
@@ -1711,9 +1748,21 @@ public:
     *
     * @note Skips leading whitespace
     */
-   FormattedIO NOINLINE_DEBUG &readln(long &value, Radix radix=Radix_10) {
+   FormattedIO &readln(long &value, Radix radix) {
       read(value, radix);
       return readln();
+   }
+   /**
+    * Receives a long and then discards characters until end of line.
+    *
+    * @param[out] value Where to place value read
+    *
+    * @return Reference to self
+    *
+    * @note Skips leading whitespace
+    */
+   FormattedIO &readln(long &value) {
+      return readln(value, fFormat.fRadix);
    }
 
    /**
@@ -1726,11 +1775,23 @@ public:
     *
     * @note Skips leading whitespace
     */
-   FormattedIO NOINLINE_DEBUG &read(unsigned int &value, Radix radix=Radix_10) {
+   FormattedIO &read(unsigned int &value, Radix radix) {
       unsigned long temp;
       read(temp, radix);
       value = temp;
       return *this;
+   }
+   /**
+    * Receives an unsigned integer
+    *
+    * @param[out] value Where to place value read
+    *
+    * @return Reference to self
+    *
+    * @note Skips leading whitespace
+    */
+   FormattedIO &read(unsigned int &value) {
+      return read(value, fFormat.fRadix);
    }
 
    /**
@@ -1743,9 +1804,21 @@ public:
     *
     * @note Skips leading whitespace
     */
-   FormattedIO NOINLINE_DEBUG &readln(unsigned &value, Radix radix=Radix_10) {
+   FormattedIO &readln(unsigned &value, Radix radix) {
       read(value, radix);
       return readln();
+   }
+   /**
+    * Receives an unsigned integer and then discards characters until end of line.
+    *
+    * @param[out] value Where to place value read
+    *
+    * @return Reference to self
+    *
+    * @note Skips leading whitespace
+    */
+   FormattedIO &readln(unsigned &value) {
+      return readln(value, fFormat.fRadix);
    }
 
    /**
@@ -1758,11 +1831,23 @@ public:
     *
     * @note Skips leading whitespace
     */
-   FormattedIO NOINLINE_DEBUG &read(int &value, Radix radix=Radix_10) {
+   FormattedIO &read(int &value, Radix radix) {
       long temp;
       read(temp, radix);
       value = temp;
       return *this;
+   }
+   /**
+    * Receives an integer
+    *
+    * @param[out] value Where to place value read
+    *
+    * @return Reference to self
+    *
+    * @note Skips leading whitespace
+    */
+   FormattedIO &read(int &value) {
+      return read(value, fFormat.fRadix);
    }
 
    /**
@@ -1775,9 +1860,21 @@ public:
     *
     * @note Skips leading whitespace
     */
-   FormattedIO NOINLINE_DEBUG &readln(int &value, Radix radix=Radix_10) {
+   FormattedIO &readln(int &value, Radix radix) {
       read(value, radix);
       return readln();
+   }
+   /**
+    * Receives an integer and then discards characters until end of line.
+    *
+    * @param[out] value Where to place value read
+    *
+    * @return Reference to self
+    *
+    * @note Skips leading whitespace
+    */
+   FormattedIO &readln(int &value) {
+      return readln(value, fFormat.fRadix);
    }
 
    /**
@@ -1785,7 +1882,7 @@ public:
     *
     * @return Reference to self
     */
-   FormattedIO NOINLINE_DEBUG &operator >>(WhiteSpaceType) {
+   FormattedIO &operator >>(WhiteSpaceType) {
       return skipWhiteSpace();
    }
 
@@ -1794,7 +1891,7 @@ public:
     *
     * @return Reference to self
     */
-   FormattedIO NOINLINE_DEBUG &operator >>(EndOfLineType) {
+   FormattedIO &operator >>(EndOfLineType) {
       while (readChar() != '\n') {
          __asm__("nop");
       }
@@ -1806,7 +1903,7 @@ public:
     *
     * @return Reference to self
     */
-   FormattedIO NOINLINE_DEBUG &operator >>(FlushType) {
+   FormattedIO &operator >>(FlushType) {
       flushInput();
       return *this;
    }
@@ -1820,7 +1917,7 @@ public:
     *
     * @note Only applies for operator<< methods
     */
-   FormattedIO NOINLINE_DEBUG &operator >>(Radix radix) {
+   FormattedIO &operator >>(Radix radix) {
       fFormat.fRadix = radix;
       return *this;
    }
@@ -1832,7 +1929,7 @@ public:
     *
     * @return Reference to self
     */
-   FormattedIO NOINLINE_DEBUG &operator >>(char &ch) {
+   FormattedIO &operator >>(char &ch) {
       ch = readChar();
       return *this;
    }
@@ -1846,7 +1943,7 @@ public:
     *
     * @note Skips leading whitespace
     */
-   FormattedIO NOINLINE_DEBUG &operator >>(unsigned long &value) {
+   FormattedIO &operator >>(unsigned long &value) {
       return read(value, fFormat.fRadix);
    }
 
@@ -1859,7 +1956,7 @@ public:
     *
     * @note Skips leading whitespace
     */
-   FormattedIO NOINLINE_DEBUG &operator >>(long &value) {
+   FormattedIO &operator >>(long &value) {
       return read(value, fFormat.fRadix);
    }
 
@@ -1872,7 +1969,7 @@ public:
     *
     * @note Skips leading whitespace
     */
-   FormattedIO NOINLINE_DEBUG &operator >>(unsigned int &value) {
+   FormattedIO &operator >>(unsigned int &value) {
       return read(value, fFormat.fRadix);
    }
 
@@ -1885,7 +1982,7 @@ public:
     *
     * @note Skips leading whitespace
     */
-   FormattedIO NOINLINE_DEBUG &operator >>(int &value) {
+   FormattedIO &operator >>(int &value) {
       return read(value, fFormat.fRadix);
    }
 
@@ -1896,7 +1993,7 @@ public:
     *
     * @return Radix corresponding to base
     */
-   static constexpr Radix NOINLINE_DEBUG radix(unsigned radix) {
+   static constexpr Radix radix(unsigned radix) {
       return static_cast<Radix>(radix);
    }
 
@@ -1912,7 +2009,7 @@ public:
     *
     * @return Width corresponding to width
     */
-   static constexpr Width NOINLINE_DEBUG width(int width) {
+   static constexpr Width width(int width) {
       return static_cast<Width>(width);
    }
 
@@ -1962,7 +2059,7 @@ public:
     * @return Reference to self
     */
    template <typename T>
-   FormattedIO NOINLINE_DEBUG &writeArray(const T array[], size_t size, Radix radix) {
+   FormattedIO &writeArray(const T array[], size_t size, Radix radix) {
       unsigned itemCount = 0;
       const char *prefix="";
       switch(radix) {
@@ -1997,7 +2094,8 @@ public:
     * @return Reference to self
     */
    template <typename T>
-   FormattedIO NOINLINE_DEBUG &writelnArray(const T array[], size_t size, Radix radix) {
+   __attribute__((always_inline))
+   FormattedIO &writelnArray(const T array[], size_t size, Radix radix) {
       writeArray(array, size, radix);
       return private_writeln();
    }
@@ -2011,7 +2109,8 @@ public:
     * @return Reference to self
     */
    template <typename T, size_t N>
-   FormattedIO NOINLINE_DEBUG &writeArray(const T (&array)[N], Radix radix) {
+   __attribute__((always_inline))
+   FormattedIO &writeArray(const T (&array)[N], Radix radix) {
       return writeArray(array, N, radix);
    }
 
@@ -2024,7 +2123,8 @@ public:
     * @return Reference to self
     */
    template <typename T, size_t N>
-   FormattedIO NOINLINE_DEBUG &writelnArray(const T (&array)[N], Radix radix) {
+   __attribute__((always_inline))
+   FormattedIO &writelnArray(const T (&array)[N], Radix radix) {
       writeArray(array, N, radix);
       return private_writeln();
    }
@@ -2032,13 +2132,13 @@ public:
    /**
     * Write an array
     *
-    * @param[in]  array Pointer to array to print
-    * @param[in]  size  Number of elements in array
+    * @param[in]  array        Pointer to array to print
+    * @param[in]  size         Number of elements in array
     *
     * @return Reference to self
     */
    template <typename T>
-   FormattedIO NOINLINE_DEBUG &writeArray(const T array[], size_t size) {
+   FormattedIO &writeArray(const T array[], size_t size) {
       unsigned itemCount = 0;
       private_write("{ ");
       for(unsigned index=0; index<size; index++) {
@@ -2063,7 +2163,8 @@ public:
     * @return Reference to self
     */
    template <typename T>
-   FormattedIO NOINLINE_DEBUG &writelnArray(const T array[], size_t size) {
+   __attribute__((always_inline))
+   FormattedIO &writelnArray(const T array[], size_t size) {
       writeArray(array, size);
       return private_writeln();
    }
@@ -2076,7 +2177,8 @@ public:
     * @return Reference to self
     */
    template <typename T, size_t N>
-   FormattedIO NOINLINE_DEBUG &writeArray(const T (&array)[N]) {
+   __attribute__((always_inline))
+   FormattedIO &writeArray(const T (&array)[N]) {
       return writeArray(array, N);
    }
 
@@ -2088,7 +2190,8 @@ public:
     * @return Reference to self
     */
    template <typename T, size_t N>
-   FormattedIO NOINLINE_DEBUG &writelnArray(const T (&array)[N]) {
+   __attribute__((always_inline))
+   FormattedIO &writelnArray(const T (&array)[N]) {
       return writelnArray(array, N);
    }
 
@@ -2161,6 +2264,7 @@ public:
     *
     * @return Reference to self
     */
+   __attribute__((always_inline))
    FormattedIO &writeln() {
       return private_writeln();
    }
@@ -2177,6 +2281,7 @@ public:
     * @return Reference to self
     */
    template<typename T, typename... Args>
+   __attribute__((always_inline))
    FormattedIO &writeln(T arg, Radix radix, Args... args ) {
       private_write(arg, radix);
       return writeln(args...);
@@ -2193,6 +2298,7 @@ public:
     * @return Reference to self
     */
    template<typename T, typename... Args>
+   __attribute__((always_inline))
    FormattedIO &writeln(T arg, Args... args) {
       private_write(arg);
       return writeln(args...);
@@ -2210,6 +2316,7 @@ public:
     * @return Reference to self
     */
    template<typename T, typename... Args>
+   __attribute__((always_inline))
    FormattedIO &write(T arg, Radix radix, Args... args ) {
       private_write(arg, radix);
       if constexpr(sizeof...(args) > 0) {
@@ -2229,6 +2336,7 @@ public:
     * @return Reference to self
     */
    template<typename T, typename... Args>
+   __attribute__((always_inline))
    FormattedIO &write(T arg, Args... args) {
       private_write(arg);
       if constexpr(sizeof...(args) > 0) {

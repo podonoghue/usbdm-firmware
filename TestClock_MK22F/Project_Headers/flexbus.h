@@ -25,6 +25,7 @@ namespace USBDM {
  * @brief Abstraction for Flexbus - External Bus Interface
  * @{
  */
+#if false // /FLEXIO/enablePeripheralSupport
 
 /**
  * Indices for FLEXBUS select regions
@@ -353,56 +354,7 @@ template<class Info>
 class FlexbusBase_T : public FlexbusBase {
 
 public:
-// Template _mapPinsOption_on.xml
-
-   /**
-    * Configures all mapped pins associated with FLEXBUS
-    *
-    * @note Locked pins will be unaffected
-    */
-   static void configureAllPins() {
-   
-      // Configure pins if selected and not already locked
-      if constexpr (Info::mapPinsOnEnable && !(MapAllPinsOnStartup && (ForceLockedPins == PinLock_Locked))) {
-         Info::initPCRs();
-      }
-   }
-
-   /**
-    * Disabled all mapped pins associated with FLEXBUS
-    *
-    * @note Only the lower 16-bits of the PCR registers are modified
-    *
-    * @note Locked pins will be unaffected
-    */
-   static void disableAllPins() {
-   
-      // Disable pins if selected and not already locked
-      if constexpr (Info::mapPinsOnEnable && !(MapAllPinsOnStartup && (ForceLockedPins == PinLock_Locked))) {
-         Info::clearPCRs();
-      }
-   }
-
-   /**
-    * Basic enable of FLEXBUS
-    * Includes enabling clock and configuring all mapped pins if mapPinsOnEnable is selected in configuration
-    */
-   static void enable() {
-      Info::enableClock();
-      configureAllPins();
-   }
-
-   /**
-    * Disables the clock to FLEXBUS and all mapped pins
-    */
-   static void disable() {
-      
-      
-      disableAllPins();
-      Info::disableClock();
-   }
-// End Template _mapPinsOption_on.xml
-
+// No class Info found
 
    /**
     * Hardware instance pointer
@@ -502,16 +454,8 @@ public:
    }
 };
 
-#if defined(USBDM_FLEXBUS_IS_DEFINED)
-/**
- * @brief Class representing the FLEXBUS0 interface
- *
- * <b>Example</b>\n
- * Refer @ref FlexbusBase_T
- */
-using Flexbus = FlexbusBase_T<FlexbusInfo>;
-#endif
 
+#endif // /FLEXIO/enablePeripheralSupport
 /**
  * End FLEXBUS_Group
  * @}

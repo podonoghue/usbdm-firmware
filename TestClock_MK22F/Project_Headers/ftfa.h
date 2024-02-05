@@ -15,7 +15,6 @@
 #define SOURCES_FLASH_H_
 
 #include "pin_mapping.h"
-#include "smc.h"
 
 namespace USBDM {
 /**
@@ -55,7 +54,7 @@ public:
 
    // Phrase size for program flash (minimum programming element)
    static constexpr unsigned programFlashPhraseSize = 4;
-
+   
 
 protected:
 
@@ -75,7 +74,7 @@ protected:
    /**
     * Launch & wait for Flash command to complete.
     */
-   static void executeFlashCommand_asm();
+   static void executeFlashCommand_ram();
 
    /**
     * Launch & wait for Flash command to complete.
@@ -95,6 +94,12 @@ protected:
    static FlashDriverError_t readFlashResource(uint8_t resourceSelectCode, uint32_t address, uint8_t *data);
 
 public:
+
+   static void Command_irqHandler() {
+   }
+ 
+   static void ReadCollision_irqHandler() {
+   }
 
    /**
     * Hardware instance pointer
@@ -126,7 +131,7 @@ public:
     * @return false => Processor not in correct mode
     */
    static bool isFlashAvailable() {
-      return (Smc::getStatus() == SmcStatus_RUN);
+      return (SmcInfo::getStatus() == SmcStatus_RUN);
    }
 
    /**
@@ -141,55 +146,6 @@ public:
       return
             isFlashAvailable() &&
             waitForFlashReady();
-   }
-
-   /**
-    * Enable interrupts in NVIC
-    */
-   static void enableNvicInterrupts() {
-      NVIC_EnableIRQ(irqNums[0]);
-   }
-
-   /**
-    * Enable and set priority of interrupts in NVIC
-    * Any pending NVIC interrupts are first cleared.
-    *
-    * @param[in]  nvicPriority  Interrupt priority
-    */
-   static void enableNvicInterrupts(NvicPriority nvicPriority) {
-      enableNvicInterrupt(irqNums[0], nvicPriority);
-   }
-
-   /**
-    * Disable interrupts in NVIC
-    */
-   static void disableNvicInterrupts() {
-      NVIC_DisableIRQ(irqNums[0]);
-   }
-
-   /**
-    * Enable interrupts in NVIC
-    * Any pending NVIC interrupts are first cleared.
-    */
-   static void enableNvicCollisionInterrupts() {
-      NVIC_EnableIRQ(irqNums[1]);
-   }
-
-   /**
-    * Enable and set priority of interrupts in NVIC
-    * Any pending NVIC interrupts are first cleared.
-    *
-    * @param[in]  nvicPriority  Interrupt priority
-    */
-   static void enableNvicCollisionInterrupts(uint32_t nvicPriority) {
-      enableNvicInterrupt(irqNums[1], nvicPriority);
-   }
-
-   /**
-    * Disable interrupts in NVIC
-    */
-   static void disableNvicCollisionInterrupts() {
-      NVIC_DisableIRQ(irqNums[1]);
    }
 
 private:

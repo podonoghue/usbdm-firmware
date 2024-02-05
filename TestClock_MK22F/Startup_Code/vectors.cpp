@@ -17,6 +17,8 @@
 
 
 
+using namespace USBDM;
+
 /*
  * Vector table related
  */
@@ -77,6 +79,7 @@ typedef struct {
  */
 __attribute__((__naked__, __weak__, __interrupt__))
 void HardFault_Handler(void) {
+#if defined(DEBUG_BUILD)
    /*
     * Determines the active stack pointer and loads it into r0
     * This is used as the 1st argument to _HardFault_Handler(volatile ExceptionFrame *exceptionFrame)
@@ -89,6 +92,13 @@ void HardFault_Handler(void) {
      __asm__ volatile ( "  mrsne r0, psp             \n");
      __asm__ volatile ( "  mov   r1, lr              \n");  // Get LR=EXC_RETURN in r1
      __asm__ volatile ( "  b     _HardFault_Handler  \n");  // Go to C handler
+
+#else
+   while (1) {
+      // Stop here for debugger
+      __asm__("bkpt");
+   }
+#endif
 }
 #pragma GCC diagnostic pop
 
@@ -173,23 +183,23 @@ void SVC_Handler(void)                        WEAK_DEFAULT_HANDLER;
 void DebugMon_Handler(void)                   WEAK_DEFAULT_HANDLER;
 void PendSV_Handler(void)                     WEAK_DEFAULT_HANDLER;
 void SysTick_Handler(void)                    WEAK_DEFAULT_HANDLER;
-void DMA0_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
-void DMA1_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
-void DMA2_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
-void DMA3_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
-void DMA4_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
-void DMA5_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
-void DMA6_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
-void DMA7_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
-void DMA8_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
-void DMA9_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
-void DMA10_IRQHandler(void)                   WEAK_DEFAULT_HANDLER;
-void DMA11_IRQHandler(void)                   WEAK_DEFAULT_HANDLER;
-void DMA12_IRQHandler(void)                   WEAK_DEFAULT_HANDLER;
-void DMA13_IRQHandler(void)                   WEAK_DEFAULT_HANDLER;
-void DMA14_IRQHandler(void)                   WEAK_DEFAULT_HANDLER;
-void DMA15_IRQHandler(void)                   WEAK_DEFAULT_HANDLER;
-void DMA_Error_IRQHandler(void)               WEAK_DEFAULT_HANDLER;
+void DMA0_CH0_IRQHandler(void)                WEAK_DEFAULT_HANDLER;
+void DMA0_CH1_IRQHandler(void)                WEAK_DEFAULT_HANDLER;
+void DMA0_CH2_IRQHandler(void)                WEAK_DEFAULT_HANDLER;
+void DMA0_CH3_IRQHandler(void)                WEAK_DEFAULT_HANDLER;
+void DMA0_CH4_IRQHandler(void)                WEAK_DEFAULT_HANDLER;
+void DMA0_CH5_IRQHandler(void)                WEAK_DEFAULT_HANDLER;
+void DMA0_CH6_IRQHandler(void)                WEAK_DEFAULT_HANDLER;
+void DMA0_CH7_IRQHandler(void)                WEAK_DEFAULT_HANDLER;
+void DMA0_CH8_IRQHandler(void)                WEAK_DEFAULT_HANDLER;
+void DMA0_CH9_IRQHandler(void)                WEAK_DEFAULT_HANDLER;
+void DMA0_CH10_IRQHandler(void)               WEAK_DEFAULT_HANDLER;
+void DMA0_CH11_IRQHandler(void)               WEAK_DEFAULT_HANDLER;
+void DMA0_CH12_IRQHandler(void)               WEAK_DEFAULT_HANDLER;
+void DMA0_CH13_IRQHandler(void)               WEAK_DEFAULT_HANDLER;
+void DMA0_CH14_IRQHandler(void)               WEAK_DEFAULT_HANDLER;
+void DMA0_CH15_IRQHandler(void)               WEAK_DEFAULT_HANDLER;
+void DMA0_Error_IRQHandler(void)              WEAK_DEFAULT_HANDLER;
 void MCM_IRQHandler(void)                     WEAK_DEFAULT_HANDLER;
 void FTF_Command_IRQHandler(void)             WEAK_DEFAULT_HANDLER;
 void FTF_ReadCollision_IRQHandler(void)       WEAK_DEFAULT_HANDLER;
@@ -266,23 +276,23 @@ VectorTable const __vector_table = {
       SysTick_Handler,                         /*   15,   -1  System Tick Timer                                                                */
 
                                                /* External Interrupts */
-      DMA0_IRQHandler,                         /*   16,    0  Direct memory access controller                                                  */
-      DMA1_IRQHandler,                         /*   17,    1  Direct memory access controller                                                  */
-      DMA2_IRQHandler,                         /*   18,    2  Direct memory access controller                                                  */
-      DMA3_IRQHandler,                         /*   19,    3  Direct memory access controller                                                  */
-      DMA4_IRQHandler,                         /*   20,    4  Direct memory access controller                                                  */
-      DMA5_IRQHandler,                         /*   21,    5  Direct memory access controller                                                  */
-      DMA6_IRQHandler,                         /*   22,    6  Direct memory access controller                                                  */
-      DMA7_IRQHandler,                         /*   23,    7  Direct memory access controller                                                  */
-      DMA8_IRQHandler,                         /*   24,    8  Direct memory access controller                                                  */
-      DMA9_IRQHandler,                         /*   25,    9  Direct memory access controller                                                  */
-      DMA10_IRQHandler,                        /*   26,   10  Direct memory access controller                                                  */
-      DMA11_IRQHandler,                        /*   27,   11  Direct memory access controller                                                  */
-      DMA12_IRQHandler,                        /*   28,   12  Direct memory access controller                                                  */
-      DMA13_IRQHandler,                        /*   29,   13  Direct memory access controller                                                  */
-      DMA14_IRQHandler,                        /*   30,   14  Direct memory access controller                                                  */
-      DMA15_IRQHandler,                        /*   31,   15  Direct memory access controller                                                  */
-      DMA_Error_IRQHandler,                    /*   32,   16  Direct memory access controller                                                  */
+      DMA0_CH0_IRQHandler,                     /*   16,    0  Direct memory access controller                                                  */
+      DMA0_CH1_IRQHandler,                     /*   17,    1  Direct memory access controller                                                  */
+      DMA0_CH2_IRQHandler,                     /*   18,    2  Direct memory access controller                                                  */
+      DMA0_CH3_IRQHandler,                     /*   19,    3  Direct memory access controller                                                  */
+      DMA0_CH4_IRQHandler,                     /*   20,    4  Direct memory access controller                                                  */
+      DMA0_CH5_IRQHandler,                     /*   21,    5  Direct memory access controller                                                  */
+      DMA0_CH6_IRQHandler,                     /*   22,    6  Direct memory access controller                                                  */
+      DMA0_CH7_IRQHandler,                     /*   23,    7  Direct memory access controller                                                  */
+      DMA0_CH8_IRQHandler,                     /*   24,    8  Direct memory access controller                                                  */
+      DMA0_CH9_IRQHandler,                     /*   25,    9  Direct memory access controller                                                  */
+      DMA0_CH10_IRQHandler,                    /*   26,   10  Direct memory access controller                                                  */
+      DMA0_CH11_IRQHandler,                    /*   27,   11  Direct memory access controller                                                  */
+      DMA0_CH12_IRQHandler,                    /*   28,   12  Direct memory access controller                                                  */
+      DMA0_CH13_IRQHandler,                    /*   29,   13  Direct memory access controller                                                  */
+      DMA0_CH14_IRQHandler,                    /*   30,   14  Direct memory access controller                                                  */
+      DMA0_CH15_IRQHandler,                    /*   31,   15  Direct memory access controller                                                  */
+      DMA0_Error_IRQHandler,                   /*   32,   16  Direct memory access controller                                                  */
       MCM_IRQHandler,                          /*   33,   17  Miscellaneous Control Module                                                     */
       FTF_Command_IRQHandler,                  /*   34,   18  Flash Memory Interface                                                           */
       FTF_ReadCollision_IRQHandler,            /*   35,   19  Flash Memory Interface                                                           */
@@ -312,8 +322,8 @@ VectorTable const __vector_table = {
       FTM1_IRQHandler,                         /*   59,   43  FlexTimer Module                                                                 */
       FTM2_IRQHandler,                         /*   60,   44  FlexTimer Module                                                                 */
       Default_Handler,                         /*   61,   45                                                                                   */
-      RTC_Alarm_IRQHandler,                    /*   62,   46  Real Time Clock                                                                  */
-      RTC_Seconds_IRQHandler,                  /*   63,   47  Real Time Clock                                                                  */
+      RTC_Alarm_IRQHandler,                    /*   62,   46  Real Time Clock Alarm                                                            */
+      RTC_Seconds_IRQHandler,                  /*   63,   47  Real Time Clock Seconds                                                          */
       PIT0_IRQHandler,                         /*   64,   48  Periodic Interrupt Timer                                                         */
       PIT1_IRQHandler,                         /*   65,   49  Periodic Interrupt Timer                                                         */
       PIT2_IRQHandler,                         /*   66,   50  Periodic Interrupt Timer                                                         */

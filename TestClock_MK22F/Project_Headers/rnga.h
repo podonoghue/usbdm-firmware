@@ -26,47 +26,13 @@ namespace USBDM {
  * @brief Abstraction for Random Number Generator Accelerator
  * @{
  */
- 
+
 /**
  * Type definition for RNGA interrupt call back
  *
  * @param[in]  status Struct indicating interrupt source and state
  */
 typedef void (*RNGACallbackFunction)();
-
-/**
- * Sleep mode.
- * Specifies whether RNGA is in Sleep or Normal mode.
- */
-enum RngaMode {
-   RngaMode_Normal  = RNGA_CR_SLP(0), //!< Normal mode. Random values are continuously generated.
-   RngaMode_Sleep   = RNGA_CR_SLP(1), //!< Sleep mode. No new values are generated.
-};
-
-/**
- * High Assurance.
- * Enables notification of security violations.
- * A security violation occurs when getRandomValue() is called when no new random value has been generated.
- * This may be optionally used to generate an interrupt.
- *
- * @note This field is sticky. After enabling notification of security violations,
- * you must reset RNGA to disable them again.
- */
-enum RngaHighAssurance {
-   RngaHighAssurance_Disabled = RNGA_CR_HA(0), //!< Not high assurance mode
-   RngaHighAssurance_Enabled  = RNGA_CR_HA(1), //!< High assurance mode active
-};
-
-/**
- * Interrupt Mask.
- * Masks the triggering of an error interrupt to the interrupt controller when an
- * underflow condition occurs.
- * An underflow condition occurs when getRandomValue() is called when no new value is available.
- */
-enum RngaInterrupt {
-   RngaInterrupt_Disabled = RNGA_CR_INTM(1), //!< Interrupts disabled
-   RngaInterrupt_Enabled  = RNGA_CR_INTM(0), //!< Interrupts enabled
-};
 
 /**
  * Template class representing the Random Number Generator Accelerator.
@@ -81,18 +47,7 @@ enum RngaInterrupt {
  * @tparam info      Information class for RNGA
  */
 template<class Info>
-class RngaBase_T {
-
-protected:
-   /**
-    * Callback to catch unhandled interrupt
-    */
-   static void unhandledCallback() {
-      setAndCheckErrorCode(E_NO_HANDLER);
-   }
-
-   /** Callback function for ISR */
-   static RNGACallbackFunction callback;
+class RngaBase_T : public Info {
 
 public:
    /**
@@ -101,26 +56,6 @@ public:
     * @return Reference to RNGA hardware
     */
    static constexpr HardwarePtr<RNGA_Type> rnga = Info::baseAddress;
-
-   /**
-    * IRQ handler
-    */
-   static void irqHandler() {
-      // Call handler
-      callback();
-   }
-
-   /**
-    * Set callback function
-    *
-    * @param[in]  theCallback Callback function to execute on interrupt
-    */
-   static void setCallback(RNGACallbackFunction theCallback) {
-      if (theCallback == nullptr) {
-         theCallback = unhandledCallback;
-      }
-      callback = theCallback;
-   }
 
 public:
 
@@ -133,44 +68,6 @@ public:
 
       // Enable clock to RNGA interface
       Info::enableClock();
-   }
-
-   /**
-    * Enable with default settings.
-    */
-   static void defaultConfigure() {
-      enable();
-      // Initialise hardware
-      rnga->CR = RngaHighAssurance_Enabled|RngaMode_Normal|RngaInterrupt_Disabled|RNGA_CR_CLRI(1)|RNGA_CR_GO(1);
-   }
-
-   /**
-    * Configure RNGA.
-    *
-    * @param[in] rngaHighAssurance  Controls High Assurance mode
-    * @param[in] rngaMode           Controls Sleep mode
-    * @param[in] rngaInterrupt      Controls Interrupt Mask
-    */
-   static __attribute__((always_inline)) void configure(
-         RngaHighAssurance rngaHighAssurance,
-         RngaInterrupt     rngaInterrupt		= RngaInterrupt_Disabled,
-         RngaMode          rngaMode				= RngaMode_Normal
-         ) {
-      enable();
-      rnga->CR = rngaHighAssurance|rngaMode|rngaInterrupt|RNGA_CR_CLRI(1)|RNGA_CR_GO(1);
-   }
-
-   /**
-    * Specifies an entropy value that RNGA uses in addition to its ring oscillators
-    * to seed its pseudo-random algorithm.
-    *
-    * @param[in] entropyValue Entropy value used for RNGA calculation
-    *
-    * @note Specifying a value for this field is optional but recommended.
-    * You can write to this field at any time during operation.
-    */
-   static void writeEntropyValue(uint32_t entropyValue) {
-      rnga->ER = entropyValue;
    }
 
    /**
@@ -193,7 +90,7 @@ public:
     *
     * @note This function may hang is RNGA is incorrectly configured!
     */
-   static uint32_t getSafeRandomValue() {
+   static uint32_t waitForRandomValue() {
       for(;;) {
          if ((rnga->SR&RNGA_SR_OREG_LVL_MASK) != 0) {
             break;
@@ -203,13 +100,13 @@ public:
    }
 
    /**
-    * Gets number of random values available.
+    * Checks if a new random value is available.
     *
-    * @return 0, Calling getRandomValue() may generate an exception.
-    * @return >0, Calling getRandomValue() will return a valid number.
+    * @return false Calling getRandomValue() may generate an exception.
+    * @return true  Calling getRandomValue() will return a valid number.
     */
-   static bool getLevel() {
-      return (rnga->SR & RNGA_SR_OREG_LVL_MASK)>>RNGA_SR_OREG_LVL_SHIFT;
+   static bool isValueAvailable() {
+      return (rnga->SR & RNGA_SR_OREG_LVL_MASK) != 0;
    }
 
    /**
@@ -219,45 +116,6 @@ public:
       Info::disableClock();
    }
 
-   /**
-    *  Get RNGA status.
-    *
-    *  @return Status value.
-    */
-   static uint32_t getStatus() {
-      return rnga->SR & (RNGA_SR_SLP_MASK|RNGA_SR_ERRI_MASK|RNGA_SR_ORU_MASK|RNGA_SR_LRS_MASK|RNGA_SR_SECV_MASK);
-   }
-
-   /**
-    * Clear interrupt flag.
-    */
-   static void clearInterruptFlag() {
-      rnga->CR = rnga->CR | RNGA_CR_CLRI_MASK;
-   }
-   
-   /**
-    * Enable interrupts in NVIC
-    */
-   static void enableNvicInterrupts() {
-      NVIC_EnableIRQ(Info::irqNums[0]);
-   }
-
-   /**
-    * Enable and set priority of interrupts in NVIC
-    * Any pending NVIC interrupts are first cleared.
-    *
-    * @param[in]  nvicPriority  Interrupt priority
-    */
-   static void enableNvicInterrupts(NvicPriority nvicPriority) {
-      enableNvicInterrupt(Info::irqNums[0], nvicPriority);
-   }
-
-   /**
-    * Disable interrupts in NVIC
-    */
-   static void disableNvicInterrupts() {
-      NVIC_DisableIRQ(Info::irqNums[0]);
-   }
    /**
     * Enable/disable interrupts.
     *
@@ -273,19 +131,10 @@ public:
          rnga->CR = rnga->CR | RNGA_CR_INTM_MASK;
       }
    }
+   
+
 };
 
-template<class Info> RNGACallbackFunction RngaBase_T<Info>::callback = RngaBase_T<Info>::unhandledCallback;
-
-#if defined(USBDM_RNGA_IS_DEFINED)
-class Rnga : public RngaBase_T<RngaInfo> {};
-// No declarations Found
-#endif
-
-#if defined(USBDM_RNGA0_IS_DEFINED)
-class Rnga0 : public RngaBase_T<Rnga0Info> {};
-// No declarations Found
-#endif
 
 /**
  * End RNGA_Group

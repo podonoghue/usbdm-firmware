@@ -26,13 +26,6 @@ namespace USBDM {
  * @{
  */
 
-/**
- * Type definition for RTC interrupt callback.
- * This is used for seconds and alarm callbacks.
- *
- *  @param[in]  timeSinceEpoch - Time since the epoch in seconds
- */
-typedef void (*RtcCallbackFunction)(uint32_t timeSinceEpoch);
 
 /**
  * Template class providing interface to Real Time Clock
@@ -42,72 +35,13 @@ typedef void (*RtcCallbackFunction)(uint32_t timeSinceEpoch);
  * @code
  * using rtc = RtcBase_T<RtcInfo>;
  *
- *  rtc::enableAlarmInterrupts();
- *
  * @endcode
  */
 template <class Info>
-class RtcBase_T {
+class RtcBase_T : public Info {
 
 public:
-   /** Handler for unexpected interrupts */
-   static void unhandledCallback(uint32_t) {
-      setAndCheckErrorCode(E_NO_HANDLER);
-   }
-
-protected:
-   /** Callback function for alarm ISR */
-   static RtcCallbackFunction sAlarmCallback;
-
-   /** Callback function for seconds ISR */
-   static RtcCallbackFunction sSecondsCallback;
-
-public:
-   /**
-    * Alarm IRQ handler
-    */
-   static void irqAlarmHandler(void) {
-      // Clear alarm
-      RtcBase_T<Info>::rtc->TAR   = 0;
-      // Call handler
-      sAlarmCallback(RtcBase_T<Info>::rtc->TSR);
-   }
-
-   /**
-    * Alarm IRQ handler
-    */
-   static void irqSecondsHandler(void) {
-      // Call handler
-      sSecondsCallback(RtcBase_T<Info>::rtc->TSR);
-   }
-
-   /**
-    * Enable/disable RTC Alarm interrupts
-    *
-    * @param[in]  enable True=>enable, False=>disable
-    */
-   static void enableAlarmInterrupts(bool enable=true) {
-      if (enable) {
-         rtc->IER = rtc->IER | RTC_IER_TAIE_MASK;
-      }
-      else {
-         rtc->IER = rtc->IER & ~RTC_IER_TAIE_MASK;
-      }
-   }
-   /**
-    * Enable/disable RTC Seconds interrupts
-    *
-    * @param[in]  enable True=>enable, False=>disable
-    */
-   static void enableSecondsInterrupts(bool enable=true) {
-      if (enable) {
-         rtc->IER = rtc->IER | RTC_IER_TSIE_MASK;
-      }
-      else {
-         rtc->IER = rtc->IER & ~RTC_IER_TSIE_MASK;
-      }
-   }
-
+#if false // /RTC/irqHandlingMethod
    /**
     * Wrapper to allow the use of a class member as a callback function
     * @note Only usable with static objects.
@@ -140,8 +74,8 @@ public:
     * @endcode
     */
    template<class T, void(T::*callback)(uint32_t), T &object>
-   static RtcCallbackFunction wrapCallback() {
-      static RtcCallbackFunction fn = [](uint32_t timeSinceEpoch) {
+   static typename Info::Alarm_CallbackFunction wrapCallback() {
+      static typename Info::RtcAlarmCallbackFunction fn = [](uint32_t timeSinceEpoch) {
          (object.*callback)(timeSinceEpoch);
       };
       return fn;
@@ -179,209 +113,21 @@ public:
     * @endcode
     */
    template<class T, void(T::*callback)(uint32_t)>
-   static RtcCallbackFunction wrapCallback(T &object) {
+   static typename Info::Alarm_CallbackFunction wrapCallback(T &object) {
       static T &obj = object;
-      static RtcCallbackFunction fn = [](uint32_t timeSinceEpoch) {
+      static typename Info::Alarm_CallbackFunction fn = [](uint32_t timeSinceEpoch) {
          (obj.*callback)(timeSinceEpoch);
       };
       return fn;
    }
-
-   /**
-    * Set Alarm callback function
-    *
-    *  @param[in]  callback  Callback function to be executed on alarm interrupt.\n
-    *                        Use nullptr to remove callback.
-    */
-   static void setAlarmCallback(RtcCallbackFunction callback) {
-      static_assert(Info::irqHandlerInstalled, "RTC not configure for alarm interrupts");
-      if (callback == nullptr) {
-         callback = unhandledCallback;
-      }
-      sAlarmCallback = callback;
-   }
-
-   /**
-    * Set Seconds callback function
-    *
-    *  @param[in]  callback  Callback function to be executed on seconds interrupt.\n
-    *                        Use nullptr to remove callback.
-    */
-   static void setSecondsCallback(RtcCallbackFunction callback) {
-      static_assert(Info::irqHandlerInstalled, "RTC not configure for seconds interrupts");
-      if (callback == nullptr) {
-         callback = unhandledCallback;
-      }
-      sSecondsCallback = callback;
-   }
-
+#endif // /RTC/irqHandlingMethod
 
 protected:
    /** Hardware instance */
    static constexpr HardwarePtr<RTC_Type> rtc = Info::baseAddress;
 
 public:
-   // Template _mapPinsOption_on.xml
-
-   /**
-    * Configures all mapped pins associated with RTC
-    *
-    * @note Locked pins will be unaffected
-    */
-   static void configureAllPins() {
-   
-      // Configure pins if selected and not already locked
-      if constexpr (Info::mapPinsOnEnable && !(MapAllPinsOnStartup && (ForceLockedPins == PinLock_Locked))) {
-         Info::initPCRs();
-      }
-   }
-
-   /**
-    * Disabled all mapped pins associated with RTC
-    *
-    * @note Only the lower 16-bits of the PCR registers are modified
-    *
-    * @note Locked pins will be unaffected
-    */
-   static void disableAllPins() {
-   
-      // Disable pins if selected and not already locked
-      if constexpr (Info::mapPinsOnEnable && !(MapAllPinsOnStartup && (ForceLockedPins == PinLock_Locked))) {
-         Info::clearPCRs();
-      }
-   }
-
-   /**
-    * Basic enable of RTC
-    * Includes enabling clock and configuring all mapped pins if mapPinsOnEnable is selected in configuration
-    */
-   static void enable() {
-      Info::enableClock();
-      configureAllPins();
-   }
-
-   /**
-    * Disables the clock to RTC and all mapped pins
-    */
-   static void disable() {
-      disableNvicInterrupts();
-      
-      disableAllPins();
-      Info::disableClock();
-   }
-// End Template _mapPinsOption_on.xml
-
-
-   /**
-    * Initialise RTC to default settings.
-    * Configures all RTC pins
-    */
-   static void defaultConfigure() {
-
-      // Enable clock to RTC interface
-      // (RTC used its own clock internally)
-      enable();
-
-#ifdef RTC_CR_OSCE_MASK
-      if ((Info::cr&RTC_CR_OSCE_MASK) == 0) {
-         // RTC disabled
-         return;
-      }
-#endif
-
-      configureAllPins();
-
-      // Enable to debug RTX startup
-#if defined(DEBUG_BUILD) && 0
-      // Software reset RTC - trigger cold start
-      rtc->CR  = RTC_CR_SWR_MASK;
-      rtc->CR  = 0;
-
-      // Disable interrupts
-      rtc->IER  = 0;
-#endif
-
-      if ((rtc->SR&RTC_SR_TIF_MASK) != 0) {
-         // RTC not running yet or invalid - re-initialise
-
-         // Software reset RTC
-         rtc->CR  = RTC_CR_SWR_MASK;
-         rtc->CR  = 0;
-
-         // Configure oscillator
-         // Note - on KL25 this will disable the standard oscillator
-         rtc->CR  = Info::cr;
-
-         // Wait startup time
-         for (int i=0; i<100000; i++) {
-            __asm__("nop");
-         }
-
-         // Set current time
-         rtc->TSR = Info::coldStartTime;
-         rtc->SR  = RTC_SR_TCE_MASK;
-
-         // Time compensation values
-         rtc->TCR = RtcInfo::tcr;
-
-         // Lock registers
-         rtc->LR  = RtcInfo::lr;
-
-#ifdef RTC_WAR_IERW_MASK
-         // Write access
-         rtc->WAR = RtcInfo::war;
-#endif
-#ifdef RTC_RAR_IERR_MASK
-         // Read access
-         rtc->RAR = RtcInfo::rar;
-#endif
-      }
-
-      // Update settings
-      rtc->CR   = Info::cr;
-   }
-
-   /**
-    * Set up the RTC out of reset.
-    */
-   static void initialise() {
-      if (RtcInfo::configure_rtc) {
-         defaultConfigure();
-      }
-   }
-
-   /**
-    * Enable interrupts in NVIC
-    */
-   static void enableNvicInterrupts() {
-      NVIC_EnableIRQ(Info::irqNums[0]);
-      if (Info::irqCount>1) {
-         NVIC_EnableIRQ(Info::irqNums[1]);
-      }
-   }
-
-   /**
-    * Enable and set priority of interrupts in NVIC
-    * Any pending NVIC interrupts are first cleared.
-    *
-    * @param[in]  nvicPriority  Interrupt priority
-    */
-   static void enableNvicInterrupts(NvicPriority nvicPriority) {
-      enableNvicInterrupt(Info::irqNums[0], nvicPriority);
-      if (Info::irqCount>1) {
-         enableNvicInterrupt(Info::irqNums[1], nvicPriority);
-      }
-   }
-
-   /**
-    * Disable interrupts in NVIC
-    */
-   static void disableNvicInterrupts() {
-      NVIC_DisableIRQ(Info::irqNums[0]);
-      if (Info::irqCount>1) {
-         NVIC_DisableIRQ(Info::irqNums[1]);
-      }
-   }
+   // No class Info found
 
    /**
     * Sets the system RTC time
@@ -394,44 +140,9 @@ public:
       rtc->SR  = RTC_SR_TCE_MASK;
    }
 
-   /**
-    *  Get current alarm time
-    *
-    *  @return alarm time as 32-bit number
-    */
-   static uint32_t getTime(void) {
-      return rtc->TSR;
-   }
-
-   /**
-    *  Get current alarm time
-    *
-    *  @return Alarm time in seconds relative to the epoch
-    */
-   static uint32_t getAlarmTime(void) {
-      return rtc->TAR;
-   }
-
-   /**
-    *  Set alarm time
-    *
-    *  @param[in]  timeSinceEpoch - Alarm time in seconds relative to the epoch
-    */
-   static void setAlarmTime(uint32_t timeSinceEpoch) {
-      rtc->TAR = timeSinceEpoch;
-   }
-
 };
 
-template<class Info> RtcCallbackFunction RtcBase_T<Info>::sAlarmCallback   = unhandledCallback;
-template<class Info> RtcCallbackFunction RtcBase_T<Info>::sSecondsCallback = unhandledCallback;
 
-#ifdef USBDM_RTC_IS_DEFINED
-/**
- * Class representing RTC
- */
-class Rtc : public RtcBase_T<RtcInfo>{};
-#endif
 
 /**
  * End RTC_Group

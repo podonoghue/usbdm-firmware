@@ -28,112 +28,33 @@ namespace USBDM {
  * @brief Abstraction for Low Power Timer
  * @{
  */
-
-/**
- * Type definition for LPTMR interrupt call back
- */
-typedef void (*LptmrCallbackFunction)(void);
+#if false // /LPTMR/enablePeripheralSupport
 
 #ifdef PCC_PCC_LPTMR0_CGC_MASK
 /**
  * Select the LPTMR clock source which determines count speed or glitch filtering
  */
 enum LptmrClockSel {
-   LptmrClockSel_SircDiv2Clk  = LPTMR_PSR_PCS(0), //!< Slow Internal Reference Div 2 Clock (SIRCDIV2_CLK)
-   LptmrClockSel_Lpo1Kclk     = LPTMR_PSR_PCS(1), //!< Low power oscillator 1kHz (LPO1K_CLK)
-   LptmrClockSel_Rtcclk       = LPTMR_PSR_PCS(2), //!< 32kHz Clock Source (RTC_CLK)
-   LptmrClockSel_PccLptmrClk  = LPTMR_PSR_PCS(3), //!< Clock from PCC_LPTMRx multiplexor (PCC)
+   LptmrClockSel_SircDiv2Clk  = LPTMR_PSR_PCS(0), ///< Slow Internal Reference Div 2 Clock (SIRCDIV2_CLK)
+   LptmrClockSel_Lpo1Kclk     = LPTMR_PSR_PCS(1), ///< Low power oscillator 1kHz (LPO1K_CLK)
+   LptmrClockSel_Rtcclk       = LPTMR_PSR_PCS(2), ///< 32kHz Clock Source (RTC_CLK)
+   LptmrClockSel_PccLptmrClk  = LPTMR_PSR_PCS(3), ///< Clock from PCC_LPTMRx multiplexor (PCC)
    LptmrClockSel_Default      = LptmrClockSel_Lpo1Kclk,
 };
-#else
-/**
- * Select the LPTMR clock source which determines count speed or glitch filtering
- */
-enum LptmrClockSel {
-   LptmrClockSel_Mcgirclk = LPTMR_PSR_PCS(0), //!< MCG Internal Reference Clock (MCGIRCLK)
-   LptmrClockSel_Lpoclk   = LPTMR_PSR_PCS(1), //!< Low power oscillator (LPO - 1kHz)
-   LptmrClockSel_Erclk32  = LPTMR_PSR_PCS(2), //!< 32kHz Clock Source (ERCLK32)
-   LptmrClockSel_Oscerclk = LPTMR_PSR_PCS(3), //!< Oscillator External Reference Clock (OSCERCLK)
-   LptmrClockSel_Default  = LptmrClockSel_Lpoclk,
-};
 #endif
-
-/**
- * Select the LPTMR clock pre-scale which affect counter speed/glitch filtering
- */
-enum LptmrPrescale {
-   LptmrPrescale_Bypass = LPTMR_PSR_PBYP(1),       //!< Divide is bypassed (no divider/glitch filtering)
-   LptmrPrescale_2      = LPTMR_PSR_PRESCALE(0),   //!< Divide by 2
-   LptmrPrescale_4      = LPTMR_PSR_PRESCALE(1),   //!< Divide by 4
-   LptmrPrescale_8      = LPTMR_PSR_PRESCALE(2),   //!< Divide by 8
-   LptmrPrescale_16     = LPTMR_PSR_PRESCALE(3),   //!< Divide by 16
-   LptmrPrescale_32     = LPTMR_PSR_PRESCALE(4),   //!< Divide by 32
-   LptmrPrescale_64     = LPTMR_PSR_PRESCALE(5),   //!< Divide by 64
-   LptmrPrescale_128    = LPTMR_PSR_PRESCALE(6),   //!< Divide by 128
-   LptmrPrescale_256    = LPTMR_PSR_PRESCALE(7),   //!< Divide by 256
-   LptmrPrescale_512    = LPTMR_PSR_PRESCALE(8),   //!< Divide by 512
-   LptmrPrescale_1024   = LPTMR_PSR_PRESCALE(9),   //!< Divide by 1024
-   LptmrPrescale_2048   = LPTMR_PSR_PRESCALE(10),  //!< Divide by 2048
-   LptmrPrescale_4096   = LPTMR_PSR_PRESCALE(11),  //!< Divide by 4096
-   LptmrPrescale_8192   = LPTMR_PSR_PRESCALE(12),  //!< Divide by 8192
-   LptmrPrescale_16384  = LPTMR_PSR_PRESCALE(13),  //!< Divide by 16384
-   LptmrPrescale_32768  = LPTMR_PSR_PRESCALE(14),  //!< Divide by 32768
-   LptmrPrescale_65536  = LPTMR_PSR_PRESCALE(15),  //!< Divide by 65536
-};
-
-/**
- * Select the LPTMR clock input pin
- */
-enum LptmrPinSel {
-   LptmrPinSel_Cmp0 = LPTMR_CSR_TPS(0), //!< CMP pin
-   LptmrPinSel_Alt1 = LPTMR_CSR_TPS(1), //!< LPTMR_ALT1 pin
-   LptmrPinSel_Alt2 = LPTMR_CSR_TPS(2), //!< LPTMR_ALT2 pin
-};
-
-/**
- * Select the LPTMR Pulse Mode input pin polarity
- */
-enum LptmrPulseEdge {
-   LptmrPulse_RisingEdge  = LPTMR_CSR_TPP(0), //!< LPTMR time counting mode
-   LptmrPulse_FallingEdge = LPTMR_CSR_TPP(1), //!< LPTMR pulse counting mode
-};
-
-/**
- * Select when the LPTMR counter resets to zero
- */
-enum LptmrResetOn {
-   LptmrResetOn_Compare  = LPTMR_CSR_TFC(0), //!< LPTMR counter is reset whenever TCF is set.
-   LptmrResetOn_Overflow = LPTMR_CSR_TFC(1), //!< LPTMR counter is reset on overflow.
-};
-
-/**
- * Select LPTMR mode
- */
-enum LptmrMode {
-   LptmrMode_Time          = LPTMR_CSR_TMS(0), //!< LPTMR operates in time mode
-   LptmrMode_PulseCounting = LPTMR_CSR_TMS(1), //!< LPTMR operates in pulse counting mode
-};
-
-/**
- * Enable/Disable LPTMR interrupts
- */
-enum LptmrInterrupt {
-   LptmrInterrupt_Disabled = LPTMR_CSR_TIE(0), //!< Disable LPTMR interrupts
-   LptmrInterrupt_Enabled  = LPTMR_CSR_TIE(1), //!< Enable LPTMR interrupts
-};
 
 /**
  * @brief Template class representing a Low Power Timer
  */
 template<class Info>
-class LptmrBase_T {
+class LptmrBase_T : public Info {
 
 protected:
    /** Minimum resolution required when setting interval */
    static constexpr int MINIMUM_RESOLUTION = 100;
 
    /** Callback function for ISR */
-   static LptmrCallbackFunction sCallback;
+   static typename Info::CallbackFunction sCallback;
 
    /** Hardware instance */
    static constexpr HardwarePtr<LPTMR_Type> lptmr = Info::baseAddress;
@@ -144,175 +65,103 @@ protected:
    }
 
 public:
-   // Template _mapPinsOption.xml
 
+// No class Info found
    /**
-    * Configures all mapped pins associated with LPTMR
+    * Configure LPTMR in time counting mode.
+    * The timer is enabled
     *
-    * @note Locked pins will be unaffected
+    * @param lptmrCompareAction Counter action when compare event occurs
+    *        The counter can contunue conting or be reset to zero.
+    * @param lptmrEventAction   Enables LPTMR interrupts
+    * @param seconds            Comparison value
+    *        The timer comparison flag is set when the counter reaches this value and increments.
+    *        The hardware trigger will assert until the next time the counter increments.
+    *        This value determines the period in TimeInterval mode or the event time in Pulse Counting mode
+    * @param lptmrClockSel      Selects the clock source for LPTMR
     */
-   static void configureAllPins() {
+   static ErrorCode configureTimeIntervalMode(
+         LptmrCompareAction lptmrCompareAction,
+         LptmrEventAction   lptmrEventAction,
+         const Seconds&     seconds,
+         LptmrClockSel      lptmrClockSel      = LptmrClockSel_Lpoclk) {
    
-      // Configure pins if selected and not already locked
-      if constexpr (Info::mapPinsOnEnable && !(MapAllPinsOnStartup && (ForceLockedPins == PinLock_Locked))) {
-         Info::initPCRs();
-      }
-   }
-
-   /**
-    * Disabled all mapped pins associated with LPTMR
-    *
-    * @note Only the lower 16-bits of the PCR registers are modified
-    *
-    * @note Locked pins will be unaffected
-    */
-   static void disableAllPins() {
+      Info::enable();
    
-      // Disable pins if selected and not already locked
-      if constexpr (Info::mapPinsOnEnable && !(MapAllPinsOnStartup && (ForceLockedPins == PinLock_Locked))) {
-         Info::clearPCRs();
+      uint8_t  psr = lptmrClockSel;
+      uint32_t cmr;
+   
+      ErrorCode rc = calculateDurationValues(seconds, psr, cmr);
+      if (rc != E_NO_ERROR) {
+         return rc;
       }
+   
+      // Change settings with timer disabled 2
+      lptmr->CSR = lptmrCompareAction|LptmrMode_TimeInterval|LPTMR_CSR_TCF_MASK;
+   
+      // Set clock source and prescaler
+      lptmr->PSR = psr;
+   
+      // Set event time
+      lptmr->CMR = cmr;
+   
+      // Enable timer
+      lptmr->CSR = lptmrCompareAction|lptmrEventAction|LptmrMode_TimeInterval|LPTMR_CSR_TCF_MASK|LPTMR_CSR_TEN_MASK;
+   
+      return E_NO_ERROR;
    }
 
    /**
-    * Basic enable of LPTMR
-    * Includes enabling clock and configuring all mapped pins if mapPinsOnEnable is selected in configuration
-    */
-   static void enable() {
-      Info::enableClock();
-      configureAllPins();
-   }
-
-   /**
-    * Disables the clock to LPTMR and all mapped pins
-    */
-   static void disable() {
-      disableNvicInterrupts();
-      
-      disableAllPins();
-      Info::disableClock();
-   }
-// End Template _mapPinsOption.xml
-
-   /**
-    * Set LPTMR to pulse counting mode.
-    * Provides selection of input pin, edge selection and reset mode.\n
+    * Configure LPTMR in pulse counting mode.
+    * Provides selection of input pin, edge selection and reset mode.
     * The timer is enabled and pins configured.
     *
-    * @param[in] lptmrPinSel     Input pin for Pulse Counting mode
-    * @param[in] lptmrPulseEdge  Edge for pulse counting (default = rising-edge)
-    * @param[in] lptmrResetOn    Selects when the LPTMR counter resets to zero (default = on overflow)
-    * @param[in] lptmrInterrupt  Enable/disable interrupts
+    * @param lptmrPinSel        Input source to be used in Pulse Counter mode
+    * @param lptmrPulseEdge     Polarity of the input source in Pulse Counter mode
+    * @param lptmrClockSel      Selects the clock source for LPTMR
+    * @param lptmrGlitchFilter  Configures the size of the glitch filter in Pulse Counting mode
+    * @param lptmrCompareAction Counter action when compare event occurs
+    *        The counter can contunue conting or be reset to zero.
+    * @param lptmrEventAction   Enables LPTMR interrupts
+    * @param ticks              Comparison value
+    *        The timer comparison flag is set when the counter reaches this value and increments.
+    *        The hardware trigger will assert until the next time the counter increments.
+    *        This value determines the period in TimeInterval mode or the event time in Pulse Counting mode
     */
    static void configurePulseCountingMode(
-         LptmrPinSel       lptmrPinSel,
-         LptmrPulseEdge    lptmrPulseEdge = LptmrPulse_RisingEdge,
-         LptmrResetOn      lptmrResetOn   = LptmrResetOn_Overflow,
-         LptmrInterrupt    lptmrInterrupt = LptmrInterrupt_Disabled) {
-
-      enable();
-      // Change settings with timer disabled
-      lptmr->CSR = LptmrMode_PulseCounting|lptmrPinSel|lptmrPulseEdge|lptmrResetOn|lptmrInterrupt;
-      // Enable timer
-      lptmr->CSR = LptmrMode_PulseCounting|lptmrPinSel|lptmrPulseEdge|lptmrResetOn|lptmrInterrupt|LPTMR_CSR_TEN_MASK;
-   }
-
-   /**
-    * Set LPTMR to time counting mode.
-    * The timer is enabled and pins configured.
-    *
-    * @param[in] lptmrResetOn    Selects when the LPTMR counter resets to zero
-    * @param[in] lptmrInterrupt  Enable/disable interrupts
-    * @param[in] lptmrClockSel   Clock source selection
-    * @param[in] lptmrPrescale   Clock divider
-    */
-   static void configureTimeCountingMode(
-         LptmrResetOn      lptmrResetOn   = LptmrResetOn_Compare,
-         LptmrInterrupt    lptmrInterrupt = LptmrInterrupt_Disabled,
-         LptmrClockSel     lptmrClockSel  = LptmrClockSel_Default,
-         LptmrPrescale     lptmrPrescale  = LptmrPrescale_Bypass) {
-      enable();
-      // Change settings with timer disabled
-      lptmr->CSR = LptmrMode_Time|lptmrResetOn|lptmrInterrupt;
+         LptmrPinSel        lptmrPinSel,
+         LptmrPulseEdge     lptmrPulseEdge,
+         LptmrClockSel      lptmrClockSel      = LptmrClockSel_Lpoclk,
+         LptmrGlitchFilter  lptmrGlitchFilter  = LptmrGlitchFilter_Direct,
+         LptmrCompareAction lptmrCompareAction = LptmrCompareAction_Reset,
+         LptmrEventAction   lptmrEventAction   = LptmrEventAction_None,
+         const Ticks&       ticks              = 65535_ticks) {
+   
+      Info::enable();
+   
+      // Change settings with timer disabled 3
+      lptmr->CSR = lptmrPinSel|lptmrPulseEdge|lptmrCompareAction|LptmrMode_PulseCounting|LPTMR_CSR_TCF_MASK;
+   
       // Set clock source and prescaler
-      lptmr->PSR = lptmrClockSel|lptmrPrescale;
-      // Set dummy timer value to avoid immediate interrupts
-      lptmr->CMR = (uint32_t)-1;
-      // Enable timer and clear interrupt flag
-      lptmr->CSR = LptmrMode_Time|lptmrResetOn|lptmrInterrupt|LPTMR_CSR_TEN_MASK|LPTMR_CSR_TCF_MASK;
+      lptmr->PSR = lptmrClockSel|lptmrGlitchFilter;
+   
+      // Set Event time
+      lptmr->CMR = ticks;
+   
+      // Enable timer
+      lptmr->CSR = lptmrPinSel|lptmrPulseEdge|lptmrCompareAction|lptmrEventAction|LptmrMode_PulseCounting|LPTMR_CSR_TCF_MASK|LPTMR_CSR_TEN_MASK;
    }
+
+
 
    /**
     * Restarts the counter\n
     * Mostly for debug.
-    *
     */
    static void restart() {
       uint32_t csr = lptmr->CSR;
       lptmr->CSR   = 0;
       lptmr->CSR   = csr|LPTMR_CSR_TCF_MASK;
-   }
-
-   /**
-    * Set LPTMR clock source and prescaler.
-    * These settings are used for the clock prescaler in timer mode and glitch filter in pulse-counting mode.
-    *
-    * @param[in] lptmrClockSel   Clock source selection
-    * @param[in] lptmrPrescale   Clock divider
-    */
-   static void setClock(
-         LptmrClockSel lptmrClockSel,
-         LptmrPrescale lptmrPrescale   = LptmrPrescale_Bypass) {
-
-      uint32_t csr = lptmr->CSR;
-      lptmr->CSR   = 0;
-      lptmr->PSR   = lptmrClockSel|lptmrPrescale;
-      lptmr->CSR   = csr;
-   }
-
-   /**
-    * Enable/disable interrupts in LPTMR
-    *
-    * @param[in]  enable true to enable, false to disable
-    */
-   static void enableInterrupts(bool enable=true) {
-      if (enable) {
-         lptmr->CSR = lptmr->CSR | LPTMR_CSR_TIE_MASK;
-      }
-      else {
-         lptmr->CSR =lptmr->CSR & ~LPTMR_CSR_TIE_MASK;
-      }
-   }
-
-   /**
-    * Clear interrupt flag
-    */
-   static void clearInterruptFlag() {
-      lptmr->CSR = lptmr->CSR | LPTMR_CSR_TCF_MASK;
-   }
-
-   /**
-    * Enable interrupts in NVIC
-    */
-   static void enableNvicInterrupts() {
-      NVIC_EnableIRQ(Info::irqNums[0]);
-   }
-
-   /**
-    * Enable and set priority of interrupts in NVIC
-    * Any pending NVIC interrupts are first cleared.
-    *
-    * @param[in]  nvicPriority  Interrupt priority
-    */
-   static void enableNvicInterrupts(uint32_t nvicPriority) {
-      enableNvicInterrupt(Info::irqNums[0], nvicPriority);
-   }
-
-   /**
-    * Disable interrupts in NVIC
-    */
-   static void disableNvicInterrupts() {
-      NVIC_DisableIRQ(Info::irqNums[0]);
    }
 
    /**
@@ -331,7 +180,7 @@ public:
     *    int y;
     *
     *    // Member function used as callback
-    *    // This function must match LptmrCallbackFunction
+    *    // This function must match CallbackFunction
     *    void callback() {
     *       ...;
     *    }
@@ -347,8 +196,8 @@ public:
     * @endcode
     */
    template<class T, void(T::*callback)(), T &object>
-   static LptmrCallbackFunction wrapCallback() {
-      static LptmrCallbackFunction fn = []() {
+   static typename Info::CallbackFunction wrapCallback() {
+      static typename Info::CallbackFunction fn = []() {
          (object.*callback)();
       };
       return fn;
@@ -370,7 +219,7 @@ public:
     *    int y;
     *
     *    // Member function used as callback
-    *    // This function must match LptmrCallbackFunction
+    *    // This function must match CallbackFunction
     *    void callback() {
     *       ...;
     *    }
@@ -386,9 +235,9 @@ public:
     * @endcode
     */
    template<class T, void(T::*callback)()>
-   static LptmrCallbackFunction wrapCallback(T &object) {
+   static typename Info::CallbackFunction wrapCallback(T &object) {
       static T &obj = object;
-      static LptmrCallbackFunction fn = []() {
+      static typename Info::CallbackFunction fn = []() {
          (obj.*callback)();
       };
       return fn;
@@ -400,8 +249,8 @@ public:
     *   @param[in]  callback Callback function to be executed on interrupt\n
     *                        Use nullptr to remove callback.
     */
-   static void setCallback(LptmrCallbackFunction callback) {
-      static_assert(Info::irqLevel>=0, "LPTMR not configure for interrupts");
+   static void setCallback(typename Info::CallbackFunction callback) {
+      static_assert(Info::irqHandlerInstalled, "LPTMR not configure for interrupts");
       if (callback == nullptr) {
          callback = unhandledCallback;
       }
@@ -417,32 +266,6 @@ public:
       lptmr->CSR = lptmr->CSR | LPTMR_CSR_TCF_MASK;
 
       sCallback();
-   }
-
-   /**
-    * Enable LPTMR with default configuration.
-    *
-    * Includes enabling clock and any pins used.\n
-    * Sets LPTMR to default configuration
-    */
-   static void defaultConfigure() {
-      enable();
-      // Disable timer
-      lptmr->CSR  = Info::csr;
-      // PCS 0,1,2,3 => MCGIRCLK, LPO, ERCLK32K, OSCERCLK
-      lptmr->PSR  = Info::psr;
-      // Period/Compare value
-      lptmr->CMR  = Info::cmr;
-      // Enable timer
-      lptmr->CSR = lptmr->CSR | LPTMR_CSR_TEN_MASK;
-
-      if (Info::csr & LPTMR_CSR_TIE_MASK) {
-         // Enable timer interrupts
-         NVIC_EnableIRQ(Info::irqNums[0]);
-
-         // Set priority level
-         NVIC_SetPriority(Info::irqNums[0], Info::irqLevel);
-      }
    }
 
    /**
@@ -507,11 +330,10 @@ public:
     * @return Time in seconds (as float)
     *
     * @note Assumes prescale has been chosen appropriately.
-    * @note Rudimentary range checking only. Sets error code.
     */
    static Seconds convertTicksToSeconds(Ticks ticks) {
-      uint32_t tickRate = Info::getClockFrequency();
-      return ((float)ticks)/(unsigned)tickRate;
+      float tickRate = Info::getClockFrequencyF();
+      return ((float)ticks)/tickRate;
    }
 
    /**
@@ -522,7 +344,6 @@ public:
     * @return Time in ticks
     *
     * @note Assumes prescale has been chosen appropriately.
-    * @note Rudimentary range checking only. Sets error code.
     */
    static Ticks convertMicrosecondsToTicks(int time) {
 
@@ -531,7 +352,7 @@ public:
       uint64_t rv       = (unsigned)((uint64_t)time*tickRate)/1000000;
 
 #ifdef DEBUG_BUILD
-      if (rv > 0xFFFFUL) {
+      if (rv > UINT_MAX) {
          // Attempt to set too long a period
          setErrorCode(E_TOO_LARGE);
       }
@@ -550,7 +371,6 @@ public:
     * @return Time in ticks
     *
     * @note Assumes prescale has been chosen appropriately.
-    * @note Rudimentary range checking only. Sets error code.
     */
    static Ticks convertMillisecondsToTicks(int time) {
 
@@ -559,7 +379,7 @@ public:
       uint64_t rv       = (unsigned)((uint64_t)time*tickRate)/1000;
 
 #ifdef DEBUG_BUILD
-      if (rv > 0xFFFFUL) {
+      if (rv > UINT_MAX) {
          // Attempt to set too long a period
          setErrorCode(E_TOO_LARGE);
       }
@@ -588,7 +408,7 @@ public:
       uint64_t rv       = (unsigned)((float)time*tickRate);
 
 #ifdef DEBUG_BUILD
-      if (rv > 0xFFFFUL) {
+      if (rv > UINT_MAX) {
          // Attempt to set too long a period
          setErrorCode(E_TOO_LARGE);
       }
@@ -601,6 +421,67 @@ public:
    }
 
    /**
+    * Calculate timing information based on desired duration
+    *
+    * @param[in]     duration  Desired period or event duration
+    * @param[inout]  psr        Input: psr.pcs Output: updated with psr.prescale and psr.pbyp
+    * @param[out]    cmr        Compare register value
+    *
+    * @return E_NO_ERROR      => Success
+    * @return E_ILLEGAL_PARAM => Failed to find suitable values for psr.prescale and psr.pbyp
+    */
+   static ErrorCode calculateDurationValues(Seconds duration, uint8_t &psr, uint32_t &cmr) {
+
+      float    inputClock = Info::getInputClockFrequency((LptmrClockSel)(psr&LPTMR_PSR_PCS_MASK));
+      int      prescaleFactor=1;
+      uint32_t prescalerValue=0;
+      while (prescalerValue<=16) {
+         float    clockFrequency = inputClock/prescaleFactor;
+         uint32_t mod   = rintf(float(duration*clockFrequency))-1;
+         if (mod < Info::minimumResolution) {
+            // Too short a period for reasonable resolution
+            return setAndCheckErrorCode(E_TOO_SMALL);
+         }
+         if (mod <= LPTMR_CMR_COMPARE_MASK) {
+            cmr  = mod;
+            psr  = (psr&LPTMR_PSR_PCS_MASK)|LPTMR_PSR_PRESCALE(prescalerValue-1)|LPTMR_PSR_PBYP(prescalerValue==0);
+            return E_NO_ERROR;
+         }
+         prescalerValue++;
+         prescaleFactor <<= 1;
+      }
+      // Too long a period
+      return setAndCheckErrorCode(E_TOO_LARGE);
+   }
+
+   /**
+    * Calculate filter information based on desired interval
+    * This calculates a clock prescaler so that the filter interval is at least the given value.
+    *
+    * @param[in]     interval   Desired filter interval
+    * @param[inout]  psr        Input: psr.pcs Output: updated with psr.prescale and psr.pbyp
+    *
+    * @return E_NO_ERROR      => Success
+    * @return E_ILLEGAL_PARAM => Failed to find suitable values for psr.prescale and psr.pbyp
+    */
+   static ErrorCode calculateFilterValues(Seconds interval, uint8_t &psr) {
+
+      float    inputClock = Info::getInputClockFrequency((LptmrClockSel)(psr&LPTMR_PSR_PCS_MASK));
+      int      prescaleFactor=1;
+      uint32_t prescalerValue=0;
+      while (prescalerValue<=16) {
+         if ((float)(interval*prescaleFactor) < inputClock) {
+            psr  = (psr&LPTMR_PSR_PCS_MASK)|LPTMR_PSR_PRESCALE(prescalerValue-1)|LPTMR_PSR_PBYP(prescalerValue==0);
+            return E_NO_ERROR;
+         }
+         prescalerValue++;
+         prescaleFactor <<= 1;
+      }
+      // Too long a duration
+      return setAndCheckErrorCode(E_TOO_LARGE);
+   }
+
+   /**
     * Set period of timer.
     *
     * @param[in]  period Period in seconds as a float
@@ -609,35 +490,27 @@ public:
     *       The clock source should be selected by setClock() before using this function.
     *
     * @return E_NO_ERROR      => Success
-    * @return E_ILLEGAL_PARAM => Failed to find suitable values for PBYP & PRESCALE
+    * @return E_ILLEGAL_PARAM => Failed to find suitable values for psr.prescale and psr.pbyp
     */
    static ErrorCode setPeriod(Seconds period) {
-      // Disable LPTMR before prescale change
+
+      uint8_t  psr = lptmr->PSR;
+      uint32_t cmr;
+      ErrorCode rc = calculateDurationValues(period, psr, cmr);
+      if (rc != E_NO_ERROR) {
+         return rc;
+      }
+      // Disable before changing clock
       uint32_t csr = lptmr->CSR;
       lptmr->CSR = 0;
+      (void)(lptmr->CSR);
 
-      float    inputClock = Info::getInputClockFrequency();
-      int      prescaleFactor=1;
-      uint32_t prescalerValue=0;
-      while (prescalerValue<=16) {
-         float    clockFrequency = inputClock/prescaleFactor;
-         uint32_t mod   = rintf(period*clockFrequency);
-         if (mod < MINIMUM_RESOLUTION) {
-            // Too short a period for reasonable resolution
-            return setAndCheckErrorCode(E_TOO_SMALL);
-         }
-         if (mod <= 65535) {
-            __DSB();
-            lptmr->CMR  = mod;
-            lptmr->PSR  = (lptmr->PSR & ~(LPTMR_PSR_PRESCALE_MASK|LPTMR_PSR_PBYP_MASK))|LPTMR_PSR_PRESCALE(prescalerValue-1)|LPTMR_PSR_PBYP(prescalerValue==0);
-            lptmr->CSR  = csr;
-            return E_NO_ERROR;
-         }
-         prescalerValue++;
-         prescaleFactor <<= 1;
-      }
-      // Too long a period
-      return setAndCheckErrorCode(E_TOO_LARGE);
+      lptmr->CMR  = cmr;
+      lptmr->PSR  = psr;
+
+      lptmr->CSR  = csr;
+
+      return E_NO_ERROR;
    }
 
    /**
@@ -652,25 +525,24 @@ public:
     * @return E_NO_ERROR      => Success
     * @return E_ILLEGAL_PARAM => Failed to find suitable values for PBYP & PRESCALE
     */
-   static ErrorCode setFilterInterval(float interval) {
-      long     inputClock = Info::getInputClockFrequency();
-      int      prescaleFactor=1;
-      uint32_t prescalerValue=0;
-      while (prescalerValue<=16) {
-         if ((interval*prescaleFactor) < inputClock) {
-            // Disable LPTMR before prescale change
-            uint32_t csr = lptmr->CSR;
-            lptmr->CSR = 0;
-            __DSB();
-            lptmr->PSR  = (lptmr->PSR & ~(LPTMR_PSR_PRESCALE_MASK|LPTMR_PSR_PBYP_MASK))|LPTMR_PSR_PRESCALE(prescalerValue-1)|LPTMR_PSR_PBYP(prescalerValue==0);
-            lptmr->CSR  = csr;
-            return E_NO_ERROR;
-         }
-         prescalerValue++;
-         prescaleFactor <<= 1;
+   static ErrorCode setFilterInterval(Seconds interval) {
+
+      uint8_t  psr = lptmr->PSR;
+
+      ErrorCode rc = calculateFilterValues(interval, psr);
+      if (rc != E_NO_ERROR) {
+         return rc;
       }
-      // Too long a period
-      return setAndCheckErrorCode(E_TOO_LARGE);
+      // Disable LPTMR before prescale change
+      uint32_t csr = lptmr->CSR;
+      lptmr->CSR = 0;
+      (void)(lptmr->CSR);
+
+      lptmr->PSR  = psr;
+
+      lptmr->CSR  = csr;
+
+      return E_NO_ERROR;
    }
 
    /**
@@ -678,74 +550,31 @@ public:
     *
     * @return Timer value in ticks.
     */
-   static uint32_t getCounterValue() {
+   static Ticks getCounterValue() {
       // It is necessary to write to the CNR to capture current value
       lptmr->CNR = 0;
-      return lptmr->CNR;
+      return (Ticks)(lptmr->CNR);
    }
+
 };
 
-template<class Info> LptmrCallbackFunction LptmrBase_T<Info>::sCallback = LptmrBase_T<Info>::unhandledCallback;
+template<class Info> typename Info::CallbackFunction LptmrBase_T<Info>::sCallback = LptmrBase_T<Info>::unhandledCallback;
 
-#ifdef USBDM_LPTMR0_IS_DEFINED
-/**
- * @brief Class representing LPTMR0
- *
- * <b>Example</b>
- * @code
- *
- * // LPTMR callback
- * void flash(void) {
- *    RED_LED::toggle();
- * }
- *
- * ...
- * // Configure LPTMR in time counting mode
- * Lptmr0::configureTimeCountingMode(
- *      LptmrResetOn_Compare,
- *      LptmrInterrupt_Enabled,
- *      LptmrClockSel_Lpoclk);
- *
- * // Set period of timer event
- * Lptmr0::setPeriod(5*seconds);
- *
- * // Set call-back
- * Lptmr0::setCallback(flash);
- * @endcode
- */
-using Lptmr0 = LptmrBase_T<Lptmr0Info>;
-#endif
+   /**
+    * MACRO defining the start of a interrupt handler for a LPTMR
+    * This will override the handler incorporated within the LPTMR class.
+    *
+    * @example
+    * LPTMR0_HANDLER() {
+    *    console.writeln("PIT Channel 0 Handler");
+    *    // Clear interrupt flag
+    *    lptmr->CSR = lptmr->CSR | LPTMR_CSR_TCF_MASK;
+    * }
+    */
+   #define LPTMR0_HANDLER() template<> void Lptmr0::irqHandler()
 
-#ifdef USBDM_LPTMR1_IS_DEFINED
-/**
- * @brief Class representing LPTMR1
- *
- * <b>Example</b>
- * @code
- *
- * // LPTMR callback
- * void flash(void) {
- *    RED_LED::toggle();
- * }
- *
- * ...
- *
- * // Configure LPTMR in time counting mode
- * Lptmr1::configureTimeCountingMode(
- *      LptmrResetOn_Compare,
- *      LptmrInterrupt_Enabled,
- *      LptmrClockSel_Lpoclk);
- *
- * // Set period of timer event
- * Lptmr1::setPeriod(5*seconds);
- *
- * // Set call-back
- * Lptmr1::setCallback(flash);
- * @endcode
- */
-using Lptmr1 = LptmrBase_T<Lptmr1Info>;
-#endif
 
+#endif // /LPTMR/enablePeripheralSupport
 /**
  * End LPTMR_Group
  * @}

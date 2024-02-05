@@ -22,150 +22,10 @@
 namespace USBDM {
 
 /**
- * DAC Reference voltage Select
- */
-enum DacReferenceSelect {
-   DacReferenceSelect_Vrefh   = DAC_C0_DACRFS(0), //!< DACREF_0 Usually Vrefh or VrefOut if present.
-   DacReferenceSelect_VrefOut = DAC_C0_DACRFS(0), //!< DACREF_0 Usually Vrefh or VrefOut if present.
-   DacReferenceSelect_Vdda    = DAC_C0_DACRFS(1), //!< DACREF_1 Usually Vdda as the reference voltage.
-   DacReferenceSelect_0       = DAC_C0_DACRFS(0), //!< Selects DACREF_0 as the reference voltage.
-   DacReferenceSelect_1       = DAC_C0_DACRFS(1), //!< Selects DACREF_1 as the reference voltage.
-};
-
-/**
- * DAC Trigger Select
- */
-enum DacTriggerSelect {
-   DacTriggerSelect_Hardware = DAC_C0_DACTRGSEL(0), //!< The DAC hardware trigger is selected.
-   DacTriggerSelect_Software = DAC_C0_DACTRGSEL(1), //!< The DAC software trigger is selected.
-};
-
-/**
- * DAC Power control
- */
-enum DacPower {
-   DacPower_High = DAC_C0_LPEN(0), //!< Low-Power mode
-   DacPower_Low  = DAC_C0_LPEN(1), //!< High-Power mode
-};
-
-#ifdef DAC_C0_DACBWIEN
-/**
- * DAC Buffer Watermark Interrupt Enable.
- * Control whether an interrupt is generated when SR.DACBFWMF is set i.e.
- * when the DAC buffer read pointer has reached the watermark level.
- */
-enum DacWatermarkIrq {
-   DacWatermarkIrq_Disabled = DAC_C0_DACBWIEN(0), //!< The DAC buffer watermark interrupt is disabled.
-   DacWatermarkIrq_Enabled  = DAC_C0_DACBWIEN(1), //!< The DAC buffer watermark interrupt is enabled.
-};
-#endif
-
-/**
- * DAC Buffer Read Pointer Top Flag Interrupt Enable.
- * Control whether an interrupt is generated when SR.DACBFRPTF is set i.e.
- * when the DAC buffer read pointer is zero.
- */
-enum DacTopFlagIrq {
-   DacTopFlagIrq_Disabled = DAC_C0_DACBTIEN(0), //!< The DAC buffer read pointer top flag interrupt is disabled.
-   DacTopFlagIrq_Enabled  = DAC_C0_DACBTIEN(1), //!< The DAC buffer read pointer top flag interrupt is enabled.
-};
-
-/**
- * DAC Buffer Read Pointer Bottom Flag Interrupt Enable.
- * Control whether an interrupt is generated when SR.DACBFRPBF is set.
- * when the DAC buffer read pointer is equal to buffer upper limit (C2.DACBFUP).
- */
-enum DacBottomFlagIrq {
-   DacBottomFlagIrq_Disabled = DAC_C0_DACBBIEN(0), //!< The DAC buffer read pointer bottom flag interrupt is disabled.
-   DacBottomFlagIrq_Enabled  = DAC_C0_DACBBIEN(1), //!< The DAC buffer read pointer bottom flag interrupt is enabled.
-};
-
-/**
- * DAC DMA control
- */
-enum DacDma {
-   DacDma_Disabled = DAC_C1_DMAEN(0),  //!< Disable DMA
-   DacDma_Enabled  = DAC_C1_DMAEN(1),  //!< Enable DMA
-};
-
-#if DAC_C1_DACBFMD_MASK == 0x6
-/**
- * If disabled then the first word of the buffer is used to control the DAC output level.\n
- * If enabled then the word that the read pointer points to is used.\n
- * The read pointer may be changed by hardware (Trigger = PIT0 usually) or software and advances
- * in normal or scan modes.
- * In FIFO mode the buffer as a FIFO with write pointer.
- */
-enum DacBufferMode {
-   DacBufferMode_Disabled  = DAC_C1_DACBFEN(0),                   //!< Read pointer disabled. The first word of the buffer is used.
-   DacBufferMode_Normal    = DAC_C1_DACBFEN(1)|DAC_C1_DACBFMD(0), //!< Read pointer enabled. Read pointer points advances as circular buffer.
-   DacBufferMode_Swing     = DAC_C1_DACBFEN(1)|DAC_C1_DACBFMD(1), //!< Read pointer enabled. Read pointer points advances and retreats.
-   DacBufferMode_Scan      = DAC_C1_DACBFEN(1)|DAC_C1_DACBFMD(2), //!< Read pointer enabled. Read pointer points advances once only.
-   DacBufferMode_Fifo      = DAC_C1_DACBFEN(1)|DAC_C1_DACBFMD(3), //!< Buffer acts as a FIFO. (If supported)
-};
-#else
-/**
- * If disabled then the first word of the buffer is used to control the DAC output level.\n
- * If enabled then the word that the read pointer points to is used.\n
- * The read pointer may be changed by hardware (Trigger = PIT0 usually) or software and advances
- * in normal or scan modes.
- */
-enum DacBufferMode {
-   DacBufferMode_Disabled  = DAC_C1_DACBFEN(0),                   //!< Read pointer disabled. The first word of the buffer is used.
-   DacBufferMode_Normal    = DAC_C1_DACBFEN(1)|DAC_C1_DACBFMD(0), //!< Read pointer enabled. Read pointer points advances as circular buffer.
-   DacBufferMode_Scan      = DAC_C1_DACBFEN(1)|DAC_C1_DACBFMD(1), //!< Read pointer enabled. Read pointer points advances once only.
-};
-#endif
-
-#ifdef DAC_C1_DACBFWM
-/**
- * DAC Buffer Watermark Select.
- * Controls when SR[DACBFWMF] is set.
- *
- * Normal Mode:
- *   SR[DACBFWMF] will be set when the DAC buffer read pointer reaches this many words away
- *   from the upper limit (DACBUP). This allows user configuration of the watermark interrupt.
- *
- * FIFO mode:
- *   SR[DACBFWMF] will be set when there is a threshold number of entries left in the FIFO.
- */
-enum DacWaterMark {
-   DacWaterMark_Normal1       = DAC_C1_DACBFWM(0),  //!< Normal mode: Read pointer 1 entry away from upper limit
-   DacWaterMark_Normal2       = DAC_C1_DACBFWM(0),  //!< Normal mode: Read pointer 2 entries away from upper limit
-   DacWaterMark_Normal3       = DAC_C1_DACBFWM(0),  //!< Normal mode: Read pointer 3 entries away from upper limit
-   DacWaterMark_Normal4       = DAC_C1_DACBFWM(0),  //!< Normal mode: Read pointer 4 entries away from upper limit
-   DacWaterMark_Fifo2         = DAC_C1_DACBFWM(0),  //!< FIFO mode: Threshold <= 2 remaining FIFO entries
-   DacWaterMark_FifoMaxDiv4   = DAC_C1_DACBFWM(0),  //!< FIFO mode: Threshold <= Max/4 remaining FIFO entries
-   DacWaterMark_FifoMaxDiv2   = DAC_C1_DACBFWM(0),  //!< FIFO mode: Threshold <= Max/2 remaining FIFO entries
-   DacWaterMark_FifoMaxMinus2 = DAC_C1_DACBFWM(0),  //!< FIFO mode: Threshold <= Max-2 remaining FIFO entries
-};
-#endif // DAC_C1_DACBFWM
-
-/**
- * DAC status value as individual flags
- */
-union DacStatus {
-   uint8_t raw;
-   struct {
-      bool     readPointerBottomFlag:1;
-      bool     readPointerTopFlag:1;
-#ifdef DAC_C0_DACBWIEN
-      bool     watermarkFlag:1;
-#endif
-   };
-   constexpr DacStatus(uint8_t value) : raw(value) {
-   }
-};
-
-/**
  * @addtogroup DAC_Group DAC, Digital-to-Analogue Converter
  * @brief Pins used for Digital-to-Analogue Converter
  * @{
  */
-/**
- * Type definition for DAC interrupt call back
- */
-typedef void (*DacCallbackFunction)(DacStatus);
 
 /**
  * Template class representing a Digital to Analogue Converter
@@ -180,7 +40,7 @@ typedef void (*DacCallbackFunction)(DacStatus);
  * @endcode
  */
 template<class Info>
-class Dac_T {
+class DacBase_T : public Info {
 
 protected:
 
@@ -197,15 +57,13 @@ protected:
       static constexpr void check() {}
    };
 
+protected:
    /**
     * Callback to catch unhandled interrupt
     */
-   static void unhandledCallback(DacStatus) {
+   static void unhandledCallback(uint8_t) {
       setAndCheckErrorCode(E_NO_HANDLER);
    }
-
-   /** Callback function for ISR */
-   static DacCallbackFunction sCallback;
 
 public:
    /**
@@ -222,66 +80,9 @@ public:
    static constexpr uint32_t dacData() { return dacBase() + offsetof(DAC_Type, DATA[0]); }
 
    /** Get base address of DAC.DATA[index] register as uint32_t */
-   static constexpr uint32_t dacData(unsigned index) { return dacBase() + offsetof(DAC_Type, DATA[index]); }
-
-   /**
-    * IRQ handler
-    */
-   static void irqHandler() {
-      // Call handler
-      sCallback(getAndClearStatus());
-   }
-
-// Template _mapPinsOption.xml
-
-   /**
-    * Configures all mapped pins associated with DAC
-    *
-    * @note Locked pins will be unaffected
-    */
-   static void configureAllPins() {
-   
-      // Configure pins if selected and not already locked
-      if constexpr (Info::mapPinsOnEnable && !(MapAllPinsOnStartup && (ForceLockedPins == PinLock_Locked))) {
-         Info::initPCRs();
-      }
-   }
-
-   /**
-    * Disabled all mapped pins associated with DAC
-    *
-    * @note Only the lower 16-bits of the PCR registers are modified
-    *
-    * @note Locked pins will be unaffected
-    */
-   static void disableAllPins() {
-   
-      // Disable pins if selected and not already locked
-      if constexpr (Info::mapPinsOnEnable && !(MapAllPinsOnStartup && (ForceLockedPins == PinLock_Locked))) {
-         Info::clearPCRs();
-      }
-   }
-
-   /**
-    * Basic enable of DAC
-    * Includes enabling clock and configuring all mapped pins if mapPinsOnEnable is selected in configuration
-    */
-   static void enable() {
-      Info::enableClock();
-      configureAllPins();
-   }
-
-   /**
-    * Disables the clock to DAC and all mapped pins
-    */
-   static void disable() {
-      disableNvicInterrupts();
-      dac->C0 = DAC_C0_DACEN(0);
-      disableAllPins();
-      Info::disableClock();
-   }
-// End Template _mapPinsOption.xml
-
+   static constexpr uint32_t dacData(unsigned index) { return dacBase() + offsetof(DAC_Type, DATA) + index*sizeof(DAC_Type::DATA[0]); }
+// No class Info found
+#if false // /DAC/generateSharedIrqInfo
    /**
     * Wrapper to allow the use of a class member as a callback function
     * @note Only usable with static objects.
@@ -298,7 +99,7 @@ public:
     *    int y;
     *
     *    // Member function used as callback
-    *    // This function must match DacCallbackFunction
+    *    // This function must match CallbackFunction
     *    void callback() {
     *       ...;
     *    }
@@ -313,9 +114,9 @@ public:
     * Dac::setCallback(fn);
     * @endcode
     */
-   template<class T, void(T::*callback)(DacStatus), T &object>
-   static DacCallbackFunction wrapCallback() {
-      static DacCallbackFunction fn = [](DacStatus status) {
+   template<class T, void(T::*callback)(uint8_t), T &object>
+   static typename Info::CallbackFunction wrapCallback() {
+      static typename Info::CallbackFunction fn = [](uint8_t status) {
          (object.*callback)(status);
       };
       return fn;
@@ -337,7 +138,7 @@ public:
     *    int y;
     *
     *    // Member function used as callback
-    *    // This function must match DacCallbackFunction
+    *    // This function must match CallbackFunction
     *    void callback() {
     *       ...;
     *    }
@@ -352,10 +153,10 @@ public:
     * Dac::setCallback(fn);
     * @endcode
     */
-   template<class T, void(T::*callback)(DacStatus)>
-   static DacCallbackFunction wrapCallback(T &object) {
+   template<class T, void(T::*callback)(uint8_t)>
+   static typename Info::CallbackFunction wrapCallback(T &object) {
       static T &obj = object;
-      static DacCallbackFunction fn = [](DacStatus status) {
+      static typename Info::CallbackFunction fn = [](uint8_t status) {
          (obj.*callback)(status);
       };
       return fn;
@@ -367,26 +168,16 @@ public:
     * @param[in] callback Callback function to execute on interrupt.\n
     *                     Use nullptr to remove callback.
     */
-   static void setCallback(DacCallbackFunction callback) {
+   static void setCallback(typename Info::CallbackFunction callback) {
       static_assert(Info::irqHandlerInstalled, "DAC not configured for interrupts");
       if (callback == nullptr) {
          callback = unhandledCallback;
       }
-      sCallback = callback;
+      Info::sCallback = callback;
    }
+#endif
 
-   /**
-    * Enable with default settings\n
-    * Includes configuring all pins
-    */
-   static void defaultConfigure() {
-      enable();
 
-      // Initialise hardware
-      dac->C0 = Info::c0|DAC_C0_DACEN_MASK;
-      dac->C1 = Info::c1;
-      dac->C2 = Info::c2;
-   }
 
    /**
     * Configure DAC.
@@ -401,7 +192,7 @@ public:
          DacPower           dacPower           = DacPower_Low,
          DacTriggerSelect   dacTriggerSelect   = DacTriggerSelect_Software) {
 
-      enable();
+      Info::enable();
       dac->C0 = DAC_C0_DACEN_MASK|dacReferenceSelect|dacTriggerSelect|dacPower;
    }
 
@@ -414,7 +205,7 @@ public:
     */
    static void configureBuffer(
          DacBufferMode dacBufferMode  = DacBufferMode_Disabled,
-         DacWaterMark  dacWaterMark   = DacWaterMark_Normal1
+         DacWaterMark  dacWaterMark   = DacWaterMark_Normal_1
           ) {
       dac->C1 =
             (dac->C1&~(DAC_C1_DACBFEN_MASK|DAC_C1_DACBFMD_MASK|DAC_C1_DACBFWM_MASK))|
@@ -450,7 +241,7 @@ public:
     * @return size in entries
     */
    static constexpr unsigned getBufferSize() {
-      return sizeof(dac->DATA)/sizeof(dac->DATA[0]);
+      return sizeofArray(dac->DATA);
    }
 
    /**
@@ -515,72 +306,6 @@ public:
       dac->C0 = dac->C0 | DAC_C0_DACSWTRG_MASK;
    }
 
-#ifdef DAC_C0_DACBWIEN_MASK
-   /**
-    * Enable or disable interrupts.
-    * The flags are cleared first.
-    *
-    * @param dacTopFlagIrq       Interrupt Enable for buffer read pointer is zero.
-    * @param dacBottomFlagIrq    Interrupt Enable for buffer read pointer is equal to buffer limit C2.DACBFUP.
-    * @param dacWatermarkIrq     Interrupt Enable for buffer read pointer has reached the watermark level.
-    */
-   static void enableInterrupts(
-         DacTopFlagIrq      dacTopFlagIrq,
-         DacBottomFlagIrq   dacBottomFlagIrq,
-         DacWatermarkIrq    dacWatermarkIrq   = DacWatermarkIrq_Disabled) {
-
-      // Clear flags
-      dac->SR = DAC_SR_DACBFRPBF_MASK|DAC_SR_DACBFRPTF_MASK|DAC_SR_DACBFWMF_MASK;
-
-      // Enable/disable flags
-      dac->C0 = (dac->C0&~(DAC_C0_DACBWIEN_MASK|DAC_C0_DACBTIEN_MASK|DAC_C0_DACBBIEN_MASK)) |
-            dacTopFlagIrq|dacBottomFlagIrq|dacWatermarkIrq;
-   }
-#else
-   /**
-    * Enable or disable interrupts.
-    * The flags are cleared first.
-    *
-    * @param dacTopFlagIrq       Buffer Read Pointer Top Flag Interrupt Enable
-    * @param dacBottomFlagIrq    Buffer Read Pointer Bottom Flag Interrupt Enable
-    */
-   static void enableInterrupts(
-         DacTopFlagIrq      dacTopFlagIrq,
-         DacBottomFlagIrq   dacBottomFlagIrq) {
-
-      // Clear flags
-      dac->SR = 0;
-
-      // Enable/disable flags
-      dac->C0 = (dac->C0&~(DAC_C0_DACBTIEN_MASK|DAC_C0_DACBBIEN_MASK)) |
-            dacTopFlagIrq|dacBottomFlagIrq;
-   }
-#endif
-
-   /**
-    * Enable interrupts in NVIC
-    */
-   static void enableNvicInterrupts() {
-      NVIC_EnableIRQ(Info::irqNums[0]);
-   }
-
-   /**
-    * Enable and set priority of interrupts in NVIC
-    * Any pending NVIC interrupts are first cleared.
-    *
-    * @param[in]  nvicPriority  Interrupt priority
-    */
-   static void enableNvicInterrupts(NvicPriority nvicPriority) {
-      enableNvicInterrupt(Info::irqNums[0], nvicPriority);
-   }
-
-   /**
-    * Disable interrupts in NVIC
-    */
-   static void disableNvicInterrupts() {
-      NVIC_DisableIRQ(Info::irqNums[0]);
-   }
-
    /**
     * Enable DAC output pin as output.
     * Configures all Pin Control Register (PCR) values
@@ -600,23 +325,10 @@ public:
     *
     * @return DAC status value see DacStatus
     */
-   static DacStatus getStatus() {
-      return (DacStatus)dac->SR;
+   static uint8_t getStatus() {
+      return dac->SR;
    }
 
-   /**
-    * Get and clear DAC status
-    *
-    * @return DAC status value see DacStatus
-    */
-   static DacStatus getAndClearStatus() {
-      // Get status
-      uint8_t status = dac->SR;
-      // Clear set flags
-      dac->SR = ~status;
-      // return original status
-      return (DacStatus)status;
-   }
    /**
     *   Disable the DAC
     */
@@ -648,19 +360,9 @@ public:
 
 };
 
-/**
- * Callback table for programmatically set handlers
- */
-template<class Info> DacCallbackFunction Dac_T<Info>::sCallback =  Dac_T<Info>::unhandledCallback;
 
-#if defined(USBDM_DAC0_IS_DEFINED)
-typedef Dac_T<Dac0Info> Dac0;
-#endif
-
-#if defined(USBDM_DAC1_IS_DEFINED)
-typedef Dac_T<Dac1Info> Dac1;
-#endif
 /**
+ * End DAC_Group
  * @}
  */
 } // End namespace USBDM

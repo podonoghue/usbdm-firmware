@@ -7,7 +7,7 @@
  * @date     13 April 2016
  */
 
-#ifndef INCLUDE_USBDM_MCG_H_
+#ifndef INCLUDE_USBDM_MCG_H_ 
 #define INCLUDE_USBDM_MCG_H_
  /*
  * *****************************
@@ -29,37 +29,70 @@ namespace USBDM {
  * @{
  */
 
-/** MCGFFCLK - Fixed frequency clock (input to FLL) */
-extern volatile uint32_t SystemMcgffClock;
-/** MCGOUTCLK - Primary output from MCG, various sources */
-extern volatile uint32_t SystemMcgOutClock;
-/** MCGFLLCLK - Output of FLL */
-extern volatile uint32_t SystemMcgFllClock;
-/** MCGPLLCLK - Output of PLL */
-extern volatile uint32_t SystemMcgPllClock;
-
-extern void setSysDividersStub(uint32_t simClkDiv1);
-
 /**
  * Clock configurations
  */
 enum ClockConfig : uint8_t {
-   ClockConfig_FEI_84MHz,
-   ClockConfig_FBI_4MHz,
-   ClockConfig_FBE_8MHz,
-   ClockConfig_FEE_80MHz,
-   ClockConfig_BLPI_4MHz,
-   ClockConfig_BLPE_8MHz,
-   ClockConfig_PBE_8MHz,
-   ClockConfig_PEE_48M,
 
    ClockConfig_default = 0,
 };
 
-/**
- * Type definition for MCG interrupt call back
- */
-typedef void (*MCGCallbackFunction)(void);
+   /// Structure for clock configurations
+   struct ClockInfo {
+
+      /// SIM CLKDIV1 - System Clock Divider Register 1
+      const uint32_t clkdiv1;
+
+      /// SIM SOPT2 - Clock selectors for various peripherals
+      const uint32_t sopt2;
+
+      /// Clock Mode
+      const McgClockMode clockMode;
+
+      /// Run Mode
+      const SmcRunMode runMode; 
+
+      /// Control Register 1 - FRDIV, IRCLKEN, IREFSTEN, (-CLKS, -IREFS)
+      const uint8_t c1; 
+      /// Control Register 2 - LOCRE0, RANGE0, HGO0, EREFS0, IRCS, (-LP, -FCTRIM)
+      const uint8_t c2;
+      /// Control Register 4 - DMX32, DRST_DRS, (-FCTRIM, -SCFTRIM)
+      const uint8_t c4;
+      /// Control Register 5 - PLLCLKEN0, PLLSTEN0, PRDIV0
+      const uint8_t c5;
+      /// Control Register 6 - LOLIE0, CME0, VDIV0, (-PLLS)
+      const uint8_t c6;
+      /// Status and Control Register - FCRDIV
+      const uint8_t sc;
+      /// Control Register 7 - OSCSEL
+      const uint8_t c7;
+      /// Control Register 8 - LOCRE1, CME1, LOLRE
+      const uint8_t c8;
+   };
+
+
+
+class ClockChangeCallback {
+
+friend class Mcg;
+
+private:
+      // Pointer to next in chain
+      ClockChangeCallback *next = nullptr;
+
+public:
+      virtual ~ClockChangeCallback() = default;
+
+      /**
+       * This method is overridden to obtain notification before clock change
+       */
+      virtual void beforeClockChange(){}
+
+      /**
+       * This method is overridden to obtain notification after clock change
+       */
+      virtual void afterClockChange(){};
+};
 
 /**
  * @brief Class representing the MCG
@@ -69,29 +102,57 @@ typedef void (*MCGCallbackFunction)(void);
  *    Mcg::initialise();
  * @endcode
  */
-class Mcg {
+class Mcg : public McgInfo {
 
 private:
-   /** Callback function for ISR */
-   static MCGCallbackFunction callback;
+#if false
+   static ClockChangeCallback *clockChangeCallbackQueue;
+
+   static void notifyBeforeClockChange() {
+      ClockChangeCallback *p = clockChangeCallbackQueue;
+      while (p != nullptr) {
+         p->beforeClockChange();
+         p = p->next;
+      }
+   }
+   static void notifyAfterClockChange() {
+      ClockChangeCallback *p = clockChangeCallbackQueue;
+      while (p != nullptr) {
+         p->afterClockChange();
+         p = p->next;
+      }
+   }
+
+public:
+   /**
+    * Add callback for clock configuration changes
+    *
+    * @param callback Call-back class to notify on clock configuration changes
+    */
+   static void addClockChangeCallback(ClockChangeCallback &callback) {
+      callback.next = clockChangeCallbackQueue;
+      clockChangeCallbackQueue = &callback;
+   }
+#endif
+
+private:
 
    /** Hardware instance */
    static constexpr HardwarePtr<MCG_Type> mcg = McgInfo::baseAddress;
 
+// No private methods found
+
 public:
+
+// No public methods found
+
    /**
     * Table of clock settings
     */
-   static const McgInfo::ClockInfo clockInfo[];
+   static const ClockInfo clockInfo[];
 
-   /**
-    * Transition from current clock mode to mode given
-    *
-    * @param[in]  clockInfo Clock mode to transition to
-    *
-    * @return E_NO_ERROR on success
-    */
-   static ErrorCode clockTransition(const McgInfo::ClockInfo &clockInfo);
+   /** Current clock mode (FEI out of reset) */
+   static McgClockMode currentClockMode;
 
    /**
     * Update SystemCoreClock variable
@@ -100,65 +161,37 @@ public:
     */
    static void SystemCoreClockUpdate(void);
 
+#if false // /MCG/enablePeripheralSupport
+
    /**
-    *  Change SIM->CLKDIV1 value
+    * Write main MCG registers from clockInfo
+    * - Clock monitors are masked out
+    * - PLL is not selected (C6.PLLS=0)
+    * - Not low power (C2.LP = 0 since clockInfo.C2 does not include LP)
+    * - TRIM bits are preserved (C2.FCFTRIM, C4.FCTRIM, C4.SCFTRIM)
+    * - Bugfix version: Errata e7993
     *
-    * @param[in]  simClkDiv1 - Value to write to SIM->CLKDIV1 register
+    * @param clockInfo  Clock settings information
+    * @param bugFix     Mask to flip MCG.C4 value
     */
-   static void setSysDividers(uint32_t simClkDiv1) {
-      SIM->CLKDIV1 = simClkDiv1;
-   }
+   static void writeMainRegs(const ClockInfo &clockInfo, uint8_t bugFix);
 
    /**
-    * Enable interrupts in NVIC
-    */
-   static void enableNvicInterrupts() {
-      NVIC_EnableIRQ(McgInfo::irqNums[0]);
-   }
-
-   /**
-    * Enable and set priority of interrupts in NVIC
-    * Any pending NVIC interrupts are first cleared.
+    * Transition from current clock mode to mode given
     *
-    * @param[in]  nvicPriority  Interrupt priority
-    */
-   static void enableNvicInterrupts(NvicPriority nvicPriority) {
-      enableNvicInterrupt(McgInfo::irqNums[0], nvicPriority);
-   }
-
-   /**
-    * Disable interrupts in NVIC
-    */
-   static void disableNvicInterrupts() {
-      NVIC_DisableIRQ(McgInfo::irqNums[0]);
-   }
-   /**
-    * MCG interrupt handler -  Calls MCG callback
-    */
-   static void irqHandler() {
-      if (callback != 0) {
-         callback();
-      }
-   }
-
-   /**
-    * Set callback for ISR
+    * @param[in]  clockInfo Clock mode to transition to
     *
-    * @param[in]  callback The function to call from stub ISR
+    * @return E_NO_ERROR          on success
+    * @return E_CLOCK_INIT_FAILED on failure
     */
-   static void setCallback(MCGCallbackFunction callback) {
-      Mcg::callback = callback;
-   }
-
-   /** Current clock mode (FEI out of reset) */
-   static McgInfo::ClockMode currentClockMode;
+   static ErrorCode clockTransition(const ClockInfo &clockInfo);
 
    /**
     * Get current clock mode
     *
     * @return
     */
-   static McgInfo::ClockMode getClockMode() {
+   static McgClockMode getClockMode() {
       return currentClockMode;
    }
 
@@ -167,7 +200,7 @@ public:
     *
     * @return Pointer to static string
     */
-   static const char *getClockModeName(McgInfo::ClockMode);
+   static const char *getClockModeName(McgClockMode);
 
    /**
     * Get name for current clock mode
@@ -181,7 +214,7 @@ public:
    /**
     *  Configure the MCG for given mode
     *
-    *  @param[in]  settingNumber CLock setting number
+    *  @param[in]  settingNumber Clock setting number
     */
    static void configure(ClockConfig settingNumber=ClockConfig_default) {
       clockTransition(clockInfo[settingNumber]);
@@ -194,19 +227,17 @@ public:
       clockTransition(clockInfo[ClockConfig_default]);
    }
 
-   /**
-    * Initialise MCG to default settings.
-    */
-   static void defaultConfigure();
+#endif
 
    /**
-    * Set up the OSC out of reset.
+    * Initialise MCG as part of startup sequence
     */
-   static void initialise() {
-      defaultConfigure();
-   }
+   static void startupConfigure();
 
+// No /MCG/InitMethod methods found
 };
+
+// /MCG/No declarations methods found
 
 /**
  * @}

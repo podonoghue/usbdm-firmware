@@ -25,44 +25,30 @@ namespace USBDM {
  * @brief Abstraction for Miscellaneous Control Module
  * @{
  */
-
+#if false // /MCM/enablePeripheralSupport
 /**
- * Type definition for MCM interrupt call back
+ * Template class providing a base for Miscellaneous Control Module
  */
-typedef void (*McmCallbackFunction)();
-
-/**
- * Template class providing interface to Low Leakage Wake-up Unit
- *
- * @tparam info      Information class for MCM
- *
- * @code
- * using mcm = McmBase_T<McmInfo>;
- *
- *  mcm::configure();
- *
- * @endcode
- */
-template <class Info>
-class McmBase_T {
-
-protected:
-   /** Callback function for ISR */
-   static McmCallbackFunction sCallback;
-
-   /** Callback to catch unhandled interrupt */
-   static void unhandledCallback() {
-      setAndCheckErrorCode(E_NO_HANDLER);
-   }
+class McmBase : public McmInfo {
 
 public:
+// /MCM/DefaultFlashInitValue not found
+// /MCM/DefaultSramAccessInitValue not found
    /**
-    * IRQ handler
+    * Default value for Mcm::FloatingPointIrqInit
+    * This value is created from Configure.usbdmProject settings (Peripheral Parameters->MCM)
     */
-   static void irqHandler(void) {
-      sCallback();
-   }
+   static constexpr McmInfo::FloatingPointIrqInit DefaultFloatingPointIrqInitValue {
+      McmFpuDenormalIrq_Unselect , // (mcm_iscr_fidce) FPU input de-normalized interrupt - Disabled
+      McmFpuInexactIrq_Unselect , // (mcm_iscr_fixce) FPU inexact interrupt - Disabled
+      McmFpuUnderflowIrq_Unselect , // (mcm_iscr_fufce) FPU underflow interrupt - Disabled
+      McmFpuOverflowIrq_Unselect , // (mcm_iscr_fofce) FPU overflow interrupt - Disabled
+      McmFpuDivideByZeroIrq_Unselect , // (mcm_iscr_fdzce) FPU divide-by-zero interrupt - Disabled
+      McmFpuInvalidOperationIrq_Unselect,  // (mcm_iscr_fioce) FPU invalid-operation interrupt - Disabled
+   };
 
+
+#if false
    /**
     * Wrapper to allow the use of a class member as a callback function
     * @note Only usable with static objects.
@@ -95,8 +81,8 @@ public:
     * @endcode
     */
    template<class T, void(T::*callback)(), T &object>
-   static McmCallbackFunction wrapCallback() {
-      static McmCallbackFunction fn = []() {
+   static CallbackFunction wrapCallback() {
+      static CallbackFunction fn = []() {
          (object.*callback)();
       };
       return fn;
@@ -134,84 +120,23 @@ public:
     * @endcode
     */
    template<class T, void(T::*callback)()>
-   static McmCallbackFunction wrapCallback(T &object) {
+   static CallbackFunction wrapCallback(T &object) {
       static T &obj = object;
-      static McmCallbackFunction fn = []() {
+      static CallbackFunction fn = []() {
          (obj.*callback)();
       };
       return fn;
    }
-
-   /**
-    * Set Callback function
-    *
-    *   @param[in]  callback Callback function to be executed on interrupt\n
-    *                        Use nullptr to remove callback.
-    */
-   static void setCallback(McmCallbackFunction callback) {
-      static_assert(Info::irqHandlerInstalled, "MCM not configured for interrupts");
-      if (callback == nullptr) {
-         callback = unhandledCallback;
-      }
-      sCallback = callback;
-   }
-
-protected:
-   /** Pointer to hardware */
-   static constexpr HardwarePtr<MCM_Type> mcm = McgInfo::baseAddress;
-
-public:
-
-   /**
-    * Basic enable of MCM\n
-    * Includes configuring all pins
-    */
-   static void enable() {
-   }
-
-   /**
-    * Configure with settings from Configure.usbdmProject.
-    */
-   static void defaultConfigure() {
-
-      enableNvicInterrupts(Info::irqLevel);
-   }
-
-   /**
-    * Enable interrupts in NVIC
-    */
-   static void enableNvicInterrupts() {
-      NVIC_EnableIRQ(Info::irqNums[0]);
-   }
-
-   /**
-    * Enable and set priority of interrupts in NVIC
-    * Any pending NVIC interrupts are first cleared.
-    *
-    * @param[in]  nvicPriority  Interrupt priority
-    */
-   static void enableNvicInterrupts(NvicPriority nvicPriority) {
-      enableNvicInterrupt(Info::irqNums[0], nvicPriority);
-   }
-
-   /**
-    * Disable interrupts in NVIC
-    */
-   static void disableNvicInterrupts() {
-      NVIC_DisableIRQ(Info::irqNums[0]);
-   }
-};
-
-template<class Info> McmCallbackFunction McmBase_T<Info>::sCallback = McmBase_T<Info>::unhandledCallback;
-
-#ifdef USBDM_MCM_IS_DEFINED
-/**
- * Class representing MCM
- */
-class Mcm : public McmBase_T<McmInfo> {};
-
 #endif
 
+};
+
+   /**
+    * Class representing MCM
+    */
+   class Mcm : public McmBase{};
+
+#endif // /MCM/enablePeripheralSupport
 /**
  * End MCM_Group
  * @}

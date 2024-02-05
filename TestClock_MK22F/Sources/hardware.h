@@ -37,7 +37,7 @@ namespace USBDM {
  * @note Only the lower 16-bits of the PCR registers are initialised
  */
 extern void mapAllPins();
-// No user declarations found
+// /HARDWARE_H/Declarations not found
 } // End namespace USBDM
 
 #endif /* INCLUDE_USBDM_HARDWARE_H_ */

@@ -1,5 +1,5 @@
 /**
- * @file delay.h (100.ARM_DeviceOptions/Project_Headers/delay.h)
+ * @file delay.h (180.ARM_DeviceOptions/Project_Headers/delay.h)
  * @brief Simple busy-waiting delay routines using SYST counter
  *
  *  Created on: 5 Oct 2015
@@ -17,6 +17,7 @@
  */
 #include <stdint.h>
 #include "derivative.h"
+#include "pin_mapping.h"
 
 #ifdef __cplusplus
 namespace USBDM {
@@ -106,7 +107,7 @@ void waitMS(uint32_t msToWait);
  * @note Limited to 2^32 ms (71,582 minutes)
  * @note Uses busy-waiting
  */
-void wait(float seconds);
+void wait(Seconds seconds);
 
 #ifdef __cplusplus
 /**

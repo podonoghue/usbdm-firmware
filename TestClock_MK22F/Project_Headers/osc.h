@@ -38,14 +38,14 @@ namespace USBDM {
  * @endcode
  */
 template <class Info>
-class OscBase_T {
+class OscBase_T :public Info {
 
 private:
    /** Class to static check OSC signal is mapped to a pin - Assumes existence */
    template<int xtalPin> class CheckPinMapped {
    private:
       // Check mapping - no need to check existence
-      static constexpr bool Test1 = (Info::info[xtalPin].gpioBit >= 0);
+      static constexpr bool Test1 = (Info::info[xtalPin].pinIndex >= PinIndex::MIN_PIN_INDEX);
 
       static_assert(Test1, "OSC XTAL/EXTAL signal is not mapped to a pin - Modify Configure.usbdm");
 
@@ -59,97 +59,12 @@ protected:
    static constexpr HardwarePtr<OSC_Type> osc = Info::baseAddress;
 
 public:
-   // Template _mapPinsOption_on.xml
-
-   /**
-    * Configures all mapped pins associated with OSC
-    *
-    * @note Locked pins will be unaffected
-    */
-   static void configureAllPins() {
-   
-      // Configure pins if selected and not already locked
-      if constexpr (Info::mapPinsOnEnable && !(MapAllPinsOnStartup && (ForceLockedPins == PinLock_Locked))) {
-         Info::initPCRs();
-      }
-   }
-
-   /**
-    * Disabled all mapped pins associated with OSC
-    *
-    * @note Only the lower 16-bits of the PCR registers are modified
-    *
-    * @note Locked pins will be unaffected
-    */
-   static void disableAllPins() {
-   
-      // Disable pins if selected and not already locked
-      if constexpr (Info::mapPinsOnEnable && !(MapAllPinsOnStartup && (ForceLockedPins == PinLock_Locked))) {
-         Info::clearPCRs();
-      }
-   }
-
-   /**
-    * Basic enable of OSC
-    * Includes enabling clock and configuring all mapped pins if mapPinsOnEnable is selected in configuration
-    */
-   static void enable() {
-      
-      configureAllPins();
-   }
-
-   /**
-    * Disables the clock to OSC and all mapped pins
-    */
-   static void disable() {
-      
-      
-      disableAllPins();
-      
-   }
-// End Template _mapPinsOption_on.xml
+   // No class Info found
 
 
-   /**
-    * Initialise OSC to default settings.
-    * Configures all OSC pins
-    */
-   static void defaultConfigure() {
-
-      if constexpr (Osc0Info::cr & OSC_CR_ERCLKEN_MASK) {
-         (void)CheckPinMapped<0>::checker;
-         (void)CheckPinMapped<1>::checker;
-      }
-
-      if (Info::mapPinsOnEnable) {
-         configureAllPins();
-      }
-      // Configure OSC
-      Info::osc->CR  = Info::cr;
-   }
-
-   /**
-    * Set up the OSC out of reset.
-    */
-   static void initialise() {
-      defaultConfigure();
-   }
 
 };
 
-#ifdef USBDM_OSC0_IS_DEFINED
-/**
- * Class providing interface to Oscillator
- */
-class Osc0 : public OscBase_T<Osc0Info> {};
-#endif
-
-#ifdef USBDM_OSC1_IS_DEFINED
-/**
- * Class providing interface to Oscillator 1
- */
-class Osc1 : public OscBase_T<Osc1Info> {};
-#endif
 
 /**
  * End OSC_Group

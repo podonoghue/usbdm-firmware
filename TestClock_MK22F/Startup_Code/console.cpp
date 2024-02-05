@@ -42,16 +42,18 @@ void log_error(const char *msg) {
 // Console instance
 Console console;
 
-/*
- * Initialises the Console
- */
-extern "C"
-void console_initialise() {
-   console.initialise();
-   console.setBaudRate(defaultBaudRate);
-   console.setEcho();
-   console.configureAllPins();
-}
+   /*
+    * Initialises the Console
+    */
+   extern "C"
+   void console_initialise() {
+      console.initialise();
+      console.setBaudRate(defaultBaudRate);
+      console.setEcho();
+      console.configureAllPins();
+   }
+   
+
 
 /*
  * Set Console baud rate

@@ -35,31 +35,7 @@ namespace USBDM {
  */
 
 /**
- * Enumeration selecting interrupt sources
- */
-enum UartInterrupt {
-   UartInterrupt_TxHoldingEmpty  = UART_C2_TIE(1),   //!< Interrupt request on Transmit holding register empty
-   UartInterrupt_TxComplete      = UART_C2_TCIE(1),  //!< Interrupt request on Transmit complete
-   UartInterrupt_RxFull          = UART_C2_RIE(1),   //!< Interrupt request on Receive holding full
-   UartInterrupt_IdleDetect      = UART_C2_ILIE(1),  //!< Interrupt request on Idle detection
-};
-
-/**
- * Enumeration selecting direct memory access sources
- */
-enum UartDma {
-#ifdef UART_C5_TDMAS
-   UartDma_TxHoldingEmpty  = UART_C5_TDMAS(1),   //!< DMA request on Transmit holding register empty
-   UartDma_RxFull          = UART_C5_RDMAS(1),   //!< DMA request on Receive holding full
-#endif
-#ifdef UART_C5_TDMAE
-   UartDma_TxHoldingEmpty  = UART_C5_TDMAE(1),   //!< DMA request on Transmit holding register empty
-   UartDma_RxFull          = UART_C5_RDMAE(1),   //!< DMA request on Receive holding full
-#endif
-};
-
-/**
- * @brief Virtual Base class for UART interface
+ * @brief Abstract Base class for UART interface
  */
 class Uart : public FormattedIO {
 
@@ -170,7 +146,7 @@ public:
     * UART hardware instance
     */
    const HardwarePtr<UART_Type> uart;
-   
+
    /**
     * Construct UART interface
     *
@@ -211,8 +187,8 @@ public:
       uint8_t c2Value = uart->C2;
       uart->C2 = 0;
 
-      // Calculate UART clock setting (5-bit fraction at right)
-      int divider = (2*clockFrequency)/baudrate;
+      // Calculate UART clock setting (5-bit fraction at right, +16 for rounding after /32)
+      int divider = ((2*clockFrequency)/baudrate) + 16;
 
       // Set Baud rate register
       uart->BDH = (uart->BDH&~UART_BDH_SBR_MASK) | UART_BDH_SBR((divider>>(8+5)));
@@ -271,50 +247,44 @@ public:
     * Clear UART error status
     */
    virtual void clearError() = 0;
-
    /**
-    * Enable/disable an interrupt source
+    * Set Transmit complete action
     *
-    * @param[in] uartInterrupt Interrupt source to modify
-    * @param[in] enable        True to enable, false to disable
-    *
-    * @note Changing the enabled interrupt functions may also affect the DMA settings
+    * @param uartTxCompleteAction Enable interrupt on transmission complete
     */
-   void enableInterrupt(UartInterrupt uartInterrupt, bool enable=true) {
-      if (enable) {
-#ifdef UART_C5_TDMAS
-         uart->C5 = uart->C5 & ~uartInterrupt; // DMA must be off to enable interrupts
-#endif
-         uart->C2 = uart->C2 | uartInterrupt;
-      }
-      else {
-         uart->C2 = uart->C2 & ~uartInterrupt; // May also disable DMA
-      }
+   void setTransmitCompleteAction(UartTxCompleteAction uartTxCompleteAction) const {
+      uart->C2 = (uart->C2 & ~UART_C2_TCIE_MASK) | uartTxCompleteAction;
    }
 
    /**
-    * Enable/disable a DMA source
+    * Set Idle line detect sction
     *
-    * @param[in] uartDma  DMA source to modify
-    * @param[in] enable   True to enable, false to disable
-    *
-    * @note Changing the enabled DMA functions may also affect the interrupt settings
+    * @param uartIdleLineDetectAction Enable interrupt on tidele line detect
     */
-   void enableDma(UartDma uartDma, bool enable=true) {
-      // Flags are in same positions in the C2 and C5
-      if (enable) {
-         uart->C5 = uart->C5 | uartDma;
-#ifdef UART_C5_TDMAS
-         uart->C2 = uart->C2 | uartDma; // Interrupts must be enable for DMA
-#endif
-      }
-      else {
-#ifdef UART_C5_TDMAS
-         uart->C2 = uart->C2 & ~uartDma; // Switching DMA off shouldn't enable interrupts!
-#endif
-         uart->C5 = uart->C5 & ~uartDma;
-      }
+   void setIdleLineDetectAction(UartIdleLineDetectAction uartIdleLineDetectAction) const {
+      uart->C2 = (uart->C2 & ~UART_C2_ILIE_MASK) | uartIdleLineDetectAction;
    }
+
+   /**
+    * Set Transmit empty DMA/Interrupt action
+    *
+    * @param uartTxEmptyAction Enable transmit holding register empty DMA/Interrupt action
+    */
+   void setTransmitEmptyAction(UartTxEmptyAction uartTxEmptyAction) const {
+      uart->C2 = (uart->C2 & ~UART_C2_TIE_MASK)   | uartTxEmptyAction; 
+      uart->C5 = (uart->C5 & ~UART_C5_TDMAS_MASK) | uartTxEmptyAction>>8; 
+   }
+
+   /**
+    * Set Receive full DMA/interrupt action
+    *
+    * @param uartRxFullAction Enable receive buffer full DMA/interrupt action
+    */
+   void setReceiveFullAction(UartRxFullAction uartRxFullAction) const {
+      uart->C2 = (uart->C2 & ~UART_C2_RIE_MASK)   | uartRxFullAction;
+      uart->C5 = (uart->C5 & ~UART_C5_RDMAS_MASK) | uartRxFullAction>>8;
+   }
+
 
    /**
     *  Flush output data
@@ -343,21 +313,11 @@ public:
 typedef void (*UARTCallbackFunction)(uint8_t status);
 
 /**
- * @brief Template class representing an UART interface
- *
- * <b>Example</b>
- * @code
- *  // Instantiate interface
- *  Uart *uart0 = new USBDM::Uart_T<Uart0Info>(115200);
- *
- *  for(int i=0; i++;) {
- *     uart.write("Hello world,").writeln(i);
- *  }
- *  @endcode
+ * @brief Abstract template class representing an UART interface with associated hardware
  *
  * @tparam Info   Class describing UART hardware
  */
-template<class Info> class Uart_T : public Uart {
+template<class Info> class Uart_T : public Uart, public Info {
 
 private:
    Uart_T(const Uart_T&) = delete;
@@ -438,65 +398,18 @@ protected:
    static UARTCallbackFunction lonCallback;
 
 public:
-   // Template _mapPinsOption_on.xml
-
-   /**
-    * Configures all mapped pins associated with UART
-    *
-    * @note Locked pins will be unaffected
-    */
-   static void configureAllPins() {
-   
-      // Configure pins if selected and not already locked
-      if constexpr (Info::mapPinsOnEnable && !(MapAllPinsOnStartup && (ForceLockedPins == PinLock_Locked))) {
-         Info::initPCRs();
-      }
-   }
-
-   /**
-    * Disabled all mapped pins associated with UART
-    *
-    * @note Only the lower 16-bits of the PCR registers are modified
-    *
-    * @note Locked pins will be unaffected
-    */
-   static void disableAllPins() {
-   
-      // Disable pins if selected and not already locked
-      if constexpr (Info::mapPinsOnEnable && !(MapAllPinsOnStartup && (ForceLockedPins == PinLock_Locked))) {
-         Info::clearPCRs();
-      }
-   }
-
-   /**
-    * Basic enable of UART
-    * Includes enabling clock and configuring all mapped pins if mapPinsOnEnable is selected in configuration
-    */
-   static void enable() {
-      Info::enableClock();
-      configureAllPins();
-   }
-
-   /**
-    * Disables the clock to UART and all mapped pins
-    */
-   static void disable() {
-      disableNvicInterrupts();
-      
-      disableAllPins();
-      Info::disableClock();
-   }
-// End Template _mapPinsOption_on.xml
-
+   // No class Info found
 
    /**
     * Construct UART interface
     */
    Uart_T() : Uart(Info::baseAddress) {
+#ifdef PORT_PCR_MUX
       // Check pin assignments
-      static_assert(Info::info[0].gpioBit >= 0, "Uart_Tx has not been assigned to a pin - Modify Configure.usbdm");
-      static_assert(Info::info[1].gpioBit >= 0, "Uart_Rx has not been assigned to a pin - Modify Configure.usbdm");
-      
+      static_assert(Info::info[0].pinIndex >= PinIndex::MIN_PIN_INDEX, "Uart_Tx has not been assigned to a pin - Modify Configure.usbdm");
+      static_assert(Info::info[1].pinIndex >= PinIndex::MIN_PIN_INDEX, "Uart_Rx has not been assigned to a pin - Modify Configure.usbdm");
+#endif
+
       initialise();
    }
 
@@ -506,7 +419,7 @@ public:
       Info::enableClock();
 
       if constexpr (Info::mapPinsOnEnable) {
-         configureAllPins();
+         Info::configureAllPins();
       }
       uart->C2 = UART_C2_TE(1)|UART_C2_RE(1);
    }
@@ -652,6 +565,15 @@ template<class Info> UARTCallbackFunction Uart_T<Info>::errorCallback = unhandle
 template<class Info> UARTCallbackFunction Uart_T<Info>::lonCallback   = unhandledCallback;
 
 #ifdef UART_C4_BRFA_MASK
+/**
+ * Virtual class for basic UART
+ *
+ * - BRFA field (Baud Rate Fine Adjust)
+ * - No OSR field (Over Sampling Ratio) i.e. Fixed x16 over-sample
+ * - No buffering
+ *
+ * @tparam Info Info class providing clock frequency etc.
+ */
 template<class Info> class Uart_brfa_T : public Uart_T<Info> {
 
 private:
@@ -686,6 +608,15 @@ public:
 #endif
 
 #ifdef UART_C4_OSR_MASK
+/**
+ * Virtual class for basic UART
+ *
+ * - No BRFA field (Baud Rate Fine Adjust)
+ * - OSR field (Over Sampling Ratio) i.e. changeable over-sample rate
+ * - No buffering
+ *
+ * @tparam Info Info class providing clock frequency etc.
+ */
 template<class Info> class Uart_osr_T : public Uart_T<Info> {
 
 private:
@@ -693,7 +624,7 @@ private:
    Uart_osr_T(Uart_osr_T&&) = delete;
 
 public:
-   using Uart_T<Info>::uart;
+   using Info::uart;
 
    /**
     * Construct UART interface
@@ -718,7 +649,7 @@ public:
    virtual void setBaudRate(unsigned baudrate) override {
       static constexpr int OVER_SAMPLE = Info::oversampleRatio;
 
-      // Set oversample ratio and baud rate
+      // Set over-sample ratio and baud rate
       uart->C4 = (uart->C4&~UART_C4_OSR_MASK)|(OVER_SAMPLE-1);
       Uart::setBaudRate_basic(baudrate, Info::getInputClockFrequency(), OVER_SAMPLE);
    }
@@ -733,7 +664,7 @@ public:
     */
    void setBaudRate(unsigned baudrate, unsigned oversample) {
 
-      // Set oversample ratio and baud rate
+      // Set over-sample ratio and baud rate
       uart->C4 = (uart->C4&~UART_C4_OSR_MASK)|UART_C4_OSR(oversample-1);
       Uart::setBaudRate_basic(baudrate, Info::getInputClockFrequency(), oversample);
    }
@@ -741,6 +672,15 @@ public:
 };
 #endif
 
+/**
+ * Virtual class for basic UART
+ *
+ * - No BRFA field (Baud Rate Fine Adjust)
+ * - No OSR field (Over Sampling Ratio) i.e. Fixed x16 over-sample
+ * - No buffering
+ *
+ * @tparam Info Info class providing clock frequency etc.
+ */
 template<class Info> class Uart_basic_T : public Uart_T<Info> {
 
 private:
@@ -777,17 +717,7 @@ public:
 };
 
 /**
- * @brief Template class representing an UART interface with buffered reception
- *
- * <b>Example</b>
- * @code
- *  // Instantiate interface
- *  Uart *uart0 = new USBDM::UartBuffered_T<Uart0Info, 20, 30>(115200);
- *
- *  for(int i=0; i++;) {
- *     uart.write("Hello world,").writeln(i);
- *  }
- *  @endcode
+ * @brief Abstract template class representing a buffered UART interface with associated hardware
  *
  * @tparam Info   Class describing UART hardware
  */
@@ -799,16 +729,16 @@ private:
    UartBuffered_T(UartBuffered_T&&) = delete;
 
 public:
-   using Uart_T<Info>::uart;
+   using Info::uart;
 
    UartBuffered_T() : Uart_T<Info>() {
-      Uart::enableInterrupt(UartInterrupt_RxFull);
+      Uart::setReceiveFullAction(UartRxFullAction_Interrupt);
       Uart_T<Info>::enableNvicInterrupts(Info::irqLevel);
    }
 
    virtual ~UartBuffered_T() {
-      Uart::enableInterrupt(UartInterrupt_RxFull,         false);
-      Uart::enableInterrupt(UartInterrupt_TxHoldingEmpty, false);
+      Uart::setReceiveFullAction(UartRxFullAction_None);
+      Uart::setTransmitEmptyAction(UartTxEmptyAction_None);
    }
 
 protected:
@@ -836,8 +766,9 @@ protected:
       lock(&fWriteLock);
       // Add character to buffer
       while (!txQueue.enQueueDiscardOnFull(ch)) {
+         __asm__("nop");
       }
-      uart->C2 |= UART_C2_TIE_MASK;
+      uart->C2 = uart->C2 | UART_C2_TIE_MASK;
       unlock(&fWriteLock);
       if (ch=='\n') {
         _writeChar('\r');
@@ -947,6 +878,15 @@ public:
 };
 
 #ifdef UART_C4_BRFA_MASK
+/**
+ * Virtual class for buffered UART
+ *
+ * - BRFA field (Baud Rate Fine Adjust)
+ * - No OSR field (Over Sampling Ratio) i.e. Fixed x16 over-sample
+ * - Buffered
+ *
+ * @tparam Info Info class providing clock frequency etc.
+ */
 template<class Info, int rxSize=Info::receiveBufferSize, int txSize=Info::transmitBufferSize>
 class UartBuffered_brfa_T : public UartBuffered_T<Info, rxSize, txSize> {
 
@@ -982,6 +922,15 @@ public:
 #endif
 
 #ifdef UART_C4_OSR_MASK
+/**
+ * Virtual class for buffered UART
+ *
+ * - No BRFA field (Baud Rate Fine Adjust)
+ * - OSR field (Over Sampling Ratio) i.e. changeable x16 over-sample
+ * - Buffered
+ *
+ * @tparam Info Info class providing clock frequency etc.
+ */
 template<class Info, int rxSize=Info::receiveBufferSize, int txSize=Info::transmitBufferSize>
 class UartBuffered_osr_T : public UartBuffered_T<Info, rxSize, txSize> {
 
@@ -1015,7 +964,7 @@ public:
    virtual void setBaudRate(unsigned baudrate) override {
       static constexpr int OVER_SAMPLE = Info::oversampleRatio;
 
-      // Set oversample ratio
+      // Set over-sample ratio
       uart->C4 = (uart->C4&~UART_C4_OSR_MASK)|(OVER_SAMPLE-1);
 
       Uart::setBaudRate_basic(baudrate, Info::getInputClockFrequency(), OVER_SAMPLE);
@@ -1023,6 +972,15 @@ public:
 };
 #endif
 
+/**
+ * Virtual class for buffered UART
+ *
+ * - No BRFA field (Baud Rate Fine Adjust)
+ * - No OSR field (Over Sampling Ratio) i.e. Fixed x16 over-sample
+ * - Buffered
+ *
+ * @tparam Info Info class providing clock frequency etc.
+ */
 template<class Info, int rxSize=Info::receiveBufferSize, int txSize=Info::transmitBufferSize>
 class UartBuffered_basic_T : public UartBuffered_T<Info, rxSize, txSize> {
 
@@ -1064,107 +1022,21 @@ template<class Info, int rxSize, int txSize> UartQueue<char, txSize> UartBuffere
 template<class Info, int rxSize, int txSize> volatile uint32_t   UartBuffered_T<Info, rxSize, txSize>::fReadLock  = 0;
 template<class Info, int rxSize, int txSize> volatile uint32_t   UartBuffered_T<Info, rxSize, txSize>::fWriteLock = 0;
 
-#ifdef USBDM_UART0_IS_DEFINED
-/**
- * @brief Class representing UART0 interface
- *
- * <b>Example</b>
- * @code
- *  // Instantiate interface
- *  USBDM::Uart0 uart;
- *
- *  for(int i=0; i++;) {
- *     uart.write("Hello world,").writeln(i);
- *  }
- *  @endcode
- */
-typedef  Uart_brfa_T<Uart0Info> Uart0;
-#endif
+   /**
+    * Class representing UART1 interface
+    *
+    * <b>Example</b>
+    * @code
+    *  // Instantiate interface
+    *  USBDM::Uart1 uart;
+    *
+    *  for(int i=0; i++;) {
+    *     uart.writeln("Hello world ", i);
+    *  }
+    *  @endcode
+    */
+   typedef  Uart_brfa_T<Uart1Info> Uart1;
 
-#ifdef USBDM_UART1_IS_DEFINED
-/**
- * @brief Class representing UART1 interface
- *
- * <b>Example</b>
- * @code
- *  // Instantiate interface
- *  USBDM::Uart1 uart;
- *
- *  for(int i=0; i++;) {
- *     uart.write("Hello world,").writeln(i);
- *  }
- *  @endcode
- */
-typedef  Uart_brfa_T<Uart1Info> Uart1;
-#endif
-
-#ifdef USBDM_UART2_IS_DEFINED
-/**
- * @brief Class representing UART2 interface
- *
- * <b>Example</b>
- * @code
- *  // Instantiate interface
- *  USBDM::Uart2 uart;
- *
- *  for(int i=0; i++;) {
- *     uart.write("Hello world,").writeln(i);
- *  }
- *  @endcode
- */
-typedef  Uart_brfa_T<Uart2Info> Uart2;
-#endif
-
-#ifdef USBDM_UART3_IS_DEFINED
-/**
- * @brief Class representing UART3 interface
- *
- * <b>Example</b>
- * @code
- *  // Instantiate interface
- *  USBDM::Uart3 uart;
- *
- *  for(int i=0; i++;) {
- *     uart.write("Hello world,").writeln(i);
- *  }
- *  @endcode
- */
-typedef  Symbol '/UART3/uartClass' not found<Uart3Info> Uart3;
-#endif
-
-#ifdef USBDM_UART4_IS_DEFINED
-/**
- * @brief Class representing UART4 interface
- *
- * <b>Example</b>
- * @code
- *  // Instantiate interface
- *  USBDM::Uart4 uart;
- *
- *  for(int i=0; i++;) {
- *     uart.write("Hello world,").writeln(i);
- *  }
- *  @endcode
- */
-typedef  Symbol '/UART4/uartClass' not found<Uart4Info> Uart4;
-#endif
-
-#ifdef USBDM_UART5_IS_DEFINED
-/**
- * @brief Class representing UART5 interface
- *
- * <b>Example</b>
- * @code
- *  // Instantiate interface
- *  USBDM::Uart5 uart;
- *
- *  for(int i=0; i++;) {
- *     uart.write("Hello world,").writeln(i);
- *  }
- *  @endcode
- */
-typedef  Symbol '/UART5/uartClass' not found<Uart5Info> Uart5;
-#endif
 
 /**
  * End UART_Group
