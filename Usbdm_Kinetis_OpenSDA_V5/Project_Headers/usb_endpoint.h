@@ -138,26 +138,26 @@ protected:
    /**
     *  Callback used on completion of data and handshake phases of transaction.
     *  For a control endpoint this routine is called:\n
-    *  - After an IN transaction with endpointState = EPStatusIn.\n
+    *  - After an IN transaction with endpointState  = EPStatusIn.\n
     *  - After an OUT transaction with endpointState = EPStatusOut.
     *
     *  For other types of endpoint this routine is called:\n
-    *  - After an IN transaction with endpointState = EPDataIn.\n
-    *  - After an OUT transaction with endpointState = EPDataOut.
+    *  - After last IN transaction with endpointState  = EPDataIn.\n
+    *  - After last OUT transaction with endpointState = EPDataOut.
     *
     * @param [in] endpointState State of endpoint before completion of transaction
     *
     * @return The endpoint state to set after call-back
     */
-   EndpointState (*fCallback)(EndpointState endpointState) = unsetHandlerCallback;
+   EndpointState (*fCallback)(EndpointState endpointState) = defaultEndpointHandler;
 
    /**
-    *  Dummy callback used to catch use of unset callback
+    *  Default end-point callback \n
+    *  Just returns EPIdle
     *
     * @return The endpoint state to set after call-back (EPIdle)
     */
-   static EndpointState unsetHandlerCallback(EndpointState) {
-//      setAndCheckErrorCode(E_NO_HANDLER);
+   static EndpointState defaultEndpointHandler(EndpointState) {
       return EPIdle;
    }
 
@@ -365,7 +365,7 @@ public:
       fDataPtr          = nullptr;
       fDataRemaining    = 0;
       fDataTransferred  = 0;
-      fCallback         = unsetHandlerCallback;
+      fCallback         = defaultEndpointHandler;
 
       // Value used to initialise an Endpoint Control Register
       fUsb->ENDPOINT[fEndpointNumber].ENDPT = fEpControlValue;
@@ -469,7 +469,7 @@ public:
     */
    void setCallback(EndpointState (*callback)(EndpointState)) {
       if (callback == nullptr) {
-         callback = unsetHandlerCallback;
+         callback = defaultEndpointHandler;
       }
       fCallback = callback;
    }

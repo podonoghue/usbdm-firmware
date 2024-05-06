@@ -494,6 +494,7 @@ private:
    AdcBase_T(const AdcBase_T&) = delete;
    AdcBase_T(AdcBase_T&&) = delete;
 
+   using Info::mapChannelNumToPhysicalChannelNum;
 
 protected:
 // No /ADC/protectedMethods found
@@ -522,80 +523,6 @@ public:
    /** Allow convenient access to associate AdcInfo */
    using AdcInfo = Info;
 
-   /**
-    * Wrapper to allow the use of a class member as a callback function
-    * @note Only usable with static objects.
-    *
-    * @tparam T         Type of the object containing the callback member function
-    * @tparam callback  Member function pointer
-    * @tparam object    Object containing the member function
-    *
-    * @return  Pointer to a function suitable for the use as a callback
-    *
-    * @code
-    * class AClass {
-    * public:
-    *    // Member function used as callback
-    *    // This function must match CallbackFunction
-    *    void callback(uint32_t result, int channel) {
-    *       ...;
-    *    }
-    * };
-    * ...
-    * // Instance of class containing callback member function
-    * static AClass aClass;
-    * ...
-    * // Wrap member function to create handler
-    * auto fn = Adc0::wrapCallback<AClass, &AClass::callback, aClass>();
-    * // Use as callback
-    * Adc0::setCallback(fn);
-    * @endcode
-    */
-   template<class T, void(T::*callback)(uint32_t result, int channel), T &object>
-   static constexpr typename Info::CallbackFunction wrapCallback() {
-      typename Info::CallbackFunction fn = [](uint32_t result, int channel) {
-         (object.*callback)(result, channel);
-      };
-      return fn;
-   }
-
-   /**
-    * Wrapper to allow the use of a class member as a callback function
-    * @note There is a considerable space and time overhead to using this method
-    *
-    * @tparam T         Type of the object containing the callback member function
-    * @tparam callback  Member function pointer
-    * @tparam object    Object containing the member function
-    *
-    * @return  Pointer to a function suitable for the use as a callback
-    *
-    * @code
-    * class AClass {
-    * public:
-    *    // Member function used as callback
-    *    // This function must match CallbackFunction
-    *    void callback(uint32_t result, int channel) {
-    *       ...;
-    *    }
-    * };
-    * ...
-    * // Instance of class containing callback member function
-    * static AClass aClass;
-    * ...
-    * // Wrap member function to create handler
-    * auto fn = Adc0::wrapCallback<AClass, &AClass::callback, aClass>();
-    * // Use as callback
-    * Adc0::setCallback(fn);
-    * @endcode
-    */
-   template<class T, void(T::*callback)(uint32_t result, int channel)>
-   static typename Info::CallbackFunction wrapCallback(T &object) {
-      static T &obj = object;
-      typename Info::CallbackFunction fn = [](uint32_t result, int channel) {
-         (obj.*callback)(result, channel);
-      };
-      return fn;
-   }
 #endif
 
 
@@ -787,6 +714,19 @@ protected:
       adc->SC1[adcPretrigger] = sc1Value;
    }
 #endif
+   /**
+    * Initiates a conversion but does not wait for it to complete.
+    * Intended for use with interrupts or DMA.
+    *
+    * @param[in] sc1Value SC1 register value.
+    *                     This includes channel, differential mode and interrupts enable.
+    * @param adcResolution      New Resolution to use (persistent)
+    */
+   static void startConversion(const int sc1Value, AdcResolution adcResolution) {
+      // Trigger conversion
+      adc->CFG1 = (adc->CFG1&~ADC_CFG1_MODE_MASK)|adcResolution;
+      adc->SC1[0] = sc1Value;
+   };
 
    /**
     * Initiates a conversion but does not wait for it to complete.
@@ -974,13 +914,13 @@ public:
       constexpr ChannelCommon() : AdcChannel(AdcInfo::baseAddress, channel) {}
 
       /** The ADC that owns this channel */
-      using OwningAdc = AdcBase_T;
+      using Owner = AdcBase_T;
 
       /** Information about this ADC */
       using AdcInfo = Info;
 
       /** Channel number */
-      static constexpr int CHANNEL=channel;
+      static constexpr AdcChannelNum CHANNEL=channel;
 
       /**
        * Initiates a conversion but does not wait for it to complete.
@@ -993,7 +933,22 @@ public:
             usbdm_assert((adcInterrupt == AdcAction_None),
                   "ADC not configured for interrupts. Modify Configure.usbdmProject");
          }
-         AdcBase_T::startConversion(channel|adcInterrupt);
+         AdcBase_T::startConversion(mapChannelNumToPhysicalChannelNum(channel)|adcInterrupt);
+      };
+
+      /**
+       * Initiates a conversion but does not wait for it to complete.
+       * Intended for use with interrupts or DMA.
+       *
+       * @param adcResolution      New Resolution to use (persistent)
+       * @param[in] adcInterrupt   Determines if an interrupt is generated when conversions are complete
+       */
+      static void startConversion(AdcResolution adcResolution, AdcAction adcInterrupt=AdcAction_None) {
+         if constexpr(!Info::irqHandlerInstalled) {
+            usbdm_assert((adcInterrupt == AdcAction_None),
+                  "ADC not configured for interrupts. Modify Configure.usbdmProject");
+         }
+         AdcBase_T::startConversion(mapChannelNumToPhysicalChannelNum(channel)|adcInterrupt, adcResolution);
       };
 
       /**
@@ -1006,7 +961,7 @@ public:
        * @note Result is signed but will always be positive for single-ended conversions.
        */
       static int readAnalogue() {
-         return AdcBase_T::readAnalogue(channel);
+         return AdcBase_T::readAnalogue(mapChannelNumToPhysicalChannelNum(channel));
       };
       /**
        * Initiates a conversion and waits for it to complete.
@@ -1021,7 +976,7 @@ public:
        * @note The resolution used here affects all further conversion on all channels on the ADC
        */
       static int readAnalogue(AdcResolution adcResolution) {
-         return AdcBase_T::readAnalogue(channel, adcResolution);
+         return AdcBase_T::readAnalogue(mapChannelNumToPhysicalChannelNum(channel), adcResolution);
       };
 
       /**
@@ -1032,7 +987,7 @@ public:
        * @param[in] adcInterrupt    Whether to generate an interrupt when each conversion completes
        */
       static void enableHardwareConversion(AdcPretrigger adcPretrigger, AdcAction adcInterrupt=AdcAction_None) {
-         AdcBase_T::enableHardwareConversion(channel|adcInterrupt, adcPretrigger);
+         AdcBase_T::enableHardwareConversion(mapChannelNumToPhysicalChannelNum(channel)|adcInterrupt, adcPretrigger);
       }
 
 #ifdef ADC_SC2_DMAEN
@@ -1045,7 +1000,7 @@ public:
        * @param[in] adcDma          Whether to generate a DMA request when each conversion completes
        */
       static void enableHardwareConversion(AdcPretrigger adcPretrigger, AdcAction adcInterrupt, AdcDma adcDma) {
-         AdcBase_T::enableHardwareConversion(channel|adcInterrupt, adcPretrigger, adcDma);
+         AdcBase_T::enableHardwareConversion(mapChannelNumToPhysicalChannelNum(channel)|adcInterrupt, adcPretrigger, adcDma);
       }
 #endif
    };
@@ -1059,8 +1014,10 @@ public:
       Channel(const Channel&) = delete;
       Channel(Channel&&) = delete;
 
-      CheckPinExistsAndIsMapped<Info, channel&ADC_SC1_ADCH_MASK> check;
-
+      CheckPinExistsAndIsMapped<Info, channel> check;
+#if false // adc_sc1_diff_present
+      static_assert(((channel<AdcChannelNum_DiffFirst)||(channel>AdcChannelNum_DiffLast)), "Illegal channel number");
+#endif
    public:
       /** The PCR associated with this channel (Not all channels have an associated PCR!) */
       using Pcr = PcrTable_T<Info, limitIndex<Info>(channel)>;
@@ -1114,7 +1071,7 @@ public:
     * uint32_t value = Adc0Ch6::readAnalogue();
     * @endcode
     */
-   class PgaChannel : public ChannelCommon<2> {
+   class PgaChannel : public ChannelCommon<AdcChannelNum_Diff2> {
    private:
       /**
        * This class is not intended to be instantiated
@@ -1127,75 +1084,6 @@ public:
    };
 #endif
 
-   /**
-    * Template class representing an ADC channel using B MUX setting
-    *
-    * Example
-    * @code
-    * // Instantiate the ADC and the differential channel (for ADC_DM0, ADC_DP0)
-    * using Adc0 = AdcBase_T<Adc0Info>;
-    * using Adc0Ch6 = Adc0::DiffChannel<0>;
-    *
-    * // Set ADC resolution
-    * Adc0.setMode(AdcResolution_11bit_diff );
-    *
-    * // Read ADC value
-    * uint32_t value = Adc0Ch0.readAnalogue();
-    * @endcode
-    *
-    * @tparam channel ADC channel
-    */
-   template<AdcChannelNum channel>
-   class ChannelB : public ChannelCommon<AdcChannelNum(channel)> {
-   private:
-      /**
-       * This class is not intended to be instantiated
-       */
-      ChannelB(const ChannelB&) = delete;
-      ChannelB(ChannelB&&) = delete;
-
-      CheckPinExistsAndIsMapped<typename Info::InfoBChannels, channel&ADC_SC1_ADCH_MASK> checkPos;
-
-   public:
-      constexpr ChannelB() : ChannelCommon<AdcChannelNum(channel)>() {}
-
-      /** PCR associated with plus channel */
-      using PcrB = PcrTable_T<typename Info::InfoBChannels, limitIndex<typename Info::InfoBChannels>(channel)>;
-
-      /** The ADC that owns this channel */
-      using OwningAdc = AdcBase_T;
-
-      /** Information about this ADC */
-      using AdcInfo = Info;
-
-      /** Channel number */
-      static constexpr int CHANNEL=channel;
-
-      /**
-       * Configure the pins associated with this ADC channel.
-       * The pins are in analogue mode so no PCR settings are active.
-       * This function is of use if mapAllPins and mapAllPinsOnEnable are not selected in USBDM configuration.
-       */
-      static void setInput() {
-         // Map pins to ADC
-         PcrB::setPCR(Info::InfoBChannels::info[channel].pcrValue);
-      }
-
-      /**
-       *  Disable Pin
-       *  This sets the pin to MUX 0 which is specified for minimum leakage in low-power modes.
-       *
-       *  @note The clock is left enabled as shared with other pins.
-       *  @note Mux(0) is also the Analogue MUX setting
-       */
-      static void disablePin() {
-         // Map pin to ADC
-         if constexpr (AdcInfo::InfoBChannels::info[channel].portAddress != 0) {
-            PcrB::disablePin();
-         }
-      }
-   };
-
 #ifdef ADC_SC1_DIFF_MASK
    /**
     * Template class representing an ADC differential channel
@@ -1204,7 +1092,7 @@ public:
     * @code
     * // Instantiate the ADC and the differential channel (for ADC_DM0, ADC_DP0)
     * using Adc0 = AdcBase_T<Adc0Info>;
-    * using Adc0Ch6 = Adc0::DiffChannel<0>;
+    * using Adc0Ch6 = Adc0::DiffChannel<AdcChannelNum_Diff1>;
     *
     * // Set ADC resolution
     * Adc0.setMode(AdcResolution_11bit_diff );
@@ -1216,7 +1104,10 @@ public:
     * @tparam channel ADC channel
     */
    template<AdcChannelNum channel>
-   class DiffChannel : public ChannelCommon<AdcChannelNum(channel|ADC_SC1_DIFF_MASK)> {
+   class DiffChannel : public ChannelCommon<channel> {
+
+      static_assert((channel>=AdcChannelNum_DiffFirst)&&(channel<=AdcChannelNum_DiffLast), "Illegal differential channel number");
+
    private:
       /**
        * This class is not intended to be instantiated
@@ -1224,20 +1115,20 @@ public:
       DiffChannel(const DiffChannel&) = delete;
       DiffChannel(DiffChannel&&) = delete;
 
-      CheckPinExistsAndIsMapped<typename Info::InfoDP, channel&ADC_SC1_ADCH_MASK> checkPos;
-      CheckPinExistsAndIsMapped<typename Info::InfoDM, channel&ADC_SC1_ADCH_MASK> checkNeg;
+      CheckPinExistsAndIsMapped<Info, channel>   checkPos;
+      CheckPinExistsAndIsMapped<Info, channel+4> checkNeg;
 
    public:
-      constexpr DiffChannel() : ChannelCommon<AdcChannelNum(channel|ADC_SC1_DIFF_MASK)>() {}
+      constexpr DiffChannel() : ChannelCommon<AdcChannelNum(channel)>() {}
 
       /** PCR associated with plus channel */
-      using PcrP = PcrTable_T<typename Info::InfoDP, limitIndex<typename Info::InfoDP>(channel)>;
+      using PcrP = PcrTable_T<Info, channel>;
 
       /** PCR associated with minus channel */
-      using PcrM = PcrTable_T<typename Info::InfoDM, limitIndex<typename Info::InfoDM>(channel)>;
+      using PcrM = PcrTable_T<Info, channel>;
 
       /** The ADC that owns this channel */
-      using OwningAdc = AdcBase_T;
+      using Owner = AdcBase_T;
 
       /** Information about this ADC */
       using AdcInfo = Info;
@@ -1252,8 +1143,8 @@ public:
        */
       static void setInput() {
          // Map pins to ADC
-         PcrP::setPCR(Info::InfoDP::info[channel].pcrValue);
-         PcrM::setPCR(Info::InfoDM::info[channel].pcrValue);
+         PcrP::setPCR(Info::info[channel].pcrValue);
+         PcrM::setPCR(Info::info[channel].pcrValue);
       }
 
       /**
@@ -1265,7 +1156,7 @@ public:
        */
       static void disablePin() {
          // Map pin to ADC
-         if constexpr (AdcInfo::InfoDP::info[channel].portAddress != 0) {
+         if constexpr (AdcInfo::InfoDP::info[0x1f&mapChannelNumToPhysicalChannelNum(channel)].portAddress != 0) {
             PcrP::disablePin();
             PcrM::disablePin();
          }
@@ -1289,7 +1180,7 @@ public:
     * uint32_t value = Adc0Ch6::readAnalogue();
     * @endcode
     */
-   class PgaDiffChannel : public DiffChannel<2> {
+   class PgaDiffChannel : public DiffChannel<AdcChannelNum_Diff2> {
 
    private:
       /**

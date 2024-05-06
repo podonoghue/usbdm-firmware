@@ -31,7 +31,7 @@ namespace USBDM {
  * @brief Hardware Peripheral Interface and library
  * @{
  */
-/* Template:_common_settings.xml */
+/* Template:common_settings.xml */
 
    /**
     *  Enables mapping of all allocated pins during startup using mapAllPins()
@@ -219,7 +219,7 @@ namespace USBDM {
                : :[input] "m" (cpuSR) : "r0");
       }
    };
-/* END Template:_common_settings.xml */
+/* END Template:common_settings.xml */
 
 /*
  * Peripheral Information Classes
@@ -235,27 +235,7 @@ namespace USBDM {
  * This may include pin information, constants, register addresses, and default register values,
  * along with simple accessor functions.
  */
-class GpioBasicInfo {
-
-public:
-   //! Common class based callback code has been generated for this class of peripheral
-   static constexpr bool irqHandlerInstalled = false;
-   
-   /**
-    * Type for Universal Asynchronous Receiver/Transmitter call back function.
-    */
-   typedef void (*CallbackFunction)();
-   
-   /**
-    * Callback to catch unhandled interrupt
-    */
-   static void unhandledCallback() {
-      setAndCheckErrorCode(E_NO_HANDLER);
-   }
-   
-}; // class GpioBasicInfo
-   
-class GpioAInfo : public GpioBasicInfo {
+class GpioAInfo {
 public:
    /*
     * Template:gpioa_0x400ff000
@@ -293,9 +273,6 @@ public:
       }
    }
    
-   //! Class based callback handler has been installed in vector table for this instance
-   static constexpr bool irqHandlerInstalled = false;
-   
    /**
     * Basic enable of GpioA
     * Includes enabling clock and configuring all mapped pins if mapPinsOnEnable is selected in configuration
@@ -305,7 +282,7 @@ public:
    }
    
    /**
-    * Disables the clock to GpioA and all mapped pins
+    * Disables GpioA
     */
    static void disable() {
       
@@ -317,6 +294,9 @@ public:
    
    //! Hardware base pointer
    static constexpr HardwarePtr<GPIO_Type> gpio = baseAddress;
+   
+   //! Class based callback handler has been installed in vector table for this instance
+   static constexpr bool irqHandlerInstalled = false;
    
    //! Number of signals available in info table
    static constexpr int numSignals  = 20;
@@ -375,7 +355,7 @@ public:
  * This may include pin information, constants, register addresses, and default register values,
  * along with simple accessor functions.
  */
-class GpioBInfo : public GpioBasicInfo {
+class GpioBInfo {
 public:
    /*
     * Template:gpioa_0x400ff000
@@ -413,12 +393,6 @@ public:
       }
    }
    
-   //! Class based callback handler has been installed in vector table for this instance
-   static constexpr bool irqHandlerInstalled = true;
-   
-   //! Default IRQ level
-   static constexpr NvicPriority irqLevel =  NvicPriority_NotInstalled;
-   
    /**
     * Basic enable of GpioB
     * Includes enabling clock and configuring all mapped pins if mapPinsOnEnable is selected in configuration
@@ -428,7 +402,7 @@ public:
    }
    
    /**
-    * Disables the clock to GpioB and all mapped pins
+    * Disables GpioB
     */
    static void disable() {
       
@@ -441,37 +415,8 @@ public:
    //! Hardware base pointer
    static constexpr HardwarePtr<GPIO_Type> gpio = baseAddress;
    
-   /** Callback function for Universal Asynchronous Receiver/Transmitter */
-   static CallbackFunction sCallback;
-   
-   /**
-    * Universal Asynchronous Receiver/Transmitter interrupt handler
-    * Passes control to call-back function
-    */
-   static void irqHandler() {
-   
-      // Execute call-back
-      sCallback();
-   }
-   
-   /**
-    * Set Universal Asynchronous Receiver/Transmitter callback function.
-    *
-    * @param      gpioCallback Callback function to execute on interrupt
-    *                             Use nullptr to remove callback.
-    */
-   static void setCallback(CallbackFunction gpioCallback) {
-      if (gpioCallback == nullptr) {
-         gpioCallback = (CallbackFunction)unhandledCallback;
-      }
-      // Allow either no handler set yet or removing handler
-      usbdm_assert(
-            ((void*)sCallback == (void*)unhandledCallback) ||
-            ((void*)gpioCallback == (void*)unhandledCallback),
-            "Handler already set");
-      sCallback = gpioCallback;
-   }
-   
+   //! Class based callback handler has been installed in vector table for this instance
+   static constexpr bool irqHandlerInstalled = true;
    
    //! Number of signals available in info table
    static constexpr int numSignals  = 20;
@@ -530,7 +475,7 @@ public:
  * This may include pin information, constants, register addresses, and default register values,
  * along with simple accessor functions.
  */
-class GpioCInfo : public GpioBasicInfo {
+class GpioCInfo {
 public:
    /*
     * Template:gpioa_0x400ff000
@@ -568,9 +513,6 @@ public:
       }
    }
    
-   //! Class based callback handler has been installed in vector table for this instance
-   static constexpr bool irqHandlerInstalled = false;
-   
    /**
     * Basic enable of GpioC
     * Includes enabling clock and configuring all mapped pins if mapPinsOnEnable is selected in configuration
@@ -580,7 +522,7 @@ public:
    }
    
    /**
-    * Disables the clock to GpioC and all mapped pins
+    * Disables GpioC
     */
    static void disable() {
       
@@ -593,6 +535,9 @@ public:
    //! Hardware base pointer
    static constexpr HardwarePtr<GPIO_Type> gpio = baseAddress;
    
+   //! Class based callback handler has been installed in vector table for this instance
+   static constexpr bool irqHandlerInstalled = false;
+   
    //! Number of signals available in info table
    static constexpr int numSignals  = 12;
 
@@ -602,7 +547,7 @@ public:
          //      Signal                 Pin                                  PinIndex                PCR value
          /*   0: GPIOC_0              = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
          /*   1: GPIOC_1              = PTC1(p22)                      */  { PinIndex::PTC1,         PcrValue(0x00100UL) },
-         /*   2: GPIOC_2              = PTC2(p23)                      */  { PinIndex::PTC2,         PcrValue(0x00100UL) },
+         /*   2: GPIOC_2              = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
          /*   3: GPIOC_3              = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
          /*   4: GPIOC_4              = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
          /*   5: GPIOC_5              = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
@@ -621,7 +566,7 @@ public:
     */
    static void initPCRs() {
       enablePortClocks(USBDM::PORTC_CLOCK_MASK);
-      PORTC->GPCLR = 0x0100UL|PORT_GPCLR_GPWE(0x0006UL);
+      PORTC->GPCLR = 0x0100UL|PORT_GPCLR_GPWE(0x0002UL);
    }
 
    /**
@@ -631,7 +576,7 @@ public:
     */
    static void clearPCRs() {
       enablePortClocks(USBDM::PORTC_CLOCK_MASK);
-      PORTC->GPCLR = PinMux_Disabled|PORT_GPCLR_GPWE(0x0006UL);
+      PORTC->GPCLR = PinMux_Disabled|PORT_GPCLR_GPWE(0x0002UL);
    }
 
 }; // class GpioCInfo
@@ -642,7 +587,7 @@ public:
  * This may include pin information, constants, register addresses, and default register values,
  * along with simple accessor functions.
  */
-class GpioDInfo : public GpioBasicInfo {
+class GpioDInfo {
 public:
    /*
     * Template:gpioa_0x400ff000
@@ -680,12 +625,6 @@ public:
       }
    }
    
-   //! Class based callback handler has been installed in vector table for this instance
-   static constexpr bool irqHandlerInstalled = true;
-   
-   //! Default IRQ level
-   static constexpr NvicPriority irqLevel =  NvicPriority_NotInstalled;
-   
    /**
     * Basic enable of GpioD
     * Includes enabling clock and configuring all mapped pins if mapPinsOnEnable is selected in configuration
@@ -695,7 +634,7 @@ public:
    }
    
    /**
-    * Disables the clock to GpioD and all mapped pins
+    * Disables GpioD
     */
    static void disable() {
       
@@ -708,37 +647,8 @@ public:
    //! Hardware base pointer
    static constexpr HardwarePtr<GPIO_Type> gpio = baseAddress;
    
-   /** Callback function for Universal Asynchronous Receiver/Transmitter */
-   static CallbackFunction sCallback;
-   
-   /**
-    * Universal Asynchronous Receiver/Transmitter interrupt handler
-    * Passes control to call-back function
-    */
-   static void irqHandler() {
-   
-      // Execute call-back
-      sCallback();
-   }
-   
-   /**
-    * Set Universal Asynchronous Receiver/Transmitter callback function.
-    *
-    * @param      gpioCallback Callback function to execute on interrupt
-    *                             Use nullptr to remove callback.
-    */
-   static void setCallback(CallbackFunction gpioCallback) {
-      if (gpioCallback == nullptr) {
-         gpioCallback = (CallbackFunction)unhandledCallback;
-      }
-      // Allow either no handler set yet or removing handler
-      usbdm_assert(
-            ((void*)sCallback == (void*)unhandledCallback) ||
-            ((void*)gpioCallback == (void*)unhandledCallback),
-            "Handler already set");
-      sCallback = gpioCallback;
-   }
-   
+   //! Class based callback handler has been installed in vector table for this instance
+   static constexpr bool irqHandlerInstalled = true;
    
    //! Number of signals available in info table
    static constexpr int numSignals  = 8;
@@ -752,7 +662,7 @@ public:
          /*   2: GPIOD_2              = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
          /*   3: GPIOD_3              = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
          /*   4: GPIOD_4              = PTD4(p29)                      */  { PinIndex::PTD4,         PcrValue(0x00100UL) },
-         /*   5: GPIOD_5              = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
+         /*   5: GPIOD_5              = PTD5(p30)                      */  { PinIndex::PTD5,         PcrValue(0x00100UL) },
          /*   6: GPIOD_6              = PTD6(p31)                      */  { PinIndex::PTD6,         PcrValue(0x00100UL) },
          /*   7: GPIOD_7              = PTD7(p32)                      */  { PinIndex::PTD7,         PcrValue(0x00100UL) },
    };
@@ -764,7 +674,7 @@ public:
     */
    static void initPCRs() {
       enablePortClocks(USBDM::PORTD_CLOCK_MASK);
-      PORTD->GPCLR = 0x0100UL|PORT_GPCLR_GPWE(0x00D0UL);
+      PORTD->GPCLR = 0x0100UL|PORT_GPCLR_GPWE(0x00F0UL);
    }
 
    /**
@@ -774,7 +684,7 @@ public:
     */
    static void clearPCRs() {
       enablePortClocks(USBDM::PORTD_CLOCK_MASK);
-      PORTD->GPCLR = PinMux_Disabled|PORT_GPCLR_GPWE(0x00D0UL);
+      PORTD->GPCLR = PinMux_Disabled|PORT_GPCLR_GPWE(0x00F0UL);
    }
 
 }; // class GpioDInfo
@@ -785,13 +695,13 @@ public:
  * This may include pin information, constants, register addresses, and default register values,
  * along with simple accessor functions.
  */
-class GpioEInfo : public GpioBasicInfo {
+class GpioEInfo {
 public:
    /*
     * Template:gpioa_0x400ff000
     */
    //! Map all allocated pins on a peripheral when enabled
-   static constexpr bool mapPinsOnEnable = true;
+   static constexpr bool mapPinsOnEnable = false;
 
 
    
@@ -823,30 +733,14 @@ public:
       }
    }
    
-   //! Class based callback handler has been installed in vector table for this instance
-   static constexpr bool irqHandlerInstalled = false;
-   
-   /**
-    * Basic enable of GpioE
-    * Includes enabling clock and configuring all mapped pins if mapPinsOnEnable is selected in configuration
-    */
-   static void enable() {
-      configureAllPins();
-   }
-   
-   /**
-    * Disables the clock to GpioE and all mapped pins
-    */
-   static void disable() {
-      
-      disableAllPins();
-   }
-   
    //! Hardware base address as uint32_t
    static constexpr uint32_t baseAddress = GPIOE_BasePtr;
    
    //! Hardware base pointer
    static constexpr HardwarePtr<GPIO_Type> gpio = baseAddress;
+   
+   //! Class based callback handler has been installed in vector table for this instance
+   static constexpr bool irqHandlerInstalled = false;
    
    //! Number of signals available in info table
    static constexpr int numSignals  = 2;
@@ -900,9 +794,9 @@ public:
     * Note that selecting reset is a write-once selection
     */
    enum PmcLowVoltageAction : uint8_t {
-      PmcLowVoltageAction_None      = PMC_LVDSC1_LVDRE(0)|PMC_LVDSC1_LVDIE(0), ///< None
-      PmcLowVoltageAction_Interrupt = PMC_LVDSC1_LVDRE(0)|PMC_LVDSC1_LVDIE(1), ///< Interrupt
-      PmcLowVoltageAction_Reset     = PMC_LVDSC1_LVDRE(1)|PMC_LVDSC1_LVDIE(0), ///< Reset (write-once)
+      PmcLowVoltageAction_None        = PMC_LVDSC1_LVDRE(0)|PMC_LVDSC1_LVDIE(0),  ///< None
+      PmcLowVoltageAction_Interrupt   = PMC_LVDSC1_LVDRE(0)|PMC_LVDSC1_LVDIE(1),  ///< Interrupt
+      PmcLowVoltageAction_Reset       = PMC_LVDSC1_LVDRE(1)|PMC_LVDSC1_LVDIE(0),  ///< Reset (write-once)
    };
 
    /**
@@ -912,8 +806,8 @@ public:
     * Selects the LVD trip point voltage (Vlvd)
     */
    enum PmcLowVoltageDetectLevel : uint8_t {
-      PmcLowVoltageDetectLevel_Low  = PMC_LVDSC1_LVDV(0), ///< Low trip point selected
-      PmcLowVoltageDetectLevel_High = PMC_LVDSC1_LVDV(1), ///< High trip point selected
+      PmcLowVoltageDetectLevel_Low    = PMC_LVDSC1_LVDV(0),  ///< Low trip point selected
+      PmcLowVoltageDetectLevel_High   = PMC_LVDSC1_LVDV(1),  ///< High trip point selected
    };
 
    /**
@@ -923,8 +817,8 @@ public:
     * This read-only status bit indicates a low-voltage detect event
     */
    enum PmcLowVoltageDetect {
-      PmcLowVoltageDetect_NotDetected = PMC_LVDSC1_LVDF(0), ///< NotDetected
-      PmcLowVoltageDetect_Detected    = PMC_LVDSC1_LVDF(1), ///< Detected
+      PmcLowVoltageDetect_NotDetected   = PMC_LVDSC1_LVDF(0),  ///< NotDetected
+      PmcLowVoltageDetect_Detected      = PMC_LVDSC1_LVDF(1),  ///< Detected
    };
 
    /**
@@ -934,7 +828,7 @@ public:
     * Clears low voltage warning error detection flag
     */
    enum PmcLowVoltageAck {
-      PmcLowVoltageAck_Ack = PMC_LVDSC1_LVDACK(1), ///< Disabled
+      PmcLowVoltageAck_Ack   = PMC_LVDSC1_LVDACK(1),  ///< Disabled
    };
 
    /**
@@ -944,8 +838,8 @@ public:
     * Action to take on Low Voltage Warning
     */
    enum PmcLowVoltageWarningAction : uint8_t {
-      PmcLowVoltageWarningAction_None      = PMC_LVDSC2_LVWIE(0), ///< No action
-      PmcLowVoltageWarningAction_Interrupt = PMC_LVDSC2_LVWIE(1), ///< Interrupt
+      PmcLowVoltageWarningAction_None        = PMC_LVDSC2_LVWIE(0),  ///< No action
+      PmcLowVoltageWarningAction_Interrupt   = PMC_LVDSC2_LVWIE(1),  ///< Interrupt
    };
 
    /**
@@ -956,10 +850,10 @@ public:
     * The actual voltage for the warning depends on pmc_lvdsc1_lvdv
     */
    enum PmcLowVoltageWarningLevel : uint8_t {
-      PmcLowVoltageWarningLevel_Low     = PMC_LVDSC2_LVWV(0), ///< Low trip point selected
-      PmcLowVoltageWarningLevel_MidLow  = PMC_LVDSC2_LVWV(1), ///< Mid 1 trip point selected
-      PmcLowVoltageWarningLevel_MidHigh = PMC_LVDSC2_LVWV(2), ///< Mid 2 trip point selected
-      PmcLowVoltageWarningLevel_High    = PMC_LVDSC2_LVWV(3), ///< High trip point selected
+      PmcLowVoltageWarningLevel_Low       = PMC_LVDSC2_LVWV(0),  ///< Low trip point selected
+      PmcLowVoltageWarningLevel_MidLow    = PMC_LVDSC2_LVWV(1),  ///< Mid 1 trip point selected
+      PmcLowVoltageWarningLevel_MidHigh   = PMC_LVDSC2_LVWV(2),  ///< Mid 2 trip point selected
+      PmcLowVoltageWarningLevel_High      = PMC_LVDSC2_LVWV(3),  ///< High trip point selected
    };
 
    /**
@@ -969,7 +863,7 @@ public:
     * Clears low voltage warning detection flag
     */
    enum PmcLowVoltageWarningAck {
-      PmcLowVoltageWarningAck_Ack = PMC_LVDSC2_LVWACK(0), ///< Disabled
+      PmcLowVoltageWarningAck_Ack   = PMC_LVDSC2_LVWACK(0),  ///< Disabled
    };
 
    /**
@@ -980,8 +874,8 @@ public:
     * LVWF is set when VSupply transitions below the trip point
     */
    enum PmcLvdsc2Lvwf {
-      PmcLvdsc2Lvwf_NoEvent            = PMC_LVDSC2_LVWF(0), ///< No event
-      PmcLvdsc2Lvwf_LowVoltageDetected = PMC_LVDSC2_LVWF(1), ///< Low-voltage detected
+      PmcLvdsc2Lvwf_NoEvent              = PMC_LVDSC2_LVWF(0),  ///< No event
+      PmcLvdsc2Lvwf_LowVoltageDetected   = PMC_LVDSC2_LVWF(1),  ///< Low-voltage detected
    };
 
    /**
@@ -992,8 +886,8 @@ public:
     * lower power modes of operation (VLPx, LLS, and VLLSx)
     */
    enum PmcBandgapOperationInLowPower : uint8_t {
-      PmcBandgapOperationInLowPower_Disabled = PMC_REGSC_BGEN(0), ///< Disabled
-      PmcBandgapOperationInLowPower_Enabled  = PMC_REGSC_BGEN(1), ///< Enabled
+      PmcBandgapOperationInLowPower_Disabled   = PMC_REGSC_BGEN(0),  ///< Disabled
+      PmcBandgapOperationInLowPower_Enabled    = PMC_REGSC_BGEN(1),  ///< Enabled
    };
 
    /**
@@ -1003,8 +897,8 @@ public:
     * Controls whether the band-gap reference is available to internal devices e.g. CMP etc
     */
    enum PmcBandgapBuffer : uint8_t {
-      PmcBandgapBuffer_Disabled = PMC_REGSC_BGBE(0), ///< Disabled
-      PmcBandgapBuffer_Enabled  = PMC_REGSC_BGBE(1), ///< Enabled
+      PmcBandgapBuffer_Disabled   = PMC_REGSC_BGBE(0),  ///< Disabled
+      PmcBandgapBuffer_Enabled    = PMC_REGSC_BGBE(1),  ///< Enabled
    };
 
    /**
@@ -1017,8 +911,8 @@ public:
     * normal run mode state.
     */
    enum PmcPinStatus {
-      PmcPinStatus_NotIsolated = PMC_REGSC_ACKISO(0), ///< Not isolated
-      PmcPinStatus_Isolated    = PMC_REGSC_ACKISO(1), ///< Isolated
+      PmcPinStatus_NotIsolated   = PMC_REGSC_ACKISO(0),  ///< Not isolated
+      PmcPinStatus_Isolated      = PMC_REGSC_ACKISO(1),  ///< Isolated
    };
 
    /**
@@ -1028,15 +922,15 @@ public:
     * Indicates the current status of the internal voltage regulator.
     */
    enum PmcRegulator {
-      PmcRegulator_InStopMode = PMC_REGSC_REGONS(0), ///< Stop mode
-      PmcRegulator_InRunMode  = PMC_REGSC_REGONS(1), ///< Run mode
+      PmcRegulator_InStopMode   = PMC_REGSC_REGONS(0),  ///< Stop mode
+      PmcRegulator_InRunMode    = PMC_REGSC_REGONS(1),  ///< Run mode
    };
 
 class PmcBasicInfo {
 
 public:
-}; // class PmcBasicInfo
-   
+}; // class PmcBasicInfo 
+
 class PmcInfo : public PmcBasicInfo {
 public:
    /*
@@ -1047,6 +941,30 @@ public:
    
    //! Number of IRQs for hardware
    static constexpr uint32_t irqCount  = sizeofArray(irqNums);
+   
+   /**
+    * Enable interrupts in NVIC
+    */
+   static void enableNvicInterrupts() {
+      NVIC_EnableIRQ(irqNums[0]);
+   }
+   
+   /**
+    * Enable and set priority of interrupts in NVIC
+    * Any pending NVIC interrupts are first cleared.
+    *
+    * @param[in]  nvicPriority  Interrupt priority
+    */
+   static void enableNvicInterrupts(NvicPriority nvicPriority) {
+      enableNvicInterrupt(irqNums[0], nvicPriority);
+   }
+   
+   /**
+    * Disable interrupts in NVIC
+    */
+   static void disableNvicInterrupts() {
+      NVIC_DisableIRQ(irqNums[0]);
+   }
    
    //! Hardware base address as uint32_t
    static constexpr uint32_t baseAddress = PMC_BasePtr;
@@ -1099,8 +1017,8 @@ public:
     * The oscillator will also be enabled if used by MCG
     */
    enum OscErClkEn {
-      OscErClkEn_Disabled = OSC_CR_ERCLKEN(0), ///< Disabled
-      OscErClkEn_Enabled  = OSC_CR_ERCLKEN(1), ///< Enabled
+      OscErClkEn_Disabled   = OSC_CR_ERCLKEN(0),  ///< Disabled
+      OscErClkEn_Enabled    = OSC_CR_ERCLKEN(1),  ///< Enabled
    };
 
    /**
@@ -1110,22 +1028,22 @@ public:
     * Configures the oscillator load capacitance
     */
    enum OscCap {
-      OscCap_None = OSC_CR_SCP(0),  ///< 0 pF
-      OscCap_2pf  = OSC_CR_SCP(8),  ///< 2 pF
-      OscCap_4pf  = OSC_CR_SCP(4),  ///< 4 pF
-      OscCap_6pf  = OSC_CR_SCP(12), ///< 6 pF
-      OscCap_8pf  = OSC_CR_SCP(2),  ///< 8 pF
-      OscCap_10pf = OSC_CR_SCP(10), ///< 10 pF
-      OscCap_12pf = OSC_CR_SCP(6),  ///< 12 pF
-      OscCap_14pf = OSC_CR_SCP(14), ///< 14 pF
-      OscCap_16pf = OSC_CR_SCP(1),  ///< 16 pF
-      OscCap_18pf = OSC_CR_SCP(9),  ///< 18 pF
-      OscCap_20pf = OSC_CR_SCP(5),  ///< 20 pF
-      OscCap_22pf = OSC_CR_SCP(13), ///< 22 pF
-      OscCap_24pf = OSC_CR_SCP(3),  ///< 24 pF
-      OscCap_26pf = OSC_CR_SCP(11), ///< 26 pF
-      OscCap_28pf = OSC_CR_SCP(7),  ///< 28 pF
-      OscCap_30pf = OSC_CR_SCP(15), ///< 30 pF
+      OscCap_None   = OSC_CR_SCP(0),   ///< 0 pF
+      OscCap_2pf    = OSC_CR_SCP(8),   ///< 2 pF
+      OscCap_4pf    = OSC_CR_SCP(4),   ///< 4 pF
+      OscCap_6pf    = OSC_CR_SCP(12),  ///< 6 pF
+      OscCap_8pf    = OSC_CR_SCP(2),   ///< 8 pF
+      OscCap_10pf   = OSC_CR_SCP(10),  ///< 10 pF
+      OscCap_12pf   = OSC_CR_SCP(6),   ///< 12 pF
+      OscCap_14pf   = OSC_CR_SCP(14),  ///< 14 pF
+      OscCap_16pf   = OSC_CR_SCP(1),   ///< 16 pF
+      OscCap_18pf   = OSC_CR_SCP(9),   ///< 18 pF
+      OscCap_20pf   = OSC_CR_SCP(5),   ///< 20 pF
+      OscCap_22pf   = OSC_CR_SCP(13),  ///< 22 pF
+      OscCap_24pf   = OSC_CR_SCP(3),   ///< 24 pF
+      OscCap_26pf   = OSC_CR_SCP(11),  ///< 26 pF
+      OscCap_28pf   = OSC_CR_SCP(7),   ///< 28 pF
+      OscCap_30pf   = OSC_CR_SCP(15),  ///< 30 pF
    };
 
    /**
@@ -1135,11 +1053,11 @@ public:
     * Determines if external reference clock is enabled in Stop mode
     */
    enum OscExternalRef {
-      OscExternalRef_DisabledInStop = OSC_CR_EREFSTEN(0), ///< Disabled in Stop mode
-      OscExternalRef_EnabledInStop  = OSC_CR_EREFSTEN(1), ///< Enabled in Stop mode
+      OscExternalRef_DisabledInStop   = OSC_CR_EREFSTEN(0),  ///< Disabled in Stop mode
+      OscExternalRef_EnabledInStop    = OSC_CR_EREFSTEN(1),  ///< Enabled in Stop mode
    };
 
-class Osc0BasicInfo {
+class OscBasicInfo {
 
 public:
    /**
@@ -1224,9 +1142,9 @@ public:
    
    }; // class OscBasicInfo::Init
    
-}; // class OscBasicInfo
+}; // class OscBasicInfo 
 
-class Osc0Info : public Osc0BasicInfo {
+class Osc0Info : public OscBasicInfo {
 public:
    /*
     * Template:osc0_mk
@@ -1273,7 +1191,7 @@ public:
    }
    
    /**
-    * Disables the clock to Osc0 and all mapped pins
+    * Disables Osc0
     */
    static void disable() {
       
@@ -1411,8 +1329,8 @@ public:
     * Used to identify peripheral interrupt
     */
    enum RtcIrqNum {
-      RtcIrqNum_Alarm   = 0, ///< Real Time Clock Alarm
-      RtcIrqNum_Seconds = 1, ///< Real Time Clock Seconds
+      RtcIrqNum_Alarm     = 0,  ///< Real Time Clock Alarm
+      RtcIrqNum_Seconds   = 1,  ///< Real Time Clock Seconds
    };
 
    /**
@@ -1422,8 +1340,8 @@ public:
     * Enable 32kHz RTC oscillator
     */
    enum RtcOscEnable : uint16_t {
-      RtcOscEnable_Disabled = RTC_CR_OSCE(0), ///< Disabled
-      RtcOscEnable_Enabled  = RTC_CR_OSCE(1), ///< Enabled
+      RtcOscEnable_Disabled   = RTC_CR_OSCE(0),  ///< Disabled
+      RtcOscEnable_Enabled    = RTC_CR_OSCE(1),  ///< Enabled
    };
 
    /**
@@ -1433,8 +1351,8 @@ public:
     * Determines if RTC 32kHz Clock is available to peripherals
     */
    enum RtcClockOut : uint16_t {
-      RtcClockOut_Disabled = RTC_CR_CLKO(1), ///< Clock not output to peripherals
-      RtcClockOut_Enabled  = RTC_CR_CLKO(0), ///< Clock is output to peripherals
+      RtcClockOut_Disabled   = RTC_CR_CLKO(1),  ///< Clock not output to peripherals
+      RtcClockOut_Enabled    = RTC_CR_CLKO(0),  ///< Clock is output to peripherals
    };
 
    /**
@@ -1444,22 +1362,22 @@ public:
     * Configures the oscillator load capacitance
     */
    enum RtcOscLoadCap : uint16_t {
-      RtcOscLoadCap_None = RTC_CR_SCP(0),  ///< 0 pF
-      RtcOscLoadCap_2pf  = RTC_CR_SCP(8),  ///< 2 pF
-      RtcOscLoadCap_4pf  = RTC_CR_SCP(4),  ///< 4 pF
-      RtcOscLoadCap_6pf  = RTC_CR_SCP(12), ///< 6 pF
-      RtcOscLoadCap_8pf  = RTC_CR_SCP(2),  ///< 8 pF
-      RtcOscLoadCap_10pf = RTC_CR_SCP(10), ///< 10 pF
-      RtcOscLoadCap_12pf = RTC_CR_SCP(6),  ///< 12 pF
-      RtcOscLoadCap_14pf = RTC_CR_SCP(14), ///< 14 pF
-      RtcOscLoadCap_16pf = RTC_CR_SCP(1),  ///< 16 pF
-      RtcOscLoadCap_18pf = RTC_CR_SCP(9),  ///< 18 pF
-      RtcOscLoadCap_20pf = RTC_CR_SCP(5),  ///< 20 pF
-      RtcOscLoadCap_22pf = RTC_CR_SCP(13), ///< 22 pF
-      RtcOscLoadCap_24pf = RTC_CR_SCP(3),  ///< 24 pF
-      RtcOscLoadCap_26pf = RTC_CR_SCP(11), ///< 26 pF
-      RtcOscLoadCap_28pf = RTC_CR_SCP(7),  ///< 28 pF
-      RtcOscLoadCap_30pf = RTC_CR_SCP(15), ///< 30 pF
+      RtcOscLoadCap_None   = RTC_CR_SCP(0),   ///< 0 pF
+      RtcOscLoadCap_2pf    = RTC_CR_SCP(8),   ///< 2 pF
+      RtcOscLoadCap_4pf    = RTC_CR_SCP(4),   ///< 4 pF
+      RtcOscLoadCap_6pf    = RTC_CR_SCP(12),  ///< 6 pF
+      RtcOscLoadCap_8pf    = RTC_CR_SCP(2),   ///< 8 pF
+      RtcOscLoadCap_10pf   = RTC_CR_SCP(10),  ///< 10 pF
+      RtcOscLoadCap_12pf   = RTC_CR_SCP(6),   ///< 12 pF
+      RtcOscLoadCap_14pf   = RTC_CR_SCP(14),  ///< 14 pF
+      RtcOscLoadCap_16pf   = RTC_CR_SCP(1),   ///< 16 pF
+      RtcOscLoadCap_18pf   = RTC_CR_SCP(9),   ///< 18 pF
+      RtcOscLoadCap_20pf   = RTC_CR_SCP(5),   ///< 20 pF
+      RtcOscLoadCap_22pf   = RTC_CR_SCP(13),  ///< 22 pF
+      RtcOscLoadCap_24pf   = RTC_CR_SCP(3),   ///< 24 pF
+      RtcOscLoadCap_26pf   = RTC_CR_SCP(11),  ///< 26 pF
+      RtcOscLoadCap_28pf   = RTC_CR_SCP(7),   ///< 28 pF
+      RtcOscLoadCap_30pf   = RTC_CR_SCP(15),  ///< 30 pF
    };
 
    /**
@@ -1473,8 +1391,8 @@ public:
     * - Timer has overflowed (SR[TOF] set)
     */
    enum RtcTimeCounterEnableUpdate : uint16_t {
-      RtcTimeCounterEnableUpdate_Prevented = RTC_CR_UM(0), ///< Timer enable can not be modified when locked
-      RtcTimeCounterEnableUpdate_Allowed   = RTC_CR_UM(1), ///< Timer can be modified under limited conditions
+      RtcTimeCounterEnableUpdate_Prevented   = RTC_CR_UM(0),  ///< Timer enable can not be modified when locked
+      RtcTimeCounterEnableUpdate_Allowed     = RTC_CR_UM(1),  ///< Timer can be modified under limited conditions
    };
 
    /**
@@ -1485,8 +1403,8 @@ public:
     * Non supported write accesses generate a bus error
     */
    enum RtcUserWriteAccess : uint16_t {
-      RtcUserWriteAccess_Prevented = RTC_CR_SUP(0), ///< Non-supervisor write accesses not supported
-      RtcUserWriteAccess_Allowed   = RTC_CR_SUP(1), ///< Non-supervisor write accesses supported
+      RtcUserWriteAccess_Prevented   = RTC_CR_SUP(0),  ///< Non-supervisor write accesses not supported
+      RtcUserWriteAccess_Allowed     = RTC_CR_SUP(1),  ///< Non-supervisor write accesses supported
    };
 
    /**
@@ -1496,8 +1414,8 @@ public:
     * Once cleared, this bit can only be set by VBAT POR or software reset
     */
    enum RtcLockRegLock : uint8_t {
-      RtcLockRegLock_Locked   = RTC_LR_LRL(0), ///< Locked
-      RtcLockRegLock_Unlocked = RTC_LR_LRL(1), ///< Unlocked
+      RtcLockRegLock_Locked     = RTC_LR_LRL(0),  ///< Locked
+      RtcLockRegLock_Unlocked   = RTC_LR_LRL(1),  ///< Unlocked
    };
 
    /**
@@ -1507,8 +1425,8 @@ public:
     * Once cleared, this bit can only be set by VBAT POR or software reset
     */
    enum RtcStatusRegLock : uint8_t {
-      RtcStatusRegLock_Locked   = RTC_LR_SRL(0), ///< Locked
-      RtcStatusRegLock_Unlocked = RTC_LR_SRL(1), ///< Unlocked
+      RtcStatusRegLock_Locked     = RTC_LR_SRL(0),  ///< Locked
+      RtcStatusRegLock_Unlocked   = RTC_LR_SRL(1),  ///< Unlocked
    };
 
    /**
@@ -1518,8 +1436,8 @@ public:
     * Once cleared, this bit can only be set by VBAT POR or software reset
     */
    enum RtcControlRegLock : uint8_t {
-      RtcControlRegLock_Locked   = RTC_LR_CRL(0), ///< Locked
-      RtcControlRegLock_Unlocked = RTC_LR_CRL(1), ///< Unlocked
+      RtcControlRegLock_Locked     = RTC_LR_CRL(0),  ///< Locked
+      RtcControlRegLock_Unlocked   = RTC_LR_CRL(1),  ///< Unlocked
    };
 
    /**
@@ -1529,8 +1447,8 @@ public:
     * Once cleared, this bit can only be set by VBAT POR or software reset
     */
    enum RtcTimeCompensationRegLock : uint8_t {
-      RtcTimeCompensationRegLock_Locked   = RTC_LR_TCL(0), ///< Locked
-      RtcTimeCompensationRegLock_Unlocked = RTC_LR_TCL(1), ///< Unlocked
+      RtcTimeCompensationRegLock_Locked     = RTC_LR_TCL(0),  ///< Locked
+      RtcTimeCompensationRegLock_Unlocked   = RTC_LR_TCL(1),  ///< Unlocked
    };
 
    /**
@@ -1541,8 +1459,8 @@ public:
     * It is not affected by VBAT POR or software reset
     */
    enum RtcWarIerw : uint8_t {
-      RtcWarIerw_WritesIgnored = RTC_WAR_IERW(0), ///< Writes ignored
-      RtcWarIerw_WritesAllowed = RTC_WAR_IERW(1), ///< Writes allowed
+      RtcWarIerw_WritesIgnored   = RTC_WAR_IERW(0),  ///< Writes ignored
+      RtcWarIerw_WritesAllowed   = RTC_WAR_IERW(1),  ///< Writes allowed
    };
 
    /**
@@ -1553,8 +1471,8 @@ public:
     * It is not affected by VBAT POR or software reset
     */
    enum RtcWarLrw : uint8_t {
-      RtcWarLrw_WritesIgnored = RTC_WAR_LRW(0), ///< Writes ignored
-      RtcWarLrw_WritesAllowed = RTC_WAR_LRW(1), ///< Writes allowed
+      RtcWarLrw_WritesIgnored   = RTC_WAR_LRW(0),  ///< Writes ignored
+      RtcWarLrw_WritesAllowed   = RTC_WAR_LRW(1),  ///< Writes allowed
    };
 
    /**
@@ -1565,8 +1483,8 @@ public:
     * It is not affected by VBAT POR or software reset
     */
    enum RtcWarSrw : uint8_t {
-      RtcWarSrw_WritesIgnored = RTC_WAR_SRW(0), ///< Writes ignored
-      RtcWarSrw_WritesAllowed = RTC_WAR_SRW(1), ///< Writes allowed
+      RtcWarSrw_WritesIgnored   = RTC_WAR_SRW(0),  ///< Writes ignored
+      RtcWarSrw_WritesAllowed   = RTC_WAR_SRW(1),  ///< Writes allowed
    };
 
    /**
@@ -1577,8 +1495,8 @@ public:
     * It is not affected by VBAT POR or software reset
     */
    enum RtcWarCrw {
-      RtcWarCrw_WritesIgnored = RTC_WAR_CRW(0), ///< Writes ignored
-      RtcWarCrw_WritesAllowed = RTC_WAR_CRW(1), ///< Writes allowed
+      RtcWarCrw_WritesIgnored   = RTC_WAR_CRW(0),  ///< Writes ignored
+      RtcWarCrw_WritesAllowed   = RTC_WAR_CRW(1),  ///< Writes allowed
    };
 
    /**
@@ -1589,8 +1507,8 @@ public:
     * It is not affected by VBAT POR or software reset
     */
    enum RtcWarTcrw : uint8_t {
-      RtcWarTcrw_WritesIgnored = RTC_WAR_TCRW(0), ///< Writes ignored
-      RtcWarTcrw_WritesAllowed = RTC_WAR_TCRW(1), ///< Writes allowed
+      RtcWarTcrw_WritesIgnored   = RTC_WAR_TCRW(0),  ///< Writes ignored
+      RtcWarTcrw_WritesAllowed   = RTC_WAR_TCRW(1),  ///< Writes allowed
    };
 
    /**
@@ -1601,8 +1519,8 @@ public:
     * It is not affected by VBAT POR or software reset
     */
    enum RtcWarTarw : uint8_t {
-      RtcWarTarw_WritesIgnored = RTC_WAR_TARW(0), ///< Writes ignored
-      RtcWarTarw_WritesAllowed = RTC_WAR_TARW(1), ///< Writes allowed
+      RtcWarTarw_WritesIgnored   = RTC_WAR_TARW(0),  ///< Writes ignored
+      RtcWarTarw_WritesAllowed   = RTC_WAR_TARW(1),  ///< Writes allowed
    };
 
    /**
@@ -1613,8 +1531,8 @@ public:
     * It is not affected by VBAT POR or software reset
     */
    enum RtcWarTprw : uint8_t {
-      RtcWarTprw_WritesIgnored = RTC_WAR_TPRW(0), ///< Writes ignored
-      RtcWarTprw_WritesAllowed = RTC_WAR_TPRW(1), ///< Writes allowed
+      RtcWarTprw_WritesIgnored   = RTC_WAR_TPRW(0),  ///< Writes ignored
+      RtcWarTprw_WritesAllowed   = RTC_WAR_TPRW(1),  ///< Writes allowed
    };
 
    /**
@@ -1625,8 +1543,8 @@ public:
     * It is not affected by VBAT POR or software reset
     */
    enum RtcWarTsrw : uint8_t {
-      RtcWarTsrw_WritesIgnored = RTC_WAR_TSRW(0), ///< Writes ignored
-      RtcWarTsrw_WritesAllowed = RTC_WAR_TSRW(1), ///< Writes allowed
+      RtcWarTsrw_WritesIgnored   = RTC_WAR_TSRW(0),  ///< Writes ignored
+      RtcWarTsrw_WritesAllowed   = RTC_WAR_TSRW(1),  ///< Writes allowed
    };
 
    /**
@@ -1637,8 +1555,8 @@ public:
     * It is not affected by VBAT POR or software reset
     */
    enum RtcRarIerr : uint8_t {
-      RtcRarIerr_ReadsIgnored = RTC_RAR_IERR(0), ///< Reads ignored
-      RtcRarIerr_ReadsAllowed = RTC_RAR_IERR(1), ///< Reads Allowed
+      RtcRarIerr_ReadsIgnored   = RTC_RAR_IERR(0),  ///< Reads ignored
+      RtcRarIerr_ReadsAllowed   = RTC_RAR_IERR(1),  ///< Reads Allowed
    };
 
    /**
@@ -1649,8 +1567,8 @@ public:
     * It is not affected by VBAT POR or software reset
     */
    enum RtcRarLrr : uint8_t {
-      RtcRarLrr_ReadsIgnored = RTC_RAR_LRR(0), ///< Reads ignored
-      RtcRarLrr_ReadsAllowed = RTC_RAR_LRR(1), ///< Reads Allowed
+      RtcRarLrr_ReadsIgnored   = RTC_RAR_LRR(0),  ///< Reads ignored
+      RtcRarLrr_ReadsAllowed   = RTC_RAR_LRR(1),  ///< Reads Allowed
    };
 
    /**
@@ -1661,8 +1579,8 @@ public:
     * It is not affected by VBAT POR or software reset
     */
    enum RtcRarSrr : uint8_t {
-      RtcRarSrr_ReadsIgnored = RTC_RAR_SRR(0), ///< Reads ignored
-      RtcRarSrr_ReadsAllowed = RTC_RAR_SRR(1), ///< Reads Allowed
+      RtcRarSrr_ReadsIgnored   = RTC_RAR_SRR(0),  ///< Reads ignored
+      RtcRarSrr_ReadsAllowed   = RTC_RAR_SRR(1),  ///< Reads Allowed
    };
 
    /**
@@ -1673,8 +1591,8 @@ public:
     * It is not affected by VBAT POR or software reset
     */
    enum RtcRarCrr : uint8_t {
-      RtcRarCrr_ReadsIgnored = RTC_RAR_CRR(0), ///< Reads ignored
-      RtcRarCrr_ReadsAllowed = RTC_RAR_CRR(1), ///< Reads Allowed
+      RtcRarCrr_ReadsIgnored   = RTC_RAR_CRR(0),  ///< Reads ignored
+      RtcRarCrr_ReadsAllowed   = RTC_RAR_CRR(1),  ///< Reads Allowed
    };
 
    /**
@@ -1685,8 +1603,8 @@ public:
     * It is not affected by VBAT POR or software reset
     */
    enum RtcRarTcrr : uint8_t {
-      RtcRarTcrr_ReadsIgnored = RTC_RAR_TCRR(0), ///< Reads ignored
-      RtcRarTcrr_ReadsAllowed = RTC_RAR_TCRR(1), ///< Reads Allowed
+      RtcRarTcrr_ReadsIgnored   = RTC_RAR_TCRR(0),  ///< Reads ignored
+      RtcRarTcrr_ReadsAllowed   = RTC_RAR_TCRR(1),  ///< Reads Allowed
    };
 
    /**
@@ -1697,8 +1615,8 @@ public:
     * It is not affected by VBAT POR or software reset
     */
    enum RtcRarTarr : uint8_t {
-      RtcRarTarr_ReadsIgnored = RTC_RAR_TARR(0), ///< Reads ignored
-      RtcRarTarr_ReadsAllowed = RTC_RAR_TARR(1), ///< Reads Allowed
+      RtcRarTarr_ReadsIgnored   = RTC_RAR_TARR(0),  ///< Reads ignored
+      RtcRarTarr_ReadsAllowed   = RTC_RAR_TARR(1),  ///< Reads Allowed
    };
 
    /**
@@ -1709,8 +1627,8 @@ public:
     * It is not affected by VBAT POR or software reset
     */
    enum RtcRarTprr : uint8_t {
-      RtcRarTprr_ReadsIgnored = RTC_RAR_TPRR(0), ///< Reads ignored
-      RtcRarTprr_ReadsAllowed = RTC_RAR_TPRR(1), ///< Reads Allowed
+      RtcRarTprr_ReadsIgnored   = RTC_RAR_TPRR(0),  ///< Reads ignored
+      RtcRarTprr_ReadsAllowed   = RTC_RAR_TPRR(1),  ///< Reads Allowed
    };
 
    /**
@@ -1721,8 +1639,8 @@ public:
     * It is not affected by VBAT POR or software reset
     */
    enum RtcRarTsrr : uint8_t {
-      RtcRarTsrr_ReadsIgnored = RTC_RAR_TSRR(0), ///< Reads ignored
-      RtcRarTsrr_ReadsAllowed = RTC_RAR_TSRR(1), ///< Reads Allowed
+      RtcRarTsrr_ReadsIgnored   = RTC_RAR_TSRR(0),  ///< Reads ignored
+      RtcRarTsrr_ReadsAllowed   = RTC_RAR_TSRR(1),  ///< Reads Allowed
    };
 
    /**
@@ -1801,8 +1719,8 @@ public:
     * The SWR bit is cleared by VBAT POR and by software explicitly clearing it
     */
    enum RtcSoftwareReset : uint16_t {
-      RtcSoftwareReset_NoEffect = RTC_CR_SWR(0), ///< No effect
-      RtcSoftwareReset_Assert   = RTC_CR_SWR(1), ///< Reset RTC apart from (SWR, WAR, RAR)
+      RtcSoftwareReset_NoEffect   = RTC_CR_SWR(0),  ///< No effect
+      RtcSoftwareReset_Assert     = RTC_CR_SWR(1),  ///< Reset RTC apart from (SWR, WAR, RAR)
    };
 
    /**
@@ -1813,8 +1731,8 @@ public:
     * When enabled the TSR register and TPR register are not writeable, but increment.
     */
    enum RtcCounterEnable : uint8_t {
-      RtcCounterEnable_Disabled = RTC_SR_TCE(0), ///< Disabled, TSR and TPR writeable
-      RtcCounterEnable_Enabled  = RTC_SR_TCE(1), ///< Enabled, TSR and TPR increment
+      RtcCounterEnable_Disabled   = RTC_SR_TCE(0),  ///< Disabled, TSR and TPR writeable
+      RtcCounterEnable_Enabled    = RTC_SR_TCE(1),  ///< Enabled, TSR and TPR increment
    };
 
    /**
@@ -1824,8 +1742,8 @@ public:
     * Set when alarm time reached
     */
    enum RtcTimeAlarmFLag : uint8_t {
-      RtcTimeAlarmFLag_NoAlarm       = RTC_SR_TAF(0), ///< No alarm
-      RtcTimeAlarmFLag_AlarmOccurred = RTC_SR_TAF(1), ///< Alarm occurred
+      RtcTimeAlarmFLag_NoAlarm         = RTC_SR_TAF(0),  ///< No alarm
+      RtcTimeAlarmFLag_AlarmOccurred   = RTC_SR_TAF(1),  ///< Alarm occurred
    };
 
    /**
@@ -1835,8 +1753,8 @@ public:
     * Indicates time overflow has occurred
     */
    enum RtcTimerOverflowFlag : uint8_t {
-      RtcTimerOverflowFlag_NoOverflow = RTC_SR_TOF(0), ///< No overflow
-      RtcTimerOverflowFlag_Overflow   = RTC_SR_TOF(1), ///< Overflow
+      RtcTimerOverflowFlag_NoOverflow   = RTC_SR_TOF(0),  ///< No overflow
+      RtcTimerOverflowFlag_Overflow     = RTC_SR_TOF(1),  ///< Overflow
    };
 
    /**
@@ -1846,8 +1764,8 @@ public:
     * Indicates if the time is valid
     */
    enum RtcTimeInvalidFlag : uint8_t {
-      RtcTimeInvalidFlag_Valid   = RTC_SR_TIF(0), ///< Valid
-      RtcTimeInvalidFlag_Invalid = RTC_SR_TIF(1), ///< Invalid
+      RtcTimeInvalidFlag_Valid     = RTC_SR_TIF(0),  ///< Valid
+      RtcTimeInvalidFlag_Invalid   = RTC_SR_TIF(1),  ///< Invalid
    };
 
    /**
@@ -1859,8 +1777,8 @@ public:
     * (there is no corresponding status flag to clear).
     */
    enum RtcSecondsAction : uint8_t {
-      RtcSecondsAction_None      = RTC_IER_TSIE(0), ///< Masked
-      RtcSecondsAction_Interrupt = RTC_IER_TSIE(1), ///< Enabled
+      RtcSecondsAction_None        = RTC_IER_TSIE(0),  ///< Masked
+      RtcSecondsAction_Interrupt   = RTC_IER_TSIE(1),  ///< Enabled
    };
 
    /**
@@ -1870,8 +1788,8 @@ public:
     * Interrupt enable for Alarm
     */
    enum RtcAlarmAction : uint8_t {
-      RtcAlarmAction_None      = RTC_IER_TAIE(0), ///< Masked
-      RtcAlarmAction_Interrupt = RTC_IER_TAIE(1), ///< Enabled
+      RtcAlarmAction_None        = RTC_IER_TAIE(0),  ///< Masked
+      RtcAlarmAction_Interrupt   = RTC_IER_TAIE(1),  ///< Enabled
    };
 
    /**
@@ -1881,8 +1799,8 @@ public:
     * Interrupt enable for overflow
     */
    enum RtcOverflowAction : uint8_t {
-      RtcOverflowAction_None      = RTC_IER_TOIE(0), ///< Masked
-      RtcOverflowAction_Interrupt = RTC_IER_TOIE(1), ///< Enabled
+      RtcOverflowAction_None        = RTC_IER_TOIE(0),  ///< Masked
+      RtcOverflowAction_Interrupt   = RTC_IER_TOIE(1),  ///< Enabled
    };
 
    /**
@@ -1892,8 +1810,8 @@ public:
     * Interrupt enable for time valule invalid
     */
    enum RtcTimeInvalidAction : uint8_t {
-      RtcTimeInvalidAction_None      = RTC_IER_TIIE(0), ///< Masked
-      RtcTimeInvalidAction_Interrupt = RTC_IER_TIIE(1), ///< Enabled
+      RtcTimeInvalidAction_None        = RTC_IER_TIIE(0),  ///< Masked
+      RtcTimeInvalidAction_Interrupt   = RTC_IER_TIIE(1),  ///< Enabled
    };
 
    /**
@@ -1904,15 +1822,15 @@ public:
     * The wake-up pin is optional and not available on all devices
     */
    enum RtcWakeupPin : uint16_t {
-      RtcWakeupPin_Disabled = RTC_CR_WPE(0), ///< Wake-up pin is disabled
-      RtcWakeupPin_Enabled  = RTC_CR_WPE(1), ///< Wake-up pin is enabled
+      RtcWakeupPin_Disabled   = RTC_CR_WPE(0),  ///< Wake-up pin is disabled
+      RtcWakeupPin_Enabled    = RTC_CR_WPE(1),  ///< Wake-up pin is enabled
    };
 
 class RtcBasicInfo {
 
 public:
-}; // class RtcBasicInfo
-   
+}; // class RtcBasicInfo 
+
 class RtcInfo : public RtcBasicInfo {
 public:
    /*
@@ -2006,18 +1924,18 @@ public:
    
    //! RTC Read Access Register
    static constexpr uint32_t rar = 
-      RtcRarIerr_ReadsIgnored | // (rtc_rar_ierr) Interrupt Enable Register Read - Reads ignored
-      RtcRarLrr_ReadsIgnored | // (rtc_rar_lrr) Lock Register Read - Reads ignored
-      RtcRarSrr_ReadsIgnored | // (rtc_rar_srr) Status Register Read - Reads ignored
-      RtcRarCrr_ReadsIgnored | // (rtc_rar_crr) Control Register Read - Reads ignored
-      RtcRarTcrr_ReadsIgnored | // (rtc_rar_tcrr) Time Compensation Register Read - Reads ignored
-      RtcRarTarr_ReadsIgnored | // (rtc_rar_tarr) Time Alarm Register Read - Reads ignored
-      RtcRarTprr_ReadsIgnored | // (rtc_rar_tprr) Time Prescaler Register Read - Reads ignored
-      RtcRarTsrr_ReadsIgnored;  // (rtc_rar_tsrr) Time Seconds Register Read - Reads ignored
+      RtcRarIerr_ReadsAllowed | // (rtc_rar_ierr) Interrupt Enable Register Read - Reads Allowed
+      RtcRarLrr_ReadsAllowed | // (rtc_rar_lrr) Lock Register Read - Reads Allowed
+      RtcRarSrr_ReadsAllowed | // (rtc_rar_srr) Status Register Read - Reads Allowed
+      RtcRarCrr_ReadsAllowed | // (rtc_rar_crr) Control Register Read - Reads Allowed
+      RtcRarTcrr_ReadsAllowed | // (rtc_rar_tcrr) Time Compensation Register Read - Reads Allowed
+      RtcRarTarr_ReadsAllowed | // (rtc_rar_tarr) Time Alarm Register Read - Reads Allowed
+      RtcRarTprr_ReadsAllowed | // (rtc_rar_tprr) Time Prescaler Register Read - Reads Allowed
+      RtcRarTsrr_ReadsAllowed;  // (rtc_rar_tsrr) Time Seconds Register Read - Reads Allowed
    
    
    //! Frequency of RTC External Clock or Crystal
-   static constexpr uint32_t osc_input_freq = 0UL;
+   static constexpr uint32_t osc_input_freq = 32768UL;
    
    /**
     * Get RTC clock frequency (internal, not masked by RTC_CR_CLKO)
@@ -2229,10 +2147,32 @@ public:
     * whether an external clock or crystal is used.
     */
    enum OscMode {
-      OscMode_NotConfigured       = 0,                               ///< OSC0 Not configured
-      OscMode_ExternalClock       = MCG_C2_EREFS0(0),                ///< External clock
-      OscMode_LowPowerOscillator  = MCG_C2_EREFS0(1),                ///< Low Power Oscillator
-      OscMode_HighPowerOscillator = MCG_C2_EREFS0(1)|MCG_C2_HGO0(1), ///< High Gain Oscillator
+      OscMode_NotConfigured         = 0,                                ///< OSC0 Not configured
+      OscMode_ExternalClock         = MCG_C2_EREFS0(0),                 ///< External clock
+      OscMode_LowPowerOscillator    = MCG_C2_EREFS0(1),                 ///< Low Power Oscillator
+      OscMode_HighPowerOscillator   = MCG_C2_EREFS0(1)|MCG_C2_HGO0(1),  ///< High Gain Oscillator
+   };
+
+   /**
+    * External Reference Select
+    * (mcg_c2_erefs0)
+    *
+    * Determines whether an external clock or crystal is used
+    */
+   enum McgExternalClock {
+      McgExternalClock_ExternalClk   = MCG_C2_EREFS0(0),  ///< External clock
+      McgExternalClock_Oscillator    = MCG_C2_EREFS0(1),  ///< Oscillator
+   };
+
+   /**
+    * Oscillator mode
+    * (mcg_c2_hgo0)
+    *
+    * Operation mode for oscillator
+    */
+   enum McgOscMode {
+      McgOscMode_LowPower    = MCG_C2_HGO0(0),  ///< Low Power
+      McgOscMode_HighPower   = MCG_C2_HGO0(1),  ///< High Gain
    };
 
    /**
@@ -2242,14 +2182,14 @@ public:
     * Selects the basic clock mode for the Clock generator
     */
    enum McgClockMode : uint8_t {
-      McgClockMode_FEI  = 0, ///< FLL Engaged Internal (FEI)
-      McgClockMode_FEE  = 1, ///< FLL Engaged External (FEE)
-      McgClockMode_FBI  = 2, ///< FLL bypassed internal (FBI)
-      McgClockMode_FBE  = 4, ///< FLL bypassed external (FBE)
-      McgClockMode_PBE  = 6, ///< PLL Bypassed External (PBE)
-      McgClockMode_PEE  = 7, ///< PLL Engaged External (PEE)
-      McgClockMode_BLPI = 3, ///< Bypassed low power internal (BLPI)
-      McgClockMode_BLPE = 5, ///< Bypassed low power external (BLPE)
+      McgClockMode_FEI    = 0,  ///< FLL Engaged Internal (FEI)
+      McgClockMode_FEE    = 1,  ///< FLL Engaged External (FEE)
+      McgClockMode_FBI    = 2,  ///< FLL bypassed internal (FBI)
+      McgClockMode_FBE    = 4,  ///< FLL bypassed external (FBE)
+      McgClockMode_PBE    = 6,  ///< PLL Bypassed External (PBE)
+      McgClockMode_PEE    = 7,  ///< PLL Engaged External (PEE)
+      McgClockMode_BLPI   = 3,  ///< Bypassed low power internal (BLPI)
+      McgClockMode_BLPE   = 5,  ///< Bypassed low power external (BLPE)
    };
 
    /**
@@ -2261,8 +2201,8 @@ public:
     * The CME0 bit must only be when using an external clock mode (FEE, FBE, PEE, PBE, or BLPE)[0]
     */
    enum McgOsc0ClockMonitor {
-      McgOsc0ClockMonitor_Disabled = MCG_C6_CME0(0), ///< Clock monitor disabled
-      McgOsc0ClockMonitor_Enabled  = MCG_C6_CME0(1), ///< Clock monitor enabled
+      McgOsc0ClockMonitor_Disabled   = MCG_C6_CME0(0),  ///< Clock monitor disabled
+      McgOsc0ClockMonitor_Enabled    = MCG_C6_CME0(1),  ///< Clock monitor enabled
    };
 
    /**
@@ -2273,8 +2213,8 @@ public:
     * This option only has effect if the clock monitor is first enabled bye C6.CME0
     */
    enum McgOsc0LossOfClockAction {
-      McgOsc0LossOfClockAction_Interrupt = MCG_C2_LOCRE0(0), ///< Interrupt request
-      McgOsc0LossOfClockAction_Reset     = MCG_C2_LOCRE0(1), ///< Reset request
+      McgOsc0LossOfClockAction_Interrupt   = MCG_C2_LOCRE0(0),  ///< Interrupt request
+      McgOsc0LossOfClockAction_Reset       = MCG_C2_LOCRE0(1),  ///< Reset request
    };
 
    /**
@@ -2285,8 +2225,8 @@ public:
     * This bit has effect when S.LOLS0 is set
     */
    enum PllLossOfClockInterrupt {
-      PllLossOfClockInterrupt_Disabled = MCG_C6_LOLIE0(0), ///< No interrupt request
-      PllLossOfClockInterrupt_Enabled  = MCG_C6_LOLIE0(1), ///< Interrupt request on LOL
+      PllLossOfClockInterrupt_Disabled   = MCG_C6_LOLIE0(0),  ///< No interrupt request
+      PllLossOfClockInterrupt_Enabled    = MCG_C6_LOLIE0(1),  ///< Interrupt request on LOL
    };
 
    /**
@@ -2297,8 +2237,8 @@ public:
     * Only has an affect when LOLIE0 is set
     */
    enum PllLossOfClockReset {
-      PllLossOfClockReset_Disabled = MCG_C8_LOLRE(0), ///< Interrupt request
-      PllLossOfClockReset_Enabled  = MCG_C8_LOLRE(1), ///< Reset request
+      PllLossOfClockReset_Disabled   = MCG_C8_LOLRE(0),  ///< Interrupt request
+      PllLossOfClockReset_Enabled    = MCG_C8_LOLRE(1),  ///< Reset request
    };
 
    /**
@@ -2309,8 +2249,8 @@ public:
     * CME1 bit must be set to a logic 0 before the MCG enters any Stop mode
     */
    enum McgOsc1ClockMonitor {
-      McgOsc1ClockMonitor_Disabled = MCG_C8_CME1(0), ///< Clock monitor disabled
-      McgOsc1ClockMonitor_Enabled  = MCG_C8_CME1(1), ///< Clock monitor enabled
+      McgOsc1ClockMonitor_Disabled   = MCG_C8_CME1(0),  ///< Clock monitor disabled
+      McgOsc1ClockMonitor_Enabled    = MCG_C8_CME1(1),  ///< Clock monitor enabled
    };
 
    /**
@@ -2321,8 +2261,8 @@ public:
     * Only has an affect when CME1 is set
     */
    enum McgOsc1LossOfClockAction {
-      McgOsc1LossOfClockAction_Interrupt = MCG_C8_LOCRE1(0), ///< Interrupt request
-      McgOsc1LossOfClockAction_Reset     = MCG_C8_LOCRE1(1), ///< Reset request
+      McgOsc1LossOfClockAction_Interrupt   = MCG_C8_LOCRE1(0),  ///< Interrupt request
+      McgOsc1LossOfClockAction_Reset       = MCG_C8_LOCRE1(1),  ///< Reset request
    };
 
    /**
@@ -2333,14 +2273,14 @@ public:
     * The FIR clock is available for use as MCGIRCLK or MCGOUTCLK
     */
    enum McgFastInternalClockDivider {
-      McgFastInternalClockDivider_DivBy1   = MCG_SC_FCRDIV(0), ///< /1
-      McgFastInternalClockDivider_DivBy2   = MCG_SC_FCRDIV(1), ///< /2
-      McgFastInternalClockDivider_DivBy4   = MCG_SC_FCRDIV(2), ///< /4
-      McgFastInternalClockDivider_DivBy8   = MCG_SC_FCRDIV(3), ///< /8
-      McgFastInternalClockDivider_DivBy16  = MCG_SC_FCRDIV(4), ///< /16
-      McgFastInternalClockDivider_DivBy32  = MCG_SC_FCRDIV(5), ///< /32
-      McgFastInternalClockDivider_DivBy64  = MCG_SC_FCRDIV(6), ///< /64
-      McgFastInternalClockDivider_DivBy128 = MCG_SC_FCRDIV(7), ///< /128
+      McgFastInternalClockDivider_DivBy1     = MCG_SC_FCRDIV(0),  ///< /1
+      McgFastInternalClockDivider_DivBy2     = MCG_SC_FCRDIV(1),  ///< /2
+      McgFastInternalClockDivider_DivBy4     = MCG_SC_FCRDIV(2),  ///< /4
+      McgFastInternalClockDivider_DivBy8     = MCG_SC_FCRDIV(3),  ///< /8
+      McgFastInternalClockDivider_DivBy16    = MCG_SC_FCRDIV(4),  ///< /16
+      McgFastInternalClockDivider_DivBy32    = MCG_SC_FCRDIV(5),  ///< /32
+      McgFastInternalClockDivider_DivBy64    = MCG_SC_FCRDIV(6),  ///< /64
+      McgFastInternalClockDivider_DivBy128   = MCG_SC_FCRDIV(7),  ///< /128
    };
 
    /**
@@ -2350,8 +2290,8 @@ public:
     * Clock Source for MCGIRCLK
     */
    enum McgIrClkSrc {
-      McgIrClkSrc_Slow = MCG_C2_IRCS(0), ///< Slow internal reference clock
-      McgIrClkSrc_Fast = MCG_C2_IRCS(1), ///< Fast internal reference clock
+      McgIrClkSrc_Slow   = MCG_C2_IRCS(0),  ///< Slow internal reference clock
+      McgIrClkSrc_Fast   = MCG_C2_IRCS(1),  ///< Fast internal reference clock
    };
 
    /**
@@ -2361,8 +2301,8 @@ public:
     * Enables the internal reference clock for use by peripherals
     */
    enum McgIrClkEn {
-      McgIrClkEn_Disabled = MCG_C1_IRCLKEN(0), ///< Disabled
-      McgIrClkEn_Enabled  = MCG_C1_IRCLKEN(1), ///< Enabled
+      McgIrClkEn_Disabled   = MCG_C1_IRCLKEN(0),  ///< Disabled
+      McgIrClkEn_Enabled    = MCG_C1_IRCLKEN(1),  ///< Enabled
    };
 
    /**
@@ -2372,8 +2312,8 @@ public:
     * Determines if MCGIRCLK is enabled in Stop mode
     */
    enum McgIrefs {
-      McgIrefs_DisabledInStop = MCG_C1_IREFSTEN(0), ///< IR disabled in STOP
-      McgIrefs_EnabledInStop  = MCG_C1_IREFSTEN(1), ///< IR enabled in STOP
+      McgIrefs_DisabledInStop   = MCG_C1_IREFSTEN(0),  ///< IR disabled in STOP
+      McgIrefs_EnabledInStop    = MCG_C1_IREFSTEN(1),  ///< IR enabled in STOP
    };
 
    /**
@@ -2383,8 +2323,8 @@ public:
     * Source for MCG External Reference Clock
     */
    enum McgErcSelect {
-      McgErcSelect_OscClk = MCG_C7_OSCSEL(0), ///< OSC0 Clock
-      McgErcSelect_RtcClk = MCG_C7_OSCSEL(1), ///< RTC 32kHz clock
+      McgErcSelect_OscClk   = MCG_C7_OSCSEL(0),  ///< OSC0 Clock
+      McgErcSelect_RtcClk   = MCG_C7_OSCSEL(1),  ///< RTC 32kHz clock
    };
 
    /**
@@ -2395,9 +2335,9 @@ public:
     * It may determine the divider for FLL input clock
     */
    enum McgRange0 {
-      McgRange0_Low      = MCG_C2_RANGE0(0), ///< Low range
-      McgRange0_High     = MCG_C2_RANGE0(1), ///< High range
-      McgRange0_VeryHigh = MCG_C2_RANGE0(2), ///< Very High range
+      McgRange0_Low        = MCG_C2_RANGE0(0),  ///< Low range
+      McgRange0_High       = MCG_C2_RANGE0(1),  ///< High range
+      McgRange0_VeryHigh   = MCG_C2_RANGE0(2),  ///< Very High range
    };
 
    /**
@@ -2409,23 +2349,23 @@ public:
     * Division factors choices depends on clock Range [MGC_C2_RANGE0] and clock source [MCG_C6_OSCSEL]
     */
    enum McgFllPrescale {
-      McgFllPrescale_Disabled      = MCG_C1_FRDIV(0), ///< Disabled
-      McgFllPrescale_LowDivBy1     = MCG_C1_FRDIV(0), ///< /1 (low)
-      McgFllPrescale_LowDivBy2     = MCG_C1_FRDIV(1), ///< /2 (low)
-      McgFllPrescale_LowDivBy3     = MCG_C1_FRDIV(2), ///< /4 (low)
-      McgFllPrescale_LowDivBy8     = MCG_C1_FRDIV(3), ///< /8 (low)
-      McgFllPrescale_LowDivBy16    = MCG_C1_FRDIV(4), ///< /16 (low)
-      McgFllPrescale_LowDivBy32    = MCG_C1_FRDIV(5), ///< /32 (low)
-      McgFllPrescale_LowDivBy64    = MCG_C1_FRDIV(6), ///< /64 (low)
-      McgFllPrescale_LowDivBy128   = MCG_C1_FRDIV(7), ///< /128 (low)
-      McgFllPrescale_HighDivBy32   = MCG_C1_FRDIV(0), ///< /32 (high)
-      McgFllPrescale_HighDivBy64   = MCG_C1_FRDIV(1), ///< /64 (high)
-      McgFllPrescale_HighDivBy128  = MCG_C1_FRDIV(2), ///< /128 (high)
-      McgFllPrescale_HighDivBy256  = MCG_C1_FRDIV(3), ///< /256 (high)
-      McgFllPrescale_HighDivBy512  = MCG_C1_FRDIV(4), ///< /512 (high)
-      McgFllPrescale_HighDivBy1024 = MCG_C1_FRDIV(5), ///< /1024 (high)
-      McgFllPrescale_HighDivBy1280 = MCG_C1_FRDIV(6), ///< /1280 (high)
-      McgFllPrescale_HighDivBy1536 = MCG_C1_FRDIV(7), ///< /1536 (high)
+      McgFllPrescale_Disabled        = MCG_C1_FRDIV(0),  ///< Disabled
+      McgFllPrescale_LowDivBy1       = MCG_C1_FRDIV(0),  ///< /1 (low)
+      McgFllPrescale_LowDivBy2       = MCG_C1_FRDIV(1),  ///< /2 (low)
+      McgFllPrescale_LowDivBy3       = MCG_C1_FRDIV(2),  ///< /4 (low)
+      McgFllPrescale_LowDivBy8       = MCG_C1_FRDIV(3),  ///< /8 (low)
+      McgFllPrescale_LowDivBy16      = MCG_C1_FRDIV(4),  ///< /16 (low)
+      McgFllPrescale_LowDivBy32      = MCG_C1_FRDIV(5),  ///< /32 (low)
+      McgFllPrescale_LowDivBy64      = MCG_C1_FRDIV(6),  ///< /64 (low)
+      McgFllPrescale_LowDivBy128     = MCG_C1_FRDIV(7),  ///< /128 (low)
+      McgFllPrescale_HighDivBy32     = MCG_C1_FRDIV(0),  ///< /32 (high)
+      McgFllPrescale_HighDivBy64     = MCG_C1_FRDIV(1),  ///< /64 (high)
+      McgFllPrescale_HighDivBy128    = MCG_C1_FRDIV(2),  ///< /128 (high)
+      McgFllPrescale_HighDivBy256    = MCG_C1_FRDIV(3),  ///< /256 (high)
+      McgFllPrescale_HighDivBy512    = MCG_C1_FRDIV(4),  ///< /512 (high)
+      McgFllPrescale_HighDivBy1024   = MCG_C1_FRDIV(5),  ///< /1024 (high)
+      McgFllPrescale_HighDivBy1280   = MCG_C1_FRDIV(6),  ///< /1280 (high)
+      McgFllPrescale_HighDivBy1536   = MCG_C1_FRDIV(7),  ///< /1536 (high)
    };
 
    /**
@@ -2436,8 +2376,8 @@ public:
     * This option is determined by the Clock Mode selection
     */
    enum McgIref {
-      McgIref_External = MCG_C1_IREFS(0), ///< External Reference Clock
-      McgIref_Internal = MCG_C1_IREFS(1), ///< Slow Internal Clock
+      McgIref_External   = MCG_C1_IREFS(0),  ///< External Reference Clock
+      McgIref_Internal   = MCG_C1_IREFS(1),  ///< Slow Internal Clock
    };
 
    /**
@@ -2449,8 +2389,8 @@ public:
     * - a wider range of inputs frequencies [31.25-39.06] kHz
     */
    enum McgFllLockRangeWidth {
-      McgFllLockRangeWidth_Wide   = MCG_C4_DMX32(0), ///< Wide
-      McgFllLockRangeWidth_Narrow = MCG_C4_DMX32(1), ///< Narrow
+      McgFllLockRangeWidth_Wide     = MCG_C4_DMX32(0),  ///< Wide
+      McgFllLockRangeWidth_Narrow   = MCG_C4_DMX32(1),  ///< Narrow
    };
 
    /**
@@ -2461,10 +2401,10 @@ public:
     * This is determined from the FLL input and output clock frequencies
     */
    enum McgFllLockRange {
-      McgFllLockRange_Low     = MCG_C4_DRST_DRS(0), ///< Low (x640/x732, 20-25/24 MHz)
-      McgFllLockRange_Mid     = MCG_C4_DRST_DRS(1), ///< Mid (x1280/x1464, 40-50/48 MHz)
-      McgFllLockRange_MidHigh = MCG_C4_DRST_DRS(2), ///< Mid-high (x1920/x2197, 60-75/72 MHz)
-      McgFllLockRange_High    = MCG_C4_DRST_DRS(3), ///< High (x2560/x2929, 80-100/96 MHz)
+      McgFllLockRange_Low       = MCG_C4_DRST_DRS(0),  ///< Low (x640/x732, 20-25/24 MHz)
+      McgFllLockRange_Mid       = MCG_C4_DRST_DRS(1),  ///< Mid (x1280/x1464, 40-50/48 MHz)
+      McgFllLockRange_MidHigh   = MCG_C4_DRST_DRS(2),  ///< Mid-high (x1920/x2197, 60-75/72 MHz)
+      McgFllLockRange_High      = MCG_C4_DRST_DRS(3),  ///< High (x2560/x2929, 80-100/96 MHz)
    };
 
    /**
@@ -2474,8 +2414,8 @@ public:
     * Enables PLL0 independent of PLLS
     */
    enum McgPllEnable {
-      McgPllEnable_AsNeeded = MCG_C5_PLLCLKEN0(0), ///< PLL active as needed
-      McgPllEnable_Forced   = MCG_C5_PLLCLKEN0(1), ///< PLL forced active
+      McgPllEnable_AsNeeded   = MCG_C5_PLLCLKEN0(0),  ///< PLL active as needed
+      McgPllEnable_Forced     = MCG_C5_PLLCLKEN0(1),  ///< PLL forced active
    };
 
    /**
@@ -2485,8 +2425,8 @@ public:
     * Enables the PLL0 Clock during Normal Stop
     */
    enum McgPllStopEnable {
-      McgPllStopEnable_DisabledInStop = MCG_C5_PLLSTEN0(0), ///< PLL0 is disabled in any Stop mode
-      McgPllStopEnable_EnabledInStop  = MCG_C5_PLLSTEN0(1), ///< PLL0 is enabled in Normal Stop mode
+      McgPllStopEnable_DisabledInStop   = MCG_C5_PLLSTEN0(0),  ///< PLL0 is disabled in any Stop mode
+      McgPllStopEnable_EnabledInStop    = MCG_C5_PLLSTEN0(1),  ///< PLL0 is enabled in Normal Stop mode
    };
 
    /**
@@ -2497,8 +2437,8 @@ public:
     * This option is determined by the Clock Mode selection
     */
    enum McgPllFllSelect {
-      McgPllFllSelect_FLL = MCG_C6_PLLS(0), ///< FLL is selected
-      McgPllFllSelect_PLL = MCG_C6_PLLS(1), ///< PLL is selected
+      McgPllFllSelect_FLL   = MCG_C6_PLLS(0),  ///< FLL is selected
+      McgPllFllSelect_PLL   = MCG_C6_PLLS(1),  ///< PLL is selected
    };
 
    /*
@@ -2509,12 +2449,14 @@ public:
     *  MCG Fixed Frequency Clock [MCGFFCLK]
     *  Used as input clock to FLL and available to some peripherals
     *  Derived from External Reference Clock or Slow IRC
+    *  (Full configuration - declaration)
     */
    extern volatile uint32_t SystemMcgFFClock;
    
    /**
     *  System MCG Output Clock [MCGOUTCLK]
     *  MCG Main clock output
+    *  (Full configuration - declaration)
     */
    extern volatile uint32_t SystemMcgOutClock;
    
@@ -2522,16 +2464,26 @@ public:
     *  FLL Output clock frequency
     *  Output of FLL.
     *  Available as MCGFLLCLK and used for MCGOUTCLK in FEI or FEE clock modes
+    *  (Full configuration - declaration)
     */
    extern volatile uint32_t SystemMcgFllClock;
    
    /**
     *  PLL Output clock frequency
     *  Output of PLL
+    *  (Full configuration - declaration)
     */
    extern volatile uint32_t SystemMcgPllClock;
    
-class McgInfo {
+class McgBasicInfo {
+
+public:
+   //! Common class based callback code has been generated for this class of peripheral
+   static constexpr bool irqHandlerInstalled = false;
+   
+}; // class McgBasicInfo 
+
+class McgInfo : public McgBasicInfo {
 public:
    /*
     * Template:mcg_mk
@@ -2545,6 +2497,33 @@ public:
    //! Number of IRQs for hardware
    static constexpr uint32_t irqCount  = sizeofArray(irqNums);
    
+   //! Default IRQ level
+   static constexpr NvicPriority irqLevel =  NvicPriority_Normal;
+   
+   /**
+    * Enable interrupts in NVIC
+    */
+   static void enableNvicInterrupts() {
+      NVIC_EnableIRQ(irqNums[0]);
+   }
+   
+   /**
+    * Enable and set priority of interrupts in NVIC
+    * Any pending NVIC interrupts are first cleared.
+    *
+    * @param[in]  nvicPriority  Interrupt priority
+    */
+   static void enableNvicInterrupts(NvicPriority nvicPriority) {
+      enableNvicInterrupt(irqNums[0], nvicPriority);
+   }
+   
+   /**
+    * Disable interrupts in NVIC
+    */
+   static void disableNvicInterrupts() {
+      NVIC_DisableIRQ(irqNums[0]);
+   }
+   
    /**
     * Basic enable of Mcg
     * Includes enabling clock and configuring all mapped pins if mapPinsOnEnable is selected in configuration
@@ -2553,10 +2532,11 @@ public:
    }
    
    /**
-    * Disables the clock to Mcg and all mapped pins
+    * Disables Mcg
     */
    static void disable() {
       
+      disableNvicInterrupts();
    }
    
    //! Hardware base address as uint32_t
@@ -2581,7 +2561,7 @@ public:
    }
 
    /**
-    * Get Fast Internal Reference Clock (undivided)
+    * Get Fast Internal Reference Clock (divided)
     *
     * @return Clock frequency in Hz
     */
@@ -2598,7 +2578,7 @@ public:
    static void setInternalReferenceClock(McgIrClkSrc mcgIrClkSrc) {
       mcg->C2 = (mcg->C2&~MCG_C2_IRCS_MASK) | mcgIrClkSrc;
    }
-
+   
    /**
     * Get Internal Reference Clock [MCGIRCLK] Source
     *
@@ -2622,7 +2602,7 @@ public:
    static void enableMcgIrClock(McgIrClkEn mcgIrClkEn) {
       mcg->C1 = (mcg->C1&~MCG_C1_IRCLKEN_MASK) | mcgIrClkEn;
    }
-
+   
    /**
     * Get Internal Reference Clock [MCGIRCLK]
     *
@@ -2688,48 +2668,48 @@ public:
     * Specifies which DMA source (slot) is routed to a particular DMA channel
     */
    enum DmamuxSlot {
-      DmamuxSlot_Disabled        = DMAMUX_CHCFG_SOURCE(0),  ///< Disabled
-      DmamuxSlot_UART0_Receive   = DMAMUX_CHCFG_SOURCE(2),  ///< UART0 Receive
-      DmamuxSlot_UART0_Transmit  = DMAMUX_CHCFG_SOURCE(3),  ///< UART0 Transmit
-      DmamuxSlot_UART1_Receive   = DMAMUX_CHCFG_SOURCE(4),  ///< UART1 Receive
-      DmamuxSlot_UART1_Transmit  = DMAMUX_CHCFG_SOURCE(5),  ///< UART1 Transmit
-      DmamuxSlot_UART2_Receive   = DMAMUX_CHCFG_SOURCE(6),  ///< UART2 Receive
-      DmamuxSlot_UART2_Transmit  = DMAMUX_CHCFG_SOURCE(7),  ///< UART2 Transmit
-      DmamuxSlot_I2S0_Receive    = DMAMUX_CHCFG_SOURCE(14), ///< I2S0 Receive
-      DmamuxSlot_I2S0_Transmit   = DMAMUX_CHCFG_SOURCE(15), ///< I2S0 Transmit
-      DmamuxSlot_SPI0_Receive    = DMAMUX_CHCFG_SOURCE(16), ///< SPI0 Receive
-      DmamuxSlot_SPI0_Transmit   = DMAMUX_CHCFG_SOURCE(17), ///< SPI0 Transmit
-      DmamuxSlot_I2C0            = DMAMUX_CHCFG_SOURCE(22), ///< I2C0
-      DmamuxSlot_FTM0_Channel0   = DMAMUX_CHCFG_SOURCE(24), ///< FTM0 Channel 0
-      DmamuxSlot_FTM0_Channel1   = DMAMUX_CHCFG_SOURCE(25), ///< FTM0 Channel 1
-      DmamuxSlot_FTM0_Channel2   = DMAMUX_CHCFG_SOURCE(26), ///< FTM0 Channel 2
-      DmamuxSlot_FTM0_Channel3   = DMAMUX_CHCFG_SOURCE(27), ///< FTM0 Channel 3
-      DmamuxSlot_FTM0_Channel4   = DMAMUX_CHCFG_SOURCE(28), ///< FTM0 Channel 4
-      DmamuxSlot_FTM0_Channel5   = DMAMUX_CHCFG_SOURCE(29), ///< FTM0 Channel 5
-      DmamuxSlot_FTM0_Channel6   = DMAMUX_CHCFG_SOURCE(30), ///< FTM0 Channel 6
-      DmamuxSlot_FTM0_Channel7   = DMAMUX_CHCFG_SOURCE(31), ///< FTM0 Channel 7
-      DmamuxSlot_FTM1_Channel0   = DMAMUX_CHCFG_SOURCE(32), ///< FTM1 Channel 0
-      DmamuxSlot_FTM1_Channel1   = DMAMUX_CHCFG_SOURCE(33), ///< FTM1 Channel 1
-      DmamuxSlot_ADC0            = DMAMUX_CHCFG_SOURCE(40), ///< ADC0
-      DmamuxSlot_CMP0            = DMAMUX_CHCFG_SOURCE(42), ///< CMP0
-      DmamuxSlot_CMP1            = DMAMUX_CHCFG_SOURCE(43), ///< CMP1
-      DmamuxSlot_CMT             = DMAMUX_CHCFG_SOURCE(47), ///< CMT
-      DmamuxSlot_PDB             = DMAMUX_CHCFG_SOURCE(48), ///< PDB
-      DmamuxSlot_PortA           = DMAMUX_CHCFG_SOURCE(49), ///< Port A
-      DmamuxSlot_PortB           = DMAMUX_CHCFG_SOURCE(50), ///< Port B
-      DmamuxSlot_PortC           = DMAMUX_CHCFG_SOURCE(51), ///< Port C
-      DmamuxSlot_PortD           = DMAMUX_CHCFG_SOURCE(52), ///< Port D
-      DmamuxSlot_PortE           = DMAMUX_CHCFG_SOURCE(53), ///< Port E
-      DmamuxSlot_AlwaysEnabled54 = DMAMUX_CHCFG_SOURCE(54), ///< Always Enabled 54
-      DmamuxSlot_AlwaysEnabled55 = DMAMUX_CHCFG_SOURCE(55), ///< Always Enabled 55
-      DmamuxSlot_AlwaysEnabled56 = DMAMUX_CHCFG_SOURCE(56), ///< Always Enabled 56
-      DmamuxSlot_AlwaysEnabled57 = DMAMUX_CHCFG_SOURCE(57), ///< Always Enabled 57
-      DmamuxSlot_AlwaysEnabled58 = DMAMUX_CHCFG_SOURCE(58), ///< Always Enabled 58
-      DmamuxSlot_AlwaysEnabled59 = DMAMUX_CHCFG_SOURCE(59), ///< Always Enabled 59
-      DmamuxSlot_AlwaysEnabled60 = DMAMUX_CHCFG_SOURCE(60), ///< Always Enabled 60
-      DmamuxSlot_AlwaysEnabled61 = DMAMUX_CHCFG_SOURCE(61), ///< Always Enabled 61
-      DmamuxSlot_AlwaysEnabled62 = DMAMUX_CHCFG_SOURCE(62), ///< Always Enabled 62
-      DmamuxSlot_AlwaysEnabled63 = DMAMUX_CHCFG_SOURCE(63), ///< Always Enabled 63
+      DmamuxSlot_Disabled          = DMAMUX_CHCFG_SOURCE(0),   ///< Disabled
+      DmamuxSlot_UART0_Receive     = DMAMUX_CHCFG_SOURCE(2),   ///< UART0 Receive
+      DmamuxSlot_UART0_Transmit    = DMAMUX_CHCFG_SOURCE(3),   ///< UART0 Transmit
+      DmamuxSlot_UART1_Receive     = DMAMUX_CHCFG_SOURCE(4),   ///< UART1 Receive
+      DmamuxSlot_UART1_Transmit    = DMAMUX_CHCFG_SOURCE(5),   ///< UART1 Transmit
+      DmamuxSlot_UART2_Receive     = DMAMUX_CHCFG_SOURCE(6),   ///< UART2 Receive
+      DmamuxSlot_UART2_Transmit    = DMAMUX_CHCFG_SOURCE(7),   ///< UART2 Transmit
+      DmamuxSlot_I2S0_Receive      = DMAMUX_CHCFG_SOURCE(14),  ///< I2S0 Receive
+      DmamuxSlot_I2S0_Transmit     = DMAMUX_CHCFG_SOURCE(15),  ///< I2S0 Transmit
+      DmamuxSlot_SPI0_Receive      = DMAMUX_CHCFG_SOURCE(16),  ///< SPI0 Receive
+      DmamuxSlot_SPI0_Transmit     = DMAMUX_CHCFG_SOURCE(17),  ///< SPI0 Transmit
+      DmamuxSlot_I2C0              = DMAMUX_CHCFG_SOURCE(22),  ///< I2C0
+      DmamuxSlot_FTM0_Channel0     = DMAMUX_CHCFG_SOURCE(24),  ///< FTM0 Channel 0
+      DmamuxSlot_FTM0_Channel1     = DMAMUX_CHCFG_SOURCE(25),  ///< FTM0 Channel 1
+      DmamuxSlot_FTM0_Channel2     = DMAMUX_CHCFG_SOURCE(26),  ///< FTM0 Channel 2
+      DmamuxSlot_FTM0_Channel3     = DMAMUX_CHCFG_SOURCE(27),  ///< FTM0 Channel 3
+      DmamuxSlot_FTM0_Channel4     = DMAMUX_CHCFG_SOURCE(28),  ///< FTM0 Channel 4
+      DmamuxSlot_FTM0_Channel5     = DMAMUX_CHCFG_SOURCE(29),  ///< FTM0 Channel 5
+      DmamuxSlot_FTM0_Channel6     = DMAMUX_CHCFG_SOURCE(30),  ///< FTM0 Channel 6
+      DmamuxSlot_FTM0_Channel7     = DMAMUX_CHCFG_SOURCE(31),  ///< FTM0 Channel 7
+      DmamuxSlot_FTM1_Channel0     = DMAMUX_CHCFG_SOURCE(32),  ///< FTM1 Channel 0
+      DmamuxSlot_FTM1_Channel1     = DMAMUX_CHCFG_SOURCE(33),  ///< FTM1 Channel 1
+      DmamuxSlot_ADC0              = DMAMUX_CHCFG_SOURCE(40),  ///< ADC0
+      DmamuxSlot_CMP0              = DMAMUX_CHCFG_SOURCE(42),  ///< CMP0
+      DmamuxSlot_CMP1              = DMAMUX_CHCFG_SOURCE(43),  ///< CMP1
+      DmamuxSlot_CMT               = DMAMUX_CHCFG_SOURCE(47),  ///< CMT
+      DmamuxSlot_PDB               = DMAMUX_CHCFG_SOURCE(48),  ///< PDB
+      DmamuxSlot_PortA             = DMAMUX_CHCFG_SOURCE(49),  ///< Port A
+      DmamuxSlot_PortB             = DMAMUX_CHCFG_SOURCE(50),  ///< Port B
+      DmamuxSlot_PortC             = DMAMUX_CHCFG_SOURCE(51),  ///< Port C
+      DmamuxSlot_PortD             = DMAMUX_CHCFG_SOURCE(52),  ///< Port D
+      DmamuxSlot_PortE             = DMAMUX_CHCFG_SOURCE(53),  ///< Port E
+      DmamuxSlot_AlwaysEnabled54   = DMAMUX_CHCFG_SOURCE(54),  ///< Always Enabled 54
+      DmamuxSlot_AlwaysEnabled55   = DMAMUX_CHCFG_SOURCE(55),  ///< Always Enabled 55
+      DmamuxSlot_AlwaysEnabled56   = DMAMUX_CHCFG_SOURCE(56),  ///< Always Enabled 56
+      DmamuxSlot_AlwaysEnabled57   = DMAMUX_CHCFG_SOURCE(57),  ///< Always Enabled 57
+      DmamuxSlot_AlwaysEnabled58   = DMAMUX_CHCFG_SOURCE(58),  ///< Always Enabled 58
+      DmamuxSlot_AlwaysEnabled59   = DMAMUX_CHCFG_SOURCE(59),  ///< Always Enabled 59
+      DmamuxSlot_AlwaysEnabled60   = DMAMUX_CHCFG_SOURCE(60),  ///< Always Enabled 60
+      DmamuxSlot_AlwaysEnabled61   = DMAMUX_CHCFG_SOURCE(61),  ///< Always Enabled 61
+      DmamuxSlot_AlwaysEnabled62   = DMAMUX_CHCFG_SOURCE(62),  ///< Always Enabled 62
+      DmamuxSlot_AlwaysEnabled63   = DMAMUX_CHCFG_SOURCE(63),  ///< Always Enabled 63
    };
 
    /**
@@ -2740,11 +2720,11 @@ public:
     * (RUN), (STOP, VLPS, LLS and VLLS) or (VLPR and VLPW) modes
     */
    enum SimUsbPower {
-      SimUsbPower_Disabled              = SIM_SOPT1_USBREGEN(0)|SIM_SOPT1_USBSSTBY(0)|SIM_SOPT1_USBVSTBY(0), ///< Disabled in all modes
-      SimUsbPower_EnabledInAll          = SIM_SOPT1_USBREGEN(1)|SIM_SOPT1_USBSSTBY(0)|SIM_SOPT1_USBVSTBY(0), ///< Enabled in all modes
-      SimUsbPower_EnabledInRun_LowPower = SIM_SOPT1_USBREGEN(1)|SIM_SOPT1_USBSSTBY(1)|SIM_SOPT1_USBVSTBY(0), ///< Enabled in run and low power
-      SimUsbPower_EnabledInRun_Stop     = SIM_SOPT1_USBREGEN(1)|SIM_SOPT1_USBSSTBY(0)|SIM_SOPT1_USBVSTBY(1), ///< Enabled in run and stop
-      SimUsbPower_EnabledInRun          = SIM_SOPT1_USBREGEN(1)|SIM_SOPT1_USBSSTBY(1)|SIM_SOPT1_USBVSTBY(1), ///< Enabled in run only
+      SimUsbPower_Disabled                = SIM_SOPT1_USBREGEN(0)|SIM_SOPT1_USBSSTBY(0)|SIM_SOPT1_USBVSTBY(0),  ///< Disabled in all modes
+      SimUsbPower_EnabledInAll            = SIM_SOPT1_USBREGEN(1)|SIM_SOPT1_USBSSTBY(0)|SIM_SOPT1_USBVSTBY(0),  ///< Enabled in all modes
+      SimUsbPower_EnabledInRun_LowPower   = SIM_SOPT1_USBREGEN(1)|SIM_SOPT1_USBSSTBY(1)|SIM_SOPT1_USBVSTBY(0),  ///< Enabled in run and low power
+      SimUsbPower_EnabledInRun_Stop       = SIM_SOPT1_USBREGEN(1)|SIM_SOPT1_USBSSTBY(0)|SIM_SOPT1_USBVSTBY(1),  ///< Enabled in run and stop
+      SimUsbPower_EnabledInRun            = SIM_SOPT1_USBREGEN(1)|SIM_SOPT1_USBSSTBY(1)|SIM_SOPT1_USBVSTBY(1),  ///< Enabled in run only
    };
 
    /**
@@ -2755,8 +2735,8 @@ public:
     * by selecting either one or two pads to drive it
     */
    enum SimPortDPad {
-      SimPortDPad_Single = SIM_SOPT2_PTD7PAD(0), ///< Single-pad drive strength
-      SimPortDPad_Double = SIM_SOPT2_PTD7PAD(1), ///< Double-pad drive strength
+      SimPortDPad_Single   = SIM_SOPT2_PTD7PAD(0),  ///< Single-pad drive strength
+      SimPortDPad_Double   = SIM_SOPT2_PTD7PAD(1),  ///< Double-pad drive strength
    };
 
    /**
@@ -2767,8 +2747,8 @@ public:
     * The chosen clock is divided by 2.
     */
    enum SimTraceClockoutSel {
-      SimTraceClockoutSel_McgOutClk = SIM_SOPT2_TRACECLKSEL(0), ///< MCGOUTCLK
-      SimTraceClockoutSel_CoreClk   = SIM_SOPT2_TRACECLKSEL(1), ///< Core/system clock
+      SimTraceClockoutSel_McgOutClk   = SIM_SOPT2_TRACECLKSEL(0),  ///< MCGOUTCLK
+      SimTraceClockoutSel_CoreClk     = SIM_SOPT2_TRACECLKSEL(1),  ///< Core/system clock
    };
 
    /**
@@ -2778,8 +2758,8 @@ public:
     * Source of FTM 0 hardware trigger 0
     */
    enum SimFtm0Trg0Src {
-      SimFtm0Trg0Src_Cmp0      = SIM_SOPT4_FTM0TRG0SRC(0), ///< CMP0 output
-      SimFtm0Trg0Src_Ftm1Match = SIM_SOPT4_FTM0TRG0SRC(1), ///< FTM1 channel match (enable FTM1.EXTTRIG)
+      SimFtm0Trg0Src_Cmp0        = SIM_SOPT4_FTM0TRG0SRC(0),  ///< CMP0 output
+      SimFtm0Trg0Src_Ftm1Match   = SIM_SOPT4_FTM0TRG0SRC(1),  ///< FTM1 channel match (enable FTM1.EXTTRIG)
    };
 
    /**
@@ -2789,8 +2769,8 @@ public:
     * External pin used to drive the clock to the FTM module
     */
    enum SimFtm0ClkSel {
-      SimFtm0ClkSel_FtmClkin0 = SIM_SOPT4_FTM0CLKSEL(0), ///< FTM_CLKIN0 pin
-      SimFtm0ClkSel_FtmClkin1 = SIM_SOPT4_FTM0CLKSEL(1), ///< FTM_CLKIN1 pin
+      SimFtm0ClkSel_FtmClkin0   = SIM_SOPT4_FTM0CLKSEL(0),  ///< FTM_CLKIN0 pin
+      SimFtm0ClkSel_FtmClkin1   = SIM_SOPT4_FTM0CLKSEL(1),  ///< FTM_CLKIN1 pin
    };
 
    /**
@@ -2800,8 +2780,8 @@ public:
     * Source of FTM fault input 0
     */
    enum SimFtm0Flt0 {
-      SimFtm0Flt0_Ftm0Fault0 = SIM_SOPT4_FTM0FLT0(0), ///< FTM0_FLT0 pin
-      SimFtm0Flt0_Cmp0       = SIM_SOPT4_FTM0FLT0(1), ///< CMP0 output
+      SimFtm0Flt0_Ftm0Fault0   = SIM_SOPT4_FTM0FLT0(0),  ///< FTM0_FLT0 pin
+      SimFtm0Flt0_Cmp0         = SIM_SOPT4_FTM0FLT0(1),  ///< CMP0 output
    };
 
    /**
@@ -2811,8 +2791,8 @@ public:
     * Source of FTM fault input 1
     */
    enum SimFtm0Flt1 {
-      SimFtm0Flt1_Ftm0Fault1 = SIM_SOPT4_FTM0FLT1(0), ///< FTM0_FLT1 pin
-      SimFtm0Flt1_Cmp1       = SIM_SOPT4_FTM0FLT1(1), ///< CMP1 output
+      SimFtm0Flt1_Ftm0Fault1   = SIM_SOPT4_FTM0FLT1(0),  ///< FTM0_FLT1 pin
+      SimFtm0Flt1_Cmp1         = SIM_SOPT4_FTM0FLT1(1),  ///< CMP1 output
    };
 
    /**
@@ -2822,8 +2802,8 @@ public:
     * External pin used to drive the clock to the FTM module
     */
    enum SimFtm1ClkSel {
-      SimFtm1ClkSel_FtmClkin0 = SIM_SOPT4_FTM1CLKSEL(0), ///< FTM_CLKIN0 pin
-      SimFtm1ClkSel_FtmClkin1 = SIM_SOPT4_FTM1CLKSEL(1), ///< FTM_CLKIN1 pin
+      SimFtm1ClkSel_FtmClkin0   = SIM_SOPT4_FTM1CLKSEL(0),  ///< FTM_CLKIN0 pin
+      SimFtm1ClkSel_FtmClkin1   = SIM_SOPT4_FTM1CLKSEL(1),  ///< FTM_CLKIN1 pin
    };
 
    /**
@@ -2834,10 +2814,10 @@ public:
     * NOTE: When the FTM is not in input capture mode, clear this field
     */
    enum SimFtm1Ch0Src {
-      SimFtm1Ch0Src_IcPin  = SIM_SOPT4_FTM1CH0SRC(0), ///< FTM1_CH0 signal
-      SimFtm1Ch0Src_Cmp0   = SIM_SOPT4_FTM1CH0SRC(1), ///< CMP0 output
-      SimFtm1Ch0Src_Cmp1   = SIM_SOPT4_FTM1CH0SRC(2), ///< CMP1 output
-      SimFtm1Ch0Src_UsbSof = SIM_SOPT4_FTM1CH0SRC(3), ///< USB start of frame pulse
+      SimFtm1Ch0Src_IcPin    = SIM_SOPT4_FTM1CH0SRC(0),  ///< FTM1_CH0 signal
+      SimFtm1Ch0Src_Cmp0     = SIM_SOPT4_FTM1CH0SRC(1),  ///< CMP0 output
+      SimFtm1Ch0Src_Cmp1     = SIM_SOPT4_FTM1CH0SRC(2),  ///< CMP1 output
+      SimFtm1Ch0Src_UsbSof   = SIM_SOPT4_FTM1CH0SRC(3),  ///< USB start of frame pulse
    };
 
    /**
@@ -2847,8 +2827,8 @@ public:
     * Source of FTM fault input 0
     */
    enum SimFtm1Flt0 {
-      SimFtm1Flt0_Ftm1Fault0 = SIM_SOPT4_FTM1FLT0(0), ///< FTM1_FLT0 pin
-      SimFtm1Flt0_Cmp0       = SIM_SOPT4_FTM1FLT0(1), ///< CMP0 output
+      SimFtm1Flt0_Ftm1Fault0   = SIM_SOPT4_FTM1FLT0(0),  ///< FTM1_FLT0 pin
+      SimFtm1Flt0_Cmp0         = SIM_SOPT4_FTM1FLT0(1),  ///< CMP0 output
    };
 
    /**
@@ -2858,9 +2838,9 @@ public:
     * Source for the UART0 receive data
     */
    enum SimUart0RxSrc {
-      SimUart0RxSrc_RxPin = SIM_SOPT5_UART0RXSRC(0), ///< Rx pin
-      SimUart0RxSrc_Cmp0  = SIM_SOPT5_UART0RXSRC(1), ///< CMP0 output
-      SimUart0RxSrc_Cmp1  = SIM_SOPT5_UART0RXSRC(2), ///< CMP1 output
+      SimUart0RxSrc_RxPin   = SIM_SOPT5_UART0RXSRC(0),  ///< Rx pin
+      SimUart0RxSrc_Cmp0    = SIM_SOPT5_UART0RXSRC(1),  ///< CMP0 output
+      SimUart0RxSrc_Cmp1    = SIM_SOPT5_UART0RXSRC(2),  ///< CMP1 output
    };
 
    /**
@@ -2870,9 +2850,9 @@ public:
     * Source for the UART0 transmit data
     */
    enum SimUart0TxSrc {
-      SimUart0TxSrc_Direct             = SIM_SOPT5_UART0TXSRC(0), ///< Tx pin
-      SimUart0TxSrc_ModulatedByFtm1Ch0 = SIM_SOPT5_UART0TXSRC(1), ///< Tx pin modulated by FTM1 channel 0
-      SimUart0TxSrc_ModulatedByFtm2Ch0 = SIM_SOPT5_UART0TXSRC(2), ///< Tx pin modulated by FTM2 channel 0
+      SimUart0TxSrc_Direct               = SIM_SOPT5_UART0TXSRC(0),  ///< Tx pin
+      SimUart0TxSrc_ModulatedByFtm1Ch0   = SIM_SOPT5_UART0TXSRC(1),  ///< Tx pin modulated by FTM1 channel 0
+      SimUart0TxSrc_ModulatedByFtm2Ch0   = SIM_SOPT5_UART0TXSRC(2),  ///< Tx pin modulated by FTM2 channel 0
    };
 
    /**
@@ -2882,9 +2862,9 @@ public:
     * Source for the UART1 receive data
     */
    enum SimUart1RxSrc {
-      SimUart1RxSrc_RxPin = SIM_SOPT5_UART1RXSRC(0), ///< Rx pin
-      SimUart1RxSrc_Cmp0  = SIM_SOPT5_UART1RXSRC(1), ///< CMP0 output
-      SimUart1RxSrc_Cmp1  = SIM_SOPT5_UART1RXSRC(2), ///< CMP1 output
+      SimUart1RxSrc_RxPin   = SIM_SOPT5_UART1RXSRC(0),  ///< Rx pin
+      SimUart1RxSrc_Cmp0    = SIM_SOPT5_UART1RXSRC(1),  ///< CMP0 output
+      SimUart1RxSrc_Cmp1    = SIM_SOPT5_UART1RXSRC(2),  ///< CMP1 output
    };
 
    /**
@@ -2894,9 +2874,9 @@ public:
     * Source for the UART1 transmit data
     */
    enum SimUart1TxSrc {
-      SimUart1TxSrc_Direct             = SIM_SOPT5_UART1TXSRC(0), ///< Tx pin
-      SimUart1TxSrc_ModulatedByFtm1Ch0 = SIM_SOPT5_UART1TXSRC(1), ///< Tx pin modulated by FTM1 channel 0
-      SimUart1TxSrc_ModulatedByFtm2Ch0 = SIM_SOPT5_UART1TXSRC(2), ///< Tx pin modulated by FTM2 channel 0
+      SimUart1TxSrc_Direct               = SIM_SOPT5_UART1TXSRC(0),  ///< Tx pin
+      SimUart1TxSrc_ModulatedByFtm1Ch0   = SIM_SOPT5_UART1TXSRC(1),  ///< Tx pin modulated by FTM1 channel 0
+      SimUart1TxSrc_ModulatedByFtm2Ch0   = SIM_SOPT5_UART1TXSRC(2),  ///< Tx pin modulated by FTM2 channel 0
    };
 
    /**
@@ -2909,9 +2889,9 @@ public:
     * _Alt_PreTrigger_1 - ADC is triggered by SimAdc0Trigger selection and uses pretrigger 1 = B (SC1[1]/R[1])
     */
    enum SimAdc0TriggerMode {
-      SimAdc0TriggerMode_Pdb              = SIM_SOPT7_ADC0ALTTRGEN(0)|SIM_SOPT7_ADC0PRETRGSEL(0), ///< Triggered by PDB
-      SimAdc0TriggerMode_Alt_PreTrigger_0 = SIM_SOPT7_ADC0ALTTRGEN(1)|SIM_SOPT7_ADC0PRETRGSEL(0), ///< Pre-trigger 0 = A (SC1[0])
-      SimAdc0TriggerMode_Alt_PreTrigger_1 = SIM_SOPT7_ADC0ALTTRGEN(1)|SIM_SOPT7_ADC0PRETRGSEL(1), ///< Pre-trigger 1 = B (SC1[1])
+      SimAdc0TriggerMode_Pdb                = SIM_SOPT7_ADC0ALTTRGEN(0)|SIM_SOPT7_ADC0PRETRGSEL(0),  ///< Triggered by PDB
+      SimAdc0TriggerMode_Alt_PreTrigger_0   = SIM_SOPT7_ADC0ALTTRGEN(1)|SIM_SOPT7_ADC0PRETRGSEL(0),  ///< External trigger using SC1[0]/R[0]
+      SimAdc0TriggerMode_Alt_PreTrigger_1   = SIM_SOPT7_ADC0ALTTRGEN(1)|SIM_SOPT7_ADC0PRETRGSEL(1),  ///< External trigger using SC1[1]/R[1]
    };
 
    /**
@@ -2921,18 +2901,22 @@ public:
     * ADC Trigger source in STOP and VLPS modes, or when ADC Alternative Trigger is active
     */
    enum SimAdc0TriggerSrc {
-      SimAdc0TriggerSrc_External   = SIM_SOPT7_ADC0TRGSEL(0),  ///< External trigger pin input (PDB0_EXTRG)
-      SimAdc0TriggerSrc_Cmp0       = SIM_SOPT7_ADC0TRGSEL(1),  ///< CMP 0 output
-      SimAdc0TriggerSrc_Cmp1       = SIM_SOPT7_ADC0TRGSEL(2),  ///< CMP 1 output
-      SimAdc0TriggerSrc_PitCh0     = SIM_SOPT7_ADC0TRGSEL(4),  ///< PIT trigger 0
-      SimAdc0TriggerSrc_PitCh1     = SIM_SOPT7_ADC0TRGSEL(5),  ///< PIT trigger 1
-      SimAdc0TriggerSrc_PitCh2     = SIM_SOPT7_ADC0TRGSEL(6),  ///< PIT trigger 2
-      SimAdc0TriggerSrc_PitCh3     = SIM_SOPT7_ADC0TRGSEL(7),  ///< PIT trigger 3
-      SimAdc0TriggerSrc_Ftm0       = SIM_SOPT7_ADC0TRGSEL(8),  ///< FTM0 trigger
-      SimAdc0TriggerSrc_Ftm1       = SIM_SOPT7_ADC0TRGSEL(9),  ///< FTM1 trigger
-      SimAdc0TriggerSrc_RtcAlarm   = SIM_SOPT7_ADC0TRGSEL(12), ///< RTC alarm
-      SimAdc0TriggerSrc_RtcSeconds = SIM_SOPT7_ADC0TRGSEL(13), ///< RTC seconds
-      SimAdc0TriggerSrc_Lptmr      = SIM_SOPT7_ADC0TRGSEL(14), ///< LPTMR trigger
+      SimAdc0TriggerSrc_External     = SIM_SOPT7_ADC0TRGSEL(0),   ///< External trigger pin input (PDB0_EXTRG)
+      SimAdc0TriggerSrc_Cmp0         = SIM_SOPT7_ADC0TRGSEL(1),   ///< CMP 0 output
+      SimAdc0TriggerSrc_Cmp1         = SIM_SOPT7_ADC0TRGSEL(2),   ///< CMP 1 output
+      SimAdc0TriggerSrc_PitCh0       = SIM_SOPT7_ADC0TRGSEL(4),   ///< PIT trigger 0
+      SimAdc0TriggerSrc_PIT_CH0      = SIM_SOPT7_ADC0TRGSEL(4),   ///< Pin PIT_CH0
+      SimAdc0TriggerSrc_PitCh1       = SIM_SOPT7_ADC0TRGSEL(5),   ///< PIT trigger 1
+      SimAdc0TriggerSrc_PIT_CH1      = SIM_SOPT7_ADC0TRGSEL(5),   ///< Pin PIT_CH1
+      SimAdc0TriggerSrc_PitCh2       = SIM_SOPT7_ADC0TRGSEL(6),   ///< PIT trigger 2
+      SimAdc0TriggerSrc_PIT_CH2      = SIM_SOPT7_ADC0TRGSEL(6),   ///< Pin PIT_CH2
+      SimAdc0TriggerSrc_PitCh3       = SIM_SOPT7_ADC0TRGSEL(7),   ///< PIT trigger 3
+      SimAdc0TriggerSrc_PIT_CH3      = SIM_SOPT7_ADC0TRGSEL(7),   ///< Pin PIT_CH3
+      SimAdc0TriggerSrc_Ftm0         = SIM_SOPT7_ADC0TRGSEL(8),   ///< FTM0 trigger
+      SimAdc0TriggerSrc_Ftm1         = SIM_SOPT7_ADC0TRGSEL(9),   ///< FTM1 trigger
+      SimAdc0TriggerSrc_RtcAlarm     = SIM_SOPT7_ADC0TRGSEL(12),  ///< RTC alarm
+      SimAdc0TriggerSrc_RtcSeconds   = SIM_SOPT7_ADC0TRGSEL(13),  ///< RTC seconds
+      SimAdc0TriggerSrc_Lptmr        = SIM_SOPT7_ADC0TRGSEL(14),  ///< LPTMR trigger
    };
 
    /**
@@ -2942,14 +2926,14 @@ public:
     * Clock to output on the CLKOUT pin
     */
    enum SimClkoutSel {
-      SimClkoutSel_Unused0   = SIM_SOPT2_CLKOUTSEL(0), ///< Disabled0
-      SimClkoutSel_Unused1   = SIM_SOPT2_CLKOUTSEL(1), ///< Disabled1
-      SimClkoutSel_FlashClk  = SIM_SOPT2_CLKOUTSEL(2), ///< Flash clock
-      SimClkoutSel_LpoClk    = SIM_SOPT2_CLKOUTSEL(3), ///< LPO clock (1 kHz)
-      SimClkoutSel_McgIrClk  = SIM_SOPT2_CLKOUTSEL(4), ///< MCGIRCLK
-      SimClkoutSel_RtcClk    = SIM_SOPT2_CLKOUTSEL(5), ///< RTC 32.768kHz clock
-      SimClkoutSel_OscerClk0 = SIM_SOPT2_CLKOUTSEL(6), ///< OSCERCLK0
-      SimClkoutSel_Unused7   = SIM_SOPT2_CLKOUTSEL(7), ///< Disabled7
+      SimClkoutSel_Unused0     = SIM_SOPT2_CLKOUTSEL(0),  ///< Disabled0
+      SimClkoutSel_Unused1     = SIM_SOPT2_CLKOUTSEL(1),  ///< Disabled1
+      SimClkoutSel_FlashClk    = SIM_SOPT2_CLKOUTSEL(2),  ///< Flash clock
+      SimClkoutSel_LpoClk      = SIM_SOPT2_CLKOUTSEL(3),  ///< LPO clock (1 kHz)
+      SimClkoutSel_McgIrClk    = SIM_SOPT2_CLKOUTSEL(4),  ///< MCGIRCLK
+      SimClkoutSel_RtcClk      = SIM_SOPT2_CLKOUTSEL(5),  ///< RTC 32.768kHz clock
+      SimClkoutSel_OscerClk0   = SIM_SOPT2_CLKOUTSEL(6),  ///< OSCERCLK0
+      SimClkoutSel_Unused7     = SIM_SOPT2_CLKOUTSEL(7),  ///< Disabled7
    };
 
    /**
@@ -2961,8 +2945,8 @@ public:
     * Frequency of the undivided peripheral clock
     */
    enum SimPeripheralClockSource {
-      SimPeripheralClockSource_McgFllClk = SIM_SOPT2_PLLFLLSEL(0), ///< MCGFLLCLK clock
-      SimPeripheralClockSource_McgPllClk = SIM_SOPT2_PLLFLLSEL(1), ///< MCGPLLCLK clock
+      SimPeripheralClockSource_McgFllClk   = SIM_SOPT2_PLLFLLSEL(0),  ///< MCGFLLCLK clock
+      SimPeripheralClockSource_McgPllClk   = SIM_SOPT2_PLLFLLSEL(1),  ///< MCGPLLCLK clock
    };
 
    /**
@@ -2973,22 +2957,22 @@ public:
     * as the USB clock source
     */
    enum SimUsbClockDivider {
-      SimUsbClockDivider_Mult2  = (1),  ///< Multiply by 2 (div=0, frac=1)
-      SimUsbClockDivider_Mult1  = (0),  ///< Multiply by 1 (div=0, frac=0)
-      SimUsbClockDivider_Mult1b = (3),  ///< Multiply by 1 (div=1, frac=1)
-      SimUsbClockDivider_Div1_5 = (5),  ///< Divide by 1.5 (div=2, frac=1)
-      SimUsbClockDivider_Div2   = (2),  ///< Divide by 2 (div=1, frac=0)
-      SimUsbClockDivider_Div2b  = (7),  ///< Divide by 2 (div=3, frac=1)
-      SimUsbClockDivider_Div2_5 = (9),  ///< Divide by 2.5 (div=4, frac=1)
-      SimUsbClockDivider_Div3   = (4),  ///< Divide by 3 (div=2, frac=0)
-      SimUsbClockDivider_Div3b  = (11), ///< Divide by 3 (div=5, frac=1)
-      SimUsbClockDivider_Div3_5 = (13), ///< Divide by 3.5 (div=6, frac=1)
-      SimUsbClockDivider_Div4   = (6),  ///< Divide by 4 (div=3, frac=0)
-      SimUsbClockDivider_Div4b  = (15), ///< Divide by 4 (div=7, frac=1)
-      SimUsbClockDivider_Div5   = (8),  ///< Divide by 5 (div=4, frac=0)
-      SimUsbClockDivider_Div6   = (10), ///< Divide by 6 (div=5, frac=0)
-      SimUsbClockDivider_Div7   = (12), ///< Divide by 7 (div=6, frac=0)
-      SimUsbClockDivider_Div8   = (14), ///< Divide by 8 (div=7, frac=0)
+      SimUsbClockDivider_Mult2    = (1),   ///< Multiply by 2 (div=0, frac=1)
+      SimUsbClockDivider_Mult1    = (0),   ///< Multiply by 1 (div=0, frac=0)
+      SimUsbClockDivider_Mult1b   = (3),   ///< Multiply by 1 (div=1, frac=1)
+      SimUsbClockDivider_Div1_5   = (5),   ///< Divide by 1.5 (div=2, frac=1)
+      SimUsbClockDivider_Div2     = (2),   ///< Divide by 2 (div=1, frac=0)
+      SimUsbClockDivider_Div2b    = (7),   ///< Divide by 2 (div=3, frac=1)
+      SimUsbClockDivider_Div2_5   = (9),   ///< Divide by 2.5 (div=4, frac=1)
+      SimUsbClockDivider_Div3     = (4),   ///< Divide by 3 (div=2, frac=0)
+      SimUsbClockDivider_Div3b    = (11),  ///< Divide by 3 (div=5, frac=1)
+      SimUsbClockDivider_Div3_5   = (13),  ///< Divide by 3.5 (div=6, frac=1)
+      SimUsbClockDivider_Div4     = (6),   ///< Divide by 4 (div=3, frac=0)
+      SimUsbClockDivider_Div4b    = (15),  ///< Divide by 4 (div=7, frac=1)
+      SimUsbClockDivider_Div5     = (8),   ///< Divide by 5 (div=4, frac=0)
+      SimUsbClockDivider_Div6     = (10),  ///< Divide by 6 (div=5, frac=0)
+      SimUsbClockDivider_Div7     = (12),  ///< Divide by 7 (div=6, frac=0)
+      SimUsbClockDivider_Div8     = (14),  ///< Divide by 8 (div=7, frac=0)
    };
 
    /**
@@ -2998,8 +2982,8 @@ public:
     * Source for the USB clock
     */
    enum SimUsbFullSpeedClockSource {
-      SimUsbFullSpeedClockSource_External      = SIM_SOPT2_USBSRC(0), ///< External bypass clock (USB_CLKIN)
-      SimUsbFullSpeedClockSource_PeripheralClk = SIM_SOPT2_USBSRC(1), ///< Peripheral Clock/SIM_CLKDIV2
+      SimUsbFullSpeedClockSource_External        = SIM_SOPT2_USBSRC(0),  ///< External bypass clock (USB_CLKIN)
+      SimUsbFullSpeedClockSource_PeripheralClk   = SIM_SOPT2_USBSRC(1),  ///< Peripheral Clock/SIM_CLKDIV2
    };
 
    /**
@@ -3010,22 +2994,22 @@ public:
     * Divides MCGOUTCLK Clock to generate system_core_clock.
     */
    enum SimCoreClkDivider {
-      SimCoreClkDivider_Direct  = SIM_CLKDIV1_OUTDIV1(0),  ///< /1
-      SimCoreClkDivider_DivBy2  = SIM_CLKDIV1_OUTDIV1(1),  ///< /2
-      SimCoreClkDivider_DivBy3  = SIM_CLKDIV1_OUTDIV1(2),  ///< /3
-      SimCoreClkDivider_DivBy4  = SIM_CLKDIV1_OUTDIV1(3),  ///< /4
-      SimCoreClkDivider_DivBy5  = SIM_CLKDIV1_OUTDIV1(4),  ///< /5
-      SimCoreClkDivider_DivBy6  = SIM_CLKDIV1_OUTDIV1(5),  ///< /6
-      SimCoreClkDivider_DivBy7  = SIM_CLKDIV1_OUTDIV1(6),  ///< /7
-      SimCoreClkDivider_DivBy8  = SIM_CLKDIV1_OUTDIV1(7),  ///< /8
-      SimCoreClkDivider_DivBy9  = SIM_CLKDIV1_OUTDIV1(8),  ///< /9
-      SimCoreClkDivider_DivBy10 = SIM_CLKDIV1_OUTDIV1(9),  ///< /10
-      SimCoreClkDivider_DivBy11 = SIM_CLKDIV1_OUTDIV1(10), ///< /11
-      SimCoreClkDivider_DivBy12 = SIM_CLKDIV1_OUTDIV1(11), ///< /12
-      SimCoreClkDivider_DivBy13 = SIM_CLKDIV1_OUTDIV1(12), ///< /13
-      SimCoreClkDivider_DivBy14 = SIM_CLKDIV1_OUTDIV1(13), ///< /14
-      SimCoreClkDivider_DivBy15 = SIM_CLKDIV1_OUTDIV1(14), ///< /15
-      SimCoreClkDivider_DivBy16 = SIM_CLKDIV1_OUTDIV1(15), ///< /16
+      SimCoreClkDivider_Direct    = SIM_CLKDIV1_OUTDIV1(0),   ///< /1
+      SimCoreClkDivider_DivBy2    = SIM_CLKDIV1_OUTDIV1(1),   ///< /2
+      SimCoreClkDivider_DivBy3    = SIM_CLKDIV1_OUTDIV1(2),   ///< /3
+      SimCoreClkDivider_DivBy4    = SIM_CLKDIV1_OUTDIV1(3),   ///< /4
+      SimCoreClkDivider_DivBy5    = SIM_CLKDIV1_OUTDIV1(4),   ///< /5
+      SimCoreClkDivider_DivBy6    = SIM_CLKDIV1_OUTDIV1(5),   ///< /6
+      SimCoreClkDivider_DivBy7    = SIM_CLKDIV1_OUTDIV1(6),   ///< /7
+      SimCoreClkDivider_DivBy8    = SIM_CLKDIV1_OUTDIV1(7),   ///< /8
+      SimCoreClkDivider_DivBy9    = SIM_CLKDIV1_OUTDIV1(8),   ///< /9
+      SimCoreClkDivider_DivBy10   = SIM_CLKDIV1_OUTDIV1(9),   ///< /10
+      SimCoreClkDivider_DivBy11   = SIM_CLKDIV1_OUTDIV1(10),  ///< /11
+      SimCoreClkDivider_DivBy12   = SIM_CLKDIV1_OUTDIV1(11),  ///< /12
+      SimCoreClkDivider_DivBy13   = SIM_CLKDIV1_OUTDIV1(12),  ///< /13
+      SimCoreClkDivider_DivBy14   = SIM_CLKDIV1_OUTDIV1(13),  ///< /14
+      SimCoreClkDivider_DivBy15   = SIM_CLKDIV1_OUTDIV1(14),  ///< /15
+      SimCoreClkDivider_DivBy16   = SIM_CLKDIV1_OUTDIV1(15),  ///< /16
    };
 
    /**
@@ -3036,22 +3020,22 @@ public:
     * Divides MCGOUTCLK Clock to generate system_bus_clock.
     */
    enum SimBusClkDivider {
-      SimBusClkDivider_Direct  = SIM_CLKDIV1_OUTDIV2(0),  ///< /1
-      SimBusClkDivider_DivBy2  = SIM_CLKDIV1_OUTDIV2(1),  ///< /2
-      SimBusClkDivider_DivBy3  = SIM_CLKDIV1_OUTDIV2(2),  ///< /3
-      SimBusClkDivider_DivBy4  = SIM_CLKDIV1_OUTDIV2(3),  ///< /4
-      SimBusClkDivider_DivBy5  = SIM_CLKDIV1_OUTDIV2(4),  ///< /5
-      SimBusClkDivider_DivBy6  = SIM_CLKDIV1_OUTDIV2(5),  ///< /6
-      SimBusClkDivider_DivBy7  = SIM_CLKDIV1_OUTDIV2(6),  ///< /7
-      SimBusClkDivider_DivBy8  = SIM_CLKDIV1_OUTDIV2(7),  ///< /8
-      SimBusClkDivider_DivBy9  = SIM_CLKDIV1_OUTDIV2(8),  ///< /9
-      SimBusClkDivider_DivBy10 = SIM_CLKDIV1_OUTDIV2(9),  ///< /10
-      SimBusClkDivider_DivBy11 = SIM_CLKDIV1_OUTDIV2(10), ///< /11
-      SimBusClkDivider_DivBy12 = SIM_CLKDIV1_OUTDIV2(11), ///< /12
-      SimBusClkDivider_DivBy13 = SIM_CLKDIV1_OUTDIV2(12), ///< /13
-      SimBusClkDivider_DivBy14 = SIM_CLKDIV1_OUTDIV2(13), ///< /14
-      SimBusClkDivider_DivBy15 = SIM_CLKDIV1_OUTDIV2(14), ///< /15
-      SimBusClkDivider_DivBy16 = SIM_CLKDIV1_OUTDIV2(15), ///< /16
+      SimBusClkDivider_Direct    = SIM_CLKDIV1_OUTDIV2(0),   ///< /1
+      SimBusClkDivider_DivBy2    = SIM_CLKDIV1_OUTDIV2(1),   ///< /2
+      SimBusClkDivider_DivBy3    = SIM_CLKDIV1_OUTDIV2(2),   ///< /3
+      SimBusClkDivider_DivBy4    = SIM_CLKDIV1_OUTDIV2(3),   ///< /4
+      SimBusClkDivider_DivBy5    = SIM_CLKDIV1_OUTDIV2(4),   ///< /5
+      SimBusClkDivider_DivBy6    = SIM_CLKDIV1_OUTDIV2(5),   ///< /6
+      SimBusClkDivider_DivBy7    = SIM_CLKDIV1_OUTDIV2(6),   ///< /7
+      SimBusClkDivider_DivBy8    = SIM_CLKDIV1_OUTDIV2(7),   ///< /8
+      SimBusClkDivider_DivBy9    = SIM_CLKDIV1_OUTDIV2(8),   ///< /9
+      SimBusClkDivider_DivBy10   = SIM_CLKDIV1_OUTDIV2(9),   ///< /10
+      SimBusClkDivider_DivBy11   = SIM_CLKDIV1_OUTDIV2(10),  ///< /11
+      SimBusClkDivider_DivBy12   = SIM_CLKDIV1_OUTDIV2(11),  ///< /12
+      SimBusClkDivider_DivBy13   = SIM_CLKDIV1_OUTDIV2(12),  ///< /13
+      SimBusClkDivider_DivBy14   = SIM_CLKDIV1_OUTDIV2(13),  ///< /14
+      SimBusClkDivider_DivBy15   = SIM_CLKDIV1_OUTDIV2(14),  ///< /15
+      SimBusClkDivider_DivBy16   = SIM_CLKDIV1_OUTDIV2(15),  ///< /16
    };
 
    /**
@@ -3062,22 +3046,22 @@ public:
     * Divides MCGOUTCLK Clock to generate system_flash_clock.
     */
    enum SimFlashClkDivider {
-      SimFlashClkDivider_Direct  = SIM_CLKDIV1_OUTDIV4(0),  ///< /1
-      SimFlashClkDivider_DivBy2  = SIM_CLKDIV1_OUTDIV4(1),  ///< /2
-      SimFlashClkDivider_DivBy3  = SIM_CLKDIV1_OUTDIV4(2),  ///< /3
-      SimFlashClkDivider_DivBy4  = SIM_CLKDIV1_OUTDIV4(3),  ///< /4
-      SimFlashClkDivider_DivBy5  = SIM_CLKDIV1_OUTDIV4(4),  ///< /5
-      SimFlashClkDivider_DivBy6  = SIM_CLKDIV1_OUTDIV4(5),  ///< /6
-      SimFlashClkDivider_DivBy7  = SIM_CLKDIV1_OUTDIV4(6),  ///< /7
-      SimFlashClkDivider_DivBy8  = SIM_CLKDIV1_OUTDIV4(7),  ///< /8
-      SimFlashClkDivider_DivBy9  = SIM_CLKDIV1_OUTDIV4(8),  ///< /9
-      SimFlashClkDivider_DivBy10 = SIM_CLKDIV1_OUTDIV4(9),  ///< /10
-      SimFlashClkDivider_DivBy11 = SIM_CLKDIV1_OUTDIV4(10), ///< /11
-      SimFlashClkDivider_DivBy12 = SIM_CLKDIV1_OUTDIV4(11), ///< /12
-      SimFlashClkDivider_DivBy13 = SIM_CLKDIV1_OUTDIV4(12), ///< /13
-      SimFlashClkDivider_DivBy14 = SIM_CLKDIV1_OUTDIV4(13), ///< /14
-      SimFlashClkDivider_DivBy15 = SIM_CLKDIV1_OUTDIV4(14), ///< /15
-      SimFlashClkDivider_DivBy16 = SIM_CLKDIV1_OUTDIV4(15), ///< /16
+      SimFlashClkDivider_Direct    = SIM_CLKDIV1_OUTDIV4(0),   ///< /1
+      SimFlashClkDivider_DivBy2    = SIM_CLKDIV1_OUTDIV4(1),   ///< /2
+      SimFlashClkDivider_DivBy3    = SIM_CLKDIV1_OUTDIV4(2),   ///< /3
+      SimFlashClkDivider_DivBy4    = SIM_CLKDIV1_OUTDIV4(3),   ///< /4
+      SimFlashClkDivider_DivBy5    = SIM_CLKDIV1_OUTDIV4(4),   ///< /5
+      SimFlashClkDivider_DivBy6    = SIM_CLKDIV1_OUTDIV4(5),   ///< /6
+      SimFlashClkDivider_DivBy7    = SIM_CLKDIV1_OUTDIV4(6),   ///< /7
+      SimFlashClkDivider_DivBy8    = SIM_CLKDIV1_OUTDIV4(7),   ///< /8
+      SimFlashClkDivider_DivBy9    = SIM_CLKDIV1_OUTDIV4(8),   ///< /9
+      SimFlashClkDivider_DivBy10   = SIM_CLKDIV1_OUTDIV4(9),   ///< /10
+      SimFlashClkDivider_DivBy11   = SIM_CLKDIV1_OUTDIV4(10),  ///< /11
+      SimFlashClkDivider_DivBy12   = SIM_CLKDIV1_OUTDIV4(11),  ///< /12
+      SimFlashClkDivider_DivBy13   = SIM_CLKDIV1_OUTDIV4(12),  ///< /13
+      SimFlashClkDivider_DivBy14   = SIM_CLKDIV1_OUTDIV4(13),  ///< /14
+      SimFlashClkDivider_DivBy15   = SIM_CLKDIV1_OUTDIV4(14),  ///< /15
+      SimFlashClkDivider_DivBy16   = SIM_CLKDIV1_OUTDIV4(15),  ///< /16
    };
 
    /**
@@ -3088,8 +3072,8 @@ public:
     * This may be done here or when the individual peripheral is configured.
     */
    enum SimAdc0Clock {
-      SimAdc0Clock_Disabled = SIM_SCGC6_ADC0(0), ///< Adc0 Clock disabled
-      SimAdc0Clock_Enabled  = SIM_SCGC6_ADC0(1), ///< Adc0 Clock enabled
+      SimAdc0Clock_Disabled   = SIM_SCGC6_ADC0(0),  ///< Adc0 Clock disabled
+      SimAdc0Clock_Enabled    = SIM_SCGC6_ADC0(1),  ///< Adc0 Clock enabled
    };
 
    /**
@@ -3100,8 +3084,8 @@ public:
     * This may be done here or when the individual peripheral is configured.
     */
    enum SimCmpClock {
-      SimCmpClock_Disabled = SIM_SCGC4_CMP(0), ///< Cmp Clock disabled
-      SimCmpClock_Enabled  = SIM_SCGC4_CMP(1), ///< Cmp Clock enabled
+      SimCmpClock_Disabled   = SIM_SCGC4_CMP(0),  ///< Cmp Clock disabled
+      SimCmpClock_Enabled    = SIM_SCGC4_CMP(1),  ///< Cmp Clock enabled
    };
 
    /**
@@ -3112,8 +3096,8 @@ public:
     * This may be done here or when the individual peripheral is configured.
     */
    enum SimCmtClock {
-      SimCmtClock_Disabled = SIM_SCGC4_CMT(0), ///< Cmt Clock disabled
-      SimCmtClock_Enabled  = SIM_SCGC4_CMT(1), ///< Cmt Clock enabled
+      SimCmtClock_Disabled   = SIM_SCGC4_CMT(0),  ///< Cmt Clock disabled
+      SimCmtClock_Enabled    = SIM_SCGC4_CMT(1),  ///< Cmt Clock enabled
    };
 
    /**
@@ -3124,8 +3108,8 @@ public:
     * This may be done here or when the individual peripheral is configured.
     */
    enum SimCrcClock {
-      SimCrcClock_Disabled = SIM_SCGC6_CRC(0), ///< Crc Clock disabled
-      SimCrcClock_Enabled  = SIM_SCGC6_CRC(1), ///< Crc Clock enabled
+      SimCrcClock_Disabled   = SIM_SCGC6_CRC(0),  ///< Crc Clock disabled
+      SimCrcClock_Enabled    = SIM_SCGC6_CRC(1),  ///< Crc Clock enabled
    };
 
    /**
@@ -3136,8 +3120,8 @@ public:
     * This may be done here or when the individual peripheral is configured.
     */
    enum SimDma0Clock {
-      SimDma0Clock_Disabled = SIM_SCGC7_DMA0(0), ///< Dma0 Clock disabled
-      SimDma0Clock_Enabled  = SIM_SCGC7_DMA0(1), ///< Dma0 Clock enabled
+      SimDma0Clock_Disabled   = SIM_SCGC7_DMA0(0),  ///< Dma0 Clock disabled
+      SimDma0Clock_Enabled    = SIM_SCGC7_DMA0(1),  ///< Dma0 Clock enabled
    };
 
    /**
@@ -3148,8 +3132,8 @@ public:
     * This may be done here or when the individual peripheral is configured.
     */
    enum SimDmamux0Clock {
-      SimDmamux0Clock_Disabled = SIM_SCGC6_DMAMUX0(0), ///< Dmamux0 Clock disabled
-      SimDmamux0Clock_Enabled  = SIM_SCGC6_DMAMUX0(1), ///< Dmamux0 Clock enabled
+      SimDmamux0Clock_Disabled   = SIM_SCGC6_DMAMUX0(0),  ///< Dmamux0 Clock disabled
+      SimDmamux0Clock_Enabled    = SIM_SCGC6_DMAMUX0(1),  ///< Dmamux0 Clock enabled
    };
 
    /**
@@ -3160,8 +3144,8 @@ public:
     * This may be done here or when the individual peripheral is configured.
     */
    enum SimEwmClock {
-      SimEwmClock_Disabled = SIM_SCGC4_EWM(0), ///< Ewm Clock disabled
-      SimEwmClock_Enabled  = SIM_SCGC4_EWM(1), ///< Ewm Clock enabled
+      SimEwmClock_Disabled   = SIM_SCGC4_EWM(0),  ///< Ewm Clock disabled
+      SimEwmClock_Enabled    = SIM_SCGC4_EWM(1),  ///< Ewm Clock enabled
    };
 
    /**
@@ -3172,8 +3156,8 @@ public:
     * This may be done here or when the individual peripheral is configured.
     */
    enum SimFtflClock {
-      SimFtflClock_Disabled = SIM_SCGC6_FTFL(0), ///< Ftfl Clock disabled
-      SimFtflClock_Enabled  = SIM_SCGC6_FTFL(1), ///< Ftfl Clock enabled
+      SimFtflClock_Disabled   = SIM_SCGC6_FTFL(0),  ///< Ftfl Clock disabled
+      SimFtflClock_Enabled    = SIM_SCGC6_FTFL(1),  ///< Ftfl Clock enabled
    };
 
    /**
@@ -3184,8 +3168,8 @@ public:
     * This may be done here or when the individual peripheral is configured.
     */
    enum SimFtm0Clock {
-      SimFtm0Clock_Disabled = SIM_SCGC6_FTM0(0), ///< Ftm0 Clock disabled
-      SimFtm0Clock_Enabled  = SIM_SCGC6_FTM0(1), ///< Ftm0 Clock enabled
+      SimFtm0Clock_Disabled   = SIM_SCGC6_FTM0(0),  ///< Ftm0 Clock disabled
+      SimFtm0Clock_Enabled    = SIM_SCGC6_FTM0(1),  ///< Ftm0 Clock enabled
    };
 
    /**
@@ -3196,8 +3180,8 @@ public:
     * This may be done here or when the individual peripheral is configured.
     */
    enum SimFtm1Clock {
-      SimFtm1Clock_Disabled = SIM_SCGC6_FTM1(0), ///< Ftm1 Clock disabled
-      SimFtm1Clock_Enabled  = SIM_SCGC6_FTM1(1), ///< Ftm1 Clock enabled
+      SimFtm1Clock_Disabled   = SIM_SCGC6_FTM1(0),  ///< Ftm1 Clock disabled
+      SimFtm1Clock_Enabled    = SIM_SCGC6_FTM1(1),  ///< Ftm1 Clock enabled
    };
 
    /**
@@ -3208,8 +3192,8 @@ public:
     * This may be done here or when the individual peripheral is configured.
     */
    enum SimI2c0Clock {
-      SimI2c0Clock_Disabled = SIM_SCGC4_I2C0(0), ///< I2c0 Clock disabled
-      SimI2c0Clock_Enabled  = SIM_SCGC4_I2C0(1), ///< I2c0 Clock enabled
+      SimI2c0Clock_Disabled   = SIM_SCGC4_I2C0(0),  ///< I2c0 Clock disabled
+      SimI2c0Clock_Enabled    = SIM_SCGC4_I2C0(1),  ///< I2c0 Clock enabled
    };
 
    /**
@@ -3220,8 +3204,8 @@ public:
     * This may be done here or when the individual peripheral is configured.
     */
    enum SimI2s0Clock {
-      SimI2s0Clock_Disabled = SIM_SCGC6_I2S0(0), ///< I2s0 Clock disabled
-      SimI2s0Clock_Enabled  = SIM_SCGC6_I2S0(1), ///< I2s0 Clock enabled
+      SimI2s0Clock_Disabled   = SIM_SCGC6_I2S0(0),  ///< I2s0 Clock disabled
+      SimI2s0Clock_Enabled    = SIM_SCGC6_I2S0(1),  ///< I2s0 Clock enabled
    };
 
    /**
@@ -3232,8 +3216,8 @@ public:
     * This may be done here or when the individual peripheral is configured.
     */
    enum SimLptmr0Clock {
-      SimLptmr0Clock_Disabled = SIM_SCGC5_LPTMR0(0), ///< Lptmr0 Clock disabled
-      SimLptmr0Clock_Enabled  = SIM_SCGC5_LPTMR0(1), ///< Lptmr0 Clock enabled
+      SimLptmr0Clock_Disabled   = SIM_SCGC5_LPTMR0(0),  ///< Lptmr0 Clock disabled
+      SimLptmr0Clock_Enabled    = SIM_SCGC5_LPTMR0(1),  ///< Lptmr0 Clock enabled
    };
 
    /**
@@ -3244,8 +3228,8 @@ public:
     * This may be done here or when the individual peripheral is configured.
     */
    enum SimPdbClock {
-      SimPdbClock_Disabled = SIM_SCGC6_PDB(0), ///< Pdb Clock disabled
-      SimPdbClock_Enabled  = SIM_SCGC6_PDB(1), ///< Pdb Clock enabled
+      SimPdbClock_Disabled   = SIM_SCGC6_PDB(0),  ///< Pdb Clock disabled
+      SimPdbClock_Enabled    = SIM_SCGC6_PDB(1),  ///< Pdb Clock enabled
    };
 
    /**
@@ -3256,8 +3240,8 @@ public:
     * This may be done here or when the individual peripheral is configured.
     */
    enum SimPitClock {
-      SimPitClock_Disabled = SIM_SCGC6_PIT(0), ///< Pit Clock disabled
-      SimPitClock_Enabled  = SIM_SCGC6_PIT(1), ///< Pit Clock enabled
+      SimPitClock_Disabled   = SIM_SCGC6_PIT(0),  ///< Pit Clock disabled
+      SimPitClock_Enabled    = SIM_SCGC6_PIT(1),  ///< Pit Clock enabled
    };
 
    /**
@@ -3268,8 +3252,8 @@ public:
     * This may be done here or when the individual peripheral is configured.
     */
    enum SimPortaClock {
-      SimPortaClock_Disabled = SIM_SCGC5_PORTA(0), ///< Porta Clock disabled
-      SimPortaClock_Enabled  = SIM_SCGC5_PORTA(1), ///< Porta Clock enabled
+      SimPortaClock_Disabled   = SIM_SCGC5_PORTA(0),  ///< Porta Clock disabled
+      SimPortaClock_Enabled    = SIM_SCGC5_PORTA(1),  ///< Porta Clock enabled
    };
 
    /**
@@ -3280,8 +3264,8 @@ public:
     * This may be done here or when the individual peripheral is configured.
     */
    enum SimPortbClock {
-      SimPortbClock_Disabled = SIM_SCGC5_PORTB(0), ///< Portb Clock disabled
-      SimPortbClock_Enabled  = SIM_SCGC5_PORTB(1), ///< Portb Clock enabled
+      SimPortbClock_Disabled   = SIM_SCGC5_PORTB(0),  ///< Portb Clock disabled
+      SimPortbClock_Enabled    = SIM_SCGC5_PORTB(1),  ///< Portb Clock enabled
    };
 
    /**
@@ -3292,8 +3276,8 @@ public:
     * This may be done here or when the individual peripheral is configured.
     */
    enum SimPortcClock {
-      SimPortcClock_Disabled = SIM_SCGC5_PORTC(0), ///< Portc Clock disabled
-      SimPortcClock_Enabled  = SIM_SCGC5_PORTC(1), ///< Portc Clock enabled
+      SimPortcClock_Disabled   = SIM_SCGC5_PORTC(0),  ///< Portc Clock disabled
+      SimPortcClock_Enabled    = SIM_SCGC5_PORTC(1),  ///< Portc Clock enabled
    };
 
    /**
@@ -3304,8 +3288,8 @@ public:
     * This may be done here or when the individual peripheral is configured.
     */
    enum SimPortdClock {
-      SimPortdClock_Disabled = SIM_SCGC5_PORTD(0), ///< Portd Clock disabled
-      SimPortdClock_Enabled  = SIM_SCGC5_PORTD(1), ///< Portd Clock enabled
+      SimPortdClock_Disabled   = SIM_SCGC5_PORTD(0),  ///< Portd Clock disabled
+      SimPortdClock_Enabled    = SIM_SCGC5_PORTD(1),  ///< Portd Clock enabled
    };
 
    /**
@@ -3316,8 +3300,8 @@ public:
     * This may be done here or when the individual peripheral is configured.
     */
    enum SimPorteClock {
-      SimPorteClock_Disabled = SIM_SCGC5_PORTE(0), ///< Porte Clock disabled
-      SimPorteClock_Enabled  = SIM_SCGC5_PORTE(1), ///< Porte Clock enabled
+      SimPorteClock_Disabled   = SIM_SCGC5_PORTE(0),  ///< Porte Clock disabled
+      SimPorteClock_Enabled    = SIM_SCGC5_PORTE(1),  ///< Porte Clock enabled
    };
 
    /**
@@ -3328,8 +3312,8 @@ public:
     * This may be done here or when the individual peripheral is configured.
     */
    enum SimRtcClock {
-      SimRtcClock_Disabled = SIM_SCGC6_RTC(0), ///< Rtc Clock disabled
-      SimRtcClock_Enabled  = SIM_SCGC6_RTC(1), ///< Rtc Clock enabled
+      SimRtcClock_Disabled   = SIM_SCGC6_RTC(0),  ///< Rtc Clock disabled
+      SimRtcClock_Enabled    = SIM_SCGC6_RTC(1),  ///< Rtc Clock enabled
    };
 
    /**
@@ -3340,8 +3324,8 @@ public:
     * This may be done here or when the individual peripheral is configured.
     */
    enum SimSpi0Clock {
-      SimSpi0Clock_Disabled = SIM_SCGC6_SPI0(0), ///< Spi0 Clock disabled
-      SimSpi0Clock_Enabled  = SIM_SCGC6_SPI0(1), ///< Spi0 Clock enabled
+      SimSpi0Clock_Disabled   = SIM_SCGC6_SPI0(0),  ///< Spi0 Clock disabled
+      SimSpi0Clock_Enabled    = SIM_SCGC6_SPI0(1),  ///< Spi0 Clock enabled
    };
 
    /**
@@ -3352,8 +3336,8 @@ public:
     * This may be done here or when the individual peripheral is configured.
     */
    enum SimTsi0Clock {
-      SimTsi0Clock_Disabled = SIM_SCGC5_TSI0(0), ///< Tsi0 Clock disabled
-      SimTsi0Clock_Enabled  = SIM_SCGC5_TSI0(1), ///< Tsi0 Clock enabled
+      SimTsi0Clock_Disabled   = SIM_SCGC5_TSI0(0),  ///< Tsi0 Clock disabled
+      SimTsi0Clock_Enabled    = SIM_SCGC5_TSI0(1),  ///< Tsi0 Clock enabled
    };
 
    /**
@@ -3364,8 +3348,8 @@ public:
     * This may be done here or when the individual peripheral is configured.
     */
    enum SimUart0Clock {
-      SimUart0Clock_Disabled = SIM_SCGC4_UART0(0), ///< Uart0 Clock disabled
-      SimUart0Clock_Enabled  = SIM_SCGC4_UART0(1), ///< Uart0 Clock enabled
+      SimUart0Clock_Disabled   = SIM_SCGC4_UART0(0),  ///< Uart0 Clock disabled
+      SimUart0Clock_Enabled    = SIM_SCGC4_UART0(1),  ///< Uart0 Clock enabled
    };
 
    /**
@@ -3376,8 +3360,8 @@ public:
     * This may be done here or when the individual peripheral is configured.
     */
    enum SimUart1Clock {
-      SimUart1Clock_Disabled = SIM_SCGC4_UART1(0), ///< Uart1 Clock disabled
-      SimUart1Clock_Enabled  = SIM_SCGC4_UART1(1), ///< Uart1 Clock enabled
+      SimUart1Clock_Disabled   = SIM_SCGC4_UART1(0),  ///< Uart1 Clock disabled
+      SimUart1Clock_Enabled    = SIM_SCGC4_UART1(1),  ///< Uart1 Clock enabled
    };
 
    /**
@@ -3388,8 +3372,8 @@ public:
     * This may be done here or when the individual peripheral is configured.
     */
    enum SimUart2Clock {
-      SimUart2Clock_Disabled = SIM_SCGC4_UART2(0), ///< Uart2 Clock disabled
-      SimUart2Clock_Enabled  = SIM_SCGC4_UART2(1), ///< Uart2 Clock enabled
+      SimUart2Clock_Disabled   = SIM_SCGC4_UART2(0),  ///< Uart2 Clock disabled
+      SimUart2Clock_Enabled    = SIM_SCGC4_UART2(1),  ///< Uart2 Clock enabled
    };
 
    /**
@@ -3400,8 +3384,8 @@ public:
     * This may be done here or when the individual peripheral is configured.
     */
    enum SimUsb0Clock {
-      SimUsb0Clock_Disabled = SIM_SCGC4_USB0(0), ///< Usb0 Clock disabled
-      SimUsb0Clock_Enabled  = SIM_SCGC4_USB0(1), ///< Usb0 Clock enabled
+      SimUsb0Clock_Disabled   = SIM_SCGC4_USB0(0),  ///< Usb0 Clock disabled
+      SimUsb0Clock_Enabled    = SIM_SCGC4_USB0(1),  ///< Usb0 Clock enabled
    };
 
    /**
@@ -3412,8 +3396,8 @@ public:
     * This may be done here or when the individual peripheral is configured.
     */
    enum SimUsbdcdClock {
-      SimUsbdcdClock_Disabled = SIM_SCGC6_USBDCD(0), ///< Usbdcd Clock disabled
-      SimUsbdcdClock_Enabled  = SIM_SCGC6_USBDCD(1), ///< Usbdcd Clock enabled
+      SimUsbdcdClock_Disabled   = SIM_SCGC6_USBDCD(0),  ///< Usbdcd Clock disabled
+      SimUsbdcdClock_Enabled    = SIM_SCGC6_USBDCD(1),  ///< Usbdcd Clock enabled
    };
 
    /**
@@ -3424,8 +3408,8 @@ public:
     * This may be done here or when the individual peripheral is configured.
     */
    enum SimVrefClock {
-      SimVrefClock_Disabled = SIM_SCGC4_VREF(0), ///< Vref Clock disabled
-      SimVrefClock_Enabled  = SIM_SCGC4_VREF(1), ///< Vref Clock enabled
+      SimVrefClock_Disabled   = SIM_SCGC4_VREF(0),  ///< Vref Clock disabled
+      SimVrefClock_Enabled    = SIM_SCGC4_VREF(1),  ///< Vref Clock enabled
    };
 
    /**
@@ -3435,9 +3419,9 @@ public:
     * Clock source for External 32k Reference Clock [ERCLK32K]
     */
    enum SimErc32kSel {
-      SimErc32kSel_Osc32kClk = SIM_SOPT1_OSC32KSEL(0), ///< OSC0 in low range (OSC32KCLK)
-      SimErc32kSel_Rtc32kClk = SIM_SOPT1_OSC32KSEL(2), ///< RTC 32kHz clock
-      SimErc32kSel_LpoClk    = SIM_SOPT1_OSC32KSEL(3), ///< LPO 1kHz clock
+      SimErc32kSel_Osc32kClk   = SIM_SOPT1_OSC32KSEL(0),  ///< OSC0 in low range (OSC32KCLK)
+      SimErc32kSel_Rtc32kClk   = SIM_SOPT1_OSC32KSEL(2),  ///< RTC 32kHz clock
+      SimErc32kSel_LpoClk      = SIM_SOPT1_OSC32KSEL(3),  ///< LPO 1kHz clock
    };
 
    /**
@@ -3447,8 +3431,8 @@ public:
     * Clock output on the RTC_CLKOUT pin
     */
    enum SimRtcClkoutSel {
-      SimRtcClkoutSel_1Hz   = SIM_SOPT2_RTCCLKOUTSEL(0), ///< RTC 1 Hz clock
-      SimRtcClkoutSel_32kHz = SIM_SOPT2_RTCCLKOUTSEL(1), ///< RTC 32kHz clock
+      SimRtcClkoutSel_1Hz     = SIM_SOPT2_RTCCLKOUTSEL(0),  ///< RTC 1 Hz clock
+      SimRtcClkoutSel_32kHz   = SIM_SOPT2_RTCCLKOUTSEL(1),  ///< RTC 32kHz clock
    };
 
    /**
@@ -3468,8 +3452,27 @@ public:
       SimRamSize_1024KiB = SIM_SOPT1_RAMSIZE(13), ///< 256KiB RAM
    };
 
-class SimBasicInfo {
+   /*
+    * Global clocks
+    */
    
+   /**
+    *  System Core Clock
+    *  Clocks the ARM Cortex-M4 core and bus masters
+    *  (Full configuration - declaration)
+    */
+   extern "C" uint32_t SystemCoreClock;
+   
+   /**
+    *  System Bus Clock
+    *  Clocks the bus slaves and peripherals
+    *        - Must be &lt;= Core Clock frequency and an integer divisor
+    *  (Full configuration - declaration)
+    */
+   extern "C" uint32_t SystemBusClock;
+   
+class SimBasicInfo {
+
 public:
    /**
     * Class used to do initialisation of the Sim clock enables
@@ -3981,7 +3984,7 @@ public:
     *
     * @note This constructor may be used to create a const instance in ROM
     *
-    * Generic Example: (see Sim::DefaultSopt2Values for device specific example)
+    * Generic Example: (see Sim::DefaultClockSouceInitValues for device specific example)
     * @code
     * static const ClockSourceInit clockSourceInit {
     *    SimUsbFullSpeedClockSource_McgPClk, // USB Clock - Peripheral clock (MCGPCLK)
@@ -3993,7 +3996,7 @@ public:
     *    SimLpuart1ClockSource_McgPClk,      // LPUART1 Clock - MCGPCLK (HIRC=IRC48M) Clock
     *
     *    // Base value modified by above
-    *    Sim::DefaultSopt2Values[McgClockMode_HIRC_48MHz]
+    *    Sim::DefaultClockSouceInitValues[McgClockMode_HIRC_48MHz]
     * };
     *
     * // Initialise SIM Clock control from values specified above
@@ -4255,27 +4258,14 @@ public:
     *
     * Example:
     * @code
-    * static const AdcInit adcInit {
+    * static const AdcHardwareTriggerInit adcHardwareTriggerInit {
     * };
     *
     * // Initialise Adc signals from values specified above
-    * Sim::configure(adcInit)
-    * @endcode
-    */   /**
-    * Class used to do initialisation of Adc trigger sources
-    *
-    * @note This constructor may be used to create a const instance in ROM
-    *
-    * Example:
-    * @code
-    * static const AdcInit adcInit {
-    * };
-    *
-    * // Initialise Adc signals from values specified above
-    * adcInit.configure()
+    * Sim::configure(adcHardwareTriggerInit)
     * @endcode
     */
-   class AdcInit {
+   class AdcHardwareTriggerInit {
    
    public:
       /// Adc signals
@@ -4284,12 +4274,12 @@ public:
       /**
        * Copy Constructor
        */
-      constexpr AdcInit(const AdcInit &other) = default;
+      constexpr AdcHardwareTriggerInit(const AdcHardwareTriggerInit &other) = default;
    
       /**
        * Default Constructor
        */
-      constexpr AdcInit() = default;
+      constexpr AdcHardwareTriggerInit() = default;
    
       /**
        * Constructor for ADC0 trigger mode
@@ -4303,7 +4293,7 @@ public:
        *        _Alt_PreTrigger_1 - ADC is triggered by SimAdc0Trigger selection and uses pretrigger 1 = B (SC1[1]/R[1])
        */
       template <typename... Types>
-      constexpr AdcInit(SimAdc0TriggerMode simAdc0TriggerMode, Types... rest) : AdcInit(rest...) {
+      constexpr AdcHardwareTriggerInit(SimAdc0TriggerMode simAdc0TriggerMode, Types... rest) : AdcHardwareTriggerInit(rest...) {
    
          sopt7 = (sopt7 & ~(SIM_SOPT7_ADC0ALTTRGEN_MASK|SIM_SOPT7_ADC0PRETRGSEL_MASK)) | simAdc0TriggerMode;
       }
@@ -4321,9 +4311,9 @@ public:
        * @param simAdc0TriggerSrc  ADC Trigger source in STOP and VLPS modes, or when ADC Alternative Trigger is active
        */
       template <typename... Types>
-      constexpr AdcInit(
+      constexpr AdcHardwareTriggerInit(
             SimAdc0TriggerMode simAdc0TriggerMode,
-            SimAdc0TriggerSrc  simAdc0TriggerSrc, Types... rest) : AdcInit(rest...) {
+            SimAdc0TriggerSrc  simAdc0TriggerSrc, Types... rest) : AdcHardwareTriggerInit(rest...) {
    
          sopt7 = (sopt7 & ~(SIM_SOPT7_ADC0ALTTRGEN_MASK|SIM_SOPT7_ADC0PRETRGSEL_MASK|SIM_SOPT7_ADC0TRGSEL_MASK)) | simAdc0TriggerMode|simAdc0TriggerSrc;
       }
@@ -4781,23 +4771,6 @@ public:
 
 }; // class SimBasicInfo 
 
-   /*
-    * Global clocks
-    */
-   
-   /**
-    *  System Core Clock
-    *  Clocks the ARM Cortex-M4 core and bus masters
-    */
-   extern "C" uint32_t SystemCoreClock;
-   
-   /**
-    *  System Bus Clock
-    *  Clocks the bus slaves and peripherals
-    *        - Must be &lt;= Core Clock frequency and an integer divisor
-    */
-   extern "C" uint32_t SystemBusClock;
-   
 class SimInfo : public SimBasicInfo {
 public:
    /*
@@ -4811,7 +4784,7 @@ public:
    }
    
    /**
-    * Disables the clock to Sim and all mapped pins
+    * Disables Sim
     */
    static void disable() {
       
@@ -4914,6 +4887,34 @@ public:
    ///  Frequency of External USB Clock
    static constexpr uint32_t usbExternalClock=0;
 
+   /**
+    * Get chip unique 32-bit ID value UIDH
+    */
+   static uint32_t getUidh() {
+      return sim->UIDH;
+   }
+   
+   /**
+    * Get chip unique 32-bit ID value UIDMH
+    */
+   static uint32_t getUidmh() {
+      return sim->UIDMH;
+   }
+   
+   /**
+    * Get chip unique 32-bit ID value UIDML
+    */
+   static uint32_t getUidml() {
+      return sim->UIDML;
+   }
+   
+   /**
+    * Get chip unique 32-bit ID value UIDL
+    */
+   static uint32_t getUidl() {
+      return sim->UIDL;
+   }
+   
    /**
     * Get RAM size
     *
@@ -5093,10 +5094,10 @@ public:
     */
    static void disableClocks(const ClockEnables &init) {
    
-      sim->SCGC4  &=~ init.scgc4;
-      sim->SCGC5  &=~ init.scgc5;
-      sim->SCGC6  &=~ init.scgc6;
-      sim->SCGC7  &=~ init.scgc7;
+      sim->SCGC4  &= ~ init.scgc4;
+      sim->SCGC5  &= ~ init.scgc5;
+      sim->SCGC6  &= ~ init.scgc6;
+      sim->SCGC7  &= ~ init.scgc7;
    }
    
    /**
@@ -5111,7 +5112,7 @@ public:
     * Default value for Sim::ClockSourceInit
     * This value is created from Configure.usbdmProject settings
     */
-   static constexpr ClockSourceInit DefaultSopt2Values[] = {
+   static constexpr ClockSourceInit DefaultClockSouceInitValues[] = {
    { // ClockConfig_RUN_PEE_48MHz (McgClockMode_PEE)
       SimPeripheralClockSource_McgPllClk , // (sim_sopt2_pllfllsel[0]) Peripheral Clock - MCGPLLCLK clock
       SimUsbFullSpeedClockSource_PeripheralClk , // (sim_sopt2_usbsrc[0]) USB Clock - Peripheral Clock/SIM_CLKDIV2
@@ -5141,11 +5142,20 @@ public:
    /**
     * Configure ADC trigger sources from values specified
     */
-   static void configure(const AdcInit &config) {
+   static void configure(const AdcHardwareTriggerInit &config) {
 
       sim->SOPT7 = (sim->SOPT7&~(SIM_SOPT7_ADC0ALTTRGEN_MASK|SIM_SOPT7_ADC0PRETRGSEL_MASK|SIM_SOPT7_ADC0TRGSEL_MASK)) |
                    config.sopt7;
    }
+   
+   /**
+    * Default initialisation value for ADC hardware triggers
+    * This value is created from Configure.usbdmProject settings
+    */
+   static constexpr AdcHardwareTriggerInit DefaultAdcHardwareTriggerInitValue = {
+      SimAdc0TriggerMode_Pdb , // (sim_sopt7_adc0trigger) ADC0 trigger mode - Triggered by PDB
+      SimAdc0TriggerSrc_External,  // (sim_sopt7_adc0trgsel) ADC0 trigger source - External trigger pin input (PDB0_EXTRG)
+   };
    
    /**
     * Configure Adc signals from values specified
@@ -5306,63 +5316,98 @@ public:
  */
    /**
     * ADC Channel number
-    * (adc_sc1_channel)
+    * (adc_sc1_adch)
     *
     * Selects an ADC channel
     */
    enum AdcChannelNum : uint8_t {
-      AdcChannelNum_0        = ADC_SC1_DIFF(0)|ADC_SC1_ADCH(0),  ///< Channel 0
-      AdcChannelNum_1        = ADC_SC1_DIFF(0)|ADC_SC1_ADCH(1),  ///< Channel 1
-      AdcChannelNum_2        = ADC_SC1_DIFF(0)|ADC_SC1_ADCH(2),  ///< Channel 2
-      AdcChannelNum_3        = ADC_SC1_DIFF(0)|ADC_SC1_ADCH(3),  ///< Channel 3
-      AdcChannelNum_4        = ADC_SC1_DIFF(0)|ADC_SC1_ADCH(4),  ///< Channel 4
-      AdcChannelNum_5        = ADC_SC1_DIFF(0)|ADC_SC1_ADCH(5),  ///< Channel 5
-      AdcChannelNum_6        = ADC_SC1_DIFF(0)|ADC_SC1_ADCH(6),  ///< Channel 6
-      AdcChannelNum_7        = ADC_SC1_DIFF(0)|ADC_SC1_ADCH(7),  ///< Channel 7
-      AdcChannelNum_8        = ADC_SC1_DIFF(0)|ADC_SC1_ADCH(8),  ///< Channel 8
-      AdcChannelNum_9        = ADC_SC1_DIFF(0)|ADC_SC1_ADCH(9),  ///< Channel 9
-      AdcChannelNum_10       = ADC_SC1_DIFF(0)|ADC_SC1_ADCH(10), ///< Channel 10
-      AdcChannelNum_11       = ADC_SC1_DIFF(0)|ADC_SC1_ADCH(11), ///< Channel 11
-      AdcChannelNum_12       = ADC_SC1_DIFF(0)|ADC_SC1_ADCH(12), ///< Channel 12
-      AdcChannelNum_13       = ADC_SC1_DIFF(0)|ADC_SC1_ADCH(13), ///< Channel 13
-      AdcChannelNum_14       = ADC_SC1_DIFF(0)|ADC_SC1_ADCH(14), ///< Channel 14
-      AdcChannelNum_15       = ADC_SC1_DIFF(0)|ADC_SC1_ADCH(15), ///< Channel 15
-      AdcChannelNum_16       = ADC_SC1_DIFF(0)|ADC_SC1_ADCH(16), ///< Channel 16
-      AdcChannelNum_17       = ADC_SC1_DIFF(0)|ADC_SC1_ADCH(17), ///< Channel 17
-      AdcChannelNum_18       = ADC_SC1_DIFF(0)|ADC_SC1_ADCH(18), ///< Channel 18
-      AdcChannelNum_19       = ADC_SC1_DIFF(0)|ADC_SC1_ADCH(19), ///< Channel 19
-      AdcChannelNum_20       = ADC_SC1_DIFF(0)|ADC_SC1_ADCH(20), ///< Channel 20
-      AdcChannelNum_21       = ADC_SC1_DIFF(0)|ADC_SC1_ADCH(21), ///< Channel 21
-      AdcChannelNum_22       = ADC_SC1_DIFF(0)|ADC_SC1_ADCH(22), ///< Channel 22
-      AdcChannelNum_23       = ADC_SC1_DIFF(0)|ADC_SC1_ADCH(23), ///< Channel 23
-      AdcChannelNum_24       = ADC_SC1_DIFF(0)|ADC_SC1_ADCH(24), ///< Channel 24
-      AdcChannelNum_25       = ADC_SC1_DIFF(0)|ADC_SC1_ADCH(25), ///< Channel 25
-      AdcChannelNum_26       = ADC_SC1_DIFF(0)|ADC_SC1_ADCH(26), ///< Channel 26
-      AdcChannelNum_27       = ADC_SC1_DIFF(0)|ADC_SC1_ADCH(27), ///< Channel 27
-      AdcChannelNum_28       = ADC_SC1_DIFF(0)|ADC_SC1_ADCH(28), ///< Channel 28
-      AdcChannelNum_29       = ADC_SC1_DIFF(0)|ADC_SC1_ADCH(29), ///< Channel 29
-      AdcChannelNum_30       = ADC_SC1_DIFF(0)|ADC_SC1_ADCH(30), ///< Channel 30
-      AdcChannelNum_Diff0    = ADC_SC1_DIFF(1)|ADC_SC1_ADCH(0),  ///< Channel 0
-      AdcChannelNum_Diff1    = ADC_SC1_DIFF(1)|ADC_SC1_ADCH(1),  ///< Channel 1
-      AdcChannelNum_Diff2    = ADC_SC1_DIFF(1)|ADC_SC1_ADCH(2),  ///< Channel 2
-      AdcChannelNum_Diff3    = ADC_SC1_DIFF(1)|ADC_SC1_ADCH(3),  ///< Channel 3
-      AdcChannelNum_Diff4    = ADC_SC1_DIFF(1)|ADC_SC1_ADCH(4),  ///< Channel 4
-      AdcChannelNum_Disabled = ADC_SC1_DIFF(0)|ADC_SC1_ADCH(31), ///< Disabled
+      AdcChannelNum_Se0         = ADC_SC1_ADCH(0),   ///< Channel SE0
+      AdcChannelNum_Se1         = ADC_SC1_ADCH(1),   ///< Channel SE1
+      AdcChannelNum_Se2         = ADC_SC1_ADCH(2),   ///< Channel SE2
+      AdcChannelNum_Se3         = ADC_SC1_ADCH(3),   ///< Channel SE3
+      AdcChannelNum_AFirst      = ADC_SC1_ADCH(4),   ///< AFirst
+      AdcChannelNum_Se4a        = ADC_SC1_ADCH(4),   ///< Channel SE4a
+      AdcChannelNum_Se5a        = ADC_SC1_ADCH(5),   ///< Channel SE5a
+      AdcChannelNum_Se6a        = ADC_SC1_ADCH(6),   ///< Channel SE6a
+      AdcChannelNum_Se7a        = ADC_SC1_ADCH(7),   ///< Channel SE7a
+      AdcChannelNum_ALast       = ADC_SC1_ADCH(7),   ///< ALast
+      AdcChannelNum_Se8         = ADC_SC1_ADCH(8),   ///< Channel SE8
+      AdcChannelNum_Se9         = ADC_SC1_ADCH(9),   ///< Channel SE9
+      AdcChannelNum_Se10        = ADC_SC1_ADCH(10),  ///< Channel SE10
+      AdcChannelNum_Se11        = ADC_SC1_ADCH(11),  ///< Channel SE11
+      AdcChannelNum_Se12        = ADC_SC1_ADCH(12),  ///< Channel SE12
+      AdcChannelNum_Se13        = ADC_SC1_ADCH(13),  ///< Channel SE13
+      AdcChannelNum_Se14        = ADC_SC1_ADCH(14),  ///< Channel SE14
+      AdcChannelNum_Se15        = ADC_SC1_ADCH(15),  ///< Channel SE15
+      AdcChannelNum_Se16        = ADC_SC1_ADCH(16),  ///< Channel SE16
+      AdcChannelNum_Se17        = ADC_SC1_ADCH(17),  ///< Channel SE17
+      AdcChannelNum_Se18        = ADC_SC1_ADCH(18),  ///< Channel SE18
+      AdcChannelNum_Se19        = ADC_SC1_ADCH(19),  ///< Channel SE19
+      AdcChannelNum_Se20        = ADC_SC1_ADCH(20),  ///< Channel SE20
+      AdcChannelNum_Se21        = ADC_SC1_ADCH(21),  ///< Channel SE21
+      AdcChannelNum_Se22        = ADC_SC1_ADCH(22),  ///< Channel SE22
+      AdcChannelNum_Se23        = ADC_SC1_ADCH(23),  ///< Channel SE23
+      AdcChannelNum_Se24        = ADC_SC1_ADCH(24),  ///< Channel SE24
+      AdcChannelNum_Se25        = ADC_SC1_ADCH(25),  ///< Channel SE25
+      AdcChannelNum_Se26        = ADC_SC1_ADCH(26),  ///< Channel SE26
+      AdcChannelNum_Se27        = ADC_SC1_ADCH(27),  ///< Channel SE27
+      AdcChannelNum_Se28        = ADC_SC1_ADCH(28),  ///< Channel SE28
+      AdcChannelNum_Se29        = ADC_SC1_ADCH(29),  ///< Channel SE29
+      AdcChannelNum_Se30        = ADC_SC1_ADCH(30),  ///< Channel SE30
+      AdcChannelNum_Disabled    = ADC_SC1_ADCH(31),  ///< Disabled
+      AdcChannelNum_DiffFirst   = ADC_SC1_ADCH(32),  ///< DiffFirst
+      AdcChannelNum_Diff0       = ADC_SC1_ADCH(32),  ///< Diff Channel 0
+      AdcChannelNum_Diff1       = ADC_SC1_ADCH(33),  ///< Diff Channel 1
+      AdcChannelNum_Diff2       = ADC_SC1_ADCH(34),  ///< Diff Channel 2
+      AdcChannelNum_Diff3       = ADC_SC1_ADCH(35),  ///< Diff Channel 3
+      AdcChannelNum_DiffLast    = ADC_SC1_ADCH(35),  ///< DiffLast
+      AdcChannelNum_BFirst      = ADC_SC1_ADCH(40),  ///< BFirst
+      AdcChannelNum_Se4b        = ADC_SC1_ADCH(40),  ///< Channel SE4b
+      AdcChannelNum_Se5b        = ADC_SC1_ADCH(41),  ///< Channel SE5b
+      AdcChannelNum_Se6b        = ADC_SC1_ADCH(42),  ///< Channel SE6b
+      AdcChannelNum_Se7b        = ADC_SC1_ADCH(43),  ///< Channel SE7b
+      AdcChannelNum_BLast       = ADC_SC1_ADCH(43),  ///< BLast
    };
 
    /**
     * ADC Channel number
-    * (adc_sc1_channelb)
+    * (adc0_sc1_channel)
     *
-    * Selects an ADC channel (alternative B)
+    * Selects an ADC channel
     */
-   enum AdcChannelNumB : uint8_t {
-      AdcChannelNumB_4        = ADC_SC1_ADCH(4),  ///< Channel 4 B
-      AdcChannelNumB_5        = ADC_SC1_ADCH(5),  ///< Channel 5 B
-      AdcChannelNumB_6        = ADC_SC1_ADCH(6),  ///< Channel 6 B
-      AdcChannelNumB_7        = ADC_SC1_ADCH(7),  ///< Channel 7 B
-      AdcChannelNumB_Disabled = ADC_SC1_ADCH(31), ///< Disabled
-   };
+   static constexpr AdcChannelNum Adc0ChannelNum_Se0                   = AdcChannelNum_Se0;    ///< ADC0_SE0 [ADC0_DP0]
+   static constexpr AdcChannelNum Adc0ChannelNum_ADC0_DP0              = AdcChannelNum_Se0;    ///< Pin ADC0_DP0
+   static constexpr AdcChannelNum Adc0ChannelNum_Se3                   = AdcChannelNum_Se3;    ///< ADC0_SE3 [ADC0_DP3]
+   static constexpr AdcChannelNum Adc0ChannelNum_ADC0_DP3              = AdcChannelNum_Se3;    ///< Pin ADC0_DP3
+   static constexpr AdcChannelNum Adc0ChannelNum_Se8                   = AdcChannelNum_Se8;    ///< ADC0_SE8 [-]
+   static constexpr AdcChannelNum Adc0ChannelNum_Se9                   = AdcChannelNum_Se9;    ///< ADC0_SE9 [-]
+   static constexpr AdcChannelNum Adc0ChannelNum_Se12                  = AdcChannelNum_Se12;   ///< ADC0_SE12 [-]
+   static constexpr AdcChannelNum Adc0ChannelNum_Se13                  = AdcChannelNum_Se13;   ///< ADC0_SE13 [-]
+   static constexpr AdcChannelNum Adc0ChannelNum_Se14                  = AdcChannelNum_Se14;   ///< A0 [-]
+   static constexpr AdcChannelNum Adc0ChannelNum_Analogue_A0           = AdcChannelNum_Se14;   ///< A0
+   static constexpr AdcChannelNum Adc0ChannelNum_Se15                  = AdcChannelNum_Se15;   ///< ADC0_SE15 [-]
+   static constexpr AdcChannelNum Adc0ChannelNum_Se19                  = AdcChannelNum_Se19;   ///< Photo-transistor [ADC0_DM0]
+   static constexpr AdcChannelNum Adc0ChannelNum_PhotoTransistor       = AdcChannelNum_Se19;   ///< Photo-transistor
+   static constexpr AdcChannelNum Adc0ChannelNum_ADC0_DM0              = AdcChannelNum_Se19;   ///< Pin ADC0_DM0
+   static constexpr AdcChannelNum Adc0ChannelNum_Se21                  = AdcChannelNum_Se21;   ///< External temperature sensor [ADC0_DM3]
+   static constexpr AdcChannelNum Adc0ChannelNum_ExternalTemperature   = AdcChannelNum_Se21;   ///< External temperature sensor
+   static constexpr AdcChannelNum Adc0ChannelNum_ADC0_DM3              = AdcChannelNum_Se21;   ///< Pin ADC0_DM3
+   static constexpr AdcChannelNum Adc0ChannelNum_Se23                  = AdcChannelNum_Se23;   ///< ADC0_SE23 [ADC0_SE23]
+   static constexpr AdcChannelNum Adc0ChannelNum_ADC0_SE23             = AdcChannelNum_Se23;   ///< Pin ADC0_SE23
+   static constexpr AdcChannelNum Adc0ChannelNum_Se26                  = AdcChannelNum_Se26;   ///< Internal temperature sensor [TEMP_SENSOR(Internal)]
+   static constexpr AdcChannelNum Adc0ChannelNum_InternalTemperature   = AdcChannelNum_Se26;   ///< Internal temperature sensor
+   static constexpr AdcChannelNum Adc0ChannelNum_TEMP_SENSOR           = AdcChannelNum_Se26;   ///< Pin TEMP_SENSOR
+   static constexpr AdcChannelNum Adc0ChannelNum_Se27                  = AdcChannelNum_Se27;   ///< Internal band-gap reference [BANDGAP(Internal)]
+   static constexpr AdcChannelNum Adc0ChannelNum_Bandgap               = AdcChannelNum_Se27;   ///< Internal band-gap reference
+   static constexpr AdcChannelNum Adc0ChannelNum_Se4b                  = AdcChannelNum_Se4b;   ///< ADC0_SE4b [-]
+   static constexpr AdcChannelNum Adc0ChannelNum_Se5b                  = AdcChannelNum_Se5b;   ///< ADC0_SE5b [-]
+   static constexpr AdcChannelNum Adc0ChannelNum_Se6b                  = AdcChannelNum_Se6b;   ///< SDA_USB_P5V_SENSE [PTD5(p30)]
+   static constexpr AdcChannelNum Adc0ChannelNum_SDA_USB_P5V_SENSE     = AdcChannelNum_Se6b;   ///< SDA_USB_P5V_SENSE
+   static constexpr AdcChannelNum Adc0ChannelNum_PTD5                  = AdcChannelNum_Se6b;   ///< Pin PTD5
+   static constexpr AdcChannelNum Adc0ChannelNum_Se7b                  = AdcChannelNum_Se7b;   ///< ADC0_SE7b [-]
+   static constexpr AdcChannelNum Adc0ChannelNum_Diff0                 = AdcChannelNum_Diff0;  ///< ADC0_DP0 [ADC0_DP0]
+   static constexpr AdcChannelNum Adc0ChannelNum_Diff3                 = AdcChannelNum_Diff3;  ///< ADC0_DP3 [ADC0_DP3]
+
 
    /**
     * Action on conversion completion
@@ -5370,9 +5415,9 @@ public:
     *
     * Controls whether an interrupt is triggered at the end of each conversion
     */
-   enum AdcAction {
-      AdcAction_None      = ADC_SC1_AIEN(0), ///< None
-      AdcAction_Interrupt = ADC_SC1_AIEN(1), ///< Interrupt
+   enum AdcAction : uint8_t {
+      AdcAction_None        = ADC_SC1_AIEN(0),  ///< None
+      AdcAction_Interrupt   = ADC_SC1_AIEN(1),  ///< Interrupt
    };
 
    /**
@@ -5381,9 +5426,9 @@ public:
     *
     * 
     */
-   enum AdcCompleteFlag {
-      AdcCompleteFlag_NotComplete = ADC_SC1_COCO(0), ///< Not complete
-      AdcCompleteFlag_Complete    = ADC_SC1_COCO(1), ///< Complete
+   enum AdcCompleteFlag : uint8_t {
+      AdcCompleteFlag_NotComplete   = ADC_SC1_COCO(0),  ///< Not complete
+      AdcCompleteFlag_Complete      = ADC_SC1_COCO(1),  ///< Complete
    };
 
    /**
@@ -5392,9 +5437,9 @@ public:
     *
     * Enable differential conversion
     */
-   enum AdcDifferential {
-      AdcDifferential_SingleEnded  = ADC_SC1_DIFF(0), ///< Single-ended
-      AdcDifferential_Differential = ADC_SC1_DIFF(1), ///< Differential
+   enum AdcDifferential : uint8_t {
+      AdcDifferential_SingleEnded    = ADC_SC1_DIFF(0),  ///< Single-ended
+      AdcDifferential_Differential   = ADC_SC1_DIFF(1),  ///< Differential
    };
 
    /**
@@ -5403,11 +5448,11 @@ public:
     *
     * Clock source for the ADC module
     */
-   enum AdcClockSource {
-      AdcClockSource_BusClock     = ADC_CFG1_ADICLK(0), ///< Bus clock
-      AdcClockSource_BusClockDiv2 = ADC_CFG1_ADICLK(1), ///< Bus clock/2
-      AdcClockSource_OscerClk     = ADC_CFG1_ADICLK(2), ///< Alternate clock (OSCERCLK)
-      AdcClockSource_Asynch       = ADC_CFG1_ADICLK(3), ///< Asynchronous clock (ADACK)
+   enum AdcClockSource : uint8_t {
+      AdcClockSource_BusClock       = ADC_CFG1_ADICLK(0),  ///< Bus clock
+      AdcClockSource_BusClockDiv2   = ADC_CFG1_ADICLK(1),  ///< Bus clock/2
+      AdcClockSource_OscerClk       = ADC_CFG1_ADICLK(2),  ///< Alternate clock (OSCERCLK)
+      AdcClockSource_Asynch         = ADC_CFG1_ADICLK(3),  ///< Asynchronous clock (ADACK)
    };
 
    /**
@@ -5416,11 +5461,11 @@ public:
     *
     * Selects the divide ratio used by the ADC to generate the internal clock ADCK
     */
-   enum AdcClockDivider {
-      AdcClockDivider_Div1 = ADC_CFG1_ADIV(0), ///< Divide by 1
-      AdcClockDivider_Div2 = ADC_CFG1_ADIV(1), ///< Divide by 2
-      AdcClockDivider_Div4 = ADC_CFG1_ADIV(2), ///< Divide by 4
-      AdcClockDivider_Div8 = ADC_CFG1_ADIV(3), ///< Divide by 8
+   enum AdcClockDivider : uint8_t {
+      AdcClockDivider_Div1   = ADC_CFG1_ADIV(0),  ///< Divide by 1
+      AdcClockDivider_Div2   = ADC_CFG1_ADIV(1),  ///< Divide by 2
+      AdcClockDivider_Div4   = ADC_CFG1_ADIV(2),  ///< Divide by 4
+      AdcClockDivider_Div8   = ADC_CFG1_ADIV(3),  ///< Divide by 8
    };
 
    /**
@@ -5430,15 +5475,15 @@ public:
     * The resolutions available vary with single-ended/differential modes
     * Note the equivalence between modes e.g. 8-bit-se = 9-bit-diff
     */
-   enum AdcResolution {
-      AdcResolution_8bit_se    = ADC_CFG1_MODE(0), ///< 8-bit unsigned (single-ended mode)
-      AdcResolution_10bit_se   = ADC_CFG1_MODE(2), ///< 10-bit unsigned (single-ended mode)
-      AdcResolution_12bit_se   = ADC_CFG1_MODE(1), ///< 12-bit unsigned (single-ended mode)
-      AdcResolution_16bit_se   = ADC_CFG1_MODE(3), ///< 16-bit unsigned (single-ended mode)
-      AdcResolution_9bit_diff  = ADC_CFG1_MODE(0), ///< 9-bit signed (differential mode)
-      AdcResolution_11bit_diff = ADC_CFG1_MODE(2), ///< 11-bit signed (differential mode)
-      AdcResolution_13bit_diff = ADC_CFG1_MODE(1), ///< 13-bit signed (differential mode)
-      AdcResolution_16bit_diff = ADC_CFG1_MODE(3), ///< 16-bit signed (differential mode)
+   enum AdcResolution : uint8_t {
+      AdcResolution_8bit_se      = ADC_CFG1_MODE(0),  ///< 8-bit unsigned (single-ended mode)
+      AdcResolution_10bit_se     = ADC_CFG1_MODE(2),  ///< 10-bit unsigned (single-ended mode)
+      AdcResolution_12bit_se     = ADC_CFG1_MODE(1),  ///< 12-bit unsigned (single-ended mode)
+      AdcResolution_16bit_se     = ADC_CFG1_MODE(3),  ///< 16-bit unsigned (single-ended mode)
+      AdcResolution_9bit_diff    = ADC_CFG1_MODE(0),  ///< 9-bit signed (differential mode)
+      AdcResolution_11bit_diff   = ADC_CFG1_MODE(2),  ///< 11-bit signed (differential mode)
+      AdcResolution_13bit_diff   = ADC_CFG1_MODE(1),  ///< 13-bit signed (differential mode)
+      AdcResolution_16bit_diff   = ADC_CFG1_MODE(3),  ///< 16-bit signed (differential mode)
    };
 
    /**
@@ -5447,9 +5492,9 @@ public:
     *
     * Adjust power consumption
     */
-   enum AdcPower {
-      AdcPower_Normal = ADC_CFG1_ADLPC(0), ///< Normal power configuration
-      AdcPower_Low    = ADC_CFG1_ADLPC(1), ///< Low-power configuration (reduced speed)
+   enum AdcPower : uint8_t {
+      AdcPower_Normal   = ADC_CFG1_ADLPC(0),  ///< Normal power configuration
+      AdcPower_Low      = ADC_CFG1_ADLPC(1),  ///< Low-power configuration (reduced speed)
    };
 
    /**
@@ -5461,12 +5506,36 @@ public:
     * shorter times maximise conversion speed for lower impedance inputs
     * It also affects the conversion rate and power consumption for continuous mode
     */
-   enum AdcSample {
-      AdcSample_4cycles  = (ADC_CFG1_ADLSMP(0)),                    ///< 4 ADCK total
-      AdcSample_6cycles  = (ADC_CFG1_ADLSMP(1)|ADC_CFG2_ADLSTS(3)), ///< +2 ADCK cycles; 6 ADCK total
-      AdcSample_10cycles = (ADC_CFG1_ADLSMP(1)|ADC_CFG2_ADLSTS(2)), ///< +6 ADCK cycles; 10 ADCK total
-      AdcSample_16cycles = (ADC_CFG1_ADLSMP(1)|ADC_CFG2_ADLSTS(1)), ///< +12 ADCK cycles; 16 ADCK total
-      AdcSample_24cycles = (ADC_CFG1_ADLSMP(1)|ADC_CFG2_ADLSTS(0)), ///< +20 ADCK cycles; 24 ADCK total
+   enum AdcSample : uint8_t {
+      AdcSample_4cycles    = (ADC_CFG1_ADLSMP(0)),                     ///< 4 ADCK total
+      AdcSample_6cycles    = (ADC_CFG1_ADLSMP(1)|ADC_CFG2_ADLSTS(3)),  ///< +2 ADCK cycles; 6 ADCK total
+      AdcSample_10cycles   = (ADC_CFG1_ADLSMP(1)|ADC_CFG2_ADLSTS(2)),  ///< +6 ADCK cycles; 10 ADCK total
+      AdcSample_16cycles   = (ADC_CFG1_ADLSMP(1)|ADC_CFG2_ADLSTS(1)),  ///< +12 ADCK cycles; 16 ADCK total
+      AdcSample_24cycles   = (ADC_CFG1_ADLSMP(1)|ADC_CFG2_ADLSTS(0)),  ///< +20 ADCK cycles; 24 ADCK total
+   };
+
+   /**
+    * Sample Time Configuration
+    * (adc_cfg1_adlsmp)
+    *
+    * 
+    */
+   enum AdcSampleMode : uint32_t {
+      AdcSampleMode_ShortSampleTime   = ADC_CFG1_ADLSMP(0),  ///< Short sample time
+      AdcSampleMode_LongSampleTime    = ADC_CFG1_ADLSMP(1),  ///< Long sample time
+   };
+
+   /**
+    * Long Sample Time Select
+    * (adc_cfg2_adlsts)
+    *
+    * 
+    */
+   enum AdcSampleLength : uint32_t {
+      AdcSampleLength_20ExtraCycles   = ADC_CFG2_ADLSTS(0),  ///< 20 extra cycles
+      AdcSampleLength_12ExtraCycles   = ADC_CFG2_ADLSTS(1),  ///< 12 extra cycles
+      AdcSampleLength_6ExtraCycles    = ADC_CFG2_ADLSTS(2),  ///< 6 extra cycles
+      AdcSampleLength_2ExtraCycles    = ADC_CFG2_ADLSTS(3),  ///< 2 extra cycles
    };
 
    /**
@@ -5476,13 +5545,13 @@ public:
     * Determines how many ADC conversions will be averaged
     * by the hardware to create the ADC result
     */
-   enum AdcAveraging {
-      AdcAveraging_off = ADC_SC3_CAL(0)|ADC_SC3_CALF(0)|ADC_SC3_AVGE(0)|ADC_SC3_AVGS(0), ///< 1 sample
-      AdcAveraging_4   = ADC_SC3_CAL(0)|ADC_SC3_CALF(0)|ADC_SC3_AVGE(1)|ADC_SC3_AVGS(0), ///< 4 samples
-      AdcAveraging_8   = ADC_SC3_CAL(0)|ADC_SC3_CALF(0)|ADC_SC3_AVGE(1)|ADC_SC3_AVGS(1), ///< 8 samples
-      AdcAveraging_16  = ADC_SC3_CAL(0)|ADC_SC3_CALF(0)|ADC_SC3_AVGE(1)|ADC_SC3_AVGS(2), ///< 16 samples
-      AdcAveraging_32  = ADC_SC3_CAL(0)|ADC_SC3_CALF(0)|ADC_SC3_AVGE(1)|ADC_SC3_AVGS(3), ///< 32 samples
-      AdcAveraging_Cal = ADC_SC3_CAL(1)|ADC_SC3_CALF(1)|ADC_SC3_AVGE(1)|ADC_SC3_AVGS(3), ///< 32 samples + clear flag + start calibration
+   enum AdcAveraging : uint8_t {
+      AdcAveraging_off   = ADC_SC3_CAL(0)|ADC_SC3_CALF(0)|ADC_SC3_AVGE(0)|ADC_SC3_AVGS(0),  ///< 1 sample
+      AdcAveraging_4     = ADC_SC3_CAL(0)|ADC_SC3_CALF(0)|ADC_SC3_AVGE(1)|ADC_SC3_AVGS(0),  ///< 4 samples
+      AdcAveraging_8     = ADC_SC3_CAL(0)|ADC_SC3_CALF(0)|ADC_SC3_AVGE(1)|ADC_SC3_AVGS(1),  ///< 8 samples
+      AdcAveraging_16    = ADC_SC3_CAL(0)|ADC_SC3_CALF(0)|ADC_SC3_AVGE(1)|ADC_SC3_AVGS(2),  ///< 16 samples
+      AdcAveraging_32    = ADC_SC3_CAL(0)|ADC_SC3_CALF(0)|ADC_SC3_AVGE(1)|ADC_SC3_AVGS(3),  ///< 32 samples
+      AdcAveraging_Cal   = ADC_SC3_CAL(1)|ADC_SC3_CALF(1)|ADC_SC3_AVGE(1)|ADC_SC3_AVGS(3),  ///< 32 samples + clear flag + start calibration
    };
 
    /**
@@ -5493,9 +5562,9 @@ public:
     * This actually extends the number of conversion clock cycles
     * but is offset by allowing a faster input clock
     */
-   enum AdcClockRange {
-      AdcClockRange_Normal = ADC_CFG2_ADHSC(0), ///< Normal conversion sequence selected
-      AdcClockRange_High   = ADC_CFG2_ADHSC(1), ///< High-speed conversion sequence selected
+   enum AdcClockRange : uint8_t {
+      AdcClockRange_Normal   = ADC_CFG2_ADHSC(0),  ///< Normal conversion sequence selected
+      AdcClockRange_High     = ADC_CFG2_ADHSC(1),  ///< High-speed conversion sequence selected
    };
 
    /**
@@ -5506,9 +5575,9 @@ public:
     * This reduces the initial delay at the start of a sequence of conversions.
     * It also allows use of the ADC internal clock as a clock source for other peripherals
     */
-   enum AdcAsyncClock {
-      AdcAsyncClock_Disabled = ADC_CFG2_ADACKEN(0), ///< Asynchronous clock output disabled
-      AdcAsyncClock_Enabled  = ADC_CFG2_ADACKEN(1), ///< Asynchronous clock output enabled
+   enum AdcAsyncClock : uint8_t {
+      AdcAsyncClock_Disabled   = ADC_CFG2_ADACKEN(0),  ///< Asynchronous clock output disabled
+      AdcAsyncClock_Enabled    = ADC_CFG2_ADACKEN(1),  ///< Asynchronous clock output enabled
    };
 
    /**
@@ -5517,10 +5586,10 @@ public:
     *
     * Selects the voltage reference source used for conversions
     */
-   enum AdcRefSel {
-      AdcRefSel_VrefHL        = ADC_SC2_REFSEL(0), ///< VRefH and VRefl
-      AdcRefSel_VrefhAndVrefl = ADC_SC2_REFSEL(1), ///< Gnd and VrefOut(1.2V)
-      AdcRefSel_Default       = ADC_SC2_REFSEL(0), ///< Default
+   enum AdcRefSel : uint8_t {
+      AdcRefSel_VrefHL          = ADC_SC2_REFSEL(0),  ///< VRefH and VRefl
+      AdcRefSel_VrefhAndVrefl   = ADC_SC2_REFSEL(1),  ///< Gnd and VrefOut(1.2V)
+      AdcRefSel_Default         = ADC_SC2_REFSEL(0),  ///< Default
    };
 
    /**
@@ -5529,20 +5598,9 @@ public:
     *
     * Enables use of DMA with ADC
     */
-   enum AdcDma {
-      AdcDma_Disabled = ADC_SC2_DMAEN(0), ///< Disabled
-      AdcDma_Enabled  = ADC_SC2_DMAEN(1), ///< Enabled
-   };
-
-   /**
-    * Selects the pretrigger
-    * (adc_pretrigger)
-    *
-    * Selects which SC1[x]/R[x] register pair to use
-    */
-   enum AdcPretrigger {
-      AdcPretrigger_0 = (0), ///< Use pretrigger 0 = SC1[0]/R[0]
-      AdcPretrigger_1 = (1), ///< Use pretrigger 1 = SC1[1]/R[1]
+   enum AdcDma : uint8_t {
+      AdcDma_Disabled   = ADC_SC2_DMAEN(0),  ///< Disabled
+      AdcDma_Enabled    = ADC_SC2_DMAEN(1),  ///< Enabled
    };
 
    /**
@@ -5551,9 +5609,9 @@ public:
     *
     * Some ADC inputs may be multiplexed to two pins e.g. adcCh4a and adcCh4b
     */
-   enum AdcMuxsel {
-      AdcMuxsel_A = ADC_CFG2_MUXSEL(0), ///< The multiplexor selects A channels
-      AdcMuxsel_B = ADC_CFG2_MUXSEL(1), ///< The multiplexor selects B channels
+   enum AdcMuxsel : uint8_t {
+      AdcMuxsel_A   = ADC_CFG2_MUXSEL(0),  ///< The multiplexor selects A channels
+      AdcMuxsel_B   = ADC_CFG2_MUXSEL(1),  ///< The multiplexor selects B channels
    };
 
    /**
@@ -5562,9 +5620,41 @@ public:
     *
     * Selects between single and continuous conversion
     */
-   enum AdcContinuous {
-      AdcContinuous_Disabled = ADC_SC3_ADCO(0), ///< Single conversion on each trigger
-      AdcContinuous_Enabled  = ADC_SC3_ADCO(1), ///< Continuous conversions after 1st trigger
+   enum AdcContinuous : uint8_t {
+      AdcContinuous_Disabled   = ADC_SC3_ADCO(0),  ///< Single conversion on each trigger
+      AdcContinuous_Enabled    = ADC_SC3_ADCO(1),  ///< Continuous conversions after 1st trigger
+   };
+
+   /**
+    * Start Calibration
+    * (adc_sc3_cal)
+    *
+    * Begins the calibration sequence when set.
+    * This field stays set while the calibration is in progress and is cleared when
+    * the calibration sequence is completed.
+    * CALF must be checked to determine the result of the calibration sequence.
+    * Once started, the calibration routine cannot be interrupted by writes to the ADC
+    * registers or the results will be invalid and CALF will set.
+    * Setting CAL will abort any current conversion.
+    */
+   enum AdcCalibrate : uint8_t {
+      AdcCalibrate_NoAction   = ADC_SC3_CAL(0),  ///< No Action
+      AdcCalibrate_Start      = ADC_SC3_CAL(1),  ///< Starts calibration or indicates calibration in progress
+   };
+
+   /**
+    * Calibration Failed Flag
+    * (adc_sc3_calf)
+    *
+    * Displays the result of the calibration sequence.
+    * The calibration sequence will fail if SC2[ADTRG] = 1,
+    * any ADC register is written, or any stop mode is entered
+    * before the calibration sequence completes.
+    * Writing 1 to CALF clears it.
+    */
+   enum AdcCalibrateResult : uint8_t {
+      AdcCalibrateResult_Completed   = ADC_SC3_CALF(0),  ///< Calibration successfully completed
+      AdcCalibrateResult_Failed      = ADC_SC3_CALF(1),  ///< Calibration failed
    };
 
    /**
@@ -5573,14 +5663,14 @@ public:
     *
     * Enables comparison of ADC result with CV1 and CV2
     */
-   enum AdcCompare {
-      AdcCompare_Disabled              = ADC_SC2_ACFE(0)|ADC_SC2_ACREN(0)|ADC_SC2_ACFGT(0)|(0),      ///< No comparison done
-      AdcCompare_LessThan              = ADC_SC2_ACFE(1)|ADC_SC2_ACREN(0)|ADC_SC2_ACFGT(0)|(0),      ///< ADC value < low
-      AdcCompare_GreaterThanOrEqual    = ADC_SC2_ACFE(1)|ADC_SC2_ACREN(0)|ADC_SC2_ACFGT(1)|(0),      ///< ADC value >= low
-      AdcCompare_OutsideRangeExclusive = ADC_SC2_ACFE(1)|ADC_SC2_ACREN(1)|ADC_SC2_ACFGT(0)|((0<<8)), ///< (ADC value < low) or (ADC value > high)
-      AdcCompare_OutsideRangeInclusive = ADC_SC2_ACFE(1)|ADC_SC2_ACREN(1)|ADC_SC2_ACFGT(1)|((1<<8)), ///< (ADC value <= low) or (ADC value >= high)
-      AdcCompare_InsideRangeExclusive  = ADC_SC2_ACFE(1)|ADC_SC2_ACREN(1)|ADC_SC2_ACFGT(0)|((1<<8)), ///< (low < ADC value < high)
-      AdcCompare_InsideRangeInclusive  = ADC_SC2_ACFE(1)|ADC_SC2_ACREN(1)|ADC_SC2_ACFGT(1)|((0<<8)), ///< (low <= ADC value <= high)
+   enum AdcCompare : uint8_t {
+      AdcCompare_Disabled                = ADC_SC2_ACFE(0)|ADC_SC2_ACREN(0)|ADC_SC2_ACFGT(0)|(0),     ///< No comparison done
+      AdcCompare_LessThan                = ADC_SC2_ACFE(1)|ADC_SC2_ACREN(0)|ADC_SC2_ACFGT(0)|(0),     ///< ADC value < low
+      AdcCompare_GreaterThanOrEqual      = ADC_SC2_ACFE(1)|ADC_SC2_ACREN(0)|ADC_SC2_ACFGT(1)|(0),     ///< ADC value >= low
+      AdcCompare_OutsideRangeExclusive   = ADC_SC2_ACFE(1)|ADC_SC2_ACREN(1)|ADC_SC2_ACFGT(0)|(0),     ///< (ADC value < low) or (ADC value > high)
+      AdcCompare_OutsideRangeInclusive   = ADC_SC2_ACFE(1)|ADC_SC2_ACREN(1)|ADC_SC2_ACFGT(1)|(0x80),  ///< (ADC value <= low) or (ADC value >= high)
+      AdcCompare_InsideRangeExclusive    = ADC_SC2_ACFE(1)|ADC_SC2_ACREN(1)|ADC_SC2_ACFGT(0)|(0x80),  ///< (low < ADC value < high)
+      AdcCompare_InsideRangeInclusive    = ADC_SC2_ACFE(1)|ADC_SC2_ACREN(1)|ADC_SC2_ACFGT(1)|(0),     ///< (low <= ADC value <= high)
    };
 
    /**
@@ -5589,9 +5679,32 @@ public:
     *
     * Selects the type of trigger used for initiating a conversion
     */
-   enum AdcTrigger {
-      AdcTrigger_Software = ADC_SC2_ADTRG(0), ///< Software trigger (write to SC1A)
-      AdcTrigger_Hardware = ADC_SC2_ADTRG(1), ///< Hardware trigger (ADHWT source)
+   enum AdcTrigger : uint8_t {
+      AdcTrigger_Software   = ADC_SC2_ADTRG(0),  ///< Software trigger (by writing to SC1[0])
+      AdcTrigger_Hardware   = ADC_SC2_ADTRG(1),  ///< Hardware trigger (ADHWT source)
+   };
+
+   /**
+    * Selects the pretrigger
+    * (adc_pretrigger)
+    *
+    * Selects which SC1[x]/R[x] register pair to use
+    */
+   enum AdcPretrigger : uint8_t {
+      AdcPretrigger_0   = (0),  ///< Use pretrigger 0 = SC1[0]/R[0]
+      AdcPretrigger_1   = (1),  ///< Use pretrigger 1 = SC1[1]/R[1]
+   };
+
+   /**
+    * Conversion Active
+    * (adc_sc2_adact)
+    *
+    * Indicates that a conversion or hardware averaging is in progress.
+    * Set when a conversion is initiated and cleared when a conversion is completed or aborted
+    */
+   enum AdcActiveFlag : uint8_t {
+      AdcActiveFlag_Idle   = ADC_SC2_ADACT(0),  ///< Conversion not in progress.
+      AdcActiveFlag_Busy   = ADC_SC2_ADACT(1),  ///< Conversion in progress.
    };
 
 class AdcBasicInfo {
@@ -5709,6 +5822,31 @@ public:
       }
    }
    /**
+    * Map ADC Channel number to physical channel index
+    *
+    * @param adcChannelNum Channel number (index into Info table)
+    *
+    * @return  Physical channel number i.e. hardware value
+    */
+   static constexpr int mapChannelNumToPhysicalChannelNum(AdcChannelNum adcChannelNum) {
+   
+      if (adcChannelNum<=AdcChannelNum_Disabled) {
+         // channels SE0-SE4,SE4a-SE7a,SE8-SE31
+         return int(adcChannelNum);
+      }
+#if true // adc_sc1_diff_present
+      if (adcChannelNum<=AdcChannelNum_DiffLast) {
+         // channels DIFF0-DIFF4
+         return ADC_SC1_DIFF_MASK|(int(adcChannelNum)-AdcChannelNum_DiffFirst);
+      }
+#endif
+      if (adcChannelNum<=AdcChannelNum_BLast) {
+         // channels SE4b-SE7b
+         return int(adcChannelNum)-AdcChannelNum_BFirst+AdcChannelNum_AFirst;
+      }
+      return -1;
+   }   
+   /**
     * ADC calibrate.
     * Calibrates the ADC before first use.
     *
@@ -5771,8 +5909,10 @@ public:
 #endif
    
       return E_NO_ERROR;
-      }}; // class AdcBasicInfo
+   }
    
+}; // class AdcBasicInfo 
+
 class Adc0Info : public AdcBasicInfo {
 public:
    /*
@@ -5818,6 +5958,30 @@ public:
    static constexpr uint32_t irqCount  = sizeofArray(irqNums);
    
    /**
+    * Enable interrupts in NVIC
+    */
+   static void enableNvicInterrupts() {
+      NVIC_EnableIRQ(irqNums[0]);
+   }
+   
+   /**
+    * Enable and set priority of interrupts in NVIC
+    * Any pending NVIC interrupts are first cleared.
+    *
+    * @param[in]  nvicPriority  Interrupt priority
+    */
+   static void enableNvicInterrupts(NvicPriority nvicPriority) {
+      enableNvicInterrupt(irqNums[0], nvicPriority);
+   }
+   
+   /**
+    * Disable interrupts in NVIC
+    */
+   static void disableNvicInterrupts() {
+      NVIC_DisableIRQ(irqNums[0]);
+   }
+   
+   /**
     *  Enable clock to Adc0
     */
    static void enableClock() {
@@ -5841,7 +6005,7 @@ public:
    static constexpr unsigned instance = 0;
    
    //! Number of signals available in info table
-   static constexpr int numSignals  = 28;
+   static constexpr int numSignals  = 44;
 
    //! Information for each signal of peripheral
    static constexpr PinInfo  info[] = {
@@ -5875,6 +6039,22 @@ public:
          /*  25: --                   = --                             */  { PinIndex::INVALID_PCR,  PcrValue(0)         },
          /*  26: ADC0_SE26            = TEMP_SENSOR(Internal)          */  { PinIndex::FIXED_NO_PCR, PcrValue(0)         },
          /*  27: ADC0_SE27            = BANDGAP(Internal)              */  { PinIndex::FIXED_NO_PCR, PcrValue(0)         },
+         /*  28: --                   = --                             */  { PinIndex::INVALID_PCR,  PcrValue(0)         },
+         /*  29: --                   = --                             */  { PinIndex::INVALID_PCR,  PcrValue(0)         },
+         /*  30: --                   = --                             */  { PinIndex::INVALID_PCR,  PcrValue(0)         },
+         /*  31: --                   = --                             */  { PinIndex::INVALID_PCR,  PcrValue(0)         },
+         /*  32: ADC0_DP0             = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
+         /*  33: --                   = --                             */  { PinIndex::INVALID_PCR,  PcrValue(0)         },
+         /*  34: --                   = --                             */  { PinIndex::INVALID_PCR,  PcrValue(0)         },
+         /*  35: ADC0_DP3             = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
+         /*  36: ADC0_DM0             = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
+         /*  37: --                   = --                             */  { PinIndex::INVALID_PCR,  PcrValue(0)         },
+         /*  38: --                   = --                             */  { PinIndex::INVALID_PCR,  PcrValue(0)         },
+         /*  39: ADC0_DM3             = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
+         /*  40: ADC0_SE4b            = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
+         /*  41: ADC0_SE5b            = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
+         /*  42: ADC0_SE6b            = PTD5(p30)                      */  { PinIndex::PTD5,         PcrValue(0x00000UL) },
+         /*  43: ADC0_SE7b            = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
    };
 
    /**
@@ -5883,6 +6063,8 @@ public:
     * @note Only the lower 16-bits of the PCR registers are affected
     */
    static void initPCRs() {
+      enablePortClocks(USBDM::PORTD_CLOCK_MASK);
+      PORTD->GPCLR = 0x0000UL|PORT_GPCLR_GPWE(0x0020UL);
    }
 
    /**
@@ -5891,114 +6073,9 @@ public:
     * @note Only the lower 16-bits of the PCR registers are affected
     */
    static void clearPCRs() {
+      enablePortClocks(USBDM::PORTD_CLOCK_MASK);
+      PORTD->GPCLR = PinMux_Disabled|PORT_GPCLR_GPWE(0x0020UL);
    }
-
-   class InfoDP {
-   public:
-      //! Number of signals available in info table
-      static constexpr int numSignals  = 4;
-
-      //! Information for each signal of peripheral
-      static constexpr PinInfo  info[] = {
-   
-            //      Signal                 Pin                                  PinIndex                PCR value
-            /*   0: ADC0_DP0             = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
-            /*   1: --                   = --                             */  { PinIndex::INVALID_PCR,  PcrValue(0)         },
-            /*   2: --                   = --                             */  { PinIndex::INVALID_PCR,  PcrValue(0)         },
-            /*   3: ADC0_DP3             = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
-      };
-
-      /**
-       * Initialise pins used by peripheral
-       *
-       * @note Only the lower 16-bits of the PCR registers are affected
-       */
-      static void initPCRs() {
-      }
-
-      /**
-       * Release pins used by peripheral
-       *
-       * @note Only the lower 16-bits of the PCR registers are affected
-       */
-      static void clearPCRs() {
-      }
-
-   }; 
-
-   class InfoDM {
-   public:
-      //! Number of signals available in info table
-      static constexpr int numSignals  = 4;
-
-      //! Information for each signal of peripheral
-      static constexpr PinInfo  info[] = {
-   
-            //      Signal                 Pin                                  PinIndex                PCR value
-            /*   0: ADC0_DM0             = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
-            /*   1: --                   = --                             */  { PinIndex::INVALID_PCR,  PcrValue(0)         },
-            /*   2: --                   = --                             */  { PinIndex::INVALID_PCR,  PcrValue(0)         },
-            /*   3: ADC0_DM3             = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
-      };
-
-      /**
-       * Initialise pins used by peripheral
-       *
-       * @note Only the lower 16-bits of the PCR registers are affected
-       */
-      static void initPCRs() {
-      }
-
-      /**
-       * Release pins used by peripheral
-       *
-       * @note Only the lower 16-bits of the PCR registers are affected
-       */
-      static void clearPCRs() {
-      }
-
-   }; 
-
-   class InfoBChannels {
-   public:
-      //! Number of signals available in info table
-      static constexpr int numSignals  = 8;
-
-      //! Information for each signal of peripheral
-      static constexpr PinInfo  info[] = {
-   
-            //      Signal                 Pin                                  PinIndex                PCR value
-            /*   0: --                   = --                             */  { PinIndex::INVALID_PCR,  PcrValue(0)         },
-            /*   1: --                   = --                             */  { PinIndex::INVALID_PCR,  PcrValue(0)         },
-            /*   2: --                   = --                             */  { PinIndex::INVALID_PCR,  PcrValue(0)         },
-            /*   3: --                   = --                             */  { PinIndex::INVALID_PCR,  PcrValue(0)         },
-            /*   4: ADC0_SE4b            = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
-            /*   5: ADC0_SE5b            = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
-            /*   6: ADC0_SE6b            = PTD5(p30)                      */  { PinIndex::PTD5,         PcrValue(0x00000UL) },
-            /*   7: ADC0_SE7b            = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
-      };
-
-      /**
-       * Initialise pins used by peripheral
-       *
-       * @note Only the lower 16-bits of the PCR registers are affected
-       */
-      static void initPCRs() {
-         enablePortClocks(USBDM::PORTD_CLOCK_MASK);
-         PORTD->GPCLR = 0x0000UL|PORT_GPCLR_GPWE(0x0020UL);
-      }
-
-      /**
-       * Release pins used by peripheral
-       *
-       * @note Only the lower 16-bits of the PCR registers are affected
-       */
-      static void clearPCRs() {
-         enablePortClocks(USBDM::PORTD_CLOCK_MASK);
-         PORTD->GPCLR = PinMux_Disabled|PORT_GPCLR_GPWE(0x0020UL);
-      }
-
-   }; 
 
 }; // class Adc0Info
 
@@ -6018,50 +6095,16 @@ public:
  * along with simple accessor functions.
  */
    /**
-    * Plus Input Mux Control
-    * (cmp_muxcr_psel0)
-    *
-    * Determines which input is selected for the plus input of the comparator
-    */
-   enum CmpInputPlus {
-      CmpInputPlus_0 = CMP_MUXCR_PSEL(0), ///< CMP_IN0
-      CmpInputPlus_1 = CMP_MUXCR_PSEL(1), ///< CMP_IN1
-      CmpInputPlus_2 = CMP_MUXCR_PSEL(2), ///< CMP_IN2
-      CmpInputPlus_3 = CMP_MUXCR_PSEL(3), ///< CMP_IN3
-      CmpInputPlus_4 = CMP_MUXCR_PSEL(4), ///< CMP_IN4
-      CmpInputPlus_5 = CMP_MUXCR_PSEL(5), ///< CMP_IN5/VREF_OUT
-      CmpInputPlus_6 = CMP_MUXCR_PSEL(6), ///< Bandgap
-      CmpInputPlus_7 = CMP_MUXCR_PSEL(7), ///< 6-bit DAC reference
-   };
-
-   /**
-    * Minus Input Mux Control
-    * (cmp_muxcr_msel0)
-    *
-    * Determines which input is selected for the minus input of the comparator
-    */
-   enum CmpInputMinus {
-      CmpInputMinus_0 = CMP_MUXCR_MSEL(0), ///< CMP_IN0
-      CmpInputMinus_1 = CMP_MUXCR_MSEL(1), ///< CMP_IN1
-      CmpInputMinus_2 = CMP_MUXCR_MSEL(2), ///< CMP_IN2
-      CmpInputMinus_3 = CMP_MUXCR_MSEL(3), ///< CMP_IN3
-      CmpInputMinus_4 = CMP_MUXCR_MSEL(4), ///< CMP_IN4
-      CmpInputMinus_5 = CMP_MUXCR_MSEL(5), ///< CMP_IN5/VREF_OUT
-      CmpInputMinus_6 = CMP_MUXCR_MSEL(6), ///< Bandgap
-      CmpInputMinus_7 = CMP_MUXCR_MSEL(7), ///< 6-bit DAC reference
-   };
-
-   /**
     * Action on transition
     * (cmp_scr_interrupt)
     *
     * Enables interrupt request on comparator transition
     */
-   enum CmpEvent {
-      CmpEvent_Disabled  = CMP_SCR_IER(0)|CMP_SCR_IEF(0), ///< Disabled
-      CmpEvent_OnRising  = CMP_SCR_IER(1)|CMP_SCR_IEF(1), ///< Rising edge
-      CmpEvent_OnFalling = CMP_SCR_IER(1)|CMP_SCR_IEF(0), ///< Falling edge
-      CmpEvent_OnEither  = CMP_SCR_IER(1)|CMP_SCR_IEF(0), ///< Either edge
+   enum CmpEvent : uint8_t {
+      CmpEvent_Disabled    = CMP_SCR_IER(0)|CMP_SCR_IEF(0),  ///< Disabled
+      CmpEvent_OnRising    = CMP_SCR_IER(1)|CMP_SCR_IEF(1),  ///< Rising edge
+      CmpEvent_OnFalling   = CMP_SCR_IER(1)|CMP_SCR_IEF(0),  ///< Falling edge
+      CmpEvent_OnEither    = CMP_SCR_IER(1)|CMP_SCR_IEF(0),  ///< Either edge
    };
 
    /**
@@ -6071,9 +6114,9 @@ public:
     * Enables the DMA transfer triggered from the CMP module (If DMA supported by device)
     * When this field is set, a DMA request is asserted when CFR or CFF is set
     */
-   enum CmpDma {
-      CmpDma_Disabled = CMP_SCR_DMAEN(0), ///< Disabled
-      CmpDma_Enabled  = CMP_SCR_DMAEN(1), ///< Enabled
+   enum CmpDma : uint8_t {
+      CmpDma_Disabled   = CMP_SCR_DMAEN(0),  ///< Disabled
+      CmpDma_Enabled    = CMP_SCR_DMAEN(1),  ///< Enabled
    };
 
    /**
@@ -6083,11 +6126,11 @@ public:
     * Defines the programmable hysteresis level.
     * The hysteresis values associated with each level are device specific
     */
-   enum CmpHysteresis {
-      CmpHysteresis_Level_0 = CMP_CR0_HYSTCTR(0), ///< Level 0
-      CmpHysteresis_Level_1 = CMP_CR0_HYSTCTR(1), ///< Level 1
-      CmpHysteresis_Level_2 = CMP_CR0_HYSTCTR(2), ///< Level 2
-      CmpHysteresis_Level_3 = CMP_CR0_HYSTCTR(3), ///< Level 3
+   enum CmpHysteresis : uint8_t {
+      CmpHysteresis_Level_0   = CMP_CR0_HYSTCTR(0),  ///< Level 0
+      CmpHysteresis_Level_1   = CMP_CR0_HYSTCTR(1),  ///< Level 1
+      CmpHysteresis_Level_2   = CMP_CR0_HYSTCTR(2),  ///< Level 2
+      CmpHysteresis_Level_3   = CMP_CR0_HYSTCTR(3),  ///< Level 3
    };
 
    /**
@@ -6096,9 +6139,9 @@ public:
     *
     * Selects trade-off between speed and power consumption
     */
-   enum CmpPower {
-      CmpPower_LowSpeed  = CMP_CR1_PMODE(0), ///< Low-Speed Comparison mode
-      CmpPower_HighSpeed = CMP_CR1_PMODE(1), ///< High-Speed Comparison mode
+   enum CmpPower : uint8_t {
+      CmpPower_LowSpeed    = CMP_CR1_PMODE(0),  ///< Low-Speed Comparison mode
+      CmpPower_HighSpeed   = CMP_CR1_PMODE(1),  ///< High-Speed Comparison mode
    };
 
    /**
@@ -6107,9 +6150,9 @@ public:
     *
     * Allows selection of the polarity of the analog comparator function
     */
-   enum CmpPolarity {
-      CmpPolarity_Normal   = CMP_CR1_INV(0), ///< Not inverted
-      CmpPolarity_Inverted = CMP_CR1_INV(1), ///< Inverted
+   enum CmpPolarity : uint8_t {
+      CmpPolarity_Normal     = CMP_CR1_INV(0),  ///< Not inverted
+      CmpPolarity_Inverted   = CMP_CR1_INV(1),  ///< Inverted
    };
 
    /**
@@ -6118,10 +6161,44 @@ public:
     *
     * Selects whether the output pin is driven by the filtered or unfiltered comparator output
     */
-   enum CmpOutput {
-      CmpOutput_Disabled = CMP_CR1_OPE(0)|CMP_CR1_COS(0), ///< Disabled
-      CmpOutput_Direct   = CMP_CR1_OPE(1)|CMP_CR1_COS(1), ///< Direct (unfiltered)
-      CmpOutput_Filtered = CMP_CR1_OPE(1)|CMP_CR1_COS(0), ///< Filtered
+   enum CmpOutput : uint8_t {
+      CmpOutput_Disabled   = CMP_CR1_OPE(0)|CMP_CR1_COS(0),  ///< Disabled
+      CmpOutput_Direct     = CMP_CR1_OPE(1)|CMP_CR1_COS(1),  ///< Direct (unfiltered)
+      CmpOutput_Filtered   = CMP_CR1_OPE(1)|CMP_CR1_COS(0),  ///< Filtered
+   };
+
+   /**
+    * Plus Input Mux Control
+    * (cmp_muxcr_psel)
+    *
+    * Determines which input is selected for the plus input of the comparator
+    */
+   enum CmpInputPlus : uint8_t {
+      CmpInputPlus_0   = CMP_MUXCR_PSEL(0),  ///< CMP0_IN0 [-]
+      CmpInputPlus_1   = CMP_MUXCR_PSEL(1),  ///< CMP0_IN1 [-]
+      CmpInputPlus_2   = CMP_MUXCR_PSEL(2),  ///< CMP0_IN2 [-]
+      CmpInputPlus_3   = CMP_MUXCR_PSEL(3),  ///< CMP0_IN3 [-]
+      CmpInputPlus_4   = CMP_MUXCR_PSEL(4),  ///< Signal not found
+      CmpInputPlus_5   = CMP_MUXCR_PSEL(5),  ///< CMP0_IN5 [VREF_OUT]
+      CmpInputPlus_6   = CMP_MUXCR_PSEL(6),  ///< CMP0_IN6 [BANDGAP(Internal)]
+      CmpInputPlus_7   = CMP_MUXCR_PSEL(7),  ///< CMP0_IN7 [CMP_DAC(Internal)]
+   };
+
+   /**
+    * Minus Input Mux Control
+    * (cmp_muxcr_msel)
+    *
+    * Determines which input is selected for the minus input of the comparator
+    */
+   enum CmpInputMinus : uint8_t {
+      CmpInputMinus_0   = CMP_MUXCR_MSEL(0),  ///< CMP0_IN0 [-]
+      CmpInputMinus_1   = CMP_MUXCR_MSEL(1),  ///< CMP0_IN1 [-]
+      CmpInputMinus_2   = CMP_MUXCR_MSEL(2),  ///< CMP0_IN2 [-]
+      CmpInputMinus_3   = CMP_MUXCR_MSEL(3),  ///< CMP0_IN3 [-]
+      CmpInputMinus_4   = CMP_MUXCR_MSEL(4),  ///< Signal not found
+      CmpInputMinus_5   = CMP_MUXCR_MSEL(5),  ///< CMP0_IN5 [VREF_OUT]
+      CmpInputMinus_6   = CMP_MUXCR_MSEL(6),  ///< CMP0_IN6 [BANDGAP(Internal)]
+      CmpInputMinus_7   = CMP_MUXCR_MSEL(7),  ///< CMP0_IN7 [CMP_DAC(Internal)]
    };
 
    /**
@@ -6130,9 +6207,9 @@ public:
     *
     * Enables the internal DAC
     */
-   enum CmpDacEnable {
-      CmpDacEnable_Disabled = CMP_DACCR_DACEN(0), ///< Disabled
-      CmpDacEnable_Enabled  = CMP_DACCR_DACEN(1), ///< Enabled
+   enum CmpDacEnable : uint8_t {
+      CmpDacEnable_Disabled   = CMP_DACCR_DACEN(0),  ///< Disabled
+      CmpDacEnable_Enabled    = CMP_DACCR_DACEN(1),  ///< Enabled
    };
 
    /**
@@ -6141,9 +6218,18 @@ public:
     *
     * Supply Voltage Reference Source Select
     */
-   enum CmpDacrefSel {
-      CmpDacrefSel_VrefOut = CMP_DACCR_VRSEL(0), ///< Vin1 (Vref_OUT)
-      CmpDacrefSel_Vdd     = CMP_DACCR_VRSEL(1), ///< Vin2 (Vdd)
+   enum CmpDacrefSel : uint8_t {
+      CmpDacrefSel_VrefOut   = CMP_DACCR_VRSEL(0),  ///< Vin1 (Vref_OUT)
+      CmpDacrefSel_Vdd       = CMP_DACCR_VRSEL(1),  ///< Vin2 (Vdd)
+   };
+
+   /**
+    * DAC level
+    * (cmp_daccr_vosel)
+    *
+    * Specifies the output level of the internal DAC
+    */
+   enum CmpDacLevel : int8_t {
    };
 
    /**
@@ -6186,16 +6272,16 @@ public:
     * sample rate determined by the FILT_PER to generate COUT.
     * FILTER_CNT determines the filter sample count (width)
     */
-   enum CmpFilterMode {
-      CmpFilterMode_Disabled             = 0, ///< 1    Disabled
-      CmpFilterMode_Continuous           = 1, ///< 2a/b Continuous
-      CmpFilterMode_External_NonFiltered = 2, ///< 3a   Externally sampled, Non-Filtered
-      CmpFilterMode_Internal_NonFiltered = 3, ///< 3b   Internally sampled, Non-Filtered
-      CmpFilterMode_External_Filtered    = 4, ///< 4a   Externally sampled, Filtered
-      CmpFilterMode_Internal_Filtered    = 5, ///< 4b   Internally sampled, Filtered
-      CmpFilterMode_Windowed             = 6, ///< 5a/b Windowed
-      CmpFilterMode_Windowed_Resampled   = 7, ///< 6    Windowed, Re-sampled
-      CmpFilterMode_Windowed_Filtered    = 8, ///< 7    Windowed, Filtered
+   enum CmpFilterMode : uint8_t {
+      CmpFilterMode_Disabled               = 0,  ///< 1    Disabled
+      CmpFilterMode_Continuous             = 1,  ///< 2a/b Continuous
+      CmpFilterMode_External_NonFiltered   = 2,  ///< 3a   Externally sampled, Non-Filtered
+      CmpFilterMode_Internal_NonFiltered   = 3,  ///< 3b   Internally sampled, Non-Filtered
+      CmpFilterMode_External_Filtered      = 4,  ///< 4a   Externally sampled, Filtered
+      CmpFilterMode_Internal_Filtered      = 5,  ///< 4b   Internally sampled, Filtered
+      CmpFilterMode_Windowed               = 6,  ///< 5a/b Windowed
+      CmpFilterMode_Windowed_Resampled     = 7,  ///< 6    Windowed, Re-sampled
+      CmpFilterMode_Windowed_Filtered      = 8,  ///< 7    Windowed, Filtered
    };
 
    /**
@@ -6204,9 +6290,9 @@ public:
     *
     * Enable comparator
     */
-   enum CmpEnable {
-      CmpEnable_Disabled = CMP_CR1_EN(0), ///< Comparator is disabled
-      CmpEnable_Enabled  = CMP_CR1_EN(1), ///< Comparator is enabled
+   enum CmpEnable : uint8_t {
+      CmpEnable_Disabled   = CMP_CR1_EN(0),  ///< Comparator is disabled
+      CmpEnable_Enabled    = CMP_CR1_EN(1),  ///< Comparator is enabled
    };
 
    /**
@@ -6218,9 +6304,9 @@ public:
     * clocked directly by the bus clock when enabled.
     * Usually a PDB output is available for this purpose.
     */
-   enum CmpWindowEnable {
-      CmpWindowEnable_Disabled = CMP_CR1_WE(0), ///< Disabled
-      CmpWindowEnable_Enabled  = CMP_CR1_WE(1), ///< Enabled
+   enum CmpWindowEnable : uint8_t {
+      CmpWindowEnable_Disabled   = CMP_CR1_WE(0),  ///< Disabled
+      CmpWindowEnable_Enabled    = CMP_CR1_WE(1),  ///< Enabled
    };
 
    /**
@@ -6229,9 +6315,9 @@ public:
     *
     * Select between the divided bus clock and an external clock for the filter block
     */
-   enum CmpSampleEnable {
-      CmpSampleEnable_Internal = CMP_CR1_SE(0), ///< Internal clock
-      CmpSampleEnable_External = CMP_CR1_SE(1), ///< External clock
+   enum CmpSampleEnable : uint8_t {
+      CmpSampleEnable_Internal   = CMP_CR1_SE(0),  ///< Internal clock
+      CmpSampleEnable_External   = CMP_CR1_SE(1),  ///< External clock
    };
 
    /**
@@ -6242,14 +6328,14 @@ public:
     * to the comparator output filter accepting a new output state
     */
    enum CmpFilterSamples : uint8_t {
-      CmpFilterSamples_Bypassed       = CMP_CR0_FILTER_CNT(0), ///< Disabled
-      CmpFilterSamples_SimpleSampling = CMP_CR0_FILTER_CNT(1), ///< Simple sampling
-      CmpFilterSamples_2              = CMP_CR0_FILTER_CNT(2), ///< 2 samples must agree
-      CmpFilterSamples_3              = CMP_CR0_FILTER_CNT(3), ///< 3 samples must agree
-      CmpFilterSamples_4              = CMP_CR0_FILTER_CNT(4), ///< 4 samples must agree
-      CmpFilterSamples_5              = CMP_CR0_FILTER_CNT(5), ///< 5 samples must agree
-      CmpFilterSamples_6              = CMP_CR0_FILTER_CNT(6), ///< 6 samples must agree
-      CmpFilterSamples_7              = CMP_CR0_FILTER_CNT(7), ///< 7 samples must agree
+      CmpFilterSamples_Bypassed         = CMP_CR0_FILTER_CNT(0),  ///< Disabled
+      CmpFilterSamples_SimpleSampling   = CMP_CR0_FILTER_CNT(1),  ///< Simple sampling
+      CmpFilterSamples_2                = CMP_CR0_FILTER_CNT(2),  ///< 2 samples must agree
+      CmpFilterSamples_3                = CMP_CR0_FILTER_CNT(3),  ///< 3 samples must agree
+      CmpFilterSamples_4                = CMP_CR0_FILTER_CNT(4),  ///< 4 samples must agree
+      CmpFilterSamples_5                = CMP_CR0_FILTER_CNT(5),  ///< 5 samples must agree
+      CmpFilterSamples_6                = CMP_CR0_FILTER_CNT(6),  ///< 6 samples must agree
+      CmpFilterSamples_7                = CMP_CR0_FILTER_CNT(7),  ///< 7 samples must agree
    };
 
    /**
@@ -6258,10 +6344,10 @@ public:
     *
     * Selects operation in sampling or windowed mode
     */
-   enum CmpMode {
-      CmpMode_Direct   = CMP_CR1_SE(0)|CMP_CR1_WE(0), ///< Direct
-      CmpMode_Sampling = CMP_CR1_SE(1)|CMP_CR1_WE(0), ///< Sampling mode
-      CmpMode_Windowed = CMP_CR1_SE(0)|CMP_CR1_WE(1), ///< Windowing mode
+   enum CmpMode : uint8_t {
+      CmpMode_Direct     = CMP_CR1_SE(0)|CMP_CR1_WE(0),  ///< Direct
+      CmpMode_Sampling   = CMP_CR1_SE(1)|CMP_CR1_WE(0),  ///< Sampling mode
+      CmpMode_Windowed   = CMP_CR1_SE(0)|CMP_CR1_WE(1),  ///< Windowing mode
    };
 
    /**
@@ -6271,10 +6357,10 @@ public:
     * Indicates edge detected
     */
    enum CmpEventId : uint8_t {
-      CmpEventId_None        = CMP_SCR_CFR(0)|CMP_SCR_CFF(0), ///< None
-      CmpEventId_RisingEdge  = CMP_SCR_CFR(1)|CMP_SCR_CFF(0), ///< Rising Edge
-      CmpEventId_FallingEdge = CMP_SCR_CFR(0)|CMP_SCR_CFF(1), ///< Falling Edge
-      CmpEventId_BothEdges   = CMP_SCR_CFR(1)|CMP_SCR_CFF(1), ///< Both Edges
+      CmpEventId_None          = CMP_SCR_CFR(0)|CMP_SCR_CFF(0),  ///< None
+      CmpEventId_RisingEdge    = CMP_SCR_CFR(1)|CMP_SCR_CFF(0),  ///< Rising Edge
+      CmpEventId_FallingEdge   = CMP_SCR_CFR(0)|CMP_SCR_CFF(1),  ///< Falling Edge
+      CmpEventId_BothEdges     = CMP_SCR_CFR(1)|CMP_SCR_CFF(1),  ///< Both Edges
    };
 
    /**
@@ -6293,8 +6379,8 @@ public:
 class CmpBasicInfo {
 
 public:
-}; // class CmpBasicInfo
-   
+}; // class CmpBasicInfo 
+
 class Cmp0Info : public CmpBasicInfo {
 public:
    /*
@@ -6338,6 +6424,30 @@ public:
    
    //! Number of IRQs for hardware
    static constexpr uint32_t irqCount  = sizeofArray(irqNums);
+   
+   /**
+    * Enable interrupts in NVIC
+    */
+   static void enableNvicInterrupts() {
+      NVIC_EnableIRQ(irqNums[0]);
+   }
+   
+   /**
+    * Enable and set priority of interrupts in NVIC
+    * Any pending NVIC interrupts are first cleared.
+    *
+    * @param[in]  nvicPriority  Interrupt priority
+    */
+   static void enableNvicInterrupts(NvicPriority nvicPriority) {
+      enableNvicInterrupt(irqNums[0], nvicPriority);
+   }
+   
+   /**
+    * Disable interrupts in NVIC
+    */
+   static void disableNvicInterrupts() {
+      NVIC_DisableIRQ(irqNums[0]);
+   }
    
    /**
     *  Enable clock to Cmp0
@@ -6398,7 +6508,7 @@ public:
       using Pcr = PcrTable_T<Cmp0Info,cmpInput>;
    
    public:
-      static constexpr CmpInputPlus  plusPin  = (CmpInputPlus)CMP_MUXCR_PSEL(cmpInput);
+      static constexpr CmpInputPlus  plusPin  = CmpInputPlus(CMP_MUXCR_PSEL(cmpInput));
       static constexpr CmpInputMinus minusPin = cmpInput;
    
       constexpr operator CmpInputPlus()  const { return plusPin;  }
@@ -6498,6 +6608,30 @@ public:
    static constexpr uint32_t irqCount  = sizeofArray(irqNums);
    
    /**
+    * Enable interrupts in NVIC
+    */
+   static void enableNvicInterrupts() {
+      NVIC_EnableIRQ(irqNums[0]);
+   }
+   
+   /**
+    * Enable and set priority of interrupts in NVIC
+    * Any pending NVIC interrupts are first cleared.
+    *
+    * @param[in]  nvicPriority  Interrupt priority
+    */
+   static void enableNvicInterrupts(NvicPriority nvicPriority) {
+      enableNvicInterrupt(irqNums[0], nvicPriority);
+   }
+   
+   /**
+    * Disable interrupts in NVIC
+    */
+   static void disableNvicInterrupts() {
+      NVIC_DisableIRQ(irqNums[0]);
+   }
+   
+   /**
     *  Enable clock to Cmp1
     */
    static void enableClock() {
@@ -6556,7 +6690,7 @@ public:
       using Pcr = PcrTable_T<Cmp1Info,cmpInput>;
    
    public:
-      static constexpr CmpInputPlus  plusPin  = (CmpInputPlus)CMP_MUXCR_PSEL(cmpInput);
+      static constexpr CmpInputPlus  plusPin  = CmpInputPlus(CMP_MUXCR_PSEL(cmpInput));
       static constexpr CmpInputMinus minusPin = cmpInput;
    
       constexpr operator CmpInputPlus()  const { return plusPin;  }
@@ -6627,10 +6761,10 @@ public:
     * Selects between Time, Baseband, FSK and direct modes
     */
    enum CmtMode {
-      CmtMode_Direct          = CMT_MSC_MCGEN(0)|CMT_MSC_BASE(0)|CMT_MSC_FSK(0), ///< Direct
-      CmtMode_Time            = CMT_MSC_MCGEN(1)|CMT_MSC_BASE(0)|CMT_MSC_FSK(0), ///< Time
-      CmtMode_Baseband        = CMT_MSC_MCGEN(1)|CMT_MSC_BASE(1)|CMT_MSC_FSK(0), ///< Baseband
-      CmtMode_FreqShiftKeying = CMT_MSC_MCGEN(1)|CMT_MSC_BASE(0)|CMT_MSC_FSK(1), ///< FreqShiftKeying
+      CmtMode_Direct            = CMT_MSC_MCGEN(0)|CMT_MSC_BASE(0)|CMT_MSC_FSK(0),  ///< Direct
+      CmtMode_Time              = CMT_MSC_MCGEN(1)|CMT_MSC_BASE(0)|CMT_MSC_FSK(0),  ///< Time
+      CmtMode_Baseband          = CMT_MSC_MCGEN(1)|CMT_MSC_BASE(1)|CMT_MSC_FSK(0),  ///< Baseband
+      CmtMode_FreqShiftKeying   = CMT_MSC_MCGEN(1)|CMT_MSC_BASE(0)|CMT_MSC_FSK(1),  ///< FreqShiftKeying
    };
 
    /**
@@ -6644,8 +6778,8 @@ public:
     * - Calling getStatus() followed by calling getMarkTime(), getSpaceTime() or setMarkSpaceTiming(). - A DMA cycle
     */
    enum CmtStatus {
-      CmtStatus_CycleIncomplete = CMT_MSC_EOCF(0), ///< Cycle not completed
-      CmtStatus_CycleCompleted  = CMT_MSC_EOCF(1), ///< Cycle completed
+      CmtStatus_CycleIncomplete   = CMT_MSC_EOCF(0),  ///< Cycle not completed
+      CmtStatus_CycleCompleted    = CMT_MSC_EOCF(1),  ///< Cycle completed
    };
 
    /**
@@ -6658,9 +6792,9 @@ public:
     * MSC[MCGEN] is set or not
     */
    enum CmtOutput {
-      CmtOutput_Disabled   = CMT_OC_IROPEN(0)|CMT_OC_CMTPOL(0), ///< Disabled
-      CmtOutput_ActiveLow  = CMT_OC_IROPEN(1)|CMT_OC_CMTPOL(0), ///< Active-low
-      CmtOutput_ActiveHigh = CMT_OC_IROPEN(1)|CMT_OC_CMTPOL(1), ///< Active-high
+      CmtOutput_Disabled     = CMT_OC_IROPEN(0)|CMT_OC_CMTPOL(0),  ///< Disabled
+      CmtOutput_ActiveLow    = CMT_OC_IROPEN(1)|CMT_OC_CMTPOL(0),  ///< Active-low
+      CmtOutput_ActiveHigh   = CMT_OC_IROPEN(1)|CMT_OC_CMTPOL(1),  ///< Active-high
    };
 
    /**
@@ -6671,8 +6805,8 @@ public:
     * Writing to IROL changes the state of the IRO signal when MSC[MCGEN] is cleared and IROPEN is set
     */
    enum CmtOutputLevel {
-      CmtOutputLevel_Low  = CMT_OC_IROL(0), ///< Low
-      CmtOutputLevel_High = CMT_OC_IROL(1), ///< High
+      CmtOutputLevel_Low    = CMT_OC_IROL(0),  ///< Low
+      CmtOutputLevel_High   = CMT_OC_IROL(1),  ///< High
    };
 
    /**
@@ -6684,22 +6818,22 @@ public:
     * This should be chosen to produce a nominal 8MHz frequency from the CMT input clock.
     */
    enum CmtClockPrescaler {
-      CmtClockPrescaler_BusClockDivBy1  = CMT_PPS_PPSDIV(0),  ///< Bus clock / 1
-      CmtClockPrescaler_BusClockDivBy2  = CMT_PPS_PPSDIV(1),  ///< Bus clock / 2
-      CmtClockPrescaler_BusClockDivBy3  = CMT_PPS_PPSDIV(2),  ///< Bus clock / 3
-      CmtClockPrescaler_BusClockDivBy4  = CMT_PPS_PPSDIV(3),  ///< Bus clock / 4
-      CmtClockPrescaler_BusClockDivBy5  = CMT_PPS_PPSDIV(4),  ///< Bus clock / 5
-      CmtClockPrescaler_BusClockDivBy6  = CMT_PPS_PPSDIV(5),  ///< Bus clock / 6
-      CmtClockPrescaler_BusClockDivBy7  = CMT_PPS_PPSDIV(6),  ///< Bus clock / 7
-      CmtClockPrescaler_BusClockDivBy8  = CMT_PPS_PPSDIV(7),  ///< Bus clock / 8
-      CmtClockPrescaler_BusClockDivBy9  = CMT_PPS_PPSDIV(8),  ///< Bus clock / 9
-      CmtClockPrescaler_BusClockDivBy10 = CMT_PPS_PPSDIV(9),  ///< Bus clock / 10
-      CmtClockPrescaler_BusClockDivBy11 = CMT_PPS_PPSDIV(10), ///< Bus clock / 11
-      CmtClockPrescaler_BusClockDivBy12 = CMT_PPS_PPSDIV(11), ///< Bus clock / 12
-      CmtClockPrescaler_BusClockDivBy13 = CMT_PPS_PPSDIV(12), ///< Bus clock / 13
-      CmtClockPrescaler_BusClockDivBy14 = CMT_PPS_PPSDIV(13), ///< Bus clock / 14
-      CmtClockPrescaler_BusClockDivBy15 = CMT_PPS_PPSDIV(14), ///< Bus clock / 15
-      CmtClockPrescaler_BusClockDivBy16 = CMT_PPS_PPSDIV(15), ///< Bus clock / 16
+      CmtClockPrescaler_BusClockDivBy1    = CMT_PPS_PPSDIV(0),   ///< Bus clock / 1
+      CmtClockPrescaler_BusClockDivBy2    = CMT_PPS_PPSDIV(1),   ///< Bus clock / 2
+      CmtClockPrescaler_BusClockDivBy3    = CMT_PPS_PPSDIV(2),   ///< Bus clock / 3
+      CmtClockPrescaler_BusClockDivBy4    = CMT_PPS_PPSDIV(3),   ///< Bus clock / 4
+      CmtClockPrescaler_BusClockDivBy5    = CMT_PPS_PPSDIV(4),   ///< Bus clock / 5
+      CmtClockPrescaler_BusClockDivBy6    = CMT_PPS_PPSDIV(5),   ///< Bus clock / 6
+      CmtClockPrescaler_BusClockDivBy7    = CMT_PPS_PPSDIV(6),   ///< Bus clock / 7
+      CmtClockPrescaler_BusClockDivBy8    = CMT_PPS_PPSDIV(7),   ///< Bus clock / 8
+      CmtClockPrescaler_BusClockDivBy9    = CMT_PPS_PPSDIV(8),   ///< Bus clock / 9
+      CmtClockPrescaler_BusClockDivBy10   = CMT_PPS_PPSDIV(9),   ///< Bus clock / 10
+      CmtClockPrescaler_BusClockDivBy11   = CMT_PPS_PPSDIV(10),  ///< Bus clock / 11
+      CmtClockPrescaler_BusClockDivBy12   = CMT_PPS_PPSDIV(11),  ///< Bus clock / 12
+      CmtClockPrescaler_BusClockDivBy13   = CMT_PPS_PPSDIV(12),  ///< Bus clock / 13
+      CmtClockPrescaler_BusClockDivBy14   = CMT_PPS_PPSDIV(13),  ///< Bus clock / 14
+      CmtClockPrescaler_BusClockDivBy15   = CMT_PPS_PPSDIV(14),  ///< Bus clock / 15
+      CmtClockPrescaler_BusClockDivBy16   = CMT_PPS_PPSDIV(15),  ///< Bus clock / 16
       CmtClockPrescaler_Auto            = 0xFF,               ///< Calculate divider to generate 8MHz based on Bus clock
    };
 
@@ -6710,10 +6844,10 @@ public:
     * Causes the CMT to be clocked at the Intermediate frequency divided by 1, 2, 4, or 8
     */
    enum CmtIntermediatePrescaler {
-      CmtIntermediatePrescaler_DivBy1 = CMT_MSC_CMTDIV(0), ///< Intermediate frequency /1
-      CmtIntermediatePrescaler_DivBy2 = CMT_MSC_CMTDIV(1), ///< Intermediate frequency /2
-      CmtIntermediatePrescaler_DivBy4 = CMT_MSC_CMTDIV(2), ///< Intermediate frequency /4
-      CmtIntermediatePrescaler_DivBy8 = CMT_MSC_CMTDIV(3), ///< Intermediate frequency /8
+      CmtIntermediatePrescaler_DivBy1   = CMT_MSC_CMTDIV(0),  ///< Intermediate frequency /1
+      CmtIntermediatePrescaler_DivBy2   = CMT_MSC_CMTDIV(1),  ///< Intermediate frequency /2
+      CmtIntermediatePrescaler_DivBy4   = CMT_MSC_CMTDIV(2),  ///< Intermediate frequency /4
+      CmtIntermediatePrescaler_DivBy8   = CMT_MSC_CMTDIV(3),  ///< Intermediate frequency /8
    };
 
    /**
@@ -6723,8 +6857,8 @@ public:
     * Enables the extended space operation.
     */
    enum CmtExtendedSpace {
-      CmtExtendedSpace_Disabled = CMT_MSC_EXSPC(0), ///< Disabled
-      CmtExtendedSpace_Enabled  = CMT_MSC_EXSPC(1), ///< Enabled
+      CmtExtendedSpace_Disabled   = CMT_MSC_EXSPC(0),  ///< Disabled
+      CmtExtendedSpace_Enabled    = CMT_MSC_EXSPC(1),  ///< Enabled
    };
 
    /**
@@ -6734,9 +6868,9 @@ public:
     * Enables a Interrupt or DMA request when EOCIE is set
     */
    enum CmtEndOfCycleAction {
-      CmtEndOfCycleAction_None        = CMT_MSC_EOCIE(0)|CMT_DMA_DMA(0), ///< No Action
-      CmtEndOfCycleAction_Interrupt   = CMT_MSC_EOCIE(1)|CMT_DMA_DMA(0), ///< Interrupt Request
-      CmtEndOfCycleAction_DmaTransfer = CMT_MSC_EOCIE(1)|CMT_DMA_DMA(1), ///< DMA Transfer Request
+      CmtEndOfCycleAction_None          = CMT_MSC_EOCIE(0)|CMT_DMA_DMA(0),  ///< No Action
+      CmtEndOfCycleAction_Interrupt     = CMT_MSC_EOCIE(1)|CMT_DMA_DMA(0),  ///< Interrupt Request
+      CmtEndOfCycleAction_DmaTransfer   = CMT_MSC_EOCIE(1)|CMT_DMA_DMA(1),  ///< DMA Transfer Request
    };
 
    /**
@@ -6746,8 +6880,8 @@ public:
     * Requests to enable a CPU interrupt when EOCF is set if EOCIE is high
     */
    enum CmtInterruptEnable {
-      CmtInterruptEnable_Disabled = CMT_MSC_EOCIE(0), ///< Interrupt disabled
-      CmtInterruptEnable_Enabled  = CMT_MSC_EOCIE(1), ///< Interrupt enabled
+      CmtInterruptEnable_Disabled   = CMT_MSC_EOCIE(0),  ///< Interrupt disabled
+      CmtInterruptEnable_Enabled    = CMT_MSC_EOCIE(1),  ///< Interrupt enabled
    };
 
    /**
@@ -6757,8 +6891,8 @@ public:
     * 
     */
    enum CmtDma {
-      CmtDma_Disabled = CMT_DMA_DMA(0), ///< DMA disabled
-      CmtDma_Enabled  = CMT_DMA_DMA(1), ///< DMA enabled
+      CmtDma_Disabled   = CMT_DMA_DMA(0),  ///< DMA disabled
+      CmtDma_Enabled    = CMT_DMA_DMA(1),  ///< DMA enabled
    };
 
    /**
@@ -6840,9 +6974,9 @@ public:
    };
 
 class CmtBasicInfo {
-   
+
 public:
-}; // class CmtBasicInfo
+}; // class CmtBasicInfo 
 
 class CmtInfo : public CmtBasicInfo {
 public:
@@ -6887,6 +7021,30 @@ public:
    
    //! Number of IRQs for hardware
    static constexpr uint32_t irqCount  = sizeofArray(irqNums);
+   
+   /**
+    * Enable interrupts in NVIC
+    */
+   static void enableNvicInterrupts() {
+      NVIC_EnableIRQ(irqNums[0]);
+   }
+   
+   /**
+    * Enable and set priority of interrupts in NVIC
+    * Any pending NVIC interrupts are first cleared.
+    *
+    * @param[in]  nvicPriority  Interrupt priority
+    */
+   static void enableNvicInterrupts(NvicPriority nvicPriority) {
+      enableNvicInterrupt(irqNums[0], nvicPriority);
+   }
+   
+   /**
+    * Disable interrupts in NVIC
+    */
+   static void disableNvicInterrupts() {
+      NVIC_DisableIRQ(irqNums[0]);
+   }
    
    /**
     *  Enable clock to Cmt
@@ -7116,10 +7274,10 @@ using SWD_DIO_pin          = PcrTable_T<ControlInfo, 7>;
     * Controls transposition of bits within the bytes and bytes within the whole value
     */
    enum CrcWriteTranspose : uint32_t {
-      CrcWriteTranspose_NoTransposition        = CRC_CTRL_TOT(0), ///< No transposition
-      CrcWriteTranspose_BitsTransposed         = CRC_CTRL_TOT(1), ///< Bits transposed
-      CrcWriteTranspose_BitsAndBytesTransposed = CRC_CTRL_TOT(2), ///< Bits and bytes transposed
-      CrcWriteTranspose_BytesTransposed        = CRC_CTRL_TOT(3), ///< Bytes transposed
+      CrcWriteTranspose_NoTransposition          = CRC_CTRL_TOT(0),  ///< No transposition
+      CrcWriteTranspose_BitsTransposed           = CRC_CTRL_TOT(1),  ///< Bits transposed
+      CrcWriteTranspose_BitsAndBytesTransposed   = CRC_CTRL_TOT(2),  ///< Bits and bytes transposed
+      CrcWriteTranspose_BytesTransposed          = CRC_CTRL_TOT(3),  ///< Bytes transposed
    };
 
    /**
@@ -7130,10 +7288,10 @@ using SWD_DIO_pin          = PcrTable_T<ControlInfo, 7>;
     * Controls transposition of bits within the bytes and bytes within the whole value
     */
    enum CrcReadTranspose : uint32_t {
-      CrcReadTranspose_NoTransposition        = CRC_CTRL_TOTR(0), ///< No transposition
-      CrcReadTranspose_BitsTransposed         = CRC_CTRL_TOTR(1), ///< Bits transposed
-      CrcReadTranspose_BitsAndBytesTransposed = CRC_CTRL_TOTR(2), ///< Bits and bytes transposed
-      CrcReadTranspose_BytesTransposed        = CRC_CTRL_TOTR(3), ///< Bytes transposed
+      CrcReadTranspose_NoTransposition          = CRC_CTRL_TOTR(0),  ///< No transposition
+      CrcReadTranspose_BitsTransposed           = CRC_CTRL_TOTR(1),  ///< Bits transposed
+      CrcReadTranspose_BitsAndBytesTransposed   = CRC_CTRL_TOTR(2),  ///< Bits and bytes transposed
+      CrcReadTranspose_BytesTransposed          = CRC_CTRL_TOTR(3),  ///< Bytes transposed
    };
 
    /**
@@ -7144,8 +7302,8 @@ using SWD_DIO_pin          = PcrTable_T<ControlInfo, 7>;
     * Asserting this bit enables on the fly complementing of read data
     */
    enum CrcReadComplement : uint32_t {
-      CrcReadComplement_Normal   = CRC_CTRL_FXOR(0), ///< No inversion
-      CrcReadComplement_Inverted = CRC_CTRL_FXOR(1), ///< Invert read of data register
+      CrcReadComplement_Normal     = CRC_CTRL_FXOR(0),  ///< No inversion
+      CrcReadComplement_Inverted   = CRC_CTRL_FXOR(1),  ///< Invert read of data register
    };
 
    /**
@@ -7155,8 +7313,8 @@ using SWD_DIO_pin          = PcrTable_T<ControlInfo, 7>;
     * Selects between seed or data value when a value is written to the CRC data register
     */
    enum CrcWriteMode : uint32_t {
-      CrcWriteMode_WritesData = CRC_CTRL_WAS(0), ///< Writes are data values
-      CrcWriteMode_WritesSeed = CRC_CTRL_WAS(1), ///< Writes are seed values
+      CrcWriteMode_WritesData   = CRC_CTRL_WAS(0),  ///< Writes are data values
+      CrcWriteMode_WritesSeed   = CRC_CTRL_WAS(1),  ///< Writes are seed values
    };
 
    /**
@@ -7166,15 +7324,15 @@ using SWD_DIO_pin          = PcrTable_T<ControlInfo, 7>;
     * Width used in CC calculation
     */
    enum CrcWidth : uint32_t {
-      CrcWidth_16BitCrc = CRC_CTRL_TCRC(0), ///< 16-bit CRC
-      CrcWidth_32BitCrc = CRC_CTRL_TCRC(1), ///< 32-bit CRC
+      CrcWidth_16BitCrc   = CRC_CTRL_TCRC(0),  ///< 16-bit CRC
+      CrcWidth_32BitCrc   = CRC_CTRL_TCRC(1),  ///< 32-bit CRC
    };
 
 class CrcBasicInfo {
-   
+
 public:
-}; // class CrcBasicInfo
-   
+}; // class CrcBasicInfo 
+
 class Crc0Info : public CrcBasicInfo {
 public:
    /*
@@ -7214,6 +7372,33 @@ public:
  * @brief Abstraction for Console Interface
  * @{
  */
+   /*
+    * Template:console
+    */
+   /**
+    * UART baud rate
+    * (console_baudrate)
+    *
+    * Baud rate for UART
+    * Values available will depend on peripheral clock frequency
+    */
+   enum UartBaudRate : uint32_t {
+      UartBaudRate_110      = 110,     ///< 110
+      UartBaudRate_300      = 300,     ///< 300
+      UartBaudRate_600      = 600,     ///< 600
+      UartBaudRate_1200     = 1200,    ///< 1200
+      UartBaudRate_2400     = 2400,    ///< 2400
+      UartBaudRate_4800     = 4800,    ///< 4800
+      UartBaudRate_9600     = 9600,    ///< 9600
+      UartBaudRate_14400    = 14400,   ///< 14400
+      UartBaudRate_19200    = 19200,   ///< 19200
+      UartBaudRate_28800    = 28800,   ///< 28800
+      UartBaudRate_38400    = 38400,   ///< 38400
+      UartBaudRate_56000    = 56000,   ///< 56000
+      UartBaudRate_57600    = 57600,   ///< 57600
+      UartBaudRate_115200   = 115200,  ///< 115200
+   };
+
 /** 
  * End group CONSOLE_Group
  * @}
@@ -7236,11 +7421,11 @@ public:
     * Select amongst interrupts associated with the peripheral
     */
    enum Dma0IrqNum {
-      Dma0IrqNum_Ch0   = 0, ///< Maps to DMA0_CH0_IRQn
-      Dma0IrqNum_Ch1   = 1, ///< Maps to DMA0_CH1_IRQn
-      Dma0IrqNum_Ch2   = 2, ///< Maps to DMA0_CH2_IRQn
-      Dma0IrqNum_Ch3   = 3, ///< Maps to DMA0_CH3_IRQn
-      Dma0IrqNum_Error = 4, ///< Maps to DMA0_Error_IRQn
+      Dma0IrqNum_Ch0     = 0,  ///< Maps to DMA0_Ch0_IRQn
+      Dma0IrqNum_Ch1     = 1,  ///< Maps to DMA0_Ch1_IRQn
+      Dma0IrqNum_Ch2     = 2,  ///< Maps to DMA0_Ch2_IRQn
+      Dma0IrqNum_Ch3     = 3,  ///< Maps to DMA0_Ch3_IRQn
+      Dma0IrqNum_Error   = 4,  ///< Maps to DMA0_Error_IRQn
    };
 
    /**
@@ -7250,8 +7435,8 @@ public:
     * Whether to halt transfer when a DMA error occurs
     */
    enum DmaActionOnError {
-      DmaActionOnError_Continue = DMA_CR_HOE(0), ///< Transfer continues on any error
-      DmaActionOnError_Halt     = DMA_CR_HOE(1), ///< Transfer halts on any error
+      DmaActionOnError_Continue   = DMA_CR_HOE(0),  ///< Transfer continues on any error
+      DmaActionOnError_Halt       = DMA_CR_HOE(1),  ///< Transfer halts on any error
    };
 
    /**
@@ -7264,8 +7449,8 @@ public:
     * This effectively applies the minor loop offsets and restarts the next minor loop
     */
    enum DmaContinuousLink {
-      DmaContinuousLink_Disabled = DMA_CR_CLM(0), ///< Continuous Link disabled
-      DmaContinuousLink_Enabled  = DMA_CR_CLM(1), ///< Continuous Link enabled
+      DmaContinuousLink_Disabled   = DMA_CR_CLM(0),  ///< Continuous Link disabled
+      DmaContinuousLink_Enabled    = DMA_CR_CLM(1),  ///< Continuous Link enabled
    };
 
    /**
@@ -7279,8 +7464,8 @@ public:
     * The NBYTES field is reduced when either offset is enabled.
     */
    enum DmaMinorLoopMapping {
-      DmaMinorLoopMapping_Disabled = DMA_CR_EMLM(0), ///< Mapping disabled
-      DmaMinorLoopMapping_Enabled  = DMA_CR_EMLM(1), ///< Mapping enabled
+      DmaMinorLoopMapping_Disabled   = DMA_CR_EMLM(0),  ///< Mapping disabled
+      DmaMinorLoopMapping_Enabled    = DMA_CR_EMLM(1),  ///< Mapping enabled
    };
 
    /**
@@ -7290,8 +7475,8 @@ public:
     * How to arbitrate between requests from different channels
     */
    enum DmaArbitration {
-      DmaArbitration_Fixed      = DMA_CR_ERCA(0), ///< Fixed (within group)
-      DmaArbitration_RoundRobin = DMA_CR_ERCA(1), ///< Round Robin (within group)
+      DmaArbitration_Fixed        = DMA_CR_ERCA(0),  ///< Fixed (within group)
+      DmaArbitration_RoundRobin   = DMA_CR_ERCA(1),  ///< Round Robin (within group)
    };
 
    /**
@@ -7301,8 +7486,8 @@ public:
     * Control DMA operation in debug mode
     */
    enum DmaInDebug {
-      DmaInDebug_Continue = DMA_CR_EDBG(0), ///< Continue in debug
-      DmaInDebug_Halt     = DMA_CR_EDBG(1), ///< Halt in debug
+      DmaInDebug_Continue   = DMA_CR_EDBG(0),  ///< Continue in debug
+      DmaInDebug_Halt       = DMA_CR_EDBG(1),  ///< Halt in debug
    };
 
    /**
@@ -7312,12 +7497,12 @@ public:
     * Identifies DMA channel
     */
    enum DmaChannelNum : uint8_t {
-      DmaChannelNum_All  = (1<<6), ///< All DMA channels
-      DmaChannelNum_None = (1<<7), ///< No DMA channel
-      DmaChannelNum_0    = 0,      ///< Channel 0
-      DmaChannelNum_1    = 1,      ///< Channel 1
-      DmaChannelNum_2    = 2,      ///< Channel 2
-      DmaChannelNum_3    = 3,      ///< Channel 3
+      DmaChannelNum_All    = (1<<6),  ///< All DMA channels
+      DmaChannelNum_None   = (1<<7),  ///< No DMA channel
+      DmaChannelNum_0      = 0,       ///< Channel 0
+      DmaChannelNum_1      = 1,       ///< Channel 1
+      DmaChannelNum_2      = 2,       ///< Channel 2
+      DmaChannelNum_3      = 3,       ///< Channel 3
    };
 
    /**
@@ -7330,8 +7515,8 @@ public:
     * This cancel retires the channel normally as if the minor loop was completed
     */
    enum DmaCancelTransfer {
-      DmaCancelTransfer_NormalOperation           = DMA_CR_CX(0), ///< Normal operation
-      DmaCancelTransfer_CancelRemainderOfTransfer = DMA_CR_CX(1), ///< Cancel remainder of transfer
+      DmaCancelTransfer_NormalOperation             = DMA_CR_CX(0),  ///< Normal operation
+      DmaCancelTransfer_CancelRemainderOfTransfer   = DMA_CR_CX(1),  ///< Cancel remainder of transfer
    };
 
    /**
@@ -7345,8 +7530,8 @@ public:
     * The ES register is updated and may generate an optional error interrupt
     */
    enum DmaErrorCancelTransfer {
-      DmaErrorCancelTransfer_NormalOperation         = DMA_CR_ECX(0), ///< Normal operation
-      DmaErrorCancelTransfer_CancelTransferWithError = DMA_CR_ECX(1), ///< Cancel transfer with error
+      DmaErrorCancelTransfer_NormalOperation           = DMA_CR_ECX(0),  ///< Normal operation
+      DmaErrorCancelTransfer_CancelTransferWithError   = DMA_CR_ECX(1),  ///< Cancel transfer with error
    };
 
    /**
@@ -7356,8 +7541,8 @@ public:
     * Halt DMA at the end of current channel operations
     */
    enum DmaHalt {
-      DmaHalt_NormalOperation  = DMA_CR_HALT(0), ///< Normal operation
-      DmaHalt_StallNewChannels = DMA_CR_HALT(1), ///< Stall new channels
+      DmaHalt_NormalOperation    = DMA_CR_HALT(0),  ///< Normal operation
+      DmaHalt_StallNewChannels   = DMA_CR_HALT(1),  ///< Stall new channels
    };
 
    /**
@@ -7371,9 +7556,9 @@ public:
     * to control the bus request bandwidth seen by the crossbar switch
     */
    enum DmaSpeed {
-      DmaSpeed_NoStalls = DMA_CSR_BWC(0), ///< No eDMA engine stalls
-      DmaSpeed_4_Stalls = DMA_CSR_BWC(2), ///< eDMA engine stalls for 4 cycles after each R/W
-      DmaSpeed_8_Stalls = DMA_CSR_BWC(3), ///< eDMA engine stalls for 8 cycles after each R/W
+      DmaSpeed_NoStalls   = DMA_CSR_BWC(0),  ///< No eDMA engine stalls
+      DmaSpeed_4_Stalls   = DMA_CSR_BWC(2),  ///< eDMA engine stalls for 4 cycles after each R/W
+      DmaSpeed_8_Stalls   = DMA_CSR_BWC(3),  ///< eDMA engine stalls for 8 cycles after each R/W
    };
 
    /**
@@ -7387,11 +7572,11 @@ public:
     * written to while the TCDn_CSR[DONE] bit is set
     */
    enum DmaMajorLink {
-      DmaMajorLink_Disabled = DMA_CSR_MAJORELINK(0)|DMA_CSR_MAJORLINKCH(0), ///< Channel-to-channel linking is disabled
-      DmaMajorLink_Ch_0     = DMA_CSR_MAJORELINK(1)|DMA_CSR_MAJORLINKCH(0), ///< Link to channel 0
-      DmaMajorLink_Ch_1     = DMA_CSR_MAJORELINK(1)|DMA_CSR_MAJORLINKCH(1), ///< Link to channel 1
-      DmaMajorLink_Ch_2     = DMA_CSR_MAJORELINK(1)|DMA_CSR_MAJORLINKCH(2), ///< Link to channel 2
-      DmaMajorLink_Ch_3     = DMA_CSR_MAJORELINK(1)|DMA_CSR_MAJORLINKCH(3), ///< Link to channel 3
+      DmaMajorLink_Disabled   = DMA_CSR_MAJORELINK(0)|DMA_CSR_MAJORLINKCH(0),  ///< Channel-to-channel linking is disabled
+      DmaMajorLink_Ch_0       = DMA_CSR_MAJORELINK(1)|DMA_CSR_MAJORLINKCH(0),  ///< Link to channel 0
+      DmaMajorLink_Ch_1       = DMA_CSR_MAJORELINK(1)|DMA_CSR_MAJORLINKCH(1),  ///< Link to channel 1
+      DmaMajorLink_Ch_2       = DMA_CSR_MAJORELINK(1)|DMA_CSR_MAJORLINKCH(2),  ///< Link to channel 2
+      DmaMajorLink_Ch_3       = DMA_CSR_MAJORELINK(1)|DMA_CSR_MAJORLINKCH(3),  ///< Link to channel 3
    };
 
    /**
@@ -7405,8 +7590,8 @@ public:
     * to while the TCDn_CSR[DONE] bit is set
     */
    enum DmaScatterGather {
-      DmaScatterGather_Disabled = DMA_CSR_ESG(0), ///< TCD is normal format
-      DmaScatterGather_Enabled  = DMA_CSR_ESG(1), ///< TCD specifies a scatter gather format
+      DmaScatterGather_Disabled   = DMA_CSR_ESG(0),  ///< TCD is normal format
+      DmaScatterGather_Enabled    = DMA_CSR_ESG(1),  ///< TCD specifies a scatter gather format
    };
 
    /**
@@ -7417,8 +7602,8 @@ public:
     * the current major iteration count reaches zero
     */
    enum DmaStopOnComplete {
-      DmaStopOnComplete_Disabled = DMA_CSR_DREQ(0), ///< ERQ bit is not affected
-      DmaStopOnComplete_Enabled  = DMA_CSR_DREQ(1), ///< ERQ bit is cleared on complete
+      DmaStopOnComplete_Disabled   = DMA_CSR_DREQ(0),  ///< ERQ bit is not affected
+      DmaStopOnComplete_Enabled    = DMA_CSR_DREQ(1),  ///< ERQ bit is cleared on complete
    };
 
    /**
@@ -7433,8 +7618,8 @@ public:
     * NOTE: If BITER = 1, do not use INTHALF. Use INTMAJOR instead
     */
    enum DmaIntHalf {
-      DmaIntHalf_Disabled = DMA_CSR_INTHALF(0), ///< The half-point interrupt is disabled
-      DmaIntHalf_Enabled  = DMA_CSR_INTHALF(1), ///< The half-point interrupt is enabled
+      DmaIntHalf_Disabled   = DMA_CSR_INTHALF(0),  ///< The half-point interrupt is disabled
+      DmaIntHalf_Enabled    = DMA_CSR_INTHALF(1),  ///< The half-point interrupt is enabled
    };
 
    /**
@@ -7445,8 +7630,8 @@ public:
     * the INT when the current major iteration count reaches zero
     */
    enum DmaIntMajor {
-      DmaIntMajor_Disabled = DMA_CSR_INTMAJOR(0), ///< The end-of-major loop interrupt is disabled
-      DmaIntMajor_Enabled  = DMA_CSR_INTMAJOR(1), ///< The end-of-major loop interrupt is enabled
+      DmaIntMajor_Disabled   = DMA_CSR_INTMAJOR(0),  ///< The end-of-major loop interrupt is disabled
+      DmaIntMajor_Enabled    = DMA_CSR_INTMAJOR(1),  ///< The end-of-major loop interrupt is enabled
    };
 
    /**
@@ -7458,8 +7643,8 @@ public:
     * The eDMA hardware automatically clears this flag after the channel begins execution
     */
    enum DmaStart {
-      DmaStart_Hardware  = DMA_CSR_START(0), ///< Channel started by hardware request
-      DmaStart_Immediate = DMA_CSR_START(1), ///< Channel is immediately started
+      DmaStart_Hardware    = DMA_CSR_START(0),  ///< Channel started by hardware request
+      DmaStart_Immediate   = DMA_CSR_START(1),  ///< Channel is immediately started
    };
 
    /**
@@ -7471,8 +7656,8 @@ public:
     * The software or hardware clears it when the channel is activated
     */
    enum DmaDone {
-      DmaDone_NotCompleted = DMA_CSR_DONE(0), ///< Not completed
-      DmaDone_Completed    = DMA_CSR_DONE(1), ///< Completed
+      DmaDone_NotCompleted   = DMA_CSR_DONE(0),  ///< Not completed
+      DmaDone_Completed      = DMA_CSR_DONE(1),  ///< Completed
    };
 
    /**
@@ -7483,8 +7668,8 @@ public:
     * It sets when service begins and clears when the minor loop completes or on any error
     */
    enum DmaChannelActive {
-      DmaChannelActive_Idle = DMA_CSR_ACTIVE(0), ///< Idle
-      DmaChannelActive_Busy = DMA_CSR_ACTIVE(1), ///< Busy
+      DmaChannelActive_Idle   = DMA_CSR_ACTIVE(0),  ///< Idle
+      DmaChannelActive_Busy   = DMA_CSR_ACTIVE(1),  ///< Busy
    };
 
    /**
@@ -7494,8 +7679,8 @@ public:
     * Allows suspension of this channel by a higher priority channel
     */
    enum DmaCanBePreempted {
-      DmaCanBePreempted_Disabled = DMA_DCHPRI_ECP(0), ///< Cannot be suspended
-      DmaCanBePreempted_Enabled  = DMA_DCHPRI_ECP(1), ///< Can be suspended
+      DmaCanBePreempted_Disabled   = DMA_DCHPRI_ECP(0),  ///< Cannot be suspended
+      DmaCanBePreempted_Enabled    = DMA_DCHPRI_ECP(1),  ///< Can be suspended
    };
 
    /**
@@ -7505,8 +7690,8 @@ public:
     * Disallows the channel to suspend lower priority channels
     */
    enum DmaCanPreemptLower {
-      DmaCanPreemptLower_Disabled = DMA_DCHPRI_DPA(0), ///< Can suspend
-      DmaCanPreemptLower_Enabled  = DMA_DCHPRI_DPA(1), ///< Cannot suspend
+      DmaCanPreemptLower_Disabled   = DMA_DCHPRI_DPA(0),  ///< Can suspend
+      DmaCanPreemptLower_Enabled    = DMA_DCHPRI_DPA(1),  ///< Cannot suspend
    };
 
    /**
@@ -7517,22 +7702,22 @@ public:
     * Lower values are higher priority.
     */
    enum DmaPriority {
-      DmaPriority_0  = DMA_DCHPRI_CHPRI(0),  ///< Level 0
-      DmaPriority_1  = DMA_DCHPRI_CHPRI(1),  ///< Level 1
-      DmaPriority_2  = DMA_DCHPRI_CHPRI(2),  ///< Level 2
-      DmaPriority_3  = DMA_DCHPRI_CHPRI(3),  ///< Level 3
-      DmaPriority_4  = DMA_DCHPRI_CHPRI(4),  ///< Level 4
-      DmaPriority_5  = DMA_DCHPRI_CHPRI(5),  ///< Level 5
-      DmaPriority_6  = DMA_DCHPRI_CHPRI(6),  ///< Level 6
-      DmaPriority_7  = DMA_DCHPRI_CHPRI(7),  ///< Level 7
-      DmaPriority_8  = DMA_DCHPRI_CHPRI(8),  ///< Level 8
-      DmaPriority_9  = DMA_DCHPRI_CHPRI(9),  ///< Level 9
-      DmaPriority_10 = DMA_DCHPRI_CHPRI(10), ///< Level 10
-      DmaPriority_11 = DMA_DCHPRI_CHPRI(11), ///< Level 11
-      DmaPriority_12 = DMA_DCHPRI_CHPRI(12), ///< Level 12
-      DmaPriority_13 = DMA_DCHPRI_CHPRI(13), ///< Level 13
-      DmaPriority_14 = DMA_DCHPRI_CHPRI(14), ///< Level 14
-      DmaPriority_15 = DMA_DCHPRI_CHPRI(15), ///< Level 15
+      DmaPriority_0    = DMA_DCHPRI_CHPRI(0),   ///< Level 0
+      DmaPriority_1    = DMA_DCHPRI_CHPRI(1),   ///< Level 1
+      DmaPriority_2    = DMA_DCHPRI_CHPRI(2),   ///< Level 2
+      DmaPriority_3    = DMA_DCHPRI_CHPRI(3),   ///< Level 3
+      DmaPriority_4    = DMA_DCHPRI_CHPRI(4),   ///< Level 4
+      DmaPriority_5    = DMA_DCHPRI_CHPRI(5),   ///< Level 5
+      DmaPriority_6    = DMA_DCHPRI_CHPRI(6),   ///< Level 6
+      DmaPriority_7    = DMA_DCHPRI_CHPRI(7),   ///< Level 7
+      DmaPriority_8    = DMA_DCHPRI_CHPRI(8),   ///< Level 8
+      DmaPriority_9    = DMA_DCHPRI_CHPRI(9),   ///< Level 9
+      DmaPriority_10   = DMA_DCHPRI_CHPRI(10),  ///< Level 10
+      DmaPriority_11   = DMA_DCHPRI_CHPRI(11),  ///< Level 11
+      DmaPriority_12   = DMA_DCHPRI_CHPRI(12),  ///< Level 12
+      DmaPriority_13   = DMA_DCHPRI_CHPRI(13),  ///< Level 13
+      DmaPriority_14   = DMA_DCHPRI_CHPRI(14),  ///< Level 14
+      DmaPriority_15   = DMA_DCHPRI_CHPRI(15),  ///< Level 15
    };
 
    /**
@@ -7543,17 +7728,17 @@ public:
     * the source and destination addresses upon minor loop completion.
     */
    enum DmaMinorLoopOffsetSelect {
-      DmaMinorLoopOffsetSelect_None        = DMA_NBYTES_MLOFFYES_SMLOE(0)|DMA_NBYTES_MLOFFYES_DMLOE(0), ///< No offset
-      DmaMinorLoopOffsetSelect_Source      = DMA_NBYTES_MLOFFYES_SMLOE(1)|DMA_NBYTES_MLOFFYES_DMLOE(0), ///< Offset Source
-      DmaMinorLoopOffsetSelect_Destination = DMA_NBYTES_MLOFFYES_SMLOE(0)|DMA_NBYTES_MLOFFYES_DMLOE(1), ///< Offset Destination
-      DmaMinorLoopOffsetSelect_Both        = DMA_NBYTES_MLOFFYES_SMLOE(1)|DMA_NBYTES_MLOFFYES_DMLOE(1), ///< Offset Source and Destination
+      DmaMinorLoopOffsetSelect_None          = DMA_NBYTES_MLOFFYES_SMLOE(0)|DMA_NBYTES_MLOFFYES_DMLOE(0),  ///< No offset
+      DmaMinorLoopOffsetSelect_Source        = DMA_NBYTES_MLOFFYES_SMLOE(1)|DMA_NBYTES_MLOFFYES_DMLOE(0),  ///< Offset Source
+      DmaMinorLoopOffsetSelect_Destination   = DMA_NBYTES_MLOFFYES_SMLOE(0)|DMA_NBYTES_MLOFFYES_DMLOE(1),  ///< Offset Destination
+      DmaMinorLoopOffsetSelect_Both          = DMA_NBYTES_MLOFFYES_SMLOE(1)|DMA_NBYTES_MLOFFYES_DMLOE(1),  ///< Offset Source and Destination
    };
 
 class DmaBasicInfo {
 
 public:
-}; // class DmaBasicInfo
-   
+}; // class DmaBasicInfo 
+
 class Dma0Info : public DmaBasicInfo {
 public:
    /*
@@ -7612,6 +7797,9 @@ public:
    //! Hardware base pointer
    static constexpr HardwarePtr<DMA_Type> dma = baseAddress;
    
+   //! Peripheral instance number
+   static constexpr unsigned instance = 0;
+   
    //! Number of DMA channels implemented
    static constexpr unsigned NumChannels = 4;
 
@@ -7647,16 +7835,16 @@ public:
     * Controls the mode of operation of the channel
     */
    enum DmamuxMode {
-      DmamuxMode_Disabled   = DMAMUX_CHCFG_ENBL(0)|DMAMUX_CHCFG_TRIG(0), ///< Disabled
-      DmamuxMode_Continuous = DMAMUX_CHCFG_ENBL(1)|DMAMUX_CHCFG_TRIG(0), ///< Request directly routed
-      DmamuxMode_Throttled  = DMAMUX_CHCFG_ENBL(1)|DMAMUX_CHCFG_TRIG(1), ///< Periodic triggering enabled
+      DmamuxMode_Disabled     = DMAMUX_CHCFG_ENBL(0)|DMAMUX_CHCFG_TRIG(0),  ///< Disabled
+      DmamuxMode_Continuous   = DMAMUX_CHCFG_ENBL(1)|DMAMUX_CHCFG_TRIG(0),  ///< Request directly routed
+      DmamuxMode_Throttled    = DMAMUX_CHCFG_ENBL(1)|DMAMUX_CHCFG_TRIG(1),  ///< Periodic triggering enabled
    };
 
 class DmamuxBasicInfo {
 
 public:
-}; // class DmamuxBasicInfo
-   
+}; // class DmamuxBasicInfo 
+
 class Dmamux0Info : public DmamuxBasicInfo {
 public:
    /*
@@ -7716,8 +7904,8 @@ public:
     * This is a write-once value
     */
    enum EwmMode : uint8_t {
-      EwmMode_Disabled = EWM_CTRL_EWMEN(0), ///< Disabled
-      EwmMode_Enabled  = EWM_CTRL_EWMEN(1), ///< Enabled
+      EwmMode_Disabled   = EWM_CTRL_EWMEN(0),  ///< Disabled
+      EwmMode_Enabled    = EWM_CTRL_EWMEN(1),  ///< Enabled
    };
 
    /**
@@ -7727,8 +7915,8 @@ public:
     * Action taken on EWM event
     */
    enum EwmAction : uint8_t {
-      EwmAction_None      = EWM_CTRL_INTEN(0), ///< None
-      EwmAction_Interrupt = EWM_CTRL_INTEN(1), ///< Interrupt
+      EwmAction_None        = EWM_CTRL_INTEN(0),  ///< None
+      EwmAction_Interrupt   = EWM_CTRL_INTEN(1),  ///< Interrupt
    };
 
    /**
@@ -7739,29 +7927,29 @@ public:
     * This is a write-once value
     */
    enum EwmInputPin : uint8_t {
-      EwmInputPin_Disabled   = EWM_CTRL_INEN(0)|EWM_CTRL_ASSIN(0), ///< Input disabled
-      EwmInputPin_ActiveLow  = EWM_CTRL_INEN(1)|EWM_CTRL_ASSIN(0), ///< Input active-low
-      EwmInputPin_ActiveHigh = EWM_CTRL_INEN(1)|EWM_CTRL_ASSIN(1), ///< Input active-high
+      EwmInputPin_Disabled     = EWM_CTRL_INEN(0)|EWM_CTRL_ASSIN(0),  ///< Input disabled
+      EwmInputPin_ActiveLow    = EWM_CTRL_INEN(1)|EWM_CTRL_ASSIN(0),  ///< Input active-low
+      EwmInputPin_ActiveHigh   = EWM_CTRL_INEN(1)|EWM_CTRL_ASSIN(1),  ///< Input active-high
    };
 
    /**
-    * The EWM service mechanism requires the CPU to write two values to the SERV register:
-             a first data byte of 0xB4, 
-             followed by a second data byte of 0x2C.
+    * Values to write to service the EWM
     * (ewm_serv_service)
     *
-    * Values to write to service the EWM
+    * The EWM service mechanism requires the CPU to write two values to the SERV register:
+    * - a first data byte of 0xB4,
+    * - followed by a second data byte of 0x2C.
     */
    enum EwmService : uint8_t {
-      EwmService_First  = EWM_SERV_SERVICE(0xB4), ///< First value in sequence
-      EwmService_Second = EWM_SERV_SERVICE(0x2C), ///< Second value in sequence
+      EwmService_First    = EWM_SERV_SERVICE(0xB4),  ///< First value in sequence
+      EwmService_Second   = EWM_SERV_SERVICE(0x2C),  ///< Second value in sequence
    };
 
 class EwmBasicInfo {
 
 public:
-}; // class EwmBasicInfo
-   
+}; // class EwmBasicInfo 
+
 class EwmInfo : public EwmBasicInfo {
 public:
    /*
@@ -7805,6 +7993,30 @@ public:
    
    //! Number of IRQs for hardware
    static constexpr uint32_t irqCount  = sizeofArray(irqNums);
+   
+   /**
+    * Enable interrupts in NVIC
+    */
+   static void enableNvicInterrupts() {
+      NVIC_EnableIRQ(irqNums[0]);
+   }
+   
+   /**
+    * Enable and set priority of interrupts in NVIC
+    * Any pending NVIC interrupts are first cleared.
+    *
+    * @param[in]  nvicPriority  Interrupt priority
+    */
+   static void enableNvicInterrupts(NvicPriority nvicPriority) {
+      enableNvicInterrupt(irqNums[0], nvicPriority);
+   }
+   
+   /**
+    * Disable interrupts in NVIC
+    */
+   static void disableNvicInterrupts() {
+      NVIC_DisableIRQ(irqNums[0]);
+   }
    
    /**
     *  Enable clock to Ewm
@@ -7905,8 +8117,8 @@ public:
     * This field is further qualified by the PFBnCR[BxDPE,BxIPE] bits.
     */
    enum FmcPrefetch {
-      FmcPrefetch_Enabled  = FMC_PFAPR_M0PFD(0), ///< Prefetching enabled
-      FmcPrefetch_Disabled = FMC_PFAPR_M0PFD(1), ///< Prefetching is disabled
+      FmcPrefetch_Enabled    = FMC_PFAPR_M0PFD(0),  ///< Prefetching enabled
+      FmcPrefetch_Disabled   = FMC_PFAPR_M0PFD(1),  ///< Prefetching is disabled
    };
 
    /**
@@ -7917,10 +8129,10 @@ public:
     * based on the logical master number of the requesting crossbar switch master
     */
    enum FmcAccessProtection {
-      FmcAccessProtection_NoAccessAllowed      = FMC_PFAPR_M0AP(0), ///< No access allowed
-      FmcAccessProtection_OnlyReadAccesses     = FMC_PFAPR_M0AP(1), ///< Only read accesses
-      FmcAccessProtection_OnlyWriteAccesses    = FMC_PFAPR_M0AP(2), ///< Only write accesses
-      FmcAccessProtection_ReadAndWriteAccesses = FMC_PFAPR_M0AP(3), ///< Read and write accesses
+      FmcAccessProtection_NoAccessAllowed        = FMC_PFAPR_M0AP(0),  ///< No access allowed
+      FmcAccessProtection_OnlyReadAccesses       = FMC_PFAPR_M0AP(1),  ///< Only read accesses
+      FmcAccessProtection_OnlyWriteAccesses      = FMC_PFAPR_M0AP(2),  ///< Only write accesses
+      FmcAccessProtection_ReadAndWriteAccesses   = FMC_PFAPR_M0AP(3),  ///< Read and write accesses
    };
 
    /**
@@ -7930,8 +8142,8 @@ public:
     * Determine if the given cache way is locked such that its contents will not be displaced by future misses
     */
    enum FmcCacheWayLock {
-      FmcCacheWayLock_CacheWayIsUnlocked = FMC_PFB0CR_CLCK_WAY(0), ///< Cache way is unlocked
-      FmcCacheWayLock_CacheWayIsLocked   = FMC_PFB0CR_CLCK_WAY(1), ///< Cache way is locked
+      FmcCacheWayLock_CacheWayIsUnlocked   = FMC_PFB0CR_CLCK_WAY(0),  ///< Cache way is unlocked
+      FmcCacheWayLock_CacheWayIsLocked     = FMC_PFB0CR_CLCK_WAY(1),  ///< Cache way is locked
    };
 
    /**
@@ -7942,11 +8154,11 @@ public:
     * The tag, data, and valid contents are cleared.
     */
    enum FmcWayInvalidate {
-      FmcWayInvalidate_Way0    = FMC_PFB0CR_CINV_WAY(1<<0), ///< Invalidate Way 0
-      FmcWayInvalidate_Way1    = FMC_PFB0CR_CINV_WAY(1<<1), ///< Invalidate Way 1
-      FmcWayInvalidate_Way2    = FMC_PFB0CR_CINV_WAY(1<<2), ///< Invalidate Way 2
-      FmcWayInvalidate_Way3    = FMC_PFB0CR_CINV_WAY(1<<3), ///< Invalidate Way 3
-      FmcWayInvalidate_AllWays = FMC_PFB0CR_CINV_WAY(-1),   ///< Invalidate all Ways
+      FmcWayInvalidate_Way0      = FMC_PFB0CR_CINV_WAY(1<<0),  ///< Invalidate Way 0
+      FmcWayInvalidate_Way1      = FMC_PFB0CR_CINV_WAY(1<<1),  ///< Invalidate Way 1
+      FmcWayInvalidate_Way2      = FMC_PFB0CR_CINV_WAY(1<<2),  ///< Invalidate Way 2
+      FmcWayInvalidate_Way3      = FMC_PFB0CR_CINV_WAY(1<<3),  ///< Invalidate Way 3
+      FmcWayInvalidate_AllWays   = FMC_PFB0CR_CINV_WAY(-1),    ///< Invalidate all Ways
    };
 
    /**
@@ -7956,7 +8168,7 @@ public:
     * When this bit is written, the prefetch speculation buffer and single entry buffer are immediately cleared
     */
    enum FmcSpeculationBuffer {
-      FmcSpeculationBuffer_Invalidate = FMC_PFB0CR_S_B_INV(1), ///< Write 1 to invalidate
+      FmcSpeculationBuffer_Invalidate   = FMC_PFB0CR_S_B_INV(1),  ///< Write 1 to invalidate
    };
 
    /**
@@ -7966,9 +8178,9 @@ public:
     * This field defines the replacement algorithm for accesses that are cached
     */
    enum FmcReplacementPolicy {
-      FmcReplacementPolicy_LruAllWays                   = FMC_PFB0CR_CRC(0), ///< LRU across all ways
-      FmcReplacementPolicy_LruWays_01Instruction_23Data = FMC_PFB0CR_CRC(2), ///< Independent LRU ways [0-1] ifetches, [2-3] data
-      FmcReplacementPolicy_LruWays_012Instruction_3Data = FMC_PFB0CR_CRC(3), ///< Independent LRU ways [0-2] ifetches, [3] data
+      FmcReplacementPolicy_LruAllWays                     = FMC_PFB0CR_CRC(0),  ///< LRU across all ways
+      FmcReplacementPolicy_LruWays_01Instruction_23Data   = FMC_PFB0CR_CRC(2),  ///< Independent LRU ways [0-1] ifetches, [2-3] data
+      FmcReplacementPolicy_LruWays_012Instruction_3Data   = FMC_PFB0CR_CRC(3),  ///< Independent LRU ways [0-2] ifetches, [3] data
    };
 
    /**
@@ -7978,10 +8190,10 @@ public:
     * Controls the operation of the Speculation Buffer for each Flash Controller bank
     */
    enum FmcFlashSpeculation {
-      FmcFlashSpeculation_Disabled            = FMC_PFB0CR_B0DPE(0)|FMC_PFB0CR_B0IPE(0), ///< Disabled
-      FmcFlashSpeculation_DataOnly            = FMC_PFB0CR_B0DPE(1)|FMC_PFB0CR_B0IPE(0), ///< Data Only
-      FmcFlashSpeculation_InstructionsOnly    = FMC_PFB0CR_B0DPE(0)|FMC_PFB0CR_B0IPE(1), ///< Instructions Only
-      FmcFlashSpeculation_InstructionsAndData = FMC_PFB0CR_B0DPE(1)|FMC_PFB0CR_B0IPE(1), ///< Instructions and Data
+      FmcFlashSpeculation_Disabled              = FMC_PFB0CR_B0DPE(0)|FMC_PFB0CR_B0IPE(0),  ///< Disabled
+      FmcFlashSpeculation_DataOnly              = FMC_PFB0CR_B0DPE(1)|FMC_PFB0CR_B0IPE(0),  ///< Data Only
+      FmcFlashSpeculation_InstructionsOnly      = FMC_PFB0CR_B0DPE(0)|FMC_PFB0CR_B0IPE(1),  ///< Instructions Only
+      FmcFlashSpeculation_InstructionsAndData   = FMC_PFB0CR_B0DPE(1)|FMC_PFB0CR_B0IPE(1),  ///< Instructions and Data
    };
 
    /**
@@ -7991,10 +8203,10 @@ public:
     * Controls the operation of the Cache for each Flash Controller bank
     */
    enum FmcFlashCache {
-      FmcFlashCache_Disabled            = FMC_PFB0CR_B0DCE(0)|FMC_PFB0CR_B0ICE(0), ///< Disabled
-      FmcFlashCache_DataOnly            = FMC_PFB0CR_B0DCE(1)|FMC_PFB0CR_B0ICE(0), ///< Data Only
-      FmcFlashCache_InstructionsOnly    = FMC_PFB0CR_B0DCE(0)|FMC_PFB0CR_B0ICE(1), ///< Instructions Only
-      FmcFlashCache_InstructionsAndData = FMC_PFB0CR_B0DCE(1)|FMC_PFB0CR_B0ICE(1), ///< Instructions and Data
+      FmcFlashCache_Disabled              = FMC_PFB0CR_B0DCE(0)|FMC_PFB0CR_B0ICE(0),  ///< Disabled
+      FmcFlashCache_DataOnly              = FMC_PFB0CR_B0DCE(1)|FMC_PFB0CR_B0ICE(0),  ///< Data Only
+      FmcFlashCache_InstructionsOnly      = FMC_PFB0CR_B0DCE(0)|FMC_PFB0CR_B0ICE(1),  ///< Instructions Only
+      FmcFlashCache_InstructionsAndData   = FMC_PFB0CR_B0DCE(1)|FMC_PFB0CR_B0ICE(1),  ///< Instructions and Data
    };
 
    /**
@@ -8005,8 +8217,8 @@ public:
     * A disabled-to-enabled transition forces the page buffer to be invalidated
     */
    enum FmcPageBuffer {
-      FmcPageBuffer_Disabled = FMC_PFB0CR_B0SEBE(0), ///< Buffer is disabled
-      FmcPageBuffer_Enabled  = FMC_PFB0CR_B0SEBE(1), ///< Buffer is enabled
+      FmcPageBuffer_Disabled   = FMC_PFB0CR_B0SEBE(0),  ///< Buffer is disabled
+      FmcPageBuffer_Enabled    = FMC_PFB0CR_B0SEBE(1),  ///< Buffer is enabled
    };
 
 class FmcInfo {
@@ -8144,14 +8356,14 @@ public:
  * along with simple accessor functions.
  */
    /**
-    * Ftfl Interrupt indices
+    * IRQ entry
     * (irq_enum)
     *
-    * Used to identify peripheral interrupt
+    * Select amongst interrupts associated with the peripheral
     */
    enum FtflIrqNum {
-      FtflIrqNum_Command       = 0, ///< Flash Memory Command
-      FtflIrqNum_ReadCollision = 1, ///< Flash Memory Read Collision
+      FtflIrqNum_Command         = 0,  ///< Maps to FTFL_Command_IRQn
+      FtflIrqNum_ReadCollision   = 1,  ///< Maps to FTFL_ReadCollision_IRQn
    };
 
    /**
@@ -8162,13 +8374,13 @@ public:
     * The larger the EEPROM backing the better the wear characteristic
     */
    enum FlashPartition {
-      FlashPartition_Flash32K_eeprom0K  = 0,                                ///< flash=32KiB eeprom backing=0B
-      FlashPartition_Flash24K_eeprom8K  = 1,                                ///< flash=24KiB eeprom backing=8KiB
-      FlashPartition_Flash16K_eeprom16K = 2,                                ///< flash=16KiB eeprom backing=16KiB
-      FlashPartition_Flash8K_eeprom24K  = 3,                                ///< flash=8KiB eeprom backing=24KiB
-      FlashPartition_Flash0K_eeprom32K  = 4,                                ///< flash=0B eeprom backing=32KiB
-      FlashPartition_FlashAll_eeprom0K  = FlashPartition_Flash32K_eeprom0K, ///< All Flash
-      FlashPartition_Flash0K_eepromAll  = FlashPartition_Flash0K_eeprom32K, ///< All EEPROM
+      FlashPartition_Flash32K_eeprom0K    = 0,                                 ///< flash=32KiB eeprom backing=0B
+      FlashPartition_Flash24K_eeprom8K    = 1,                                 ///< flash=24KiB eeprom backing=8KiB
+      FlashPartition_Flash16K_eeprom16K   = 2,                                 ///< flash=16KiB eeprom backing=16KiB
+      FlashPartition_Flash8K_eeprom24K    = 3,                                 ///< flash=8KiB eeprom backing=24KiB
+      FlashPartition_Flash0K_eeprom32K    = 4,                                 ///< flash=0B eeprom backing=32KiB
+      FlashPartition_FlashAll_eeprom0K    = FlashPartition_Flash32K_eeprom0K,  ///< All Flash
+      FlashPartition_Flash0K_eepromAll    = FlashPartition_Flash0K_eeprom32K,  ///< All EEPROM
    };
 
    /**
@@ -8178,13 +8390,13 @@ public:
     * Selects emulated EEPROM size
     */
    enum FlashEepromSize {
-      FlashEepromSize_32Bytes  = 0, ///< 32 bytes
-      FlashEepromSize_64Bytes  = 1, ///< 64 bytes
-      FlashEepromSize_128Bytes = 2, ///< 128 bytes
-      FlashEepromSize_256Bytes = 3, ///< 256 bytes
-      FlashEepromSize_512Bytes = 4, ///< 512 bytes
-      FlashEepromSize_1KBytes  = 5, ///< 1 KiB
-      FlashEepromSize_2KBytes  = 6, ///< 2 KiB
+      FlashEepromSize_32Bytes    = 0,  ///< 32 bytes
+      FlashEepromSize_64Bytes    = 1,  ///< 64 bytes
+      FlashEepromSize_128Bytes   = 2,  ///< 128 bytes
+      FlashEepromSize_256Bytes   = 3,  ///< 256 bytes
+      FlashEepromSize_512Bytes   = 4,  ///< 512 bytes
+      FlashEepromSize_1KBytes    = 5,  ///< 1 KiB
+      FlashEepromSize_2KBytes    = 6,  ///< 2 KiB
    };
 
    /**
@@ -8195,10 +8407,15 @@ public:
     * (Not supported on this device)
     */
    enum FlashEepromSplit {
-      FlashEepromSplit_Disabled = 0x30, ///< Disabled
+      FlashEepromSplit_Disabled   = 0x30,  ///< Disabled
    };
 
-class FtflInfo {
+class FtflBasicInfo {
+
+public:
+}; // class FtflBasicInfo 
+
+class FtflInfo : public FtflBasicInfo {
 public:
    /*
     * Template:ftfl_32k_flexrom
@@ -8211,7 +8428,7 @@ public:
    
    /**
     * Enable interrupts in NVIC
-    * @param ftflIrqNum Used to identify peripheral interrupt
+    * @param ftflIrqNum Select amongst interrupts associated with the peripheral
     */
    static void enableNvicInterrupts(FtflIrqNum ftflIrqNum) {
       NVIC_EnableIRQ(irqNums[ftflIrqNum]);
@@ -8222,7 +8439,7 @@ public:
     * Any pending NVIC interrupts are first cleared.
     *
     * @param[in]  nvicPriority  Interrupt priority
-    * @param ftflIrqNum Used to identify peripheral interrupt
+    * @param ftflIrqNum Select amongst interrupts associated with the peripheral
     */
    static void enableNvicInterrupts(FtflIrqNum ftflIrqNum, NvicPriority nvicPriority) {
       enableNvicInterrupt(irqNums[ftflIrqNum], nvicPriority);
@@ -8230,7 +8447,7 @@ public:
    
    /**
     * Disable interrupts in NVIC
-    * @param ftflIrqNum Used to identify peripheral interrupt
+    * @param ftflIrqNum Select amongst interrupts associated with the peripheral
     */
    static void disableNvicInterrupts(FtflIrqNum ftflIrqNum) {
       NVIC_DisableIRQ(irqNums[ftflIrqNum]);
@@ -8390,8 +8607,8 @@ public:
     * not lost due to the clearing sequence for a previous TOF.
     */
    enum FtmOverflowFlag : uint8_t {
-      FtmOverflowFlag_NoOverflow           = FTM_SC_TOF(0), ///< No Overflow
-      FtmOverflowFlag_CounterHasOverflowed = FTM_SC_TOF(1), ///< Counter Has Overflowed
+      FtmOverflowFlag_NoOverflow             = FTM_SC_TOF(0),  ///< No Overflow
+      FtmOverflowFlag_CounterHasOverflowed   = FTM_SC_TOF(1),  ///< Counter Has Overflowed
    };
 
    /**
@@ -8411,8 +8628,8 @@ public:
     * Counting Mode
     */
    enum FtmCountMode : uint8_t {
-      FtmCountMode_LeftAligned   = FTM_SC_CPWMS(0), ///< Left-aligned (count up)
-      FtmCountMode_CentreAligned = FTM_SC_CPWMS(1), ///< Centre-aligned (count up-down)
+      FtmCountMode_LeftAligned     = FTM_SC_CPWMS(0),  ///< Left-aligned (count up)
+      FtmCountMode_CentreAligned   = FTM_SC_CPWMS(1),  ///< Centre-aligned (count up-down)
    };
 
    /**
@@ -8422,10 +8639,10 @@ public:
     * Selects the clock source for the module
     */
    enum FtmClockSource : uint8_t {
-      FtmClockSource_Disabled            = FTM_SC_CLKS(0), ///< Disabled
-      FtmClockSource_SystemClock         = FTM_SC_CLKS(1), ///< System clock
-      FtmClockSource_FixedFrequencyClock = FTM_SC_CLKS(2), ///< Fixed frequency clock
-      FtmClockSource_ExternalClock       = FTM_SC_CLKS(3), ///< External clock
+      FtmClockSource_Disabled              = FTM_SC_CLKS(0),  ///< Disabled
+      FtmClockSource_SystemClock           = FTM_SC_CLKS(1),  ///< System clock
+      FtmClockSource_FixedFrequencyClock   = FTM_SC_CLKS(2),  ///< Fixed frequency clock
+      FtmClockSource_ExternalClock         = FTM_SC_CLKS(3),  ///< External clock
    };
 
    /**
@@ -8435,14 +8652,14 @@ public:
     * Selects the prescaler for the module
     */
    enum FtmPrescale : uint8_t {
-      FtmPrescale_DivBy1   = FTM_SC_PS(0), ///< Divide by 1
-      FtmPrescale_DivBy2   = FTM_SC_PS(1), ///< Divide by 2
-      FtmPrescale_DivBy4   = FTM_SC_PS(2), ///< Divide by 4
-      FtmPrescale_DivBy8   = FTM_SC_PS(3), ///< Divide by 8
-      FtmPrescale_DivBy16  = FTM_SC_PS(4), ///< Divide by 16
-      FtmPrescale_DivBy32  = FTM_SC_PS(5), ///< Divide by 32
-      FtmPrescale_DivBy64  = FTM_SC_PS(6), ///< Divide by 64
-      FtmPrescale_DivBy128 = FTM_SC_PS(7), ///< Divide by 128
+      FtmPrescale_DivBy1     = FTM_SC_PS(0),  ///< Divide by 1
+      FtmPrescale_DivBy2     = FTM_SC_PS(1),  ///< Divide by 2
+      FtmPrescale_DivBy4     = FTM_SC_PS(2),  ///< Divide by 4
+      FtmPrescale_DivBy8     = FTM_SC_PS(3),  ///< Divide by 8
+      FtmPrescale_DivBy16    = FTM_SC_PS(4),  ///< Divide by 16
+      FtmPrescale_DivBy32    = FTM_SC_PS(5),  ///< Divide by 32
+      FtmPrescale_DivBy64    = FTM_SC_PS(6),  ///< Divide by 64
+      FtmPrescale_DivBy128   = FTM_SC_PS(7),  ///< Divide by 128
    };
 
    /**
@@ -8452,8 +8669,8 @@ public:
     * Enable interrupt on counter overflow
     */
    enum FtmOverflowAction : uint8_t {
-      FtmOverflowAction_None      = FTM_SC_TOIE(0), ///< No action
-      FtmOverflowAction_Interrupt = FTM_SC_TOIE(1), ///< Overflow Interrupt
+      FtmOverflowAction_None        = FTM_SC_TOIE(0),  ///< No action
+      FtmOverflowAction_Interrupt   = FTM_SC_TOIE(1),  ///< Overflow Interrupt
    };
 
    /**
@@ -8463,15 +8680,15 @@ public:
     * Selects a channel
     */
    enum FtmChannelNum : uint8_t {
-      FtmChannelNum_0    = 0,             ///< Channel 0
-      FtmChannelNum_1    = 1,             ///< Channel 1
-      FtmChannelNum_2    = 2,             ///< Channel 2
-      FtmChannelNum_3    = 3,             ///< Channel 3
-      FtmChannelNum_4    = 4,             ///< Channel 4
-      FtmChannelNum_5    = 5,             ///< Channel 5
-      FtmChannelNum_6    = 6,             ///< Channel 6
-      FtmChannelNum_7    = 7,             ///< Channel 7
-      FtmChannelNum_None = (uint8_t(-1)), ///< No Channel
+      FtmChannelNum_0      = 0,              ///< Channel 0
+      FtmChannelNum_1      = 1,              ///< Channel 1
+      FtmChannelNum_2      = 2,              ///< Channel 2
+      FtmChannelNum_3      = 3,              ///< Channel 3
+      FtmChannelNum_4      = 4,              ///< Channel 4
+      FtmChannelNum_5      = 5,              ///< Channel 5
+      FtmChannelNum_6      = 6,              ///< Channel 6
+      FtmChannelNum_7      = 7,              ///< Channel 7
+      FtmChannelNum_None   = (uint8_t(-1)),  ///< No Channel
    };
 
    /**
@@ -8484,11 +8701,11 @@ public:
     * This bit is updated by the INVCTRL Register Synchronisation.
     */
    enum FtmInvertChannelPair {
-      FtmInvertChannelPair_Normal       = FTM_INVCTRL_INVEN(0),     ///< No outputs inverted
-      FtmInvertChannelPair_0_1_Inverted = FTM_INVCTRL_INVEN(1U<<0), ///< Invert Ch0/Ch1 outputs
-      FtmInvertChannelPair_2_3_Inverted = FTM_INVCTRL_INVEN(1U<<1), ///< Invert Ch2/Ch3 outputs
-      FtmInvertChannelPair_4_5_Inverted = FTM_INVCTRL_INVEN(1U<<2), ///< Invert Ch4/Ch5 outputs
-      FtmInvertChannelPair_6_7_Inverted = FTM_INVCTRL_INVEN(1U<<3), ///< Invert Ch6/Ch7 outputs
+      FtmInvertChannelPair_Normal         = FTM_INVCTRL_INVEN(0),      ///< No outputs inverted
+      FtmInvertChannelPair_0_1_Inverted   = FTM_INVCTRL_INVEN(1U<<0),  ///< Invert Ch0/Ch1 outputs
+      FtmInvertChannelPair_2_3_Inverted   = FTM_INVCTRL_INVEN(1U<<1),  ///< Invert Ch2/Ch3 outputs
+      FtmInvertChannelPair_4_5_Inverted   = FTM_INVCTRL_INVEN(1U<<2),  ///< Invert Ch4/Ch5 outputs
+      FtmInvertChannelPair_6_7_Inverted   = FTM_INVCTRL_INVEN(1U<<3),  ///< Invert Ch6/Ch7 outputs
    };
 
    /**
@@ -8498,16 +8715,16 @@ public:
     * Determines channel operation (PWM/Input capture/Output compare)
     */
    enum FtmChannelMode : uint16_t {
-      FtmChannelMode_Disabled                = FTM_CnSC_MS(0b00)|FTM_CnSC_ELS(0b00), ///< Channel Disabled
-      FtmChannelMode_InputCaptureRisingEdge  = FTM_CnSC_MS(0b00)|FTM_CnSC_ELS(0b01), ///< Input Capture Rising-edge
-      FtmChannelMode_InputCaptureFallingEdge = FTM_CnSC_MS(0b00)|FTM_CnSC_ELS(0b10), ///< Input Capture Falling-edge
-      FtmChannelMode_InputCaptureEitherEdge  = FTM_CnSC_MS(0b00)|FTM_CnSC_ELS(0b11), ///< Input Capture Either-edge
-      FtmChannelMode_OutputCompare           = FTM_CnSC_MS(0b01)|FTM_CnSC_ELS(0b00), ///< Software Compare (pin unused)
-      FtmChannelMode_OutputCompareToggle     = FTM_CnSC_MS(0b01)|FTM_CnSC_ELS(0b01), ///< Output Compare Toggle
-      FtmChannelMode_OutputCompareClear      = FTM_CnSC_MS(0b01)|FTM_CnSC_ELS(0b10), ///< Output Compare Clear
-      FtmChannelMode_OutputCompareSet        = FTM_CnSC_MS(0b01)|FTM_CnSC_ELS(0b11), ///< Output Compare Set
-      FtmChannelMode_PwmHighTruePulses       = FTM_CnSC_MS(0b10)|FTM_CnSC_ELS(0b10), ///< Pwm High-true Pulses (Edge/Centre)
-      FtmChannelMode_PwmLowTruePulses        = FTM_CnSC_MS(0b10)|FTM_CnSC_ELS(0b01), ///< Pwm Low-true Pulses (Edge/Centre)
+      FtmChannelMode_Disabled                  = FTM_CnSC_MS(0b00)|FTM_CnSC_ELS(0b00),  ///< Channel Disabled
+      FtmChannelMode_InputCaptureRisingEdge    = FTM_CnSC_MS(0b00)|FTM_CnSC_ELS(0b01),  ///< Input Capture Rising-edge
+      FtmChannelMode_InputCaptureFallingEdge   = FTM_CnSC_MS(0b00)|FTM_CnSC_ELS(0b10),  ///< Input Capture Falling-edge
+      FtmChannelMode_InputCaptureEitherEdge    = FTM_CnSC_MS(0b00)|FTM_CnSC_ELS(0b11),  ///< Input Capture Either-edge
+      FtmChannelMode_OutputCompare             = FTM_CnSC_MS(0b01)|FTM_CnSC_ELS(0b00),  ///< Software Compare (pin unused)
+      FtmChannelMode_OutputCompareToggle       = FTM_CnSC_MS(0b01)|FTM_CnSC_ELS(0b01),  ///< Output Compare Toggle
+      FtmChannelMode_OutputCompareClear        = FTM_CnSC_MS(0b01)|FTM_CnSC_ELS(0b10),  ///< Output Compare Clear
+      FtmChannelMode_OutputCompareSet          = FTM_CnSC_MS(0b01)|FTM_CnSC_ELS(0b11),  ///< Output Compare Set
+      FtmChannelMode_PwmHighTruePulses         = FTM_CnSC_MS(0b10)|FTM_CnSC_ELS(0b10),  ///< Pwm High-true Pulses (Edge/Centre)
+      FtmChannelMode_PwmLowTruePulses          = FTM_CnSC_MS(0b10)|FTM_CnSC_ELS(0b01),  ///< Pwm Low-true Pulses (Edge/Centre)
    };
 
    /**
@@ -8516,10 +8733,10 @@ public:
     *
     * Enable interrupt or DMA on channel event
     */
-   enum FtmChannelAction : uint8_t {
-      FtmChannelAction_None      = FTM_CnSC_CHIE(0)|FTM_CnSC_DMA(0), ///< No action
-      FtmChannelAction_Dma       = FTM_CnSC_CHIE(1)|FTM_CnSC_DMA(1), ///< DMA request
-      FtmChannelAction_Interrupt = FTM_CnSC_CHIE(1)|FTM_CnSC_DMA(0), ///< Interrupt Request
+   enum FtmChannelAction : uint16_t {
+      FtmChannelAction_None        = FTM_CnSC_CHIE(0)|FTM_CnSC_DMA(0),  ///< No action
+      FtmChannelAction_Dma         = FTM_CnSC_CHIE(1)|FTM_CnSC_DMA(1),  ///< DMA request
+      FtmChannelAction_Interrupt   = FTM_CnSC_CHIE(1)|FTM_CnSC_DMA(0),  ///< Interrupt Request
    };
 
    /**
@@ -8529,22 +8746,22 @@ public:
     * Selects the filter value for the channel input
     */
    enum FtmInputFilter : uint8_t {
-      FtmInputFilter_Disabled  = (0),  ///< Filter Disabled
-      FtmInputFilter_4_clocks  = (1),  ///< 4 clock cycles
-      FtmInputFilter_8_clocks  = (2),  ///< 8 clock cycles
-      FtmInputFilter_12_clocks = (3),  ///< 12 clock cycles
-      FtmInputFilter_16_clocks = (4),  ///< 16 clock cycles
-      FtmInputFilter_20_clocks = (5),  ///< 20 clock cycles
-      FtmInputFilter_24_clocks = (6),  ///< 24 clock cycles
-      FtmInputFilter_28_clocks = (7),  ///< 28 clock cycles
-      FtmInputFilter_32_clocks = (8),  ///< 32 clock cycles
-      FtmInputFilter_36_clocks = (9),  ///< 36 clock cycles
-      FtmInputFilter_40_clocks = (10), ///< 40 clock cycles
-      FtmInputFilter_44_clocks = (11), ///< 44 clock cycles
-      FtmInputFilter_48_clocks = (12), ///< 48 clock cycles
-      FtmInputFilter_52_clocks = (13), ///< 52 clock cycles
-      FtmInputFilter_56_clocks = (14), ///< 56 clock cycles
-      FtmInputFilter_60_clocks = (15), ///< 60 clock cycles
+      FtmInputFilter_Disabled    = (0),   ///< Filter Disabled
+      FtmInputFilter_4_clocks    = (1),   ///< 4 clock cycles
+      FtmInputFilter_8_clocks    = (2),   ///< 8 clock cycles
+      FtmInputFilter_12_clocks   = (3),   ///< 12 clock cycles
+      FtmInputFilter_16_clocks   = (4),   ///< 16 clock cycles
+      FtmInputFilter_20_clocks   = (5),   ///< 20 clock cycles
+      FtmInputFilter_24_clocks   = (6),   ///< 24 clock cycles
+      FtmInputFilter_28_clocks   = (7),   ///< 28 clock cycles
+      FtmInputFilter_32_clocks   = (8),   ///< 32 clock cycles
+      FtmInputFilter_36_clocks   = (9),   ///< 36 clock cycles
+      FtmInputFilter_40_clocks   = (10),  ///< 40 clock cycles
+      FtmInputFilter_44_clocks   = (11),  ///< 44 clock cycles
+      FtmInputFilter_48_clocks   = (12),  ///< 48 clock cycles
+      FtmInputFilter_52_clocks   = (13),  ///< 52 clock cycles
+      FtmInputFilter_56_clocks   = (14),  ///< 56 clock cycles
+      FtmInputFilter_60_clocks   = (15),  ///< 60 clock cycles
    };
 
    /**
@@ -8553,12 +8770,12 @@ public:
     *
     * Behaviour of second channel when channels are paired
     */
-   enum FtmOddChannelMode {
-      FtmOddChannelMode_Disabled    = FTM_CnSC_ELS(0b00), ///< Pin Disabled
-      FtmOddChannelMode_RisingEdge  = FTM_CnSC_ELS(0b01), ///< Capture Rising-edge
-      FtmOddChannelMode_FallingEdge = FTM_CnSC_ELS(0b10), ///< Capture Falling-edge
-      FtmOddChannelMode_EitherEdge  = FTM_CnSC_ELS(0b11), ///< Capture Either-edge
-      FtmOddChannelMode_Enabled     = FTM_CnSC_ELS(0b01), ///< Pin controlled by FTM
+   enum FtmOddChannelMode : uint16_t {
+      FtmOddChannelMode_Disabled      = FTM_CnSC_ELS(0b00),  ///< Pin Disabled
+      FtmOddChannelMode_RisingEdge    = FTM_CnSC_ELS(0b01),  ///< Capture Rising-edge
+      FtmOddChannelMode_FallingEdge   = FTM_CnSC_ELS(0b10),  ///< Capture Falling-edge
+      FtmOddChannelMode_EitherEdge    = FTM_CnSC_ELS(0b11),  ///< Capture Either-edge
+      FtmOddChannelMode_Enabled       = FTM_CnSC_ELS(0b01),  ///< Pin controlled by FTM
    };
 
    /**
@@ -8568,15 +8785,15 @@ public:
     * Determines channel operation (Combined PWM or Dual-edge capture)
     */
    enum FtmEvenChannelMode : uint16_t {
-      FtmEvenChannelMode_Disabled                             = (FTM_COMBINE_DECAPEN0(0)<<8)|(FTM_COMBINE_COMBINE0(0)<<8)|FTM_CnSC_MS(0b00)|FTM_CnSC_ELS(0b00), ///< Channel Pair Disabled
-      FtmEvenChannelMode_CombinePositivePulse                 = (FTM_COMBINE_DECAPEN0(0)<<8)|(FTM_COMBINE_COMBINE0(1)<<8)|FTM_CnSC_MS(0b00)|FTM_CnSC_ELS(0b10), ///< Combined PWM Positive-pulse
-      FtmEvenChannelMode_CombineNegativePulse                 = (FTM_COMBINE_DECAPEN0(0)<<8)|(FTM_COMBINE_COMBINE0(1)<<8)|FTM_CnSC_MS(0b00)|FTM_CnSC_ELS(0b01), ///< Combine PWM Negative-pulse
-      FtmEvenChannelMode_DualEdgeCaptureOneShotRisingEdge     = (FTM_COMBINE_DECAPEN0(1)<<8)|(FTM_COMBINE_COMBINE0(0)<<8)|FTM_CnSC_MS(0b00)|FTM_CnSC_ELS(0b01), ///< Dual-edge Capture One-Shot Rising-edge
-      FtmEvenChannelMode_DualEdgeCaptureContinuousRisingEdge  = (FTM_COMBINE_DECAPEN0(1)<<8)|(FTM_COMBINE_COMBINE0(0)<<8)|FTM_CnSC_MS(0b01)|FTM_CnSC_ELS(0b01), ///< Dual-edge Capture Continuous Rising-edge
-      FtmEvenChannelMode_DualEdgeCaptureOneShotFallingEdge    = (FTM_COMBINE_DECAPEN0(1)<<8)|(FTM_COMBINE_COMBINE0(0)<<8)|FTM_CnSC_MS(0b00)|FTM_CnSC_ELS(0b10), ///< Dual-edge Capture One-Shot Falling-edge
-      FtmEvenChannelMode_DualEdgeCaptureContinuousFallingEdge = (FTM_COMBINE_DECAPEN0(1)<<8)|(FTM_COMBINE_COMBINE0(0)<<8)|FTM_CnSC_MS(0b01)|FTM_CnSC_ELS(0b10), ///< Dual-edge Capture Continuous Falling-edge
-      FtmEvenChannelMode_DualEdgeCaptureOneShotEitherEdge     = (FTM_COMBINE_DECAPEN0(1)<<8)|(FTM_COMBINE_COMBINE0(0)<<8)|FTM_CnSC_MS(0b00)|FTM_CnSC_ELS(0b11), ///< Dual-edge Capture One-Shot Either-edge
-      FtmEvenChannelMode_DualEdgeCaptureContinuousEitherEdge  = (FTM_COMBINE_DECAPEN0(1)<<8)|(FTM_COMBINE_COMBINE0(0)<<8)|FTM_CnSC_MS(0b01)|FTM_CnSC_ELS(0b11), ///< Dual-edge Capture Continuous Either-edge
+      FtmEvenChannelMode_Disabled                               = (FTM_COMBINE_DECAPEN0(0)<<8)|(FTM_COMBINE_COMBINE0(0)<<8)|FTM_CnSC_MS(0b00)|FTM_CnSC_ELS(0b00),  ///< Channel Pair Disabled
+      FtmEvenChannelMode_CombinePositivePulse                   = (FTM_COMBINE_DECAPEN0(0)<<8)|(FTM_COMBINE_COMBINE0(1)<<8)|FTM_CnSC_MS(0b00)|FTM_CnSC_ELS(0b10),  ///< Combined PWM Positive-pulse
+      FtmEvenChannelMode_CombineNegativePulse                   = (FTM_COMBINE_DECAPEN0(0)<<8)|(FTM_COMBINE_COMBINE0(1)<<8)|FTM_CnSC_MS(0b00)|FTM_CnSC_ELS(0b01),  ///< Combine PWM Negative-pulse
+      FtmEvenChannelMode_DualEdgeCaptureOneShotRisingEdge       = (FTM_COMBINE_DECAPEN0(1)<<8)|(FTM_COMBINE_COMBINE0(0)<<8)|FTM_CnSC_MS(0b00)|FTM_CnSC_ELS(0b01),  ///< Dual-edge Capture One-Shot Rising-edge
+      FtmEvenChannelMode_DualEdgeCaptureContinuousRisingEdge    = (FTM_COMBINE_DECAPEN0(1)<<8)|(FTM_COMBINE_COMBINE0(0)<<8)|FTM_CnSC_MS(0b01)|FTM_CnSC_ELS(0b01),  ///< Dual-edge Capture Continuous Rising-edge
+      FtmEvenChannelMode_DualEdgeCaptureOneShotFallingEdge      = (FTM_COMBINE_DECAPEN0(1)<<8)|(FTM_COMBINE_COMBINE0(0)<<8)|FTM_CnSC_MS(0b00)|FTM_CnSC_ELS(0b10),  ///< Dual-edge Capture One-Shot Falling-edge
+      FtmEvenChannelMode_DualEdgeCaptureContinuousFallingEdge   = (FTM_COMBINE_DECAPEN0(1)<<8)|(FTM_COMBINE_COMBINE0(0)<<8)|FTM_CnSC_MS(0b01)|FTM_CnSC_ELS(0b10),  ///< Dual-edge Capture Continuous Falling-edge
+      FtmEvenChannelMode_DualEdgeCaptureOneShotEitherEdge       = (FTM_COMBINE_DECAPEN0(1)<<8)|(FTM_COMBINE_COMBINE0(0)<<8)|FTM_CnSC_MS(0b00)|FTM_CnSC_ELS(0b11),  ///< Dual-edge Capture One-Shot Either-edge
+      FtmEvenChannelMode_DualEdgeCaptureContinuousEitherEdge    = (FTM_COMBINE_DECAPEN0(1)<<8)|(FTM_COMBINE_COMBINE0(0)<<8)|FTM_CnSC_MS(0b01)|FTM_CnSC_ELS(0b11),  ///< Dual-edge Capture Continuous Either-edge
    };
 
    /**
@@ -8587,8 +8804,8 @@ public:
     * In dual edge capture one-shot mode, this bit is cleared automatically by hardware when the capture occurs.
     */
    enum FtmSecondEventAction : uint8_t {
-      FtmSecondEventAction_NoCapture      = FTM_COMBINE_DECAP0(0), ///< NoCapture
-      FtmSecondEventAction_CaptureOnEvent = FTM_COMBINE_DECAP0(1), ///< Capture 2nd event
+      FtmSecondEventAction_NoCapture        = FTM_COMBINE_DECAP0(0),  ///< NoCapture
+      FtmSecondEventAction_CaptureOnEvent   = FTM_COMBINE_DECAP0(1),  ///< Capture 2nd event
    };
 
    /**
@@ -8600,8 +8817,8 @@ public:
     * This field is write protected. It can be written only when MODE[WPDIS] = 1.
     */
    enum FtmComplementChannel : uint8_t {
-      FtmComplementChannel_Normal        = FTM_COMBINE_COMP0(0), ///< Disabled
-      FtmComplementChannel_Complementary = FTM_COMBINE_COMP0(1), ///< Complementary outputs
+      FtmComplementChannel_Normal          = FTM_COMBINE_COMP0(0),  ///< Disabled
+      FtmComplementChannel_Complementary   = FTM_COMBINE_COMP0(1),  ///< Complementary outputs
    };
 
    /**
@@ -8612,8 +8829,8 @@ public:
     * This field is write protected. It can be written only when MODE[WPDIS] = 1.
     */
    enum FtmFaultControl : uint8_t {
-      FtmFaultControl_Normal          = FTM_COMBINE_FAULTEN0(0), ///< Disabled
-      FtmFaultControl_DisabledOnFault = FTM_COMBINE_FAULTEN0(1), ///< Disable outputs on fault
+      FtmFaultControl_Normal            = FTM_COMBINE_FAULTEN0(0),  ///< Disabled
+      FtmFaultControl_DisabledOnFault   = FTM_COMBINE_FAULTEN0(1),  ///< Disable outputs on fault
    };
 
    /**
@@ -8624,8 +8841,8 @@ public:
     * This field is write protected. It can be written only when MODE[WPDIS] = 1.
     */
    enum FtmDeadtime : uint8_t {
-      FtmDeadtime_Disabled = FTM_COMBINE_DTEN0(0), ///< Disabled
-      FtmDeadtime_Inserted = FTM_COMBINE_DTEN0(1), ///< Deadtime inserted
+      FtmDeadtime_Disabled   = FTM_COMBINE_DTEN0(0),  ///< Disabled
+      FtmDeadtime_Inserted   = FTM_COMBINE_DTEN0(1),  ///< Deadtime inserted
    };
 
    /**
@@ -8635,8 +8852,8 @@ public:
     * Enables PWM synchronization of registers C(n)V and C(n+1)V.
     */
    enum FtmSyncEnable : uint8_t {
-      FtmSyncEnable_Disabled     = FTM_COMBINE_SYNCEN0(0), ///< Disabled
-      FtmSyncEnable_Synchronised = FTM_COMBINE_SYNCEN0(1), ///< PWM Synchronised
+      FtmSyncEnable_Disabled       = FTM_COMBINE_SYNCEN0(0),  ///< Disabled
+      FtmSyncEnable_Synchronised   = FTM_COMBINE_SYNCEN0(1),  ///< PWM Synchronised
    };
 
    /**
@@ -8648,8 +8865,8 @@ public:
     * Only available in legacy PWM synchronisation (SYNCMODE = 0).
     */
    enum FtmPwmSyncMode : uint8_t {
-      FtmPwmSyncMode_NoRestrictions = FTM_MODE_PWMSYNC(0), ///< Unrestricted
-      FtmPwmSyncMode_Restricted     = FTM_MODE_PWMSYNC(1), ///< Restricted
+      FtmPwmSyncMode_NoRestrictions   = FTM_MODE_PWMSYNC(0),  ///< Unrestricted
+      FtmPwmSyncMode_Restricted       = FTM_MODE_PWMSYNC(1),  ///< Restricted
    };
 
    /**
@@ -8660,24 +8877,24 @@ public:
     * This field is write protected. It can be written only when MODE[WPDIS] = 1.
     */
    enum FtmPolarity : uint16_t {
-      FtmPolarity_Ch0_ActiveLow  = 0xFF01U, ///< Ch0 Active-low
-      FtmPolarity_Ch1_ActiveLow  = 0xFF02U, ///< Ch1 Active-low
-      FtmPolarity_Ch2_ActiveLow  = 0xFF04U, ///< Ch2 Active-low
-      FtmPolarity_Ch3_ActiveLow  = 0xFF08U, ///< Ch3 Active-low
-      FtmPolarity_Ch4_ActiveLow  = 0xFF10U, ///< Ch4 Active-low
-      FtmPolarity_Ch5_ActiveLow  = 0xFF20U, ///< Ch5 Active-low
-      FtmPolarity_Ch6_ActiveLow  = 0xFF40U, ///< Ch6 Active-low
-      FtmPolarity_Ch7_ActiveLow  = 0xFF80U, ///< Ch7 Active-low
-      FtmPolarity_All_ActiveLow  = 0xFFFFU, ///< All Active-low
-      FtmPolarity_Ch0_ActiveHigh = 0xFE00U, ///< Ch0 Active-high
-      FtmPolarity_Ch1_ActiveHigh = 0xFD00U, ///< Ch1 Active-high
-      FtmPolarity_Ch2_ActiveHigh = 0xFB00U, ///< Ch2 Active-high
-      FtmPolarity_Ch3_ActiveHigh = 0xF700U, ///< Ch3 Active-high
-      FtmPolarity_Ch4_ActiveHigh = 0xEF00U, ///< Ch4 Active-high
-      FtmPolarity_Ch5_ActiveHigh = 0xDF00U, ///< Ch5 Active-high
-      FtmPolarity_Ch6_ActiveHigh = 0xBF00U, ///< Ch6 Active-high
-      FtmPolarity_Ch7_ActiveHigh = 0x7F00U, ///< Ch7 Active-high
-      FtmPolarity_All_ActiveHigh = 0x0000U, ///< All Active-high
+      FtmPolarity_Ch0_ActiveLow    = 0xFF01U,  ///< Ch0 Active-low
+      FtmPolarity_Ch1_ActiveLow    = 0xFF02U,  ///< Ch1 Active-low
+      FtmPolarity_Ch2_ActiveLow    = 0xFF04U,  ///< Ch2 Active-low
+      FtmPolarity_Ch3_ActiveLow    = 0xFF08U,  ///< Ch3 Active-low
+      FtmPolarity_Ch4_ActiveLow    = 0xFF10U,  ///< Ch4 Active-low
+      FtmPolarity_Ch5_ActiveLow    = 0xFF20U,  ///< Ch5 Active-low
+      FtmPolarity_Ch6_ActiveLow    = 0xFF40U,  ///< Ch6 Active-low
+      FtmPolarity_Ch7_ActiveLow    = 0xFF80U,  ///< Ch7 Active-low
+      FtmPolarity_All_ActiveLow    = 0xFFFFU,  ///< All Active-low
+      FtmPolarity_Ch0_ActiveHigh   = 0xFE00U,  ///< Ch0 Active-high
+      FtmPolarity_Ch1_ActiveHigh   = 0xFD00U,  ///< Ch1 Active-high
+      FtmPolarity_Ch2_ActiveHigh   = 0xFB00U,  ///< Ch2 Active-high
+      FtmPolarity_Ch3_ActiveHigh   = 0xF700U,  ///< Ch3 Active-high
+      FtmPolarity_Ch4_ActiveHigh   = 0xEF00U,  ///< Ch4 Active-high
+      FtmPolarity_Ch5_ActiveHigh   = 0xDF00U,  ///< Ch5 Active-high
+      FtmPolarity_Ch6_ActiveHigh   = 0xBF00U,  ///< Ch6 Active-high
+      FtmPolarity_Ch7_ActiveHigh   = 0x7F00U,  ///< Ch7 Active-high
+      FtmPolarity_All_ActiveHigh   = 0x0000U,  ///< All Active-high
    };
 
    /**
@@ -8687,8 +8904,8 @@ public:
     * This value is applied after main FTM configuration
     */
    enum FtmWriteProtect : uint8_t {
-      FtmWriteProtect_Enabled  = FTM_MODE_WPDIS(0), ///< Write protection is enabled.
-      FtmWriteProtect_Disabled = FTM_MODE_WPDIS(1), ///< Write protection is disabled
+      FtmWriteProtect_Enabled    = FTM_MODE_WPDIS(0),  ///< Write protection is enabled.
+      FtmWriteProtect_Disabled   = FTM_MODE_WPDIS(1),  ///< Write protection is disabled
    };
 
    /**
@@ -8698,8 +8915,8 @@ public:
     * This field is write protected. It can be written only when MODE[WPDIS] = 1
     */
    enum FtmRegisterSet : uint8_t {
-      FtmRegisterSet_ftmRegistersOnly = FTM_MODE_FTMEN(0), ///< TPM registers only available
-      FtmRegisterSet_AllRegisters     = FTM_MODE_FTMEN(1), ///< All registers available
+      FtmRegisterSet_ftmRegistersOnly   = FTM_MODE_FTMEN(0),  ///< TPM registers only available
+      FtmRegisterSet_AllRegisters       = FTM_MODE_FTMEN(1),  ///< All registers available
    };
 
    /**
@@ -8709,10 +8926,10 @@ public:
     * Selects the FTM behavior in Debug mode.
     */
    enum FtmBdmmode : uint16_t {
-      FtmBdmmode_Stopped_OutputsFunctional = FTM_CONF_BDMMODE(0), ///< Stopped, outputs functional
-      FtmBdmmode_Stopped_OutputsSafeValue  = FTM_CONF_BDMMODE(1), ///< Stopped, outputs forced to safe value
-      FtmBdmmode_Stopped_OutputsFrozen     = FTM_CONF_BDMMODE(2), ///< Stopped, outputs frozen
-      FtmBdmmode_Functioning               = FTM_CONF_BDMMODE(3), ///< Functioning
+      FtmBdmmode_Stopped_OutputsFunctional   = FTM_CONF_BDMMODE(0),  ///< Stopped, outputs functional
+      FtmBdmmode_Stopped_OutputsSafeValue    = FTM_CONF_BDMMODE(1),  ///< Stopped, outputs forced to safe value
+      FtmBdmmode_Stopped_OutputsFrozen       = FTM_CONF_BDMMODE(2),  ///< Stopped, outputs frozen
+      FtmBdmmode_Functioning                 = FTM_CONF_BDMMODE(3),  ///< Functioning
    };
 
    /**
@@ -8732,8 +8949,8 @@ public:
     * Enables the global time base signal generation to other FTMs
     */
    enum FtmGlobalTimebaseOutput : uint16_t {
-      FtmGlobalTimebaseOutput_Disabled = FTM_CONF_GTBEOUT(0), ///< Disabled
-      FtmGlobalTimebaseOutput_Enabled  = FTM_CONF_GTBEOUT(1), ///< Enabled
+      FtmGlobalTimebaseOutput_Disabled   = FTM_CONF_GTBEOUT(0),  ///< Disabled
+      FtmGlobalTimebaseOutput_Enabled    = FTM_CONF_GTBEOUT(1),  ///< Enabled
    };
 
    /**
@@ -8743,8 +8960,8 @@ public:
     * Configures the FTM to use an external global time base signal that is generated by another FTM.
     */
    enum FtmGlobalExternalTimebase : uint16_t {
-      FtmGlobalExternalTimebase_Disabled = FTM_CONF_GTBEEN(0), ///< Disabled
-      FtmGlobalExternalTimebase_Enabled  = FTM_CONF_GTBEEN(1), ///< Enabled
+      FtmGlobalExternalTimebase_Disabled   = FTM_CONF_GTBEEN(0),  ///< Disabled
+      FtmGlobalExternalTimebase_Enabled    = FTM_CONF_GTBEEN(1),  ///< Enabled
    };
 
    /**
@@ -8756,23 +8973,23 @@ public:
     * Non-conflicting values may be ORed together to affect multiple bits
     */
    enum FtmForceOutput {
-      FtmForceOutput_NotForced  = 0,      ///< No outputs forced
-      FtmForceOutput_Ch0Forced0 = 0x0100, ///< Force Ch0 output 0
-      FtmForceOutput_Ch1Forced0 = 0x0200, ///< Force Ch1 output 0
-      FtmForceOutput_Ch2Forced0 = 0x0400, ///< Force Ch2 output 0
-      FtmForceOutput_Ch3Forced0 = 0x0800, ///< Force Ch3 output 0
-      FtmForceOutput_Ch4Forced0 = 0x1000, ///< Force Ch4 output 0
-      FtmForceOutput_Ch5Forced0 = 0x2000, ///< Force Ch5 output 0
-      FtmForceOutput_Ch6Forced0 = 0x4000, ///< Force Ch6 output 0
-      FtmForceOutput_Ch7Forced0 = 0x8000, ///< Force Ch7 output 0
-      FtmForceOutput_Ch0Forced1 = 0x0101, ///< Force Ch0 output 1
-      FtmForceOutput_Ch1Forced1 = 0x0202, ///< Force Ch1 output 1
-      FtmForceOutput_Ch2Forced1 = 0x0404, ///< Force Ch2 output 1
-      FtmForceOutput_Ch3Forced1 = 0x0808, ///< Force Ch3 output 1
-      FtmForceOutput_Ch4Forced1 = 0x1010, ///< Force Ch4 output 1
-      FtmForceOutput_Ch5Forced1 = 0x2020, ///< Force Ch5 output 1
-      FtmForceOutput_Ch6Forced1 = 0x4040, ///< Force Ch6 output 1
-      FtmForceOutput_Ch7Forced1 = 0x8080, ///< Force Ch7 output 1
+      FtmForceOutput_NotForced    = 0,       ///< No outputs forced
+      FtmForceOutput_Ch0Forced0   = 0x0100,  ///< Force Ch0 output 0
+      FtmForceOutput_Ch1Forced0   = 0x0200,  ///< Force Ch1 output 0
+      FtmForceOutput_Ch2Forced0   = 0x0400,  ///< Force Ch2 output 0
+      FtmForceOutput_Ch3Forced0   = 0x0800,  ///< Force Ch3 output 0
+      FtmForceOutput_Ch4Forced0   = 0x1000,  ///< Force Ch4 output 0
+      FtmForceOutput_Ch5Forced0   = 0x2000,  ///< Force Ch5 output 0
+      FtmForceOutput_Ch6Forced0   = 0x4000,  ///< Force Ch6 output 0
+      FtmForceOutput_Ch7Forced0   = 0x8000,  ///< Force Ch7 output 0
+      FtmForceOutput_Ch0Forced1   = 0x0101,  ///< Force Ch0 output 1
+      FtmForceOutput_Ch1Forced1   = 0x0202,  ///< Force Ch1 output 1
+      FtmForceOutput_Ch2Forced1   = 0x0404,  ///< Force Ch2 output 1
+      FtmForceOutput_Ch3Forced1   = 0x0808,  ///< Force Ch3 output 1
+      FtmForceOutput_Ch4Forced1   = 0x1010,  ///< Force Ch4 output 1
+      FtmForceOutput_Ch5Forced1   = 0x2020,  ///< Force Ch5 output 1
+      FtmForceOutput_Ch6Forced1   = 0x4040,  ///< Force Ch6 output 1
+      FtmForceOutput_Ch7Forced1   = 0x8080,  ///< Force Ch7 output 1
    };
 
    /**
@@ -8783,22 +9000,22 @@ public:
     * counter is equal to a channel CnV register or CNTIN
     */
    enum FtmExternalTrigger : uint16_t {
-      FtmExternalTrigger_OnCntinMatch             = 0xFF40, ///< CNT == CNTIN match
-      FtmExternalTrigger_IgnoreCntinMatch         = 0xBF00, ///< Ignore match with CNTIN
-      FtmExternalTrigger_OnAnyChannelMatch        = 0xFF3F, ///< Use all channel matches
-      FtmExternalTrigger_IgnoreAllChannelsMatches = 0xC000, ///< Ignore all channel matches
-      FtmExternalTrigger_OnCh0Match               = 0xFF04, ///< Use Ch0 match
-      FtmExternalTrigger_OnCh1Match               = 0xFF08, ///< Use Ch1 match
-      FtmExternalTrigger_OnCh2Match               = 0xFF10, ///< Use Ch2 match
-      FtmExternalTrigger_OnCh3Match               = 0xFF20, ///< Use Ch3 match
-      FtmExternalTrigger_OnCh4Match               = 0xFF01, ///< Use Ch4 match
-      FtmExternalTrigger_OnCh5Match               = 0xFF02, ///< Use Ch5 match
-      FtmExternalTrigger_IgnoreCh0Match           = 0xFB00, ///< Ignore Ch0 match
-      FtmExternalTrigger_IgnoreCh1Match           = 0xF700, ///< Ignore Ch1 match
-      FtmExternalTrigger_IgnoreCh2Match           = 0xEF00, ///< Ignore Ch2 match
-      FtmExternalTrigger_IgnoreCh3Match           = 0xDF00, ///< Ignore Ch3 match
-      FtmExternalTrigger_IgnoreCh4Match           = 0xFE00, ///< Ignore Ch4 match
-      FtmExternalTrigger_IgnoreCh5Match           = 0xFD00, ///< Ignore Ch5 match
+      FtmExternalTrigger_OnCntinMatch               = 0xFF40,  ///< CNT == CNTIN match
+      FtmExternalTrigger_IgnoreCntinMatch           = 0xBF00,  ///< Ignore match with CNTIN
+      FtmExternalTrigger_OnAnyChannelMatch          = 0xFF3F,  ///< Use all channel matches
+      FtmExternalTrigger_IgnoreAllChannelsMatches   = 0xC000,  ///< Ignore all channel matches
+      FtmExternalTrigger_OnCh0Match                 = 0xFF04,  ///< Use Ch0 match
+      FtmExternalTrigger_OnCh1Match                 = 0xFF08,  ///< Use Ch1 match
+      FtmExternalTrigger_OnCh2Match                 = 0xFF10,  ///< Use Ch2 match
+      FtmExternalTrigger_OnCh3Match                 = 0xFF20,  ///< Use Ch3 match
+      FtmExternalTrigger_OnCh4Match                 = 0xFF01,  ///< Use Ch4 match
+      FtmExternalTrigger_OnCh5Match                 = 0xFF02,  ///< Use Ch5 match
+      FtmExternalTrigger_IgnoreCh0Match             = 0xFB00,  ///< Ignore Ch0 match
+      FtmExternalTrigger_IgnoreCh1Match             = 0xF700,  ///< Ignore Ch1 match
+      FtmExternalTrigger_IgnoreCh2Match             = 0xEF00,  ///< Ignore Ch2 match
+      FtmExternalTrigger_IgnoreCh3Match             = 0xDF00,  ///< Ignore Ch3 match
+      FtmExternalTrigger_IgnoreCh4Match             = 0xFE00,  ///< Ignore Ch4 match
+      FtmExternalTrigger_IgnoreCh5Match             = 0xFD00,  ///< Ignore Ch5 match
    };
 
    /**
@@ -8808,9 +9025,9 @@ public:
     * Scale value for dead-time
     */
    enum FtmDeadtimePrescale : uint8_t {
-      FtmDeadtimePrescale_DivideBy1  = FTM_DEADTIME_DTPS(0), ///< Divide by 1
-      FtmDeadtimePrescale_DivideBy4  = FTM_DEADTIME_DTPS(2), ///< Divide by 4
-      FtmDeadtimePrescale_DivideBy16 = FTM_DEADTIME_DTPS(3), ///< Divide by 16
+      FtmDeadtimePrescale_DivideBy1    = FTM_DEADTIME_DTPS(0),  ///< Divide by 1
+      FtmDeadtimePrescale_DivideBy4    = FTM_DEADTIME_DTPS(2),  ///< Divide by 4
+      FtmDeadtimePrescale_DivideBy16   = FTM_DEADTIME_DTPS(3),  ///< Divide by 16
    };
 
    /**
@@ -8820,10 +9037,10 @@ public:
     * This is a write-once after reset setting
     */
    enum FtmFaultMode : uint8_t {
-      FtmFaultMode_Disabled                          = FTM_MODE_FAULTM(0), ///< Disabled
-      FtmFaultMode_EvenChannelsManualFaultClearing   = FTM_MODE_FAULTM(1), ///< Even channels with manual fault clearing
-      FtmFaultMode_AllChannelsManualFaultClearing    = FTM_MODE_FAULTM(2), ///< All channels with manual fault clearing
-      FtmFaultMode_AllChannelsAutomaticFaultClearing = FTM_MODE_FAULTM(3), ///< All channels with automatic fault clearing
+      FtmFaultMode_Disabled                            = FTM_MODE_FAULTM(0),  ///< Disabled
+      FtmFaultMode_EvenChannelsManualFaultClearing     = FTM_MODE_FAULTM(1),  ///< Even channels with manual fault clearing
+      FtmFaultMode_AllChannelsManualFaultClearing      = FTM_MODE_FAULTM(2),  ///< All channels with manual fault clearing
+      FtmFaultMode_AllChannelsAutomaticFaultClearing   = FTM_MODE_FAULTM(3),  ///< All channels with automatic fault clearing
    };
 
    /**
@@ -8833,8 +9050,8 @@ public:
     * 
     */
    enum FtmFaultAction {
-      FtmFaultAction_Ignored   = FTM_MODE_FAULTIE(0), ///< No action
-      FtmFaultAction_Interrupt = FTM_MODE_FAULTIE(1), ///< Interrupt
+      FtmFaultAction_Ignored     = FTM_MODE_FAULTIE(0),  ///< No action
+      FtmFaultAction_Interrupt   = FTM_MODE_FAULTIE(1),  ///< Interrupt
    };
 
    /**
@@ -8844,22 +9061,22 @@ public:
     * Selects the filter value for the fault inputs.
     */
    enum FtmFaultFilter : uint16_t {
-      FtmFaultFilter_Disabled  = FTM_FLTCTRL_FFVAL(0),  ///< Filter Disabled
-      FtmFaultFilter_1_clock   = FTM_FLTCTRL_FFVAL(1),  ///< 1 Clock cycle
-      FtmFaultFilter_2_clocks  = FTM_FLTCTRL_FFVAL(2),  ///< 2 Clock cycles
-      FtmFaultFilter_3_clocks  = FTM_FLTCTRL_FFVAL(3),  ///< 3 Clock cycles
-      FtmFaultFilter_4_clocks  = FTM_FLTCTRL_FFVAL(4),  ///< 4 Clock cycles
-      FtmFaultFilter_5_clocks  = FTM_FLTCTRL_FFVAL(5),  ///< 5 Clock cycles
-      FtmFaultFilter_6_clocks  = FTM_FLTCTRL_FFVAL(6),  ///< 6 Clock cycles
-      FtmFaultFilter_7_clocks  = FTM_FLTCTRL_FFVAL(7),  ///< 7 Clock cycles
-      FtmFaultFilter_8_clocks  = FTM_FLTCTRL_FFVAL(8),  ///< 8 Clock cycles
-      FtmFaultFilter_9_clocks  = FTM_FLTCTRL_FFVAL(9),  ///< 9 Clock cycles
-      FtmFaultFilter_10_clocks = FTM_FLTCTRL_FFVAL(10), ///< 10 Clock cycles
-      FtmFaultFilter_11_clocks = FTM_FLTCTRL_FFVAL(11), ///< 11 Clock cycles
-      FtmFaultFilter_12_clocks = FTM_FLTCTRL_FFVAL(12), ///< 12 Clock cycles
-      FtmFaultFilter_13_clocks = FTM_FLTCTRL_FFVAL(13), ///< 13 Clock cycles
-      FtmFaultFilter_14_clocks = FTM_FLTCTRL_FFVAL(14), ///< 14 Clock cycles
-      FtmFaultFilter_15_clocks = FTM_FLTCTRL_FFVAL(15), ///< 15 Clock cycles
+      FtmFaultFilter_Disabled    = FTM_FLTCTRL_FFVAL(0),   ///< Filter Disabled
+      FtmFaultFilter_1_clock     = FTM_FLTCTRL_FFVAL(1),   ///< 1 Clock cycle
+      FtmFaultFilter_2_clocks    = FTM_FLTCTRL_FFVAL(2),   ///< 2 Clock cycles
+      FtmFaultFilter_3_clocks    = FTM_FLTCTRL_FFVAL(3),   ///< 3 Clock cycles
+      FtmFaultFilter_4_clocks    = FTM_FLTCTRL_FFVAL(4),   ///< 4 Clock cycles
+      FtmFaultFilter_5_clocks    = FTM_FLTCTRL_FFVAL(5),   ///< 5 Clock cycles
+      FtmFaultFilter_6_clocks    = FTM_FLTCTRL_FFVAL(6),   ///< 6 Clock cycles
+      FtmFaultFilter_7_clocks    = FTM_FLTCTRL_FFVAL(7),   ///< 7 Clock cycles
+      FtmFaultFilter_8_clocks    = FTM_FLTCTRL_FFVAL(8),   ///< 8 Clock cycles
+      FtmFaultFilter_9_clocks    = FTM_FLTCTRL_FFVAL(9),   ///< 9 Clock cycles
+      FtmFaultFilter_10_clocks   = FTM_FLTCTRL_FFVAL(10),  ///< 10 Clock cycles
+      FtmFaultFilter_11_clocks   = FTM_FLTCTRL_FFVAL(11),  ///< 11 Clock cycles
+      FtmFaultFilter_12_clocks   = FTM_FLTCTRL_FFVAL(12),  ///< 12 Clock cycles
+      FtmFaultFilter_13_clocks   = FTM_FLTCTRL_FFVAL(13),  ///< 13 Clock cycles
+      FtmFaultFilter_14_clocks   = FTM_FLTCTRL_FFVAL(14),  ///< 14 Clock cycles
+      FtmFaultFilter_15_clocks   = FTM_FLTCTRL_FFVAL(15),  ///< 15 Clock cycles
    };
 
    /**
@@ -8870,9 +9087,9 @@ public:
     * This field is write protected. It can be written only when MODE[WPDIS] = 1.
     */
    enum FtmFault0Mode : uint16_t {
-      FtmFault0Mode_Disabled = FTM_FLTCTRL_FAULT0EN(0)|FTM_FLTCTRL_FFLTR0EN(0), ///< Fault input disabled
-      FtmFault0Mode_Direct   = FTM_FLTCTRL_FAULT0EN(1)|FTM_FLTCTRL_FFLTR0EN(0), ///< Fault input enabled
-      FtmFault0Mode_Filtered = FTM_FLTCTRL_FAULT0EN(1)|FTM_FLTCTRL_FFLTR0EN(1), ///< Fault input enabled with filter
+      FtmFault0Mode_Disabled   = FTM_FLTCTRL_FAULT0EN(0)|FTM_FLTCTRL_FFLTR0EN(0),  ///< Fault input disabled
+      FtmFault0Mode_Direct     = FTM_FLTCTRL_FAULT0EN(1)|FTM_FLTCTRL_FFLTR0EN(0),  ///< Fault input enabled
+      FtmFault0Mode_Filtered   = FTM_FLTCTRL_FAULT0EN(1)|FTM_FLTCTRL_FFLTR0EN(1),  ///< Fault input enabled with filter
    };
 
    /**
@@ -8883,8 +9100,8 @@ public:
     * This field is write protected. It can be written only when MODE[WPDIS] = 1.
     */
    enum FtmFault0Polarity : uint8_t {
-      FtmFault0Polarity_ActiveHigh = FTM_FLTPOL_FLT0POL(0), ///< Active High
-      FtmFault0Polarity_ActiveLow  = FTM_FLTPOL_FLT0POL(1), ///< Active Low
+      FtmFault0Polarity_ActiveHigh   = FTM_FLTPOL_FLT0POL(0),  ///< Active High
+      FtmFault0Polarity_ActiveLow    = FTM_FLTPOL_FLT0POL(1),  ///< Active Low
    };
 
    /**
@@ -8895,9 +9112,9 @@ public:
     * This field is write protected. It can be written only when MODE[WPDIS] = 1.
     */
    enum FtmFault1Mode : uint16_t {
-      FtmFault1Mode_Disabled = FTM_FLTCTRL_FAULT1EN(0)|FTM_FLTCTRL_FFLTR1EN(0), ///< Fault input disabled
-      FtmFault1Mode_Direct   = FTM_FLTCTRL_FAULT1EN(1)|FTM_FLTCTRL_FFLTR1EN(0), ///< Fault input enabled
-      FtmFault1Mode_Filtered = FTM_FLTCTRL_FAULT1EN(1)|FTM_FLTCTRL_FFLTR1EN(1), ///< Fault input enabled with filter
+      FtmFault1Mode_Disabled   = FTM_FLTCTRL_FAULT1EN(0)|FTM_FLTCTRL_FFLTR1EN(0),  ///< Fault input disabled
+      FtmFault1Mode_Direct     = FTM_FLTCTRL_FAULT1EN(1)|FTM_FLTCTRL_FFLTR1EN(0),  ///< Fault input enabled
+      FtmFault1Mode_Filtered   = FTM_FLTCTRL_FAULT1EN(1)|FTM_FLTCTRL_FFLTR1EN(1),  ///< Fault input enabled with filter
    };
 
    /**
@@ -8908,8 +9125,8 @@ public:
     * This field is write protected. It can be written only when MODE[WPDIS] = 1.
     */
    enum FtmFault1Polarity : uint8_t {
-      FtmFault1Polarity_ActiveHigh = FTM_FLTPOL_FLT1POL(0), ///< Active High
-      FtmFault1Polarity_ActiveLow  = FTM_FLTPOL_FLT1POL(1), ///< Active Low
+      FtmFault1Polarity_ActiveHigh   = FTM_FLTPOL_FLT1POL(0),  ///< Active High
+      FtmFault1Polarity_ActiveLow    = FTM_FLTPOL_FLT1POL(1),  ///< Active Low
    };
 
    /**
@@ -8920,9 +9137,9 @@ public:
     * This field is write protected. It can be written only when MODE[WPDIS] = 1.
     */
    enum FtmFault2Mode : uint16_t {
-      FtmFault2Mode_Disabled = FTM_FLTCTRL_FAULT2EN(0)|FTM_FLTCTRL_FFLTR2EN(0), ///< Fault input disabled
-      FtmFault2Mode_Direct   = FTM_FLTCTRL_FAULT2EN(1)|FTM_FLTCTRL_FFLTR2EN(0), ///< Fault input enabled
-      FtmFault2Mode_Filtered = FTM_FLTCTRL_FAULT2EN(1)|FTM_FLTCTRL_FFLTR2EN(1), ///< Fault input enabled with filter
+      FtmFault2Mode_Disabled   = FTM_FLTCTRL_FAULT2EN(0)|FTM_FLTCTRL_FFLTR2EN(0),  ///< Fault input disabled
+      FtmFault2Mode_Direct     = FTM_FLTCTRL_FAULT2EN(1)|FTM_FLTCTRL_FFLTR2EN(0),  ///< Fault input enabled
+      FtmFault2Mode_Filtered   = FTM_FLTCTRL_FAULT2EN(1)|FTM_FLTCTRL_FFLTR2EN(1),  ///< Fault input enabled with filter
    };
 
    /**
@@ -8933,8 +9150,8 @@ public:
     * This field is write protected. It can be written only when MODE[WPDIS] = 1.
     */
    enum FtmFault2Polarity : uint8_t {
-      FtmFault2Polarity_ActiveHigh = FTM_FLTPOL_FLT2POL(0), ///< Active High
-      FtmFault2Polarity_ActiveLow  = FTM_FLTPOL_FLT2POL(1), ///< Active Low
+      FtmFault2Polarity_ActiveHigh   = FTM_FLTPOL_FLT2POL(0),  ///< Active High
+      FtmFault2Polarity_ActiveLow    = FTM_FLTPOL_FLT2POL(1),  ///< Active Low
    };
 
    /**
@@ -8945,9 +9162,9 @@ public:
     * This field is write protected. It can be written only when MODE[WPDIS] = 1.
     */
    enum FtmFault3Mode : uint16_t {
-      FtmFault3Mode_Disabled = FTM_FLTCTRL_FAULT3EN(0)|FTM_FLTCTRL_FFLTR3EN(0), ///< Fault input disabled
-      FtmFault3Mode_Direct   = FTM_FLTCTRL_FAULT3EN(1)|FTM_FLTCTRL_FFLTR3EN(0), ///< Fault input enabled
-      FtmFault3Mode_Filtered = FTM_FLTCTRL_FAULT3EN(1)|FTM_FLTCTRL_FFLTR3EN(1), ///< Fault input enabled with filter
+      FtmFault3Mode_Disabled   = FTM_FLTCTRL_FAULT3EN(0)|FTM_FLTCTRL_FFLTR3EN(0),  ///< Fault input disabled
+      FtmFault3Mode_Direct     = FTM_FLTCTRL_FAULT3EN(1)|FTM_FLTCTRL_FFLTR3EN(0),  ///< Fault input enabled
+      FtmFault3Mode_Filtered   = FTM_FLTCTRL_FAULT3EN(1)|FTM_FLTCTRL_FFLTR3EN(1),  ///< Fault input enabled with filter
    };
 
    /**
@@ -8958,8 +9175,8 @@ public:
     * This field is write protected. It can be written only when MODE[WPDIS] = 1.
     */
    enum FtmFault3Polarity : uint8_t {
-      FtmFault3Polarity_ActiveHigh = FTM_FLTPOL_FLT3POL(0), ///< Active High
-      FtmFault3Polarity_ActiveLow  = FTM_FLTPOL_FLT3POL(1), ///< Active Low
+      FtmFault3Polarity_ActiveHigh   = FTM_FLTPOL_FLT3POL(0),  ///< Active High
+      FtmFault3Polarity_ActiveLow    = FTM_FLTPOL_FLT3POL(1),  ///< Active Low
    };
 
    /**
@@ -8969,8 +9186,8 @@ public:
     * Selects the PWM synchronisation mode
     */
    enum FtmSyncPwm : uint32_t {
-      FtmSyncPwm_LegacyPwmSynch   = FTM_SYNCONF_SYNCMODE(0), ///< Legacy PWM synchronisation
-      FtmSyncPwm_EnhancedPwmSynch = FTM_SYNCONF_SYNCMODE(1), ///< Enhanced PWM synchronisation
+      FtmSyncPwm_LegacyPwmSynch     = FTM_SYNCONF_SYNCMODE(0),  ///< Legacy PWM synchronisation
+      FtmSyncPwm_EnhancedPwmSynch   = FTM_SYNCONF_SYNCMODE(1),  ///< Enhanced PWM synchronisation
    };
 
    /**
@@ -8982,8 +9199,8 @@ public:
     * Only available in legacy PWM synchronisation (SYNCMODE = 0).
     */
    enum FtmReinitOnSync : uint32_t {
-      FtmReinitOnSync_Disabled = FTM_SYNC_REINIT(0), ///< Counts normally
-      FtmReinitOnSync_Enabled  = FTM_SYNC_REINIT(1), ///< Updated with initial value on trigger
+      FtmReinitOnSync_Disabled   = FTM_SYNC_REINIT(0),  ///< Counts normally
+      FtmReinitOnSync_Enabled    = FTM_SYNC_REINIT(1),  ///< Updated with initial value on trigger
    };
 
    /**
@@ -8994,8 +9211,8 @@ public:
     * This bit will be cleared when the action happens.
     */
    enum FtmSyncSwsync : uint8_t {
-      FtmSyncSwsync_NotSelected = FTM_SYNC_SWSYNC(0), ///< Not selected
-      FtmSyncSwsync_Selected    = FTM_SYNC_SWSYNC(1), ///< Selected
+      FtmSyncSwsync_NotSelected   = FTM_SYNC_SWSYNC(0),  ///< Not selected
+      FtmSyncSwsync_Selected      = FTM_SYNC_SWSYNC(1),  ///< Selected
    };
 
    /**
@@ -9006,8 +9223,8 @@ public:
     * Only available in enhanced PWM synchronisation (SYNCMODE = 1).
     */
    enum FtmTriggerClear : uint32_t {
-      FtmTriggerClear_OnTrigger = FTM_SYNCONF_HWTRIGMODE(0), ///< TRIGj cleared on trigger detect
-      FtmTriggerClear_Never     = FTM_SYNCONF_HWTRIGMODE(1), ///< TRIGj unaffected on trigger event
+      FtmTriggerClear_OnTrigger   = FTM_SYNCONF_HWTRIGMODE(0),  ///< TRIGj cleared on trigger detect
+      FtmTriggerClear_Never       = FTM_SYNCONF_HWTRIGMODE(1),  ///< TRIGj unaffected on trigger event
    };
 
    /**
@@ -9018,8 +9235,8 @@ public:
     * If enabled, the loading occurs when the FTM counter reaches CNTIN.
     */
    enum FtmSyncCntmin : uint8_t {
-      FtmSyncCntmin_Disabled = FTM_SYNC_CNTMIN(0), ///< Disabled
-      FtmSyncCntmin_Enabled  = FTM_SYNC_CNTMIN(1), ///< Enabled
+      FtmSyncCntmin_Disabled   = FTM_SYNC_CNTMIN(0),  ///< Disabled
+      FtmSyncCntmin_Enabled    = FTM_SYNC_CNTMIN(1),  ///< Enabled
    };
 
    /**
@@ -9030,8 +9247,8 @@ public:
     * If enabled, the loading occurs when the FTM counter reaches MOD.
     */
    enum FtmSyncCntmax : uint8_t {
-      FtmSyncCntmax_Disabled = FTM_SYNC_CNTMAX(0), ///< Disabled
-      FtmSyncCntmax_Enabled  = FTM_SYNC_CNTMAX(1), ///< Enabled
+      FtmSyncCntmax_Disabled   = FTM_SYNC_CNTMAX(0),  ///< Disabled
+      FtmSyncCntmax_Enabled    = FTM_SYNC_CNTMAX(1),  ///< Enabled
    };
 
    /**
@@ -9042,8 +9259,8 @@ public:
     * Only available in enhanced PWM synchronisation (SYNCMODE = 1).
     */
    enum FtmBufferSyncCounter : uint32_t {
-      FtmBufferSyncCounter_OnRisingClockEdge = FTM_SYNCONF_CNTINC(0), ///< On rising edges of system clock
-      FtmBufferSyncCounter_OnPwmSynch        = FTM_SYNCONF_CNTINC(1), ///< By PWM synchronisation
+      FtmBufferSyncCounter_OnRisingClockEdge   = FTM_SYNCONF_CNTINC(0),  ///< On rising edges of system clock
+      FtmBufferSyncCounter_OnPwmSynch          = FTM_SYNCONF_CNTINC(1),  ///< By PWM synchronisation
    };
 
    /**
@@ -9054,8 +9271,8 @@ public:
     * Only available in enhanced PWM synchronisation (SYNCMODE = 1).
     */
    enum FtmSwSyncRegs : uint32_t {
-      FtmSwSyncRegs_Unaffected        = FTM_SYNCONF_SWWRBUF(0), ///< Unaffected
-      FtmSwSyncRegs_OnSoftwareTrigger = FTM_SYNCONF_SWWRBUF(1), ///< MOD/CNTIN/CV register synched
+      FtmSwSyncRegs_Unaffected          = FTM_SYNCONF_SWWRBUF(0),  ///< Unaffected
+      FtmSwSyncRegs_OnSoftwareTrigger   = FTM_SYNCONF_SWWRBUF(1),  ///< MOD/CNTIN/CV register synched
    };
 
    /**
@@ -9066,8 +9283,8 @@ public:
     * Only available in enhanced PWM synchronisation (SYNCMODE = 1).
     */
    enum FtmHwSyncRegs : uint32_t {
-      FtmHwSyncRegs_Unaffected        = FTM_SYNCONF_HWWRBUF(0), ///< Unaffected
-      FtmHwSyncRegs_OnHardwareTrigger = FTM_SYNCONF_HWWRBUF(1), ///< MOD/CNTIN/CV registers synched
+      FtmHwSyncRegs_Unaffected          = FTM_SYNCONF_HWWRBUF(0),  ///< Unaffected
+      FtmHwSyncRegs_OnHardwareTrigger   = FTM_SYNCONF_HWWRBUF(1),  ///< MOD/CNTIN/CV registers synched
    };
 
    /**
@@ -9077,8 +9294,8 @@ public:
     * Selects when the OUTMASK register is updated with the value of its buffer
     */
    enum FtmSyncSynchom : uint8_t {
-      FtmSyncSynchom_OnRisingClockEdge = FTM_SYNC_SYNCHOM(0), ///< On rising edges of system clock
-      FtmSyncSynchom_OnPwmSynch        = FTM_SYNC_SYNCHOM(1), ///< By PWM synchronisation
+      FtmSyncSynchom_OnRisingClockEdge   = FTM_SYNC_SYNCHOM(0),  ///< On rising edges of system clock
+      FtmSyncSynchom_OnPwmSynch          = FTM_SYNC_SYNCHOM(1),  ///< By PWM synchronisation
    };
 
    /**
@@ -9089,8 +9306,8 @@ public:
     * Only available in enhanced PWM synchronisation (SYNCMODE = 1).
     */
    enum FtmSwSyncOutmask : uint32_t {
-      FtmSwSyncOutmask_Unaffected        = FTM_SYNCONF_SWOM(0), ///< Unaffected
-      FtmSwSyncOutmask_OnSoftwareTrigger = FTM_SYNCONF_SWOM(1), ///< OUTMASK register synched
+      FtmSwSyncOutmask_Unaffected          = FTM_SYNCONF_SWOM(0),  ///< Unaffected
+      FtmSwSyncOutmask_OnSoftwareTrigger   = FTM_SYNCONF_SWOM(1),  ///< OUTMASK register synched
    };
 
    /**
@@ -9101,8 +9318,8 @@ public:
     * Only available in enhanced PWM synchronisation (SYNCMODE = 1).
     */
    enum FtmHwSyncOutmask : uint32_t {
-      FtmHwSyncOutmask_Unaffected        = FTM_SYNCONF_HWOM(0), ///< Unaffected
-      FtmHwSyncOutmask_OnHardwareTrigger = FTM_SYNCONF_HWOM(1), ///< OUTMASK register synched
+      FtmHwSyncOutmask_Unaffected          = FTM_SYNCONF_HWOM(0),  ///< Unaffected
+      FtmHwSyncOutmask_OnHardwareTrigger   = FTM_SYNCONF_HWOM(1),  ///< OUTMASK register synched
    };
 
    /**
@@ -9112,8 +9329,8 @@ public:
     * Controls INVCTRL Register Synchronisation with buffer
     */
    enum FtmBufferSyncInvctrl : uint32_t {
-      FtmBufferSyncInvctrl_OnRisingClockEdge = FTM_SYNCONF_INVC(0), ///< On rising edges of system clock
-      FtmBufferSyncInvctrl_OnPwmSynch        = FTM_SYNCONF_INVC(1), ///< By PWM synchronisation
+      FtmBufferSyncInvctrl_OnRisingClockEdge   = FTM_SYNCONF_INVC(0),  ///< On rising edges of system clock
+      FtmBufferSyncInvctrl_OnPwmSynch          = FTM_SYNCONF_INVC(1),  ///< By PWM synchronisation
    };
 
    /**
@@ -9124,8 +9341,8 @@ public:
     * Only available in enhanced PWM synchronisation (SYNCMODE = 1).
     */
    enum FtmSwSyncInvCtrl : uint32_t {
-      FtmSwSyncInvCtrl_Unaffected        = FTM_SYNCONF_SWINVC(0), ///< Unaffected
-      FtmSwSyncInvCtrl_OnSoftwareTrigger = FTM_SYNCONF_SWINVC(1), ///< INVCTRL register synched
+      FtmSwSyncInvCtrl_Unaffected          = FTM_SYNCONF_SWINVC(0),  ///< Unaffected
+      FtmSwSyncInvCtrl_OnSoftwareTrigger   = FTM_SYNCONF_SWINVC(1),  ///< INVCTRL register synched
    };
 
    /**
@@ -9136,8 +9353,8 @@ public:
     * Only available in enhanced PWM synchronisation (SYNCMODE = 1).
     */
    enum FtmHwSyncInvctrl : uint32_t {
-      FtmHwSyncInvctrl_Unaffected        = FTM_SYNCONF_HWINVC(0), ///< Unaffected
-      FtmHwSyncInvctrl_OnHardwareTrigger = FTM_SYNCONF_HWINVC(1), ///< INVCTRL register synched
+      FtmHwSyncInvctrl_Unaffected          = FTM_SYNCONF_HWINVC(0),  ///< Unaffected
+      FtmHwSyncInvctrl_OnHardwareTrigger   = FTM_SYNCONF_HWINVC(1),  ///< INVCTRL register synched
    };
 
    /**
@@ -9147,8 +9364,8 @@ public:
     * Controls SWOCTRL Register Synchronisation with buffer
     */
    enum FtmBufferSyncSwoctrl : uint32_t {
-      FtmBufferSyncSwoctrl_OnRisingClockEdge = FTM_SYNCONF_SWOC(0), ///< On rising edges of system clock
-      FtmBufferSyncSwoctrl_OnPwmSynch        = FTM_SYNCONF_SWOC(1), ///< By PWM synchronisation
+      FtmBufferSyncSwoctrl_OnRisingClockEdge   = FTM_SYNCONF_SWOC(0),  ///< On rising edges of system clock
+      FtmBufferSyncSwoctrl_OnPwmSynch          = FTM_SYNCONF_SWOC(1),  ///< By PWM synchronisation
    };
 
    /**
@@ -9159,8 +9376,8 @@ public:
     * Only available in enhanced PWM synchronisation (SYNCMODE = 1).
     */
    enum FtmSwSyncSwoctrl : uint32_t {
-      FtmSwSyncSwoctrl_Unaffected        = FTM_SYNCONF_SWSOC(0), ///< Unaffected
-      FtmSwSyncSwoctrl_OnSoftwareTrigger = FTM_SYNCONF_SWSOC(1), ///< SWOCTRL register synched
+      FtmSwSyncSwoctrl_Unaffected          = FTM_SYNCONF_SWSOC(0),  ///< Unaffected
+      FtmSwSyncSwoctrl_OnSoftwareTrigger   = FTM_SYNCONF_SWSOC(1),  ///< SWOCTRL register synched
    };
 
    /**
@@ -9171,8 +9388,8 @@ public:
     * Only available in enhanced PWM synchronisation (SYNCMODE = 1).
     */
    enum FtmHwSyncSwoctrl : uint32_t {
-      FtmHwSyncSwoctrl_Unaffected        = FTM_SYNCONF_HWSOC(0), ///< Unaffected
-      FtmHwSyncSwoctrl_OnHardwareTrigger = FTM_SYNCONF_HWSOC(1), ///< SWOCTRL register synched
+      FtmHwSyncSwoctrl_Unaffected          = FTM_SYNCONF_HWSOC(0),  ///< Unaffected
+      FtmHwSyncSwoctrl_OnHardwareTrigger   = FTM_SYNCONF_HWSOC(1),  ///< SWOCTRL register synched
    };
 
    /**
@@ -9183,8 +9400,8 @@ public:
     * Only available in enhanced PWM synchronisation (SYNCMODE = 1).
     */
    enum FtmSwSyncCounter : uint32_t {
-      FtmSwSyncCounter_Unaffected        = FTM_SYNCONF_SWRSTCNT(0), ///< Unaffected
-      FtmSwSyncCounter_OnSoftwareTrigger = FTM_SYNCONF_SWRSTCNT(1), ///< Counter register synched
+      FtmSwSyncCounter_Unaffected          = FTM_SYNCONF_SWRSTCNT(0),  ///< Unaffected
+      FtmSwSyncCounter_OnSoftwareTrigger   = FTM_SYNCONF_SWRSTCNT(1),  ///< Counter register synched
    };
 
    /**
@@ -9195,8 +9412,8 @@ public:
     * Only available in enhanced PWM synchronisation (SYNCMODE = 1).
     */
    enum FtmHwSyncCounter : uint32_t {
-      FtmHwSyncCounter_Unaffected        = FTM_SYNCONF_HWRSTCNT(0), ///< Unaffected
-      FtmHwSyncCounter_OnHardwareTrigger = FTM_SYNCONF_HWRSTCNT(1), ///< Counter register synched
+      FtmHwSyncCounter_Unaffected          = FTM_SYNCONF_HWRSTCNT(0),  ///< Unaffected
+      FtmHwSyncCounter_OnHardwareTrigger   = FTM_SYNCONF_HWRSTCNT(1),  ///< Counter register synched
    };
 
    /**
@@ -9212,8 +9429,8 @@ public:
     * - C(n)/C(n+1) is qualified by SYNCENm
     */
    enum FtmPwmload : uint16_t {
-      FtmPwmload_Disabled = FTM_PWMLOAD_LDOK(0), ///< Loading disabled
-      FtmPwmload_Enabled  = FTM_PWMLOAD_LDOK(1), ///< Loading enabled
+      FtmPwmload_Disabled   = FTM_PWMLOAD_LDOK(0),  ///< Loading disabled
+      FtmPwmload_Enabled    = FTM_PWMLOAD_LDOK(1),  ///< Loading enabled
    };
 
    /**
@@ -9244,7 +9461,7 @@ public:
     * This is applied after the main FTM configuration
     */
    enum FtmInitialiseOutputs : uint8_t {
-      FtmInitialiseOutputs_Initialise = FTM_MODE_INIT(1), ///< Initialise
+      FtmInitialiseOutputs_Initialise   = FTM_MODE_INIT(1),  ///< Initialise
    };
 
    /**
@@ -9255,59 +9472,29 @@ public:
     * into the channel output when initialisation occurs.
     */
    enum FtmInitialValue : uint16_t {
-      FtmInitialValue_Ch0_0 = 0xFE00U, ///< Ch0 initially 0
-      FtmInitialValue_Ch1_0 = 0xFD00U, ///< Ch1 initially 0
-      FtmInitialValue_Ch2_0 = 0xFB00U, ///< Ch2 initially 0
-      FtmInitialValue_Ch3_0 = 0xF700U, ///< Ch3 initially 0
-      FtmInitialValue_Ch4_0 = 0xEF00U, ///< Ch4 initially 0
-      FtmInitialValue_Ch5_0 = 0xDF00U, ///< Ch5 initially 0
-      FtmInitialValue_Ch6_0 = 0xBF00U, ///< Ch6 initially 0
-      FtmInitialValue_Ch7_0 = 0x7F00U, ///< Ch7 initially 0
-      FtmInitialValue_All_0 = 0x0000U, ///< All initially 0
-      FtmInitialValue_Ch0_1 = 0xFF01U, ///< Ch0 initially 1
-      FtmInitialValue_Ch1_1 = 0xFF02U, ///< Ch1 initially 1
-      FtmInitialValue_Ch2_1 = 0xFF04U, ///< Ch2 initially 1
-      FtmInitialValue_Ch3_1 = 0xFF08U, ///< Ch3 initially 1
-      FtmInitialValue_Ch4_1 = 0xFF10U, ///< Ch4 initially 1
-      FtmInitialValue_Ch5_1 = 0xFF20U, ///< Ch5 initially 1
-      FtmInitialValue_Ch6_1 = 0xFF40U, ///< Ch6 initially 1
-      FtmInitialValue_Ch7_1 = 0xFF80U, ///< Ch7 initially 1
-      FtmInitialValue_All_1 = 0xFFFFU, ///< All initially 1
+      FtmInitialValue_Ch0_0   = 0xFE00U,  ///< Ch0 initially 0
+      FtmInitialValue_Ch1_0   = 0xFD00U,  ///< Ch1 initially 0
+      FtmInitialValue_Ch2_0   = 0xFB00U,  ///< Ch2 initially 0
+      FtmInitialValue_Ch3_0   = 0xF700U,  ///< Ch3 initially 0
+      FtmInitialValue_Ch4_0   = 0xEF00U,  ///< Ch4 initially 0
+      FtmInitialValue_Ch5_0   = 0xDF00U,  ///< Ch5 initially 0
+      FtmInitialValue_Ch6_0   = 0xBF00U,  ///< Ch6 initially 0
+      FtmInitialValue_Ch7_0   = 0x7F00U,  ///< Ch7 initially 0
+      FtmInitialValue_All_0   = 0x0000U,  ///< All initially 0
+      FtmInitialValue_Ch0_1   = 0xFF01U,  ///< Ch0 initially 1
+      FtmInitialValue_Ch1_1   = 0xFF02U,  ///< Ch1 initially 1
+      FtmInitialValue_Ch2_1   = 0xFF04U,  ///< Ch2 initially 1
+      FtmInitialValue_Ch3_1   = 0xFF08U,  ///< Ch3 initially 1
+      FtmInitialValue_Ch4_1   = 0xFF10U,  ///< Ch4 initially 1
+      FtmInitialValue_Ch5_1   = 0xFF20U,  ///< Ch5 initially 1
+      FtmInitialValue_Ch6_1   = 0xFF40U,  ///< Ch6 initially 1
+      FtmInitialValue_Ch7_1   = 0xFF80U,  ///< Ch7 initially 1
+      FtmInitialValue_All_1   = 0xFFFFU,  ///< All initially 1
    };
 
 class FtmCommonInfo {
-   
+
 public:
-   
-   /**
-    * Type definition for overflow and fault call-back.
-    */
-   typedef void (*CallbackFunction)();
-   
-   /**
-    * Callback to catch unhandled overflow and fault call-back.
-    */
-   static void unhandledCallback() {
-      setAndCheckErrorCode(E_NO_HANDLER);
-   }
-   
-   /**
-    * Type definition for channel event call-back
-    *
-    * @param mask Mask identifying channel
-    */
-   typedef void (*ChannelCallbackFunction)(uint8_t);
-   
-   /**
-    * Callback to catch unhandled channel event call-back
-    *
-    * @param mask Mask identifying channel
-    */
-   static void unhandledChannelCallback(uint8_t mask) {
-      (void)mask;
-      setAndCheckErrorCode(E_NO_HANDLER);
-   }
-   
    /**
     * Calculate FTM timing parameters to achieve a given period
     *
@@ -9356,13 +9543,12 @@ public:
       return setErrorCode(E_TOO_LARGE);
    }
    
-}; // FtmCommonInfo
-   
+}; /* class FtmCommonInfo */ 
+
 class FtmBasicInfo : public FtmCommonInfo {
-   
+
 public:
-   
-}; // class  FtmBasicInfo
+}; // class FtmBasicInfo 
 
 class Ftm0Info : public FtmBasicInfo {
 public:
@@ -9409,6 +9595,30 @@ public:
    static constexpr uint32_t irqCount  = sizeofArray(irqNums);
    
    /**
+    * Enable interrupts in NVIC
+    */
+   static void enableNvicInterrupts() {
+      NVIC_EnableIRQ(irqNums[0]);
+   }
+   
+   /**
+    * Enable and set priority of interrupts in NVIC
+    * Any pending NVIC interrupts are first cleared.
+    *
+    * @param[in]  nvicPriority  Interrupt priority
+    */
+   static void enableNvicInterrupts(NvicPriority nvicPriority) {
+      enableNvicInterrupt(irqNums[0], nvicPriority);
+   }
+   
+   /**
+    * Disable interrupts in NVIC
+    */
+   static void disableNvicInterrupts() {
+      NVIC_DisableIRQ(irqNums[0]);
+   }
+   
+   /**
     *  Enable clock to Ftm0
     */
    static void enableClock() {
@@ -9438,10 +9648,10 @@ public:
    static constexpr unsigned NumChannelVectors = 1;
 
    // Minimum resolution for PWM interval
-   static constexpr uint32_t minimumResolution  = 0;
+   static constexpr uint32_t minimumResolution  = 100;
 
    // Minimum usable interval in ticks
-   static constexpr uint32_t minimumInterval  = 0;
+   static constexpr uint32_t minimumInterval  = 20;
 
    /**
     * Enables/disable external trigger generation by a channel comparison or initialisation event
@@ -9651,8 +9861,8 @@ public:
     * Determines how the inputs control the counting sequence
     */
    enum FtmQuadratureMode : uint8_t {
-      FtmQuadratureMode_Phase_AB_Mode        = FTM_QDCTRL_QUADMODE(0), ///< Phase-AB Mode
-      FtmQuadratureMode_Count_Direction_Mode = FTM_QDCTRL_QUADMODE(1), ///< Count-Direction Mode
+      FtmQuadratureMode_Phase_AB_Mode          = FTM_QDCTRL_QUADMODE(0),  ///< Phase-AB Mode
+      FtmQuadratureMode_Count_Direction_Mode   = FTM_QDCTRL_QUADMODE(1),  ///< Count-Direction Mode
    };
 
    /**
@@ -9662,8 +9872,8 @@ public:
     * Polarity of Phase A input
     */
    enum FtmPhaseAPolarity : uint8_t {
-      FtmPhaseAPolarity_ActiveHigh = FTM_QDCTRL_PHAPOL(0), ///< Active High
-      FtmPhaseAPolarity_ActiveLow  = FTM_QDCTRL_PHAPOL(1), ///< Active Low
+      FtmPhaseAPolarity_ActiveHigh   = FTM_QDCTRL_PHAPOL(0),  ///< Active High
+      FtmPhaseAPolarity_ActiveLow    = FTM_QDCTRL_PHAPOL(1),  ///< Active Low
    };
 
    /**
@@ -9673,22 +9883,22 @@ public:
     * Filtering on Phase A input
     */
    enum FtmPhaseAFilter : uint16_t {
-      FtmPhaseAFilter_Disabled  = (FTM_QDCTRL_PHAFLTREN(0)<<8)|FTM_FILTER_CH0FVAL(0),  ///< Filter Disabled
-      FtmPhaseAFilter_4_clocks  = (FTM_QDCTRL_PHAFLTREN(1)<<8)|FTM_FILTER_CH0FVAL(1),  ///< 4 clock cycles
-      FtmPhaseAFilter_8_clocks  = (FTM_QDCTRL_PHAFLTREN(1)<<8)|FTM_FILTER_CH0FVAL(2),  ///< 8 clock cycles
-      FtmPhaseAFilter_12_clocks = (FTM_QDCTRL_PHAFLTREN(1)<<8)|FTM_FILTER_CH0FVAL(3),  ///< 12 clock cycles
-      FtmPhaseAFilter_16_clocks = (FTM_QDCTRL_PHAFLTREN(1)<<8)|FTM_FILTER_CH0FVAL(4),  ///< 16 clock cycles
-      FtmPhaseAFilter_20_clocks = (FTM_QDCTRL_PHAFLTREN(1)<<8)|FTM_FILTER_CH0FVAL(5),  ///< 20 clock cycles
-      FtmPhaseAFilter_24_clocks = (FTM_QDCTRL_PHAFLTREN(1)<<8)|FTM_FILTER_CH0FVAL(6),  ///< 24 clock cycles
-      FtmPhaseAFilter_28_clocks = (FTM_QDCTRL_PHAFLTREN(1)<<8)|FTM_FILTER_CH0FVAL(7),  ///< 28 clock cycles
-      FtmPhaseAFilter_32_clocks = (FTM_QDCTRL_PHAFLTREN(1)<<8)|FTM_FILTER_CH0FVAL(8),  ///< 32 clock cycles
-      FtmPhaseAFilter_36_clocks = (FTM_QDCTRL_PHAFLTREN(1)<<8)|FTM_FILTER_CH0FVAL(9),  ///< 36 clock cycles
-      FtmPhaseAFilter_40_clocks = (FTM_QDCTRL_PHAFLTREN(1)<<8)|FTM_FILTER_CH0FVAL(10), ///< 40 clock cycles
-      FtmPhaseAFilter_44_clocks = (FTM_QDCTRL_PHAFLTREN(1)<<8)|FTM_FILTER_CH0FVAL(11), ///< 44 clock cycles
-      FtmPhaseAFilter_48_clocks = (FTM_QDCTRL_PHAFLTREN(1)<<8)|FTM_FILTER_CH0FVAL(12), ///< 48 clock cycles
-      FtmPhaseAFilter_52_clocks = (FTM_QDCTRL_PHAFLTREN(1)<<8)|FTM_FILTER_CH0FVAL(13), ///< 52 clock cycles
-      FtmPhaseAFilter_56_clocks = (FTM_QDCTRL_PHAFLTREN(1)<<8)|FTM_FILTER_CH0FVAL(14), ///< 56 clock cycles
-      FtmPhaseAFilter_60_clocks = (FTM_QDCTRL_PHAFLTREN(1)<<8)|FTM_FILTER_CH0FVAL(15), ///< 60 clock cycles
+      FtmPhaseAFilter_Disabled    = (FTM_QDCTRL_PHAFLTREN(0)<<8)|FTM_FILTER_CH0FVAL(0),   ///< Filter Disabled
+      FtmPhaseAFilter_4_clocks    = (FTM_QDCTRL_PHAFLTREN(1)<<8)|FTM_FILTER_CH0FVAL(1),   ///< 4 clock cycles
+      FtmPhaseAFilter_8_clocks    = (FTM_QDCTRL_PHAFLTREN(1)<<8)|FTM_FILTER_CH0FVAL(2),   ///< 8 clock cycles
+      FtmPhaseAFilter_12_clocks   = (FTM_QDCTRL_PHAFLTREN(1)<<8)|FTM_FILTER_CH0FVAL(3),   ///< 12 clock cycles
+      FtmPhaseAFilter_16_clocks   = (FTM_QDCTRL_PHAFLTREN(1)<<8)|FTM_FILTER_CH0FVAL(4),   ///< 16 clock cycles
+      FtmPhaseAFilter_20_clocks   = (FTM_QDCTRL_PHAFLTREN(1)<<8)|FTM_FILTER_CH0FVAL(5),   ///< 20 clock cycles
+      FtmPhaseAFilter_24_clocks   = (FTM_QDCTRL_PHAFLTREN(1)<<8)|FTM_FILTER_CH0FVAL(6),   ///< 24 clock cycles
+      FtmPhaseAFilter_28_clocks   = (FTM_QDCTRL_PHAFLTREN(1)<<8)|FTM_FILTER_CH0FVAL(7),   ///< 28 clock cycles
+      FtmPhaseAFilter_32_clocks   = (FTM_QDCTRL_PHAFLTREN(1)<<8)|FTM_FILTER_CH0FVAL(8),   ///< 32 clock cycles
+      FtmPhaseAFilter_36_clocks   = (FTM_QDCTRL_PHAFLTREN(1)<<8)|FTM_FILTER_CH0FVAL(9),   ///< 36 clock cycles
+      FtmPhaseAFilter_40_clocks   = (FTM_QDCTRL_PHAFLTREN(1)<<8)|FTM_FILTER_CH0FVAL(10),  ///< 40 clock cycles
+      FtmPhaseAFilter_44_clocks   = (FTM_QDCTRL_PHAFLTREN(1)<<8)|FTM_FILTER_CH0FVAL(11),  ///< 44 clock cycles
+      FtmPhaseAFilter_48_clocks   = (FTM_QDCTRL_PHAFLTREN(1)<<8)|FTM_FILTER_CH0FVAL(12),  ///< 48 clock cycles
+      FtmPhaseAFilter_52_clocks   = (FTM_QDCTRL_PHAFLTREN(1)<<8)|FTM_FILTER_CH0FVAL(13),  ///< 52 clock cycles
+      FtmPhaseAFilter_56_clocks   = (FTM_QDCTRL_PHAFLTREN(1)<<8)|FTM_FILTER_CH0FVAL(14),  ///< 56 clock cycles
+      FtmPhaseAFilter_60_clocks   = (FTM_QDCTRL_PHAFLTREN(1)<<8)|FTM_FILTER_CH0FVAL(15),  ///< 60 clock cycles
    };
 
    /**
@@ -9698,8 +9908,8 @@ public:
     * Polarity of Phase B input
     */
    enum FtmPhaseBPolarity {
-      FtmPhaseBPolarity_ActiveHigh = FTM_QDCTRL_PHBPOL(0), ///< Active High
-      FtmPhaseBPolarity_ActiveLow  = FTM_QDCTRL_PHBPOL(1), ///< Active Low
+      FtmPhaseBPolarity_ActiveHigh   = FTM_QDCTRL_PHBPOL(0),  ///< Active High
+      FtmPhaseBPolarity_ActiveLow    = FTM_QDCTRL_PHBPOL(1),  ///< Active Low
    };
 
    /**
@@ -9709,29 +9919,28 @@ public:
     * Filtering on Phase B input
     */
    enum FtmPhaseBFilter : uint16_t {
-      FtmPhaseBFilter_Disabled  = (FTM_QDCTRL_PHBFLTREN(0)<<8)|FTM_FILTER_CH1FVAL(0),  ///< Filter Disabled
-      FtmPhaseBFilter_4_clocks  = (FTM_QDCTRL_PHBFLTREN(1)<<8)|FTM_FILTER_CH1FVAL(1),  ///< 4 clock cycles
-      FtmPhaseBFilter_8_clocks  = (FTM_QDCTRL_PHBFLTREN(1)<<8)|FTM_FILTER_CH1FVAL(2),  ///< 8 clock cycles
-      FtmPhaseBFilter_12_clocks = (FTM_QDCTRL_PHBFLTREN(1)<<8)|FTM_FILTER_CH1FVAL(3),  ///< 12 clock cycles
-      FtmPhaseBFilter_16_clocks = (FTM_QDCTRL_PHBFLTREN(1)<<8)|FTM_FILTER_CH1FVAL(4),  ///< 16 clock cycles
-      FtmPhaseBFilter_20_clocks = (FTM_QDCTRL_PHBFLTREN(1)<<8)|FTM_FILTER_CH1FVAL(5),  ///< 20 clock cycles
-      FtmPhaseBFilter_24_clocks = (FTM_QDCTRL_PHBFLTREN(1)<<8)|FTM_FILTER_CH1FVAL(6),  ///< 24 clock cycles
-      FtmPhaseBFilter_28_clocks = (FTM_QDCTRL_PHBFLTREN(1)<<8)|FTM_FILTER_CH1FVAL(7),  ///< 28 clock cycles
-      FtmPhaseBFilter_32_clocks = (FTM_QDCTRL_PHBFLTREN(1)<<8)|FTM_FILTER_CH1FVAL(8),  ///< 32 clock cycles
-      FtmPhaseBFilter_36_clocks = (FTM_QDCTRL_PHBFLTREN(1)<<8)|FTM_FILTER_CH1FVAL(9),  ///< 36 clock cycles
-      FtmPhaseBFilter_40_clocks = (FTM_QDCTRL_PHBFLTREN(1)<<8)|FTM_FILTER_CH1FVAL(10), ///< 40 clock cycles
-      FtmPhaseBFilter_44_clocks = (FTM_QDCTRL_PHBFLTREN(1)<<8)|FTM_FILTER_CH1FVAL(11), ///< 44 clock cycles
-      FtmPhaseBFilter_48_clocks = (FTM_QDCTRL_PHBFLTREN(1)<<8)|FTM_FILTER_CH1FVAL(12), ///< 48 clock cycles
-      FtmPhaseBFilter_52_clocks = (FTM_QDCTRL_PHBFLTREN(1)<<8)|FTM_FILTER_CH1FVAL(13), ///< 52 clock cycles
-      FtmPhaseBFilter_56_clocks = (FTM_QDCTRL_PHBFLTREN(1)<<8)|FTM_FILTER_CH1FVAL(14), ///< 56 clock cycles
-      FtmPhaseBFilter_60_clocks = (FTM_QDCTRL_PHBFLTREN(1)<<8)|FTM_FILTER_CH1FVAL(15), ///< 60 clock cycles
+      FtmPhaseBFilter_Disabled    = (FTM_QDCTRL_PHBFLTREN(0)<<8)|FTM_FILTER_CH1FVAL(0),   ///< Filter Disabled
+      FtmPhaseBFilter_4_clocks    = (FTM_QDCTRL_PHBFLTREN(1)<<8)|FTM_FILTER_CH1FVAL(1),   ///< 4 clock cycles
+      FtmPhaseBFilter_8_clocks    = (FTM_QDCTRL_PHBFLTREN(1)<<8)|FTM_FILTER_CH1FVAL(2),   ///< 8 clock cycles
+      FtmPhaseBFilter_12_clocks   = (FTM_QDCTRL_PHBFLTREN(1)<<8)|FTM_FILTER_CH1FVAL(3),   ///< 12 clock cycles
+      FtmPhaseBFilter_16_clocks   = (FTM_QDCTRL_PHBFLTREN(1)<<8)|FTM_FILTER_CH1FVAL(4),   ///< 16 clock cycles
+      FtmPhaseBFilter_20_clocks   = (FTM_QDCTRL_PHBFLTREN(1)<<8)|FTM_FILTER_CH1FVAL(5),   ///< 20 clock cycles
+      FtmPhaseBFilter_24_clocks   = (FTM_QDCTRL_PHBFLTREN(1)<<8)|FTM_FILTER_CH1FVAL(6),   ///< 24 clock cycles
+      FtmPhaseBFilter_28_clocks   = (FTM_QDCTRL_PHBFLTREN(1)<<8)|FTM_FILTER_CH1FVAL(7),   ///< 28 clock cycles
+      FtmPhaseBFilter_32_clocks   = (FTM_QDCTRL_PHBFLTREN(1)<<8)|FTM_FILTER_CH1FVAL(8),   ///< 32 clock cycles
+      FtmPhaseBFilter_36_clocks   = (FTM_QDCTRL_PHBFLTREN(1)<<8)|FTM_FILTER_CH1FVAL(9),   ///< 36 clock cycles
+      FtmPhaseBFilter_40_clocks   = (FTM_QDCTRL_PHBFLTREN(1)<<8)|FTM_FILTER_CH1FVAL(10),  ///< 40 clock cycles
+      FtmPhaseBFilter_44_clocks   = (FTM_QDCTRL_PHBFLTREN(1)<<8)|FTM_FILTER_CH1FVAL(11),  ///< 44 clock cycles
+      FtmPhaseBFilter_48_clocks   = (FTM_QDCTRL_PHBFLTREN(1)<<8)|FTM_FILTER_CH1FVAL(12),  ///< 48 clock cycles
+      FtmPhaseBFilter_52_clocks   = (FTM_QDCTRL_PHBFLTREN(1)<<8)|FTM_FILTER_CH1FVAL(13),  ///< 52 clock cycles
+      FtmPhaseBFilter_56_clocks   = (FTM_QDCTRL_PHBFLTREN(1)<<8)|FTM_FILTER_CH1FVAL(14),  ///< 56 clock cycles
+      FtmPhaseBFilter_60_clocks   = (FTM_QDCTRL_PHBFLTREN(1)<<8)|FTM_FILTER_CH1FVAL(15),  ///< 60 clock cycles
    };
 
 class FtmquadBasicInfo : public FtmCommonInfo {
-   
+
 public:
-   
-}; // class  FtmquadBasicInfo
+}; // class FtmquadBasicInfo 
 
 class Ftm1Info : public FtmquadBasicInfo {
 public:
@@ -9778,6 +9987,30 @@ public:
    static constexpr uint32_t irqCount  = sizeofArray(irqNums);
    
    /**
+    * Enable interrupts in NVIC
+    */
+   static void enableNvicInterrupts() {
+      NVIC_EnableIRQ(irqNums[0]);
+   }
+   
+   /**
+    * Enable and set priority of interrupts in NVIC
+    * Any pending NVIC interrupts are first cleared.
+    *
+    * @param[in]  nvicPriority  Interrupt priority
+    */
+   static void enableNvicInterrupts(NvicPriority nvicPriority) {
+      enableNvicInterrupt(irqNums[0], nvicPriority);
+   }
+   
+   /**
+    * Disable interrupts in NVIC
+    */
+   static void disableNvicInterrupts() {
+      NVIC_DisableIRQ(irqNums[0]);
+   }
+   
+   /**
     *  Enable clock to Ftm1
     */
    static void enableClock() {
@@ -9807,10 +10040,10 @@ public:
    static constexpr unsigned NumChannelVectors = 1;
 
    // Minimum resolution for PWM interval
-   static constexpr uint32_t minimumResolution  = 0;
+   static constexpr uint32_t minimumResolution  = 100;
 
    // Minimum usable interval in ticks
-   static constexpr uint32_t minimumInterval  = 0;
+   static constexpr uint32_t minimumInterval  = 20;
 
    /**
     * Enables/disable external trigger generation by a channel comparison or initialisation event
@@ -10085,10 +10318,10 @@ public:
     * Prescale divider to generate the I2C baud rate
     */
    enum I2cPrescale {
-      I2cPrescale_Mul1     = I2C_F_MULT(0), ///< mul = 1
-      I2cPrescale_Mul2     = I2C_F_MULT(1), ///< mul = 2
-      I2cPrescale_Mul4     = I2C_F_MULT(2), ///< mul = 4
-      I2cPrescale_Reserved = I2C_F_MULT(3), ///< Reserved
+      I2cPrescale_Mul1       = I2C_F_MULT(0),  ///< mul = 1
+      I2cPrescale_Mul2       = I2C_F_MULT(1),  ///< mul = 2
+      I2cPrescale_Mul4       = I2C_F_MULT(2),  ///< mul = 4
+      I2cPrescale_Reserved   = I2C_F_MULT(3),  ///< Reserved
    };
 
    /**
@@ -10098,8 +10331,8 @@ public:
     * 
     */
    enum I2cInterrupt {
-      I2cInterrupt_Disabled = I2C_C1_IICIE(0), ///< Disabled
-      I2cInterrupt_Enabled  = I2C_C1_IICIE(1), ///< Enabled
+      I2cInterrupt_Disabled   = I2C_C1_IICIE(0),  ///< Disabled
+      I2cInterrupt_Enabled    = I2C_C1_IICIE(1),  ///< Enabled
    };
 
    /**
@@ -10109,8 +10342,8 @@ public:
     * Slave mode not supported
     */
    enum I2cBusRole {
-      I2cBusRole_Peripheral = I2C_C1_MST(0), ///< Peripheral mode
-      I2cBusRole_Controller = I2C_C1_MST(1), ///< Controller mode
+      I2cBusRole_Peripheral   = I2C_C1_MST(0),  ///< Peripheral mode
+      I2cBusRole_Controller   = I2C_C1_MST(1),  ///< Controller mode
    };
 
    /**
@@ -10121,8 +10354,8 @@ public:
     * To have effect interrupts must be enabled in I2C
     */
    enum I2cWakeup {
-      I2cWakeup_Disabled = I2C_C1_WUEN(0), ///< Disabled
-      I2cWakeup_Enabled  = I2C_C1_WUEN(1), ///< Enabled
+      I2cWakeup_Disabled   = I2C_C1_WUEN(0),  ///< Disabled
+      I2cWakeup_Enabled    = I2C_C1_WUEN(1),  ///< Enabled
    };
 
    /**
@@ -10132,8 +10365,8 @@ public:
     * Controls General call address
     */
    enum I2cCallAddress {
-      I2cCallAddress_Disabled = I2C_C2_GCAEN(0), ///< Disabled
-      I2cCallAddress_Enabled  = I2C_C2_GCAEN(1), ///< Enabled
+      I2cCallAddress_Disabled   = I2C_C2_GCAEN(0),  ///< Disabled
+      I2cCallAddress_Enabled    = I2C_C2_GCAEN(1),  ///< Enabled
    };
 
    /**
@@ -10143,8 +10376,8 @@ public:
     * Increases the pin drive on SCL and SDA
     */
    enum I2cHighDrive {
-      I2cHighDrive_NormalDriveMode = I2C_C2_HDRS(0), ///< Normal drive mode
-      I2cHighDrive_HighDriveMode   = I2C_C2_HDRS(1), ///< High drive mode
+      I2cHighDrive_NormalDriveMode   = I2C_C2_HDRS(0),  ///< Normal drive mode
+      I2cHighDrive_HighDriveMode     = I2C_C2_HDRS(1),  ///< High drive mode
    };
 
    /**
@@ -10154,8 +10387,8 @@ public:
     * Selects between 7-bit and 9-bit address schemes
     */
    enum I2cAddressLength {
-      I2cAddressLength_7Bit  = I2C_C2_ADEXT(0), ///< 7-bit address
-      I2cAddressLength_10Bit = I2C_C2_ADEXT(1), ///< 10-bit address
+      I2cAddressLength_7Bit    = I2C_C2_ADEXT(0),  ///< 7-bit address
+      I2cAddressLength_10Bit   = I2C_C2_ADEXT(1),  ///< 10-bit address
    };
 
    /**
@@ -10165,8 +10398,8 @@ public:
     * Allows the slave baud rate to follows the master baud rate with clock stretching occurring
     */
    enum I2cClockStretching {
-      I2cClockStretching_Disabled = I2C_C2_SBRC(0), ///< Slave rate follows master
-      I2cClockStretching_Enabled  = I2C_C2_SBRC(1), ///< Slave rate independent
+      I2cClockStretching_Disabled   = I2C_C2_SBRC(0),  ///< Slave rate follows master
+      I2cClockStretching_Enabled    = I2C_C2_SBRC(1),  ///< Slave rate independent
    };
 
    /**
@@ -10176,8 +10409,8 @@ public:
     * Enables address matching for a range of slave addresses
     */
    enum I2cAddressRange {
-      I2cAddressRange_Disabled = I2C_C2_RMEN(0), ///< Range mode disabled
-      I2cAddressRange_Enabled  = I2C_C2_RMEN(1), ///< Range mode enabled
+      I2cAddressRange_Disabled   = I2C_C2_RMEN(0),  ///< Range mode disabled
+      I2cAddressRange_Enabled    = I2C_C2_RMEN(1),  ///< Range mode enabled
    };
 
    /**
@@ -10188,22 +10421,22 @@ public:
     * For any glitch whose size is less than or equal to this width setting, the filter does not allow the glitch to pass
     */
    enum I2cFilter {
-      I2cFilter_NoFilterBypass = I2C_FLT_FLT(0),  ///< No filter
-      I2cFilter_1_ClockCycle   = I2C_FLT_FLT(1),  ///< 1 clock cycle
-      I2cFilter_2_ClockCycles  = I2C_FLT_FLT(2),  ///< 2 clock cycles
-      I2cFilter_3_ClockCycles  = I2C_FLT_FLT(3),  ///< 3 clock cycles
-      I2cFilter_4_ClockCycles  = I2C_FLT_FLT(4),  ///< 4 clock cycles
-      I2cFilter_5_ClockCycles  = I2C_FLT_FLT(5),  ///< 5 clock cycles
-      I2cFilter_6_ClockCycles  = I2C_FLT_FLT(6),  ///< 6 clock cycles
-      I2cFilter_7_ClockCycles  = I2C_FLT_FLT(7),  ///< 7 clock cycles
-      I2cFilter_8_ClockCycles  = I2C_FLT_FLT(8),  ///< 8 clock cycles
-      I2cFilter_9_ClockCycles  = I2C_FLT_FLT(9),  ///< 9 clock cycles
-      I2cFilter_10_ClockCycles = I2C_FLT_FLT(10), ///< 10 clock cycles
-      I2cFilter_11_ClockCycles = I2C_FLT_FLT(11), ///< 11 clock cycles
-      I2cFilter_12_ClockCycles = I2C_FLT_FLT(12), ///< 12 clock cycles
-      I2cFilter_13_ClockCycles = I2C_FLT_FLT(13), ///< 13 clock cycles
-      I2cFilter_14_ClockCycles = I2C_FLT_FLT(14), ///< 14 clock cycles
-      I2cFilter_15_ClockCycles = I2C_FLT_FLT(15), ///< 15 clock cycles
+      I2cFilter_NoFilterBypass   = I2C_FLT_FLT(0),   ///< No filter
+      I2cFilter_1_ClockCycle     = I2C_FLT_FLT(1),   ///< 1 clock cycle
+      I2cFilter_2_ClockCycles    = I2C_FLT_FLT(2),   ///< 2 clock cycles
+      I2cFilter_3_ClockCycles    = I2C_FLT_FLT(3),   ///< 3 clock cycles
+      I2cFilter_4_ClockCycles    = I2C_FLT_FLT(4),   ///< 4 clock cycles
+      I2cFilter_5_ClockCycles    = I2C_FLT_FLT(5),   ///< 5 clock cycles
+      I2cFilter_6_ClockCycles    = I2C_FLT_FLT(6),   ///< 6 clock cycles
+      I2cFilter_7_ClockCycles    = I2C_FLT_FLT(7),   ///< 7 clock cycles
+      I2cFilter_8_ClockCycles    = I2C_FLT_FLT(8),   ///< 8 clock cycles
+      I2cFilter_9_ClockCycles    = I2C_FLT_FLT(9),   ///< 9 clock cycles
+      I2cFilter_10_ClockCycles   = I2C_FLT_FLT(10),  ///< 10 clock cycles
+      I2cFilter_11_ClockCycles   = I2C_FLT_FLT(11),  ///< 11 clock cycles
+      I2cFilter_12_ClockCycles   = I2C_FLT_FLT(12),  ///< 12 clock cycles
+      I2cFilter_13_ClockCycles   = I2C_FLT_FLT(13),  ///< 13 clock cycles
+      I2cFilter_14_ClockCycles   = I2C_FLT_FLT(14),  ///< 14 clock cycles
+      I2cFilter_15_ClockCycles   = I2C_FLT_FLT(15),  ///< 15 clock cycles
    };
 
    /**
@@ -10213,8 +10446,8 @@ public:
     * For SMBus packet error checking, the CPU must be able to issue an ACK or NACK according to the result of receiving data byte
     */
    enum I2cSmbFastAck {
-      I2cSmbFastAck_Disabled = I2C_SMB_FACK(0), ///< ACK/NAK on data byte
-      I2cSmbFastAck_Enabled  = I2C_SMB_FACK(1), ///< ACK/NAK on TXAK write
+      I2cSmbFastAck_Disabled   = I2C_SMB_FACK(0),  ///< ACK/NAK on data byte
+      I2cSmbFastAck_Enabled    = I2C_SMB_FACK(1),  ///< ACK/NAK on TXAK write
    };
 
    /**
@@ -10224,8 +10457,8 @@ public:
     * Enables or disables SMBus alert response address matching
     */
    enum I2cSmbAlert {
-      I2cSmbAlert_Disabled = I2C_SMB_ALERTEN(0), ///< Matching disabled
-      I2cSmbAlert_Enabled  = I2C_SMB_ALERTEN(1), ///< Matching enabled
+      I2cSmbAlert_Disabled   = I2C_SMB_ALERTEN(0),  ///< Matching disabled
+      I2cSmbAlert_Enabled    = I2C_SMB_ALERTEN(1),  ///< Matching enabled
    };
 
    /**
@@ -10235,8 +10468,8 @@ public:
     * Selects the clock source of the timeout counter
     */
    enum I2cSmbTimwoutClock {
-      I2cSmbTimwoutClock_BusClockDiv64 = I2C_SMB_TCKSEL(0), ///< Bus clock / 64
-      I2cSmbTimwoutClock_BusClock      = I2C_SMB_TCKSEL(1), ///< Bus clock
+      I2cSmbTimwoutClock_BusClockDiv64   = I2C_SMB_TCKSEL(0),  ///< Bus clock / 64
+      I2cSmbTimwoutClock_BusClock        = I2C_SMB_TCKSEL(1),  ///< Bus clock
    };
 
    /**
@@ -10246,8 +10479,8 @@ public:
     * This flag sets when an SCL low timeout occurs
     */
    enum I2cSclLowTimeout {
-      I2cSclLowTimeout_NoTimeoutOccurs = I2C_SMB_SLTF(0), ///< No timeout occurs
-      I2cSclLowTimeout_TimeoutOccurs   = I2C_SMB_SLTF(1), ///< Timeout occurs
+      I2cSclLowTimeout_NoTimeoutOccurs   = I2C_SMB_SLTF(0),  ///< No timeout occurs
+      I2cSclLowTimeout_TimeoutOccurs     = I2C_SMB_SLTF(1),  ///< Timeout occurs
    };
 
    /**
@@ -10257,8 +10490,8 @@ public:
     * This flag sets when SCL is held high and SDA is held low more than LoValue/512 clock cycles.
     */
    enum I2cSclHighTimeout {
-      I2cSclHighTimeout_NoTimeoutOccurs = I2C_SMB_SHTF2(0), ///< No timeout occurs
-      I2cSclHighTimeout_TimeoutOccurs   = I2C_SMB_SHTF2(1), ///< Timeout occurs
+      I2cSclHighTimeout_NoTimeoutOccurs   = I2C_SMB_SHTF2(0),  ///< No timeout occurs
+      I2cSclHighTimeout_TimeoutOccurs     = I2C_SMB_SHTF2(1),  ///< Timeout occurs
    };
 
    /**
@@ -10268,8 +10501,8 @@ public:
     * Enables SCL high and SDA low timeout interrupt
     */
    enum I2cSmbTimoutInterrupt {
-      I2cSmbTimoutInterrupt_Disabled = I2C_SMB_SHTF2IE(0), ///< Interrupt disabled
-      I2cSmbTimoutInterrupt_Enabled  = I2C_SMB_SHTF2IE(1), ///< Interrupt enabled
+      I2cSmbTimoutInterrupt_Disabled   = I2C_SMB_SHTF2IE(0),  ///< Interrupt disabled
+      I2cSmbTimoutInterrupt_Enabled    = I2C_SMB_SHTF2IE(1),  ///< Interrupt enabled
    };
 
    /**
@@ -10279,14 +10512,14 @@ public:
     * Enables or disables SMBus device default address
     */
    enum I2cSmbAddressEnable {
-      I2cSmbAddressEnable_Disabled = I2C_SMB_SIICAEN(0), ///< Address 2 (SMB) disabled
-      I2cSmbAddressEnable_Enabled  = I2C_SMB_SIICAEN(1), ///< Address 2 (SMB) enabled
+      I2cSmbAddressEnable_Disabled   = I2C_SMB_SIICAEN(0),  ///< Address 2 (SMB) disabled
+      I2cSmbAddressEnable_Enabled    = I2C_SMB_SIICAEN(1),  ///< Address 2 (SMB) enabled
    };
 
 class I2cBasicInfo {
-   
+
 public:
-}; // class I2cBasicInfo
+}; // class I2cBasicInfo 
 
 class I2c0Info : public I2cBasicInfo {
 public:
@@ -10331,6 +10564,30 @@ public:
    
    //! Number of IRQs for hardware
    static constexpr uint32_t irqCount  = sizeofArray(irqNums);
+   
+   /**
+    * Enable interrupts in NVIC
+    */
+   static void enableNvicInterrupts() {
+      NVIC_EnableIRQ(irqNums[0]);
+   }
+   
+   /**
+    * Enable and set priority of interrupts in NVIC
+    * Any pending NVIC interrupts are first cleared.
+    *
+    * @param[in]  nvicPriority  Interrupt priority
+    */
+   static void enableNvicInterrupts(NvicPriority nvicPriority) {
+      enableNvicInterrupt(irqNums[0], nvicPriority);
+   }
+   
+   /**
+    * Disable interrupts in NVIC
+    */
+   static void disableNvicInterrupts() {
+      NVIC_DisableIRQ(irqNums[0]);
+   }
    
    /**
     *  Enable clock to I2c0
@@ -10412,8 +10669,8 @@ public:
     * Select amongst interrupts associated with the peripheral
     */
    enum I2s0IrqNum {
-      I2s0IrqNum_Tx = 0, ///< Transmit
-      I2s0IrqNum_Rx = 1, ///< Receive
+      I2s0IrqNum_Tx   = 0,  ///< Transmit
+      I2s0IrqNum_Rx   = 1,  ///< Receive
    };
 
    /**
@@ -10423,7 +10680,7 @@ public:
     * Selects transmit or receive channel
     */
    enum I2sChannelNum {
-      I2sChannelNum_0 = 0, ///< Channel 0
+      I2sChannelNum_0   = 0,  ///< Channel 0
    };
 
    /**
@@ -10434,8 +10691,8 @@ public:
     * this bit remains set, until the end of the current frame
     */
    enum I2sTransmitEnable {
-      I2sTransmitEnable_Disabled = I2S_TCSR_TE(0), ///< Transmitter disabled
-      I2sTransmitEnable_Enabled  = I2S_TCSR_TE(1), ///< Transmitter enabled
+      I2sTransmitEnable_Disabled   = I2S_TCSR_TE(0),  ///< Transmitter disabled
+      I2sTransmitEnable_Enabled    = I2S_TCSR_TE(1),  ///< Transmitter enabled
    };
 
    /**
@@ -10446,8 +10703,8 @@ public:
     * Software-visible registers are not affected, except for the status
     */
    enum I2sTransmitReset {
-      I2sTransmitReset_NoEffect      = I2S_TCSR_SR(0), ///< No effect
-      I2sTransmitReset_SoftwareReset = I2S_TCSR_SR(1), ///< Software reset
+      I2sTransmitReset_NoEffect        = I2S_TCSR_SR(0),  ///< No effect
+      I2sTransmitReset_SoftwareReset   = I2S_TCSR_SR(1),  ///< Software reset
    };
 
    /**
@@ -10457,7 +10714,7 @@ public:
     * Resets the FIFO pointers. Reading this field will always return zero
     */
    enum I2sTransmitFifoReset {
-      I2sTransmitFifoReset_Write1ToReset = I2S_TCSR_FR(0), ///< Write 1 to reset
+      I2sTransmitFifoReset_Write1ToReset   = I2S_TCSR_FR(0),  ///< Write 1 to reset
    };
 
    /**
@@ -10468,8 +10725,8 @@ public:
     * This field is ignored and the transmitter is disabled in all low-leakage stop modes
     */
    enum I2sTransmitStopMode {
-      I2sTransmitStopMode_DisabledInStopMode = I2S_TCSR_STOPE(0), ///< Disabled in Stop mode
-      I2sTransmitStopMode_EnabledInStopMode  = I2S_TCSR_STOPE(1), ///< Enabled in Stop mode
+      I2sTransmitStopMode_DisabledInStopMode   = I2S_TCSR_STOPE(0),  ///< Disabled in Stop mode
+      I2sTransmitStopMode_EnabledInStopMode    = I2S_TCSR_STOPE(1),  ///< Enabled in Stop mode
    };
 
    /**
@@ -10480,8 +10737,8 @@ public:
     * The transmit bit clock is not affected by debug mode
     */
    enum I2sTransmitDebugMode {
-      I2sTransmitDebugMode_DisabledInDebugMode = I2S_TCSR_DBGE(0), ///< Disabled in Debug mode
-      I2sTransmitDebugMode_EnabledInDebugMode  = I2S_TCSR_DBGE(1), ///< Enabled in Debug mode
+      I2sTransmitDebugMode_DisabledInDebugMode   = I2S_TCSR_DBGE(0),  ///< Disabled in Debug mode
+      I2sTransmitDebugMode_EnabledInDebugMode    = I2S_TCSR_DBGE(1),  ///< Enabled in Debug mode
    };
 
    /**
@@ -10494,8 +10751,8 @@ public:
     * current frame
     */
    enum I2sTransmitBitClock {
-      I2sTransmitBitClock_Disabled = I2S_TCSR_BCE(0), ///< Transmit clock disabled
-      I2sTransmitBitClock_Enabled  = I2S_TCSR_BCE(1), ///< Transmit clock enabled
+      I2sTransmitBitClock_Disabled   = I2S_TCSR_BCE(0),  ///< Transmit clock disabled
+      I2sTransmitBitClock_Enabled    = I2S_TCSR_BCE(1),  ///< Transmit clock enabled
    };
 
    /**
@@ -10506,8 +10763,8 @@ public:
     * Write a logic 1 to this field to clear this flag
     */
    enum I2sTransmitWordStartFlag {
-      I2sTransmitWordStartFlag_StartNotDetected = I2S_TCSR_WSF(0), ///< Start not detected
-      I2sTransmitWordStartFlag_StartDetected    = I2S_TCSR_WSF(1), ///< Start detected
+      I2sTransmitWordStartFlag_StartNotDetected   = I2S_TCSR_WSF(0),  ///< Start not detected
+      I2sTransmitWordStartFlag_StartDetected      = I2S_TCSR_WSF(1),  ///< Start detected
    };
 
    /**
@@ -10518,8 +10775,8 @@ public:
     * Write a logic 1 to this field to clear this flag
     */
    enum I2sTransmitSyncErrorFlag {
-      I2sTransmitSyncErrorFlag_NoError           = I2S_TCSR_SEF(0), ///< No error
-      I2sTransmitSyncErrorFlag_SyncErrorDetected = I2S_TCSR_SEF(1), ///< Sync error detected
+      I2sTransmitSyncErrorFlag_NoError             = I2S_TCSR_SEF(0),  ///< No error
+      I2sTransmitSyncErrorFlag_SyncErrorDetected   = I2S_TCSR_SEF(1),  ///< Sync error detected
    };
 
    /**
@@ -10530,8 +10787,8 @@ public:
     * Write a logic 1 to this field to clear this flag
     */
    enum I2sTransmitFifoErrorFlag {
-      I2sTransmitFifoErrorFlag_UnderrunNotDetected = I2S_TCSR_FEF(0), ///< Underrun not detected
-      I2sTransmitFifoErrorFlag_UnderrunDetected    = I2S_TCSR_FEF(1), ///< Underrun detected
+      I2sTransmitFifoErrorFlag_UnderrunNotDetected   = I2S_TCSR_FEF(0),  ///< Underrun not detected
+      I2sTransmitFifoErrorFlag_UnderrunDetected      = I2S_TCSR_FEF(1),  ///< Underrun detected
    };
 
    /**
@@ -10541,8 +10798,8 @@ public:
     * Indicates that an enabled transmit FIFO is empty
     */
    enum I2sTransmitFifoEmptyFlag {
-      I2sTransmitFifoEmptyFlag_NoTransmitFifoEmpty = I2S_TCSR_FWF(0), ///< No transmit FIFO empty
-      I2sTransmitFifoEmptyFlag_TransmitFifoIsEmpty = I2S_TCSR_FWF(1), ///< Transmit FIFO is empty
+      I2sTransmitFifoEmptyFlag_NoTransmitFifoEmpty   = I2S_TCSR_FWF(0),  ///< No transmit FIFO empty
+      I2sTransmitFifoEmptyFlag_TransmitFifoIsEmpty   = I2S_TCSR_FWF(1),  ///< Transmit FIFO is empty
    };
 
    /**
@@ -10553,8 +10810,8 @@ public:
     * is less than or equal to the transmit FIFO watermark
     */
    enum I2sTransmitFifoRequestFlag {
-      I2sTransmitFifoRequestFlag_FifoWatermarkNotReached = I2S_TCSR_FRF(0), ///< FIFO watermark not reached
-      I2sTransmitFifoRequestFlag_FifoWatermarkReached    = I2S_TCSR_FRF(1), ///< FIFO watermark reached
+      I2sTransmitFifoRequestFlag_FifoWatermarkNotReached   = I2S_TCSR_FRF(0),  ///< FIFO watermark not reached
+      I2sTransmitFifoRequestFlag_FifoWatermarkReached      = I2S_TCSR_FRF(1),  ///< FIFO watermark reached
    };
 
    /**
@@ -10564,8 +10821,8 @@ public:
     * Enables/disables word start interrupts
     */
    enum I2sTransmitWordStartAction {
-      I2sTransmitWordStartAction_None      = I2S_TCSR_WSIE(0), ///< Interrupt disabled
-      I2sTransmitWordStartAction_Interrupt = I2S_TCSR_WSIE(1), ///< Interrupt enabled
+      I2sTransmitWordStartAction_None        = I2S_TCSR_WSIE(0),  ///< Interrupt disabled
+      I2sTransmitWordStartAction_Interrupt   = I2S_TCSR_WSIE(1),  ///< Interrupt enabled
    };
 
    /**
@@ -10575,8 +10832,8 @@ public:
     * Enables/disables sync error interrupts
     */
    enum I2sTransmitSyncErrorAction {
-      I2sTransmitSyncErrorAction_None      = I2S_TCSR_SEIE(0), ///< Interrupt disabled
-      I2sTransmitSyncErrorAction_Interrupt = I2S_TCSR_SEIE(1), ///< Interrupt enabled
+      I2sTransmitSyncErrorAction_None        = I2S_TCSR_SEIE(0),  ///< Interrupt disabled
+      I2sTransmitSyncErrorAction_Interrupt   = I2S_TCSR_SEIE(1),  ///< Interrupt enabled
    };
 
    /**
@@ -10586,8 +10843,8 @@ public:
     * Enables/disables FIFO error interrupts
     */
    enum I2sTransmitFifoErrorAction {
-      I2sTransmitFifoErrorAction_None      = I2S_TCSR_FEIE(0), ///< Interrupt disabled
-      I2sTransmitFifoErrorAction_Interrupt = I2S_TCSR_FEIE(1), ///< Interrupt enabled
+      I2sTransmitFifoErrorAction_None        = I2S_TCSR_FEIE(0),  ///< Interrupt disabled
+      I2sTransmitFifoErrorAction_Interrupt   = I2S_TCSR_FEIE(1),  ///< Interrupt enabled
    };
 
    /**
@@ -10597,10 +10854,10 @@ public:
     * Action taken in FIFO warning level
     */
    enum I2sTransmitWarningAction {
-      I2sTransmitWarningAction_None                   = I2S_TCSR_FWIE(0)|I2S_TCSR_FWDE(0), ///< No action
-      I2sTransmitWarningAction_Interrupt              = I2S_TCSR_FWIE(1)|I2S_TCSR_FWDE(0), ///< Interrupt Request
-      I2sTransmitWarningAction_DmaRequest             = I2S_TCSR_FWIE(0)|I2S_TCSR_FWDE(1), ///< Dma Request
-      I2sTransmitWarningAction_InterruptAndDmaRequest = I2S_TCSR_FWIE(1)|I2S_TCSR_FWDE(1), ///< Interrupt and Dma Request
+      I2sTransmitWarningAction_None                     = I2S_TCSR_FWIE(0)|I2S_TCSR_FWDE(0),  ///< No action
+      I2sTransmitWarningAction_Interrupt                = I2S_TCSR_FWIE(1)|I2S_TCSR_FWDE(0),  ///< Interrupt Request
+      I2sTransmitWarningAction_DmaRequest               = I2S_TCSR_FWIE(0)|I2S_TCSR_FWDE(1),  ///< Dma Request
+      I2sTransmitWarningAction_InterruptAndDmaRequest   = I2S_TCSR_FWIE(1)|I2S_TCSR_FWDE(1),  ///< Interrupt and Dma Request
    };
 
    /**
@@ -10610,10 +10867,10 @@ public:
     * Action taken in FIFO request level
     */
    enum I2sTransmitRequestAction {
-      I2sTransmitRequestAction_None                   = I2S_TCSR_FRIE(0)|I2S_TCSR_FRDE(0), ///< No action
-      I2sTransmitRequestAction_Interrupt              = I2S_TCSR_FRIE(1)|I2S_TCSR_FRDE(0), ///< Interrupt Request
-      I2sTransmitRequestAction_DmaRequest             = I2S_TCSR_FRIE(0)|I2S_TCSR_FRDE(1), ///< Dma Request
-      I2sTransmitRequestAction_InterruptAndDmaRequest = I2S_TCSR_FRIE(1)|I2S_TCSR_FRDE(1), ///< Interrupt and Dma Request
+      I2sTransmitRequestAction_None                     = I2S_TCSR_FRIE(0)|I2S_TCSR_FRDE(0),  ///< No action
+      I2sTransmitRequestAction_Interrupt                = I2S_TCSR_FRIE(1)|I2S_TCSR_FRDE(0),  ///< Interrupt Request
+      I2sTransmitRequestAction_DmaRequest               = I2S_TCSR_FRIE(0)|I2S_TCSR_FRDE(1),  ///< Dma Request
+      I2sTransmitRequestAction_InterruptAndDmaRequest   = I2S_TCSR_FRIE(1)|I2S_TCSR_FRDE(1),  ///< Interrupt and Dma Request
    };
 
    /**
@@ -10623,8 +10880,8 @@ public:
     * Configures the watermark level for all enabled transmit channels
     */
    enum I2sTransmitFifoWatermark {
-      I2sTransmitFifoWatermark_Level0 = I2S_TCR1_TFW(0), ///< Interrupt disabled
-      I2sTransmitFifoWatermark_Level1 = I2S_TCR1_TFW(1), ///< Interrupt enabled
+      I2sTransmitFifoWatermark_Level0   = I2S_TCR1_TFW(0),  ///< Interrupt disabled
+      I2sTransmitFifoWatermark_Level1   = I2S_TCR1_TFW(1),  ///< Interrupt enabled
    };
 
    /**
@@ -10636,10 +10893,10 @@ public:
     * be configured for asynchronous operation.
     */
    enum I2sTransmitSynchMode {
-      I2sTransmitSynchMode_AsynchronousMode        = I2S_TCR2_SYNC(0), ///< Asynchronous mode
-      I2sTransmitSynchMode_SynchronousWithReceiver = I2S_TCR2_SYNC(1), ///< Synchronous with receiver
-      I2sTransmitSynchMode_ExternalSaiTransmitter  = I2S_TCR2_SYNC(2), ///< External SAI transmitter
-      I2sTransmitSynchMode_ExternalSaiReceiver     = I2S_TCR2_SYNC(3), ///< External SAI receiver
+      I2sTransmitSynchMode_AsynchronousMode          = I2S_TCR2_SYNC(0),  ///< Asynchronous mode
+      I2sTransmitSynchMode_SynchronousWithReceiver   = I2S_TCR2_SYNC(1),  ///< Synchronous with receiver
+      I2sTransmitSynchMode_ExternalSaiTransmitter    = I2S_TCR2_SYNC(2),  ///< External SAI transmitter
+      I2sTransmitSynchMode_ExternalSaiReceiver       = I2S_TCR2_SYNC(3),  ///< External SAI receiver
    };
 
    /**
@@ -10653,8 +10910,8 @@ public:
     * uses the receiver frame sync.
     */
    enum I2sTransmitBitClockSwap {
-      I2sTransmitBitClockSwap_NormalBitClockSource = I2S_TCR2_BCS(0), ///< Normal bit clock source
-      I2sTransmitBitClockSwap_SwapBitClockSource   = I2S_TCR2_BCS(1), ///< Swap bit clock source
+      I2sTransmitBitClockSwap_NormalBitClockSource   = I2S_TCR2_BCS(0),  ///< Normal bit clock source
+      I2sTransmitBitClockSwap_SwapBitClockSource     = I2S_TCR2_BCS(1),  ///< Swap bit clock source
    };
 
    /**
@@ -10669,8 +10926,8 @@ public:
     * This bit has no effect when configured for an externally generated bit clock.
     */
    enum I2sTransmitBitClockInput {
-      I2sTransmitBitClockInput_NoEffect                                 = I2S_TCR2_BCI(0), ///< No effect
-      I2sTransmitBitClockInput_InternalLogicIsClockedByExternalBitClock = I2S_TCR2_BCI(1), ///< Internal logic is clocked by external bit clock
+      I2sTransmitBitClockInput_NoEffect                                   = I2S_TCR2_BCI(0),  ///< No effect
+      I2sTransmitBitClockInput_InternalLogicIsClockedByExternalBitClock   = I2S_TCR2_BCI(1),  ///< Internal logic is clocked by external bit clock
    };
 
    /**
@@ -10683,10 +10940,10 @@ public:
     * used to generate the internal bit clock
     */
    enum I2sTransmitMasterClock {
-      I2sTransmitMasterClock_BusClockOrAsynchronous = I2S_TCR2_MSEL(0), ///< Bus Clock (or Asynchronous)
-      I2sTransmitMasterClock_MasterClock1           = I2S_TCR2_MSEL(1), ///< Master Clock 1
-      I2sTransmitMasterClock_MasterClock2           = I2S_TCR2_MSEL(2), ///< Master Clock 2
-      I2sTransmitMasterClock_MasterClock3           = I2S_TCR2_MSEL(3), ///< Master Clock 3
+      I2sTransmitMasterClock_BusClockOrAsynchronous   = I2S_TCR2_MSEL(0),  ///< Bus Clock (or Asynchronous)
+      I2sTransmitMasterClock_MasterClock1             = I2S_TCR2_MSEL(1),  ///< Master Clock 1
+      I2sTransmitMasterClock_MasterClock2             = I2S_TCR2_MSEL(2),  ///< Master Clock 2
+      I2sTransmitMasterClock_MasterClock3             = I2S_TCR2_MSEL(3),  ///< Master Clock 3
    };
 
    /**
@@ -10696,8 +10953,8 @@ public:
     * Configures the polarity of the bit clock
     */
    enum I2sTransmitBitClockPolarity {
-      I2sTransmitBitClockPolarity_ActiveHigh = I2S_TCR2_BCP(0), ///< Active high
-      I2sTransmitBitClockPolarity_ActiveLow  = I2S_TCR2_BCP(1), ///< Active Low
+      I2sTransmitBitClockPolarity_ActiveHigh   = I2S_TCR2_BCP(0),  ///< Active high
+      I2sTransmitBitClockPolarity_ActiveLow    = I2S_TCR2_BCP(1),  ///< Active Low
    };
 
    /**
@@ -10707,8 +10964,8 @@ public:
     * Configures the direction of the bit clock
     */
    enum I2sTransmitBitClockDirection {
-      I2sTransmitBitClockDirection_ExternalBitClock = I2S_TCR2_BCD(0), ///< External bit clock
-      I2sTransmitBitClockDirection_InternalBitClock = I2S_TCR2_BCD(1), ///< Internal bit clock
+      I2sTransmitBitClockDirection_ExternalBitClock   = I2S_TCR2_BCD(0),  ///< External bit clock
+      I2sTransmitBitClockDirection_InternalBitClock   = I2S_TCR2_BCD(1),  ///< Internal bit clock
    };
 
    /**
@@ -10729,8 +10986,8 @@ public:
     * A channel must be enabled before its FIFO is accessed
     */
    enum I2sTransmitChannelEnable {
-      I2sTransmitChannelEnable_ChannelDisabled = I2S_TCR3_TCE(0), ///< Channel disabled
-      I2sTransmitChannelEnable_ChannelEnabled  = I2S_TCR3_TCE(1), ///< Channel enabled
+      I2sTransmitChannelEnable_ChannelDisabled   = I2S_TCR3_TCE(0),  ///< Channel disabled
+      I2sTransmitChannelEnable_ChannelEnabled    = I2S_TCR3_TCE(1),  ///< Channel enabled
    };
 
    /**
@@ -10773,8 +11030,8 @@ public:
     * Configures whether the LSB or the MSB is transmitted/received first
     */
    enum I2sTransmitBitOrder {
-      I2sTransmitBitOrder_LsbFirst = I2S_TCR4_MF(0), ///< LSB first
-      I2sTransmitBitOrder_MsbFirst = I2S_TCR4_MF(1), ///< MSB first
+      I2sTransmitBitOrder_LsbFirst   = I2S_TCR4_MF(0),  ///< LSB first
+      I2sTransmitBitOrder_MsbFirst   = I2S_TCR4_MF(1),  ///< MSB first
    };
 
    /**
@@ -10784,8 +11041,8 @@ public:
     * Control where frame sync asserts relative to 1st bit of the frame
     */
    enum I2sTransmitEarlySync {
-      I2sTransmitEarlySync_AssertsWithFirstBit         = I2S_TCR4_FSE(0), ///< Asserts with first bit
-      I2sTransmitEarlySync_AssertsOneBitBeforeFirstBit = I2S_TCR4_FSE(1), ///< Asserts one bit before first bit
+      I2sTransmitEarlySync_AssertsWithFirstBit           = I2S_TCR4_FSE(0),  ///< Asserts with first bit
+      I2sTransmitEarlySync_AssertsOneBitBeforeFirstBit   = I2S_TCR4_FSE(1),  ///< Asserts one bit before first bit
    };
 
    /**
@@ -10795,8 +11052,8 @@ public:
     * Configures the polarity of the frame sync
     */
    enum I2sTransmitFrameSyncPolarity {
-      I2sTransmitFrameSyncPolarity_ActiveHigh = I2S_TCR4_FSP(0), ///< Active high
-      I2sTransmitFrameSyncPolarity_ActiveLow  = I2S_TCR4_FSP(1), ///< Active low
+      I2sTransmitFrameSyncPolarity_ActiveHigh   = I2S_TCR4_FSP(0),  ///< Active high
+      I2sTransmitFrameSyncPolarity_ActiveLow    = I2S_TCR4_FSP(1),  ///< Active low
    };
 
    /**
@@ -10806,8 +11063,8 @@ public:
     * Configures the direction of the frame sync
     */
    enum I2sTransmitFrameSyncDirection {
-      I2sTransmitFrameSyncDirection_ExternalFrameSync = I2S_TCR4_FSD(0), ///< External Frame Sync
-      I2sTransmitFrameSyncDirection_InternalFrameSync = I2S_TCR4_FSD(1), ///< Internal Frame Sync
+      I2sTransmitFrameSyncDirection_ExternalFrameSync   = I2S_TCR4_FSD(0),  ///< External Frame Sync
+      I2sTransmitFrameSyncDirection_InternalFrameSync   = I2S_TCR4_FSD(1),  ///< Internal Frame Sync
    };
 
    /**
@@ -10870,8 +11127,8 @@ public:
     * transmit data not read from FIFO) for the corresponding word in the frame
     */
    enum I2sTransmitWordMask {
-      I2sTransmitWordMask_WordNEnabled  = I2S_TMR_TWM(0), ///< Word N enabled
-      I2sTransmitWordMask_WordNIsMasked = I2S_TMR_TWM(1), ///< Word N is masked
+      I2sTransmitWordMask_WordNEnabled    = I2S_TMR_TWM(0),  ///< Word N enabled
+      I2sTransmitWordMask_WordNIsMasked   = I2S_TMR_TWM(1),  ///< Word N is masked
    };
 
    /**
@@ -10882,8 +11139,8 @@ public:
     * frame
     */
    enum I2sReceiveEnable {
-      I2sReceiveEnable_ReceiverDisabled = I2S_RCSR_RE(0), ///< Receiver disabled
-      I2sReceiveEnable_ReceiverEnabled  = I2S_RCSR_RE(1), ///< Receiver enabled
+      I2sReceiveEnable_ReceiverDisabled   = I2S_RCSR_RE(0),  ///< Receiver disabled
+      I2sReceiveEnable_ReceiverEnabled    = I2S_RCSR_RE(1),  ///< Receiver enabled
    };
 
    /**
@@ -10894,8 +11151,8 @@ public:
     * This bit is ignored and the receiver is disabled in all low-leakage stop modes
     */
    enum I2sReceiveStopMode {
-      I2sReceiveStopMode_DisabledInStopMode = I2S_RCSR_STOPE(0), ///< Disabled in Stop mode
-      I2sReceiveStopMode_EnabledInStopMode  = I2S_RCSR_STOPE(1), ///< Enabled in Stop mode
+      I2sReceiveStopMode_DisabledInStopMode   = I2S_RCSR_STOPE(0),  ///< Disabled in Stop mode
+      I2sReceiveStopMode_EnabledInStopMode    = I2S_RCSR_STOPE(1),  ///< Enabled in Stop mode
    };
 
    /**
@@ -10905,8 +11162,8 @@ public:
     * Enables/disables receiver operation in Debug mode. The receive bit clock is not affected by Debug mode
     */
    enum I2sReceiveDebugMode {
-      I2sReceiveDebugMode_DisabledInDebugMode = I2S_RCSR_DBGE(0), ///< Disabled in Debug mode
-      I2sReceiveDebugMode_EnabledInDebugMode  = I2S_RCSR_DBGE(1), ///< Enabled in Debug mode
+      I2sReceiveDebugMode_DisabledInDebugMode   = I2S_RCSR_DBGE(0),  ///< Disabled in Debug mode
+      I2sReceiveDebugMode_EnabledInDebugMode    = I2S_RCSR_DBGE(1),  ///< Enabled in Debug mode
    };
 
    /**
@@ -10919,8 +11176,8 @@ public:
     * and this field remains set, until the end of the current frame
     */
    enum I2sReceiveBitClock {
-      I2sReceiveBitClock_ClockDisabled = I2S_RCSR_BCE(0), ///< Clock disabled
-      I2sReceiveBitClock_ClockEnabled  = I2S_RCSR_BCE(1), ///< Clock enabled
+      I2sReceiveBitClock_ClockDisabled   = I2S_RCSR_BCE(0),  ///< Clock disabled
+      I2sReceiveBitClock_ClockEnabled    = I2S_RCSR_BCE(1),  ///< Clock enabled
    };
 
    /**
@@ -10930,8 +11187,8 @@ public:
     * Resets the FIFO pointers. Reading this field will always return zero
     */
    enum I2sReceiveFifoReset {
-      I2sReceiveFifoReset_NoEffect  = I2S_RCSR_FR(0), ///< No effect
-      I2sReceiveFifoReset_FifoReset = I2S_RCSR_FR(1), ///< FIFO reset
+      I2sReceiveFifoReset_NoEffect    = I2S_RCSR_FR(0),  ///< No effect
+      I2sReceiveFifoReset_FifoReset   = I2S_RCSR_FR(1),  ///< FIFO reset
    };
 
    /**
@@ -10942,8 +11199,8 @@ public:
     * Software-visible registers are not affected, except for the status
     */
    enum I2sReceiveReset {
-      I2sReceiveReset_NoEffect      = I2S_RCSR_SR(0), ///< No effect
-      I2sReceiveReset_SoftwareReset = I2S_RCSR_SR(1), ///< Software reset
+      I2sReceiveReset_NoEffect        = I2S_RCSR_SR(0),  ///< No effect
+      I2sReceiveReset_SoftwareReset   = I2S_RCSR_SR(1),  ///< Software reset
    };
 
    /**
@@ -10954,8 +11211,8 @@ public:
     * Write a logic 1 to this field to clear this flag
     */
    enum I2sReceiveWordStartFlag {
-      I2sReceiveWordStartFlag_StartNotDetected = I2S_RCSR_WSF(0), ///< Start not detected
-      I2sReceiveWordStartFlag_StartDetected    = I2S_RCSR_WSF(1), ///< Start detected
+      I2sReceiveWordStartFlag_StartNotDetected   = I2S_RCSR_WSF(0),  ///< Start not detected
+      I2sReceiveWordStartFlag_StartDetected      = I2S_RCSR_WSF(1),  ///< Start detected
    };
 
    /**
@@ -10966,8 +11223,8 @@ public:
     * Write a logic 1 to this field to clear this flag
     */
    enum I2sReceiveErrorFlag {
-      I2sReceiveErrorFlag_SyncErrorNotDetected = I2S_RCSR_SEF(0), ///< Sync error not detected
-      I2sReceiveErrorFlag_SyncErrorDetected    = I2S_RCSR_SEF(1), ///< Sync error detected
+      I2sReceiveErrorFlag_SyncErrorNotDetected   = I2S_RCSR_SEF(0),  ///< Sync error not detected
+      I2sReceiveErrorFlag_SyncErrorDetected      = I2S_RCSR_SEF(1),  ///< Sync error detected
    };
 
    /**
@@ -10978,8 +11235,8 @@ Indicates that an enabled receive FIFO has overflowed.
     * Write a logic 1 to this field to clear this flag
     */
    enum I2sReceiveOverflowFlag {
-      I2sReceiveOverflowFlag_OverflowNotDetected = I2S_RCSR_FEF(0), ///< Overflow not detected
-      I2sReceiveOverflowFlag_OverflowDetected    = I2S_RCSR_FEF(1), ///< Overflow detected
+      I2sReceiveOverflowFlag_OverflowNotDetected   = I2S_RCSR_FEF(0),  ///< Overflow not detected
+      I2sReceiveOverflowFlag_OverflowDetected      = I2S_RCSR_FEF(1),  ///< Overflow detected
    };
 
    /**
@@ -10989,8 +11246,8 @@ Indicates that an enabled receive FIFO has overflowed.
     * Indicates that an enabled receive FIFO is full
     */
    enum I2sReceiveFifoFlag {
-      I2sReceiveFifoFlag_NoFifoFull  = I2S_RCSR_FWF(0), ///< No FIFO full
-      I2sReceiveFifoFlag_AFifoIsFull = I2S_RCSR_FWF(1), ///< A FIFO is full
+      I2sReceiveFifoFlag_NoFifoFull    = I2S_RCSR_FWF(0),  ///< No FIFO full
+      I2sReceiveFifoFlag_AFifoIsFull   = I2S_RCSR_FWF(1),  ///< A FIFO is full
    };
 
    /**
@@ -11000,8 +11257,8 @@ Indicates that an enabled receive FIFO has overflowed.
     * Indicates that the number of words in an enabled receive channel FIFO is greater than the receive FIFO watermark
     */
    enum I2sReceiveRequestFlag {
-      I2sReceiveRequestFlag_WatermarkNotReached = I2S_RCSR_FRF(0), ///< Watermark not reached
-      I2sReceiveRequestFlag_WatermarkReached    = I2S_RCSR_FRF(1), ///< Watermark reached
+      I2sReceiveRequestFlag_WatermarkNotReached   = I2S_RCSR_FRF(0),  ///< Watermark not reached
+      I2sReceiveRequestFlag_WatermarkReached      = I2S_RCSR_FRF(1),  ///< Watermark reached
    };
 
    /**
@@ -11011,8 +11268,8 @@ Indicates that an enabled receive FIFO has overflowed.
     * Determines action on word start interrupts.
     */
    enum I2sReceiveWordStartAction {
-      I2sReceiveWordStartAction_None      = I2S_RCSR_WSIE(0), ///< Interrupts disabled
-      I2sReceiveWordStartAction_Interrupt = I2S_RCSR_WSIE(1), ///< Interrupts enabled
+      I2sReceiveWordStartAction_None        = I2S_RCSR_WSIE(0),  ///< Interrupts disabled
+      I2sReceiveWordStartAction_Interrupt   = I2S_RCSR_WSIE(1),  ///< Interrupts enabled
    };
 
    /**
@@ -11022,8 +11279,8 @@ Indicates that an enabled receive FIFO has overflowed.
     * Determines action on sync error
     */
    enum I2sReceiveErrorAction {
-      I2sReceiveErrorAction_None      = I2S_RCSR_SEIE(0), ///< Interrupts disabled
-      I2sReceiveErrorAction_Interrupt = I2S_RCSR_SEIE(1), ///< Interrupts enabled
+      I2sReceiveErrorAction_None        = I2S_RCSR_SEIE(0),  ///< Interrupts disabled
+      I2sReceiveErrorAction_Interrupt   = I2S_RCSR_SEIE(1),  ///< Interrupts enabled
    };
 
    /**
@@ -11033,8 +11290,8 @@ Indicates that an enabled receive FIFO has overflowed.
     * Determines action on FIFO errors
     */
    enum I2sReceiveFifoErrorFlag {
-      I2sReceiveFifoErrorFlag_None      = I2S_RCSR_FEIE(0), ///< Interrupts disabled
-      I2sReceiveFifoErrorFlag_Interrupt = I2S_RCSR_FEIE(1), ///< Interrupts enabled
+      I2sReceiveFifoErrorFlag_None        = I2S_RCSR_FEIE(0),  ///< Interrupts disabled
+      I2sReceiveFifoErrorFlag_Interrupt   = I2S_RCSR_FEIE(1),  ///< Interrupts enabled
    };
 
    /**
@@ -11044,10 +11301,10 @@ Indicates that an enabled receive FIFO has overflowed.
     * Action taken in FIFO warning level
     */
    enum I2sReceiveWarningAction {
-      I2sReceiveWarningAction_None                   = I2S_RCSR_FWIE(0)|I2S_RCSR_FWDE(0), ///< No action
-      I2sReceiveWarningAction_Interrupt              = I2S_RCSR_FWIE(1)|I2S_RCSR_FWDE(0), ///< Interrupt Request
-      I2sReceiveWarningAction_DmaRequest             = I2S_RCSR_FWIE(0)|I2S_RCSR_FWDE(1), ///< Dma Request
-      I2sReceiveWarningAction_InterruptAndDmaRequest = I2S_RCSR_FWIE(1)|I2S_RCSR_FWDE(1), ///< Interrupt and Dma Request
+      I2sReceiveWarningAction_None                     = I2S_RCSR_FWIE(0)|I2S_RCSR_FWDE(0),  ///< No action
+      I2sReceiveWarningAction_Interrupt                = I2S_RCSR_FWIE(1)|I2S_RCSR_FWDE(0),  ///< Interrupt Request
+      I2sReceiveWarningAction_DmaRequest               = I2S_RCSR_FWIE(0)|I2S_RCSR_FWDE(1),  ///< Dma Request
+      I2sReceiveWarningAction_InterruptAndDmaRequest   = I2S_RCSR_FWIE(1)|I2S_RCSR_FWDE(1),  ///< Interrupt and Dma Request
    };
 
    /**
@@ -11057,10 +11314,10 @@ Indicates that an enabled receive FIFO has overflowed.
     * Action taken in FIFO request level
     */
    enum I2sReceiveRequestAction {
-      I2sReceiveRequestAction_None                   = I2S_RCSR_FRIE(0)|I2S_RCSR_FRDE(0), ///< No action
-      I2sReceiveRequestAction_Interrupt              = I2S_RCSR_FRIE(1)|I2S_RCSR_FRDE(0), ///< Interrupt Request
-      I2sReceiveRequestAction_DmaRequest             = I2S_RCSR_FRIE(0)|I2S_RCSR_FRDE(1), ///< Dma Request
-      I2sReceiveRequestAction_InterruptAndDmaRequest = I2S_RCSR_FRIE(1)|I2S_RCSR_FRDE(1), ///< Interrupt and Dma Request
+      I2sReceiveRequestAction_None                     = I2S_RCSR_FRIE(0)|I2S_RCSR_FRDE(0),  ///< No action
+      I2sReceiveRequestAction_Interrupt                = I2S_RCSR_FRIE(1)|I2S_RCSR_FRDE(0),  ///< Interrupt Request
+      I2sReceiveRequestAction_DmaRequest               = I2S_RCSR_FRIE(0)|I2S_RCSR_FRDE(1),  ///< Dma Request
+      I2sReceiveRequestAction_InterruptAndDmaRequest   = I2S_RCSR_FRIE(1)|I2S_RCSR_FRDE(1),  ///< Interrupt and Dma Request
    };
 
    /**
@@ -11081,10 +11338,10 @@ Indicates that an enabled receive FIFO has overflowed.
     * must be configured for asynchronous operation.
     */
    enum I2sReceiveSynchMode {
-      I2sReceiveSynchMode_AsynchronousMode                     = I2S_RCR2_SYNC(0), ///< Asynchronous mode
-      I2sReceiveSynchMode_SynchronousWithTransmitter           = I2S_RCR2_SYNC(1), ///< Synchronous with transmitter
-      I2sReceiveSynchMode_SynchronousWithAnotherSaiReceiver    = I2S_RCR2_SYNC(2), ///< Synchronous with another SAI receiver
-      I2sReceiveSynchMode_SynchronousWithAnotherSaiTransmitter = I2S_RCR2_SYNC(3), ///< Synchronous with another SAI transmitter
+      I2sReceiveSynchMode_AsynchronousMode                       = I2S_RCR2_SYNC(0),  ///< Asynchronous mode
+      I2sReceiveSynchMode_SynchronousWithTransmitter             = I2S_RCR2_SYNC(1),  ///< Synchronous with transmitter
+      I2sReceiveSynchMode_SynchronousWithAnotherSaiReceiver      = I2S_RCR2_SYNC(2),  ///< Synchronous with another SAI receiver
+      I2sReceiveSynchMode_SynchronousWithAnotherSaiTransmitter   = I2S_RCR2_SYNC(3),  ///< Synchronous with another SAI transmitter
    };
 
    /**
@@ -11097,8 +11354,8 @@ Indicates that an enabled receive FIFO has overflowed.
     * the receiver is clocked by the receiver bit clock, but it uses the transmitter frame sync.
     */
    enum I2sReceiveBitClockSwap {
-      I2sReceiveBitClockSwap_UseTheNormalBitClockSource = I2S_RCR2_BCS(0), ///< Use the normal bit clock source
-      I2sReceiveBitClockSwap_SwapTheBitClockSource      = I2S_RCR2_BCS(1), ///< Swap the bit clock source
+      I2sReceiveBitClockSwap_UseTheNormalBitClockSource   = I2S_RCR2_BCS(0),  ///< Use the normal bit clock source
+      I2sReceiveBitClockSwap_SwapTheBitClockSource        = I2S_RCR2_BCS(1),  ///< Swap the bit clock source
    };
 
    /**
@@ -11111,8 +11368,8 @@ Indicates that an enabled receive FIFO has overflowed.
     * This bit has no effect when configured for an externally generated bit clock.
     */
    enum I2sReceiveBitClockInput {
-      I2sReceiveBitClockInput_NoEffect                                                 = I2S_RCR2_BCI(0), ///< No effect
-      I2sReceiveBitClockInput_InternalLogicIsClockedAsIfBitClockWasExternallyGenerated = I2S_RCR2_BCI(1), ///< Internal logic is clocked as if bit clock was externally generated
+      I2sReceiveBitClockInput_NoEffect                                                   = I2S_RCR2_BCI(0),  ///< No effect
+      I2sReceiveBitClockInput_InternalLogicIsClockedAsIfBitClockWasExternallyGenerated   = I2S_RCR2_BCI(1),  ///< Internal logic is clocked as if bit clock was externally generated
    };
 
    /**
@@ -11124,10 +11381,10 @@ Indicates that an enabled receive FIFO has overflowed.
     * clock
     */
    enum I2sReceiveClockingMode {
-      I2sReceiveClockingMode_BusClockOrAsynchronous = I2S_RCR2_MSEL(0), ///< Bus clock (or Asynchronous)
-      I2sReceiveClockingMode_MasterClock1           = I2S_RCR2_MSEL(1), ///< Master clock 1
-      I2sReceiveClockingMode_MasterClock2           = I2S_RCR2_MSEL(2), ///< Master clock 2
-      I2sReceiveClockingMode_MasterClock3           = I2S_RCR2_MSEL(3), ///< Master clock 3
+      I2sReceiveClockingMode_BusClockOrAsynchronous   = I2S_RCR2_MSEL(0),  ///< Bus clock (or Asynchronous)
+      I2sReceiveClockingMode_MasterClock1             = I2S_RCR2_MSEL(1),  ///< Master clock 1
+      I2sReceiveClockingMode_MasterClock2             = I2S_RCR2_MSEL(2),  ///< Master clock 2
+      I2sReceiveClockingMode_MasterClock3             = I2S_RCR2_MSEL(3),  ///< Master clock 3
    };
 
    /**
@@ -11137,8 +11394,8 @@ Indicates that an enabled receive FIFO has overflowed.
     * Configures the polarity of the bit clock.
     */
    enum I2sReceiveBitClockPolarity {
-      I2sReceiveBitClockPolarity_ActiveHigh = I2S_RCR2_BCP(0), ///< Active High
-      I2sReceiveBitClockPolarity_ActiveLow  = I2S_RCR2_BCP(1), ///< Active Low
+      I2sReceiveBitClockPolarity_ActiveHigh   = I2S_RCR2_BCP(0),  ///< Active High
+      I2sReceiveBitClockPolarity_ActiveLow    = I2S_RCR2_BCP(1),  ///< Active Low
    };
 
    /**
@@ -11148,8 +11405,8 @@ Indicates that an enabled receive FIFO has overflowed.
     * Configures the direction of the bit clock
     */
    enum I2sReceiveBitClockDirection {
-      I2sReceiveBitClockDirection_ExternalBitClock = I2S_RCR2_BCD(0), ///< External bit clock
-      I2sReceiveBitClockDirection_InternalBitClock = I2S_RCR2_BCD(1), ///< Internal bit clock
+      I2sReceiveBitClockDirection_ExternalBitClock   = I2S_RCR2_BCD(0),  ///< External bit clock
+      I2sReceiveBitClockDirection_InternalBitClock   = I2S_RCR2_BCD(1),  ///< Internal bit clock
    };
 
    /**
@@ -11172,8 +11429,8 @@ Enables the corresponding data channel for receive operation
     * A channel should be enabled before its FIFO is accessed.
     */
    enum I2sReceiveChannelEnable {
-      I2sReceiveChannelEnable_Disabled = I2S_RCR3_RCE(0), ///< Disabled
-      I2sReceiveChannelEnable_Enabled  = I2S_RCR3_RCE(1), ///< Enabled
+      I2sReceiveChannelEnable_Disabled   = I2S_RCR3_RCE(0),  ///< Disabled
+      I2sReceiveChannelEnable_Enabled    = I2S_RCR3_RCE(1),  ///< Enabled
    };
 
    /**
@@ -11216,8 +11473,8 @@ Enables the corresponding data channel for receive operation
     * Configures whether the LSB or the MSB is transmitted/received first
     */
    enum I2sReceiveBitOrder {
-      I2sReceiveBitOrder_LsbFirst = I2S_RCR4_MF(0), ///< LSB first
-      I2sReceiveBitOrder_MsbFirst = I2S_RCR4_MF(1), ///< MSB first
+      I2sReceiveBitOrder_LsbFirst   = I2S_RCR4_MF(0),  ///< LSB first
+      I2sReceiveBitOrder_MsbFirst   = I2S_RCR4_MF(1),  ///< MSB first
    };
 
    /**
@@ -11227,8 +11484,8 @@ Enables the corresponding data channel for receive operation
     * Control where frame sync asserts relative to 1st bit of the frame
     */
    enum I2sReceiveFrameSyncEarly {
-      I2sReceiveFrameSyncEarly_AssertsWithFirstBit         = I2S_RCR4_FSE(0), ///< Asserts with first bit
-      I2sReceiveFrameSyncEarly_AssertsOneBitBeforeFirstBit = I2S_RCR4_FSE(1), ///< Asserts one bit before first bit
+      I2sReceiveFrameSyncEarly_AssertsWithFirstBit           = I2S_RCR4_FSE(0),  ///< Asserts with first bit
+      I2sReceiveFrameSyncEarly_AssertsOneBitBeforeFirstBit   = I2S_RCR4_FSE(1),  ///< Asserts one bit before first bit
    };
 
    /**
@@ -11238,8 +11495,8 @@ Enables the corresponding data channel for receive operation
     * Configures the polarity of the frame sync
     */
    enum I2sReceiveFrameSyncPolarity {
-      I2sReceiveFrameSyncPolarity_ActiveHigh = I2S_RCR4_FSP(0), ///< Active high
-      I2sReceiveFrameSyncPolarity_ActiveLow  = I2S_RCR4_FSP(1), ///< Active low
+      I2sReceiveFrameSyncPolarity_ActiveHigh   = I2S_RCR4_FSP(0),  ///< Active high
+      I2sReceiveFrameSyncPolarity_ActiveLow    = I2S_RCR4_FSP(1),  ///< Active low
    };
 
    /**
@@ -11249,8 +11506,8 @@ Enables the corresponding data channel for receive operation
     * Configures the direction of the frame sync
     */
    enum I2sReceiveI2sReceiveFrameSyncDirection {
-      I2sReceiveI2sReceiveFrameSyncDirection_GeneratedExternally = I2S_RCR4_FSD(0), ///< Generated externally
-      I2sReceiveI2sReceiveFrameSyncDirection_GeneratedInternally = I2S_RCR4_FSD(1), ///< Generated internally
+      I2sReceiveI2sReceiveFrameSyncDirection_GeneratedExternally   = I2S_RCR4_FSD(0),  ///< Generated externally
+      I2sReceiveI2sReceiveFrameSyncDirection_GeneratedInternally   = I2S_RCR4_FSD(1),  ///< Generated internally
    };
 
    /**
@@ -11313,8 +11570,8 @@ Enables the corresponding data channel for receive operation
     * not written to receive FIFO) for the corresponding word in the frame
     */
    enum I2sReceiveWordMask {
-      I2sReceiveWordMask_WordNIsEnabled = I2S_RMR_RWM(0), ///< Word N is enabled
-      I2sReceiveWordMask_WordNIsMasked  = I2S_RMR_RWM(1), ///< Word N is masked
+      I2sReceiveWordMask_WordNIsEnabled   = I2S_RMR_RWM(0),  ///< Word N is enabled
+      I2sReceiveWordMask_WordNIsMasked    = I2S_RMR_RWM(1),  ///< Word N is masked
    };
 
    /**
@@ -11325,8 +11582,8 @@ Enables the corresponding data channel for receive operation
     * Updates to the MCLK divider ratio are blocked while this flag remains set
     */
    enum I2sDriverUpdateFlag {
-      I2sDriverUpdateFlag_RatioNotUpdating        = I2S_MCR_DUF(0), ///< Ratio not updating
-      I2sDriverUpdateFlag_RatioIsUpdatingOnTheFly = I2S_MCR_DUF(1), ///< Ratio is updating on-the-fly
+      I2sDriverUpdateFlag_RatioNotUpdating          = I2S_MCR_DUF(0),  ///< Ratio not updating
+      I2sDriverUpdateFlag_RatioIsUpdatingOnTheFly   = I2S_MCR_DUF(1),  ///< Ratio is updating on-the-fly
    };
 
    /**
@@ -11337,8 +11594,8 @@ Enables the corresponding data channel for receive operation
     * When software clears this field, it remains set until the MCLK divider is fully disabled
     */
    enum I2sMasterClockEnable {
-      I2sMasterClockEnable_PinIsInputBypassingTheMclkDivider = I2S_MCR_MOE(0), ///< Pin is input bypassing the MCLK Divider
-      I2sMasterClockEnable_PinIsOutputFromTheMclkDivider     = I2S_MCR_MOE(1), ///< Pin is output from the MCLK Divider
+      I2sMasterClockEnable_PinIsInputBypassingTheMclkDivider   = I2S_MCR_MOE(0),  ///< Pin is input bypassing the MCLK Divider
+      I2sMasterClockEnable_PinIsOutputFromTheMclkDivider       = I2S_MCR_MOE(1),  ///< Pin is output from the MCLK Divider
    };
 
    /**
@@ -11348,10 +11605,10 @@ Enables the corresponding data channel for receive operation
     * Selects the clock input to the MCLK divider
     */
    enum I2sMasterClockInput {
-      I2sMasterClockInput_InputClock0 = I2S_MCR_MICS(0), ///< Input clock 0
-      I2sMasterClockInput_InputClock1 = I2S_MCR_MICS(1), ///< Input clock 1
-      I2sMasterClockInput_InputClock2 = I2S_MCR_MICS(2), ///< Input clock 2
-      I2sMasterClockInput_InputClock3 = I2S_MCR_MICS(3), ///< Input clock 3
+      I2sMasterClockInput_InputClock0   = I2S_MCR_MICS(0),  ///< Input clock 0
+      I2sMasterClockInput_InputClock1   = I2S_MCR_MICS(1),  ///< Input clock 1
+      I2sMasterClockInput_InputClock2   = I2S_MCR_MICS(2),  ///< Input clock 2
+      I2sMasterClockInput_InputClock3   = I2S_MCR_MICS(3),  ///< Input clock 3
    };
 
    /**
@@ -11379,8 +11636,8 @@ Enables the corresponding data channel for receive operation
 class I2sBasicInfo {
 
 public:
-}; // class I2sBasicInfo
-   
+}; // class I2sBasicInfo 
+
 class I2s0Info : public I2sBasicInfo {
 public:
    /*
@@ -11472,6 +11729,9 @@ public:
    //! Hardware base pointer
    static constexpr HardwarePtr<I2S_Type> i2s = baseAddress;
    
+   //! Peripheral instance number
+   static constexpr unsigned instance = 0;
+   
    /**
     * Write Transmit Data Register
     *
@@ -11549,16 +11809,14 @@ public:
     *
     * Peripheral used as wake-up source
     */
-   enum LlwuPeripheral {
-      LlwuPeripheral_None = 0,    ///< No wake-up peripheral
-      LlwuPeripheral_0    = 1<<0, ///< Wake-up peripheral 0
-      LlwuPeripheral_1    = 1<<1, ///< Wake-up peripheral 1
-      LlwuPeripheral_2    = 1<<2, ///< Wake-up peripheral 2
-      LlwuPeripheral_3    = 1<<3, ///< Wake-up peripheral 3
-      LlwuPeripheral_4    = 1<<4, ///< Wake-up peripheral 4
-      LlwuPeripheral_5    = 1<<5, ///< Wake-up peripheral 5
-      LlwuPeripheral_6    = 1<<6, ///< Wake-up peripheral 6
-      LlwuPeripheral_7    = 1<<7, ///< Wake-up peripheral 7
+   enum LlwuPeripheral : uint8_t {
+      LlwuPeripheral_None         = 0,      ///< No wake-up peripheral
+      LlwuPeripheral_Lptmr0       = 1U<<0,  ///< Wake-up by LPTMR0
+      LlwuPeripheral_Cmp0         = 1U<<1,  ///< Wake-up by CMP0
+      LlwuPeripheral_Cmp1         = 1U<<2,  ///< Wake-up by CMP1
+      LlwuPeripheral_Tsi0         = 1U<<4,  ///< Wake-up by TSI0
+      LlwuPeripheral_RtcAlarm     = 1U<<5,  ///< Wake-up by RtcAlarm
+      LlwuPeripheral_RtcSeconds   = 1U<<7,  ///< Wake-up by RtcSeconds
 // No wake-up peripherals found
    };
 
@@ -11569,8 +11827,8 @@ public:
     * Whether this peripheral can wake-up the processor
     */
    enum LlwuPeripheralWakeup {
-      LlwuPeripheralWakeup_Disabled = false, ///< Wake-up disabled
-      LlwuPeripheralWakeup_Enabled  = true,  ///< Wake-up enabled
+      LlwuPeripheralWakeup_Disabled   = false,  ///< Wake-up disabled
+      LlwuPeripheralWakeup_Enabled    = true,   ///< Wake-up enabled
    };
 
    /**
@@ -11582,8 +11840,8 @@ public:
     * in the explicit port mux control
     */
    enum LlwuResetWakeup {
-      LlwuResetWakeup_Disabled = LLWU_RST_LLRSTE(0), ///< RESET pin not enabled as a LLWU mode exit source
-      LlwuResetWakeup_Enabled  = LLWU_RST_LLRSTE(1), ///< RESET pin enabled as a LLWU mode exit source
+      LlwuResetWakeup_Disabled   = LLWU_RST_LLRSTE(0),  ///< RESET not enabled as LLWU exit source
+      LlwuResetWakeup_Enabled    = LLWU_RST_LLRSTE(1),  ///< RESET enabled as LLWU exit source
    };
 
    /**
@@ -11593,8 +11851,8 @@ public:
     * Enables the digital filter for the RESET pin during LLS, VLLS3, VLLS2, or VLLS1 modes
     */
    enum LlwuResetFilter {
-      LlwuResetFilter_Disabled = LLWU_RST_RSTFILT(0), ///< Filter not enabled
-      LlwuResetFilter_Enabled  = LLWU_RST_RSTFILT(1), ///< Filter enabled
+      LlwuResetFilter_Disabled   = LLWU_RST_RSTFILT(0),  ///< Filter not enabled
+      LlwuResetFilter_Enabled    = LLWU_RST_RSTFILT(1),  ///< Filter enabled
    };
 
    /**
@@ -11604,29 +11862,66 @@ public:
     * Enables and configures the edge detection for a wake-up pin
     */
    enum LlwuPinMode {
-      LlwuPinMode_Disabled    = LLWU_PE1_WUPE0(0)|LLWU_PE1_WUPE1(0)|LLWU_PE1_WUPE2(0)|LLWU_PE1_WUPE3(0), ///< Wake-up pin disabled
-      LlwuPinMode_RisingEdge  = LLWU_PE1_WUPE0(1)|LLWU_PE1_WUPE1(1)|LLWU_PE1_WUPE2(1)|LLWU_PE1_WUPE3(1), ///< Wake-up on pin rising edge
-      LlwuPinMode_FallingEdge = LLWU_PE1_WUPE0(2)|LLWU_PE1_WUPE1(2)|LLWU_PE1_WUPE2(2)|LLWU_PE1_WUPE3(2), ///< Wake-up on pin falling edge
-      LlwuPinMode_EitherEdge  = LLWU_PE1_WUPE0(3)|LLWU_PE1_WUPE1(3)|LLWU_PE1_WUPE2(3)|LLWU_PE1_WUPE3(3), ///< Wake-up on pin either edge
+      LlwuPinMode_Disabled      = LLWU_PE1_WUPE0(0)|LLWU_PE1_WUPE1(0)|LLWU_PE1_WUPE2(0)|LLWU_PE1_WUPE3(0),  ///< Wake-up pin disabled
+      LlwuPinMode_RisingEdge    = LLWU_PE1_WUPE0(1)|LLWU_PE1_WUPE1(1)|LLWU_PE1_WUPE2(1)|LLWU_PE1_WUPE3(1),  ///< Wake-up on pin rising edge
+      LlwuPinMode_FallingEdge   = LLWU_PE1_WUPE0(2)|LLWU_PE1_WUPE1(2)|LLWU_PE1_WUPE2(2)|LLWU_PE1_WUPE3(2),  ///< Wake-up on pin falling edge
+      LlwuPinMode_EitherEdge    = LLWU_PE1_WUPE0(3)|LLWU_PE1_WUPE1(3)|LLWU_PE1_WUPE2(3)|LLWU_PE1_WUPE3(3),  ///< Wake-up on pin either edge
    };
 
    /**
-    * Wake-up On External Pin with Digital Filter
+    * Pin filter numbers
+    * (pin_filter_numbers)
+    *
+    * These are used as an index into the FILT table so
+    * do NOT correspond to filter names e.g. FILT1 = FILT[0] etc
+    */
+   enum LlwuFilterNum : uint8_t {
+      LlwuFilterNum_1   = 0,  ///< Wake-up pin filter 1
+      LlwuFilterNum_2   = 1,  ///< Wake-up pin filter 2
+   };
+
+   /**
+    * Filter Pin Select
+    * (pin_numbers)
+    *
+    * Selects 1 of the pins to be muxed into the filter
+    */
+   enum LlwuPin : uint8_t {
+      LlwuPin_Pte1        = 0,   ///< Wakeup_D0 [-]
+      LlwuPin_Wakeup_D0   = 0,   ///< Wakeup_D0 [-]
+      LlwuPin_Pta4        = 3,   ///< LLWU_P3 [PTA4(p16)]
+      LlwuPin_Pta13       = 4,   ///< LLWU_P4 [-]
+      LlwuPin_Ptb0        = 5,   ///< LLWU_P5 [PTB0(p20)]
+      LlwuPin_Ptc1        = 6,   ///< LLWU_P6 [PTC1(p22)]
+      LlwuPin_Ptc3        = 7,   ///< LLWU_P7 [-]
+      LlwuPin_Ptc4        = 8,   ///< LLWU_P8 [-]
+      LlwuPin_Ptc5        = 9,   ///< LLWU_P9 [-]
+      LlwuPin_Ptc6        = 10,  ///< LLWU_P10 [-]
+      LlwuPin_Ptc11       = 11,  ///< LLWU_P11 [-]
+      LlwuPin_Ptd0        = 12,  ///< LLWU_P12 [-]
+      LlwuPin_Ptd2        = 13,  ///< LLWU_P13 [-]
+      LlwuPin_Ptd4        = 14,  ///< LLWU_P14 [PTD4(p29)]
+      LlwuPin_Ptd6        = 15,  ///< LLWU_P15 [PTD6(p31)]
+// No user pin mappings found
+   };
+
+   /**
+    * Pin Filter Mode
     * (llwu_filt_filte)
     *
-    * Controls the digital filter options for the external pin detect
+    * Controls the digital filter options for the filtered external pin detect
     */
    enum LlwuFilterPinMode {
-      LlwuFilterPinMode_Disabled    = LLWU_FILT_FILTE(0), ///< Wake-up disabled
-      LlwuFilterPinMode_RisingEdge  = LLWU_FILT_FILTE(1), ///< Wake-up on filtered rising edge
-      LlwuFilterPinMode_FallingEdge = LLWU_FILT_FILTE(2), ///< Wake-up on filtered falling edge
-      LlwuFilterPinMode_EitherEdge  = LLWU_FILT_FILTE(3), ///< Wake-up on either filtered edge
+      LlwuFilterPinMode_Disabled      = LLWU_FILT_FILTE(0),  ///< Wake-up disabled
+      LlwuFilterPinMode_RisingEdge    = LLWU_FILT_FILTE(1),  ///< Wake-up on filtered rising edge
+      LlwuFilterPinMode_FallingEdge   = LLWU_FILT_FILTE(2),  ///< Wake-up on filtered falling edge
+      LlwuFilterPinMode_EitherEdge    = LLWU_FILT_FILTE(3),  ///< Wake-up on either filtered edge
    };
 
 class LlwuBasicInfo {
-   
+
 public:
-}; // LlwuBasicInfo
+}; // class LlwuBasicInfo 
 
 class LlwuInfo : public LlwuBasicInfo {
 public:
@@ -11672,6 +11967,30 @@ public:
    //! Number of IRQs for hardware
    static constexpr uint32_t irqCount  = sizeofArray(irqNums);
    
+   /**
+    * Enable interrupts in NVIC
+    */
+   static void enableNvicInterrupts() {
+      NVIC_EnableIRQ(irqNums[0]);
+   }
+   
+   /**
+    * Enable and set priority of interrupts in NVIC
+    * Any pending NVIC interrupts are first cleared.
+    *
+    * @param[in]  nvicPriority  Interrupt priority
+    */
+   static void enableNvicInterrupts(NvicPriority nvicPriority) {
+      enableNvicInterrupt(irqNums[0], nvicPriority);
+   }
+   
+   /**
+    * Disable interrupts in NVIC
+    */
+   static void disableNvicInterrupts() {
+      NVIC_DisableIRQ(irqNums[0]);
+   }
+   
    //! Hardware base address as uint32_t
    static constexpr uint32_t baseAddress = LLWU_BasePtr;
    
@@ -11679,7 +11998,7 @@ public:
    static constexpr HardwarePtr<LLWU_Type> llwu = baseAddress;
    
    //! Number of signals available in info table
-   static constexpr int numSignals  = 16;
+   static constexpr int numSignals  = 40;
 
    //! Information for each signal of peripheral
    static constexpr PinInfo  info[] = {
@@ -11701,6 +12020,30 @@ public:
          /*  13: LLWU_P13             = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
          /*  14: LLWU_P14             = PTD4(p29)                      */  { PinIndex::PTD4,         PcrValue(0x00100UL) },
          /*  15: LLWU_P15             = PTD6(p31)                      */  { PinIndex::PTD6,         PcrValue(0x00100UL) },
+         /*  16: --                   = --                             */  { PinIndex::INVALID_PCR,  PcrValue(0)         },
+         /*  17: --                   = --                             */  { PinIndex::INVALID_PCR,  PcrValue(0)         },
+         /*  18: --                   = --                             */  { PinIndex::INVALID_PCR,  PcrValue(0)         },
+         /*  19: --                   = --                             */  { PinIndex::INVALID_PCR,  PcrValue(0)         },
+         /*  20: --                   = --                             */  { PinIndex::INVALID_PCR,  PcrValue(0)         },
+         /*  21: --                   = --                             */  { PinIndex::INVALID_PCR,  PcrValue(0)         },
+         /*  22: --                   = --                             */  { PinIndex::INVALID_PCR,  PcrValue(0)         },
+         /*  23: --                   = --                             */  { PinIndex::INVALID_PCR,  PcrValue(0)         },
+         /*  24: --                   = --                             */  { PinIndex::INVALID_PCR,  PcrValue(0)         },
+         /*  25: --                   = --                             */  { PinIndex::INVALID_PCR,  PcrValue(0)         },
+         /*  26: --                   = --                             */  { PinIndex::INVALID_PCR,  PcrValue(0)         },
+         /*  27: --                   = --                             */  { PinIndex::INVALID_PCR,  PcrValue(0)         },
+         /*  28: --                   = --                             */  { PinIndex::INVALID_PCR,  PcrValue(0)         },
+         /*  29: --                   = --                             */  { PinIndex::INVALID_PCR,  PcrValue(0)         },
+         /*  30: --                   = --                             */  { PinIndex::INVALID_PCR,  PcrValue(0)         },
+         /*  31: --                   = --                             */  { PinIndex::INVALID_PCR,  PcrValue(0)         },
+         /*  32: LLWU_M0              = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
+         /*  33: LLWU_M1              = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
+         /*  34: LLWU_M2              = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
+         /*  35: --                   = --                             */  { PinIndex::INVALID_PCR,  PcrValue(0)         },
+         /*  36: LLWU_M4              = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
+         /*  37: LLWU_M5              = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
+         /*  38: --                   = --                             */  { PinIndex::INVALID_PCR,  PcrValue(0)         },
+         /*  39: LLWU_M7              = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
    };
 
    /**
@@ -11747,14 +12090,37 @@ public:
  * along with simple accessor functions.
  */
    /**
-    * Timer interrupt enable
+    * Timer Enable
+    * (lptmr_csr_ten)
+    *
+    * Enables timer
+    */
+   enum LptmrCsrTen : uint8_t {
+      LptmrCsrTen_Disabled   = LPTMR_CSR_TEN(0),  ///< Disabled
+      LptmrCsrTen_Enabled    = LPTMR_CSR_TEN(1),  ///< Enabled
+   };
+
+   /**
+    * Operation mode of the LPTMR
+    * (lptmr_csr_tms)
+    *
+    * Selects between timer Interval and Pulse Counting
+    * Should only be altered when timer is disabled.
+    */
+   enum LptmrMode : uint8_t {
+      LptmrMode_TimeInterval    = LPTMR_CSR_TMS(0),  ///< Time Interval mode
+      LptmrMode_PulseCounting   = LPTMR_CSR_TMS(1),  ///< Pulse Counter mode
+   };
+
+   /**
+    * Timer action on event
     * (lptmr_csr_tie)
     *
     * Enables LPTMR interrupts
     */
-   enum LptmrEventAction {
-      LptmrEventAction_None      = LPTMR_CSR_TIE(0), ///< None
-      LptmrEventAction_Interrupt = LPTMR_CSR_TIE(1), ///< Interrupt
+   enum LptmrEventAction : uint8_t {
+      LptmrEventAction_None        = LPTMR_CSR_TIE(0),  ///< None
+      LptmrEventAction_Interrupt   = LPTMR_CSR_TIE(1),  ///< Interrupt
    };
 
    /**
@@ -11762,33 +12128,24 @@ public:
     * (lptmr_csr_tfc)
     *
     * Counter action when compare event occurs
-    * The counter can contunue conting or be reset to zero.
+    * The counter can continue counting or be reset to zero.
+    * Should only be altered when timer is disabled.
     */
-   enum LptmrCompareAction {
-      LptmrCompareAction_Reset = LPTMR_CSR_TFC(0), ///< Counter is reset on event
-      LptmrCompareAction_None  = LPTMR_CSR_TFC(1), ///< Counter rolls over
-   };
-
-   /**
-    * Selects between timer Interval and Pulse Counting
-    * (lptmr_csr_tms)
-    *
-    * Configures the mode of the LPTMR
-    */
-   enum LptmrMode {
-      LptmrMode_TimeInterval  = LPTMR_CSR_TMS(0), ///< Time Interval mode
-      LptmrMode_PulseCounting = LPTMR_CSR_TMS(1), ///< Pulse Counter mode
+   enum LptmrCounterActionOnEvent : uint8_t {
+      LptmrCounterActionOnEvent_Reset   = LPTMR_CSR_TFC(0),  ///< Counter is reset on event
+      LptmrCounterActionOnEvent_None    = LPTMR_CSR_TFC(1),  ///< Counter rolls over
    };
 
    /**
     * Timer Compare Flag
     * (lptmr_csr_tcf)
     *
-    * 
+    * Flag is set when the LPTMR is enabled and the CNR equals the CMR and increments.
+    * Flag is cleared when the LPTMR is disabled or a logic 1 is written to it.
     */
-   enum LptmrCsrTcf {
-      LptmrCsrTcf_NoEvent = LPTMR_CSR_TCF(0), ///< No event
-      LptmrCsrTcf_Event   = LPTMR_CSR_TCF(1), ///< Event
+   enum LptmrCompareFlag : uint8_t {
+      LptmrCompareFlag_NoEvent   = LPTMR_CSR_TCF(0),  ///< No event
+      LptmrCompareFlag_Event     = LPTMR_CSR_TCF(1),  ///< Event
    };
 
    /**
@@ -11796,12 +12153,13 @@ public:
     * (lptmr_psr_pcs)
     *
     * Selects the clock source for LPTMR
+    * Should only be altered when timer is disabled.
     */
-   enum LptmrClockSel {
-      LptmrClockSel_Mcgirclk = LPTMR_PSR_PCS(0), ///< MCG Internal Reference Clock (MCGIRCLK)
-      LptmrClockSel_Lpoclk   = LPTMR_PSR_PCS(1), ///< Low power oscillator (LPO - 1kHz)
-      LptmrClockSel_Erclk32  = LPTMR_PSR_PCS(2), ///< 32kHz Clock Source (ERCLK32)
-      LptmrClockSel_Oscerclk = LPTMR_PSR_PCS(3), ///< Oscillator External Reference Clock (OSCERCLK)
+   enum LptmrClockSel : uint8_t {
+      LptmrClockSel_Mcgirclk   = LPTMR_PSR_PCS(0),  ///< MCG Internal Reference Clock (MCGIRCLK)
+      LptmrClockSel_Lpoclk     = LPTMR_PSR_PCS(1),  ///< Low power oscillator (LPO - 1kHz)
+      LptmrClockSel_Erclk32    = LPTMR_PSR_PCS(2),  ///< 32kHz Clock Source (ERCLK32)
+      LptmrClockSel_Oscerclk   = LPTMR_PSR_PCS(3),  ///< Oscillator External Reference Clock (OSCERCLK)
    };
 
    /**
@@ -11809,25 +12167,26 @@ public:
     * (lptmr_psr_prescaler)
     *
     * Configures the size of the Prescaler in Time Interval mode
+    * Should only be altered when timer is disabled.
     */
-   enum LptmrPrescale {
-      LptmrPrescale_Direct      = LPTMR_PSR_PBYP(1)|LPTMR_PSR_PRESCALE(0),  ///< Prescaler = 1
-      LptmrPrescale_DivBy_2     = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(0),  ///< Prescaler = 2
-      LptmrPrescale_DivBy_4     = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(1),  ///< Prescaler = 4
-      LptmrPrescale_DivBy_8     = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(2),  ///< Prescaler = 8
-      LptmrPrescale_DivBy_16    = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(3),  ///< Prescaler = 16,
-      LptmrPrescale_DivBy_32    = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(4),  ///< Prescaler = 32,
-      LptmrPrescale_DivBy_64    = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(5),  ///< Prescaler = 64
-      LptmrPrescale_DivBy_128   = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(6),  ///< Prescaler = 128
-      LptmrPrescale_DivBy_256   = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(7),  ///< Prescaler = 256
-      LptmrPrescale_DivBy_512   = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(8),  ///< Prescaler = 512
-      LptmrPrescale_DivBy_1024  = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(9),  ///< Prescaler = 1024
-      LptmrPrescale_DivBy_2048  = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(10), ///< Prescaler = 2048
-      LptmrPrescale_DivBy_4096  = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(11), ///< Prescaler = 4096
-      LptmrPrescale_DivBy_8192  = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(12), ///< Prescaler = 8192
-      LptmrPrescale_DivBy_16384 = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(13), ///< Prescaler = 16384
-      LptmrPrescale_DivBy_32768 = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(14), ///< Prescaler = 32768
-      LptmrPrescale_DivBy_65536 = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(15), ///< Prescaler = 65536
+   enum LptmrPrescale : uint8_t {
+      LptmrPrescale_Direct        = LPTMR_PSR_PBYP(1)|LPTMR_PSR_PRESCALE(0),   ///< Prescaler = 1
+      LptmrPrescale_DivBy_2       = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(0),   ///< Prescaler = 2
+      LptmrPrescale_DivBy_4       = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(1),   ///< Prescaler = 4
+      LptmrPrescale_DivBy_8       = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(2),   ///< Prescaler = 8
+      LptmrPrescale_DivBy_16      = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(3),   ///< Prescaler = 16,
+      LptmrPrescale_DivBy_32      = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(4),   ///< Prescaler = 32,
+      LptmrPrescale_DivBy_64      = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(5),   ///< Prescaler = 64
+      LptmrPrescale_DivBy_128     = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(6),   ///< Prescaler = 128
+      LptmrPrescale_DivBy_256     = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(7),   ///< Prescaler = 256
+      LptmrPrescale_DivBy_512     = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(8),   ///< Prescaler = 512
+      LptmrPrescale_DivBy_1024    = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(9),   ///< Prescaler = 1024
+      LptmrPrescale_DivBy_2048    = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(10),  ///< Prescaler = 2048
+      LptmrPrescale_DivBy_4096    = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(11),  ///< Prescaler = 4096
+      LptmrPrescale_DivBy_8192    = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(12),  ///< Prescaler = 8192
+      LptmrPrescale_DivBy_16384   = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(13),  ///< Prescaler = 16384
+      LptmrPrescale_DivBy_32768   = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(14),  ///< Prescaler = 32768
+      LptmrPrescale_DivBy_65536   = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(15),  ///< Prescaler = 65536
    };
 
    /**
@@ -11835,24 +12194,25 @@ public:
     * (lptmr_psr_glitchFilter)
     *
     * Configures the size of the glitch filter in Pulse Counting mode
+    * Should only be altered when timer is disabled.
     */
-   enum LptmrGlitchFilter {
-      LptmrGlitchFilter_Direct       = LPTMR_PSR_PBYP(1)|LPTMR_PSR_PRESCALE(0),  ///< No glitch filter
-      LptmrGlitchFilter_2_clocks     = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(1),  ///< 2 clock cycle glitch filter
-      LptmrGlitchFilter_4_clocks     = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(2),  ///< 4 clock cycle glitch filter
-      LptmrGlitchFilter_8_clocks     = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(3),  ///< 8 clock cycle glitch filter
-      LptmrGlitchFilter_16_clocks    = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(4),  ///< 16 clock cycle glitch filter
-      LptmrGlitchFilter_32_clocks    = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(5),  ///< 32 clock cycle glitch filter
-      LptmrGlitchFilter_64_clocks    = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(6),  ///< 64 clock cycle glitch filter
-      LptmrGlitchFilter_128_clocks   = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(7),  ///< 128 clock cycle glitch filter
-      LptmrGlitchFilter_256_clocks   = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(8),  ///< 256 clock cycle glitch filter
-      LptmrGlitchFilter_512_clocks   = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(9),  ///< 512 clock cycle glitch filter
-      LptmrGlitchFilter_1024_clocks  = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(10), ///< 1024 clock cycle glitch filter
-      LptmrGlitchFilter_2048_clocks  = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(11), ///< 2048 clock cycle glitch filter
-      LptmrGlitchFilter_4096_clocks  = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(12), ///< 4096 clock cycle glitch filter
-      LptmrGlitchFilter_81924_clocks = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(13), ///< 8192 clock cycle glitch filter
-      LptmrGlitchFilter_16384_clocks = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(14), ///< 16384 clock cycle glitch filter
-      LptmrGlitchFilter_32768_clocks = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(15), ///< 32768 clock cycle glitch filter
+   enum LptmrGlitchFilter : uint8_t {
+      LptmrGlitchFilter_Direct         = LPTMR_PSR_PBYP(1)|LPTMR_PSR_PRESCALE(0),   ///< No glitch filter
+      LptmrGlitchFilter_2_clocks       = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(1),   ///< 2 clock cycle glitch filter
+      LptmrGlitchFilter_4_clocks       = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(2),   ///< 4 clock cycle glitch filter
+      LptmrGlitchFilter_8_clocks       = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(3),   ///< 8 clock cycle glitch filter
+      LptmrGlitchFilter_16_clocks      = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(4),   ///< 16 clock cycle glitch filter
+      LptmrGlitchFilter_32_clocks      = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(5),   ///< 32 clock cycle glitch filter
+      LptmrGlitchFilter_64_clocks      = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(6),   ///< 64 clock cycle glitch filter
+      LptmrGlitchFilter_128_clocks     = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(7),   ///< 128 clock cycle glitch filter
+      LptmrGlitchFilter_256_clocks     = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(8),   ///< 256 clock cycle glitch filter
+      LptmrGlitchFilter_512_clocks     = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(9),   ///< 512 clock cycle glitch filter
+      LptmrGlitchFilter_1024_clocks    = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(10),  ///< 1024 clock cycle glitch filter
+      LptmrGlitchFilter_2048_clocks    = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(11),  ///< 2048 clock cycle glitch filter
+      LptmrGlitchFilter_4096_clocks    = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(12),  ///< 4096 clock cycle glitch filter
+      LptmrGlitchFilter_81924_clocks   = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(13),  ///< 8192 clock cycle glitch filter
+      LptmrGlitchFilter_16384_clocks   = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(14),  ///< 16384 clock cycle glitch filter
+      LptmrGlitchFilter_32768_clocks   = LPTMR_PSR_PBYP(0)|LPTMR_PSR_PRESCALE(15),  ///< 32768 clock cycle glitch filter
    };
 
    /**
@@ -11860,12 +12220,12 @@ public:
     * (lptmr_csr_tps)
     *
     * Input source to be used in Pulse Counter mode
+    * Should only be altered when timer is disabled.
     */
-   enum LptmrPinSel {
-      LptmrPinSel_Cmp0    = LPTMR_CSR_TPS(0), ///< CMP0 output
-      LptmrPinSel_AltPin1 = LPTMR_CSR_TPS(1), ///< LPTMR_ALT1 pin
-      LptmrPinSel_AltPin2 = LPTMR_CSR_TPS(2), ///< LPTMR_ALT2 pin
-      LptmrPinSel_AltPin3 = LPTMR_CSR_TPS(3), ///< LPTMR_ALT3 pin
+   enum LptmrInput : uint8_t {
+      LptmrInput_CMP0   = LPTMR_CSR_TPS(0),  ///< CMP0
+      LptmrInput_ALT1   = LPTMR_CSR_TPS(1),  ///< LPTMR0_ALT1
+      LptmrInput_ALT2   = LPTMR_CSR_TPS(2),  ///< LPTMR0_ALT2
    };
 
    /**
@@ -11873,17 +12233,18 @@ public:
     * (lptmr_csr_tpp)
     *
     * Polarity of the input source in Pulse Counter mode
+    * Should only be altered when timer is disabled.
     */
-   enum LptmrPulseEdge {
-      LptmrPulseEdge_Rising  = LPTMR_CSR_TPP(0), ///< Active-high source, rising-edge increments lptmr_cnr
-      LptmrPulseEdge_Falling = LPTMR_CSR_TPP(1), ///< Active-low source,  falling-edge increments lptmr_cnr
+   enum LptmrInputEdge : uint8_t {
+      LptmrInputEdge_Rising    = LPTMR_CSR_TPP(0),  ///< Active-high, increment count on rising-edge
+      LptmrInputEdge_Falling   = LPTMR_CSR_TPP(1),  ///< Active-low, increment count on falling-edge
    };
 
 class LptmrBasicInfo {
 
 public:
-}; // class LptmrBasicInfo
-   
+}; // class LptmrBasicInfo 
+
 class Lptmr0Info : public LptmrBasicInfo {
 public:
    /*
@@ -11929,6 +12290,30 @@ public:
    static constexpr uint32_t irqCount  = sizeofArray(irqNums);
    
    /**
+    * Enable interrupts in NVIC
+    */
+   static void enableNvicInterrupts() {
+      NVIC_EnableIRQ(irqNums[0]);
+   }
+   
+   /**
+    * Enable and set priority of interrupts in NVIC
+    * Any pending NVIC interrupts are first cleared.
+    *
+    * @param[in]  nvicPriority  Interrupt priority
+    */
+   static void enableNvicInterrupts(NvicPriority nvicPriority) {
+      enableNvicInterrupt(irqNums[0], nvicPriority);
+   }
+   
+   /**
+    * Disable interrupts in NVIC
+    */
+   static void disableNvicInterrupts() {
+      NVIC_DisableIRQ(irqNums[0]);
+   }
+   
+   /**
     *  Enable clock to Lptmr0
     */
    static void enableClock() {
@@ -11951,13 +12336,6 @@ public:
    //! Peripheral instance number
    static constexpr unsigned instance = 0;
    
-   
-   /// Minimum resolution for time interval setting
-   static constexpr uint32_t minimumResolution = 100;
-
-   /// Type for Peripheral interrupt handling
-   typedef void (*CallbackFunction)();
-
    //! Number of signals available in info table
    static constexpr int numSignals  = 3;
 
@@ -12004,17 +12382,45 @@ public:
  * along with simple accessor functions.
  */
    /**
+    * Each bit in the ASC field indicates whether there is a corresponding connection to the crossbar switch&amp;apos;s slave input port
+    * (mcm_plasc_asc)
+    *
+    * 
+    */
+   enum McmPlascAsc : uint16_t {
+      McmPlascAsc_ABusSlaveConnectionToAxbsInputPortNIsAbsent    = MCM_PLASC_ASC(0),  ///< A bus slave connection to AXBS input port n is absent
+      McmPlascAsc_ABusSlaveConnectionToAxbsInputPortNIsPresent   = MCM_PLASC_ASC(1),  ///< A bus slave connection to AXBS input port n is present
+   };
+
+   /**
+    * Each bit in the AMC field indicates whether there is a corresponding connection to the AXBS master input port
+    * (mcm_plamc_amc)
+    *
+    * 
+    */
+   enum McmPlamcAmc : uint16_t {
+      McmPlamcAmc_ABusMasterConnectionToAxbsInputPortNIsAbsent    = MCM_PLAMC_AMC(0),  ///< A bus master connection to AXBS input port n is absent
+      McmPlamcAmc_ABusMasterConnectionToAxbsInputPortNIsPresent   = MCM_PLAMC_AMC(1),  ///< A bus master connection to AXBS input port n is present
+   };
+
+   /**
     * Arbitration select for the crossbar masters
     * (mcm_placr_arb)
     *
     * Arbitration select for the crossbar masters
     */
    enum McmArbitration {
-      McmArbitration_FixedPriority = MCM_PLACR_ARB(0), ///< Fixed-priority
-      McmArbitration_RoundRobin    = MCM_PLACR_ARB(1), ///< Round-robin
+      McmArbitration_FixedPriority   = MCM_PLACR_ARB(0),  ///< Fixed-priority
+      McmArbitration_RoundRobin      = MCM_PLACR_ARB(1),  ///< Round-robin
    };
 
-class McmInfo {
+class McmBasicInfo {
+
+public:
+   // May be empty
+}; // class McmBasicInfo 
+
+class McmInfo : public McmBasicInfo {
 public:
    /*
     * Template:mcm_mk11d5
@@ -12060,8 +12466,8 @@ public:
     * Writing 0 to this field has no effect. Reading this field yields 0
     */
    enum PdbSoftwareTrigger {
-      PdbSoftwareTrigger_NoAction       = PDB_SC_SWTRIG(0), ///< No Action
-      PdbSoftwareTrigger_RestartCounter = PDB_SC_SWTRIG(1), ///< Load registers
+      PdbSoftwareTrigger_NoAction         = PDB_SC_SWTRIG(0),  ///< No Action
+      PdbSoftwareTrigger_RestartCounter   = PDB_SC_SWTRIG(1),  ///< Load registers
    };
 
    /**
@@ -12071,8 +12477,8 @@ public:
     * This field is set when the counter value is equal to the IDLY register. Writing zero clears this field
     */
    enum PdbInterruptFlag {
-      PdbInterruptFlag_NoEvent        = PDB_SC_PDBIF(0), ///< No event
-      PdbInterruptFlag_RequestPending = PDB_SC_PDBIF(1), ///< Request Pending
+      PdbInterruptFlag_NoEvent          = PDB_SC_PDBIF(0),  ///< No event
+      PdbInterruptFlag_RequestPending   = PDB_SC_PDBIF(1),  ///< Request Pending
    };
 
    /**
@@ -12083,8 +12489,8 @@ public:
     * The new values will take effect according to the LDMOD
     */
    enum PdbLoad {
-      PdbLoad_NoAction      = PDB_SC_LDOK(0), ///< No Action
-      PdbLoad_LoadRegisters = PDB_SC_LDOK(1), ///< Load registers
+      PdbLoad_NoAction        = PDB_SC_LDOK(0),  ///< No Action
+      PdbLoad_LoadRegisters   = PDB_SC_LDOK(1),  ///< Load registers
    };
 
    /**
@@ -12096,20 +12502,20 @@ public:
     * or the software trigger
     */
    enum PdbTrigger {
-      PdbTrigger_PdbDisabled = PDB_SC_PDBEN(0)|PDB_SC_TRGSEL(0),  ///< PDB Disabled
-      PdbTrigger_External    = PDB_SC_PDBEN(1)|PDB_SC_TRGSEL(0),  ///< External Trigger (PDB0_EXTRG)
-      PdbTrigger_Cmp0        = PDB_SC_PDBEN(1)|PDB_SC_TRGSEL(1),  ///< CMP 0
-      PdbTrigger_Cmp1        = PDB_SC_PDBEN(1)|PDB_SC_TRGSEL(2),  ///< CMP 1
-      PdbTrigger_PitCh0      = PDB_SC_PDBEN(1)|PDB_SC_TRGSEL(4),  ///< PIT Ch 0 Output
-      PdbTrigger_PitCh1      = PDB_SC_PDBEN(1)|PDB_SC_TRGSEL(5),  ///< PIT Ch 1 Output
-      PdbTrigger_PitCh2      = PDB_SC_PDBEN(1)|PDB_SC_TRGSEL(6),  ///< PIT Ch 2 Output
-      PdbTrigger_PitCh3      = PDB_SC_PDBEN(1)|PDB_SC_TRGSEL(7),  ///< PIT Ch 3 Output
-      PdbTrigger_Ftm0        = PDB_SC_PDBEN(1)|PDB_SC_TRGSEL(8),  ///< FTM0 Init and Ext Trigger Outputs
-      PdbTrigger_Ftm1        = PDB_SC_PDBEN(1)|PDB_SC_TRGSEL(9),  ///< FTM1 Init and Ext Trigger Outputs
-      PdbTrigger_RtcAlarm    = PDB_SC_PDBEN(1)|PDB_SC_TRGSEL(12), ///< RTC Alarm
-      PdbTrigger_RtcSeconds  = PDB_SC_PDBEN(1)|PDB_SC_TRGSEL(13), ///< RTC Seconds
-      PdbTrigger_Lptmr       = PDB_SC_PDBEN(1)|PDB_SC_TRGSEL(14), ///< LPTMR
-      PdbTrigger_Software    = PDB_SC_PDBEN(1)|PDB_SC_TRGSEL(15), ///< Software trigger is selected
+      PdbTrigger_PdbDisabled   = PDB_SC_PDBEN(0)|PDB_SC_TRGSEL(0),   ///< PDB Disabled
+      PdbTrigger_External      = PDB_SC_PDBEN(1)|PDB_SC_TRGSEL(0),   ///< External Trigger (PDB0_EXTRG)
+      PdbTrigger_Cmp0          = PDB_SC_PDBEN(1)|PDB_SC_TRGSEL(1),   ///< CMP 0
+      PdbTrigger_Cmp1          = PDB_SC_PDBEN(1)|PDB_SC_TRGSEL(2),   ///< CMP 1
+      PdbTrigger_PitCh0        = PDB_SC_PDBEN(1)|PDB_SC_TRGSEL(4),   ///< PIT Ch 0 Output
+      PdbTrigger_PitCh1        = PDB_SC_PDBEN(1)|PDB_SC_TRGSEL(5),   ///< PIT Ch 1 Output
+      PdbTrigger_PitCh2        = PDB_SC_PDBEN(1)|PDB_SC_TRGSEL(6),   ///< PIT Ch 2 Output
+      PdbTrigger_PitCh3        = PDB_SC_PDBEN(1)|PDB_SC_TRGSEL(7),   ///< PIT Ch 3 Output
+      PdbTrigger_Ftm0          = PDB_SC_PDBEN(1)|PDB_SC_TRGSEL(8),   ///< FTM0 Init and Ext Trigger Outputs
+      PdbTrigger_Ftm1          = PDB_SC_PDBEN(1)|PDB_SC_TRGSEL(9),   ///< FTM1 Init and Ext Trigger Outputs
+      PdbTrigger_RtcAlarm      = PDB_SC_PDBEN(1)|PDB_SC_TRGSEL(12),  ///< RTC Alarm
+      PdbTrigger_RtcSeconds    = PDB_SC_PDBEN(1)|PDB_SC_TRGSEL(13),  ///< RTC Seconds
+      PdbTrigger_Lptmr         = PDB_SC_PDBEN(1)|PDB_SC_TRGSEL(14),  ///< LPTMR
+      PdbTrigger_Software      = PDB_SC_PDBEN(1)|PDB_SC_TRGSEL(15),  ///< Software trigger is selected
    };
 
    /**
@@ -12120,10 +12526,10 @@ public:
     * after 1 is written to LDOK
     */
    enum PdbLoadMode {
-      PdbLoadMode_Immediate     = PDB_SC_LDMOD(0), ///< Registers loaded immediately on LDOK=1
-      PdbLoadMode_Modulo        = PDB_SC_LDMOD(1), ///< Registers loaded when PDB counter reaches MOD
-      PdbLoadMode_Event         = PDB_SC_LDMOD(2), ///< Registers loaded on trigger input event
-      PdbLoadMode_EventOrModulo = PDB_SC_LDMOD(3), ///< Registers loaded when PDB counter reaches MOD or on trigger input event
+      PdbLoadMode_Immediate       = PDB_SC_LDMOD(0),  ///< Registers loaded immediately on LDOK=1
+      PdbLoadMode_Modulo          = PDB_SC_LDMOD(1),  ///< Registers loaded when PDB counter reaches MOD
+      PdbLoadMode_Event           = PDB_SC_LDMOD(2),  ///< Registers loaded on trigger input event
+      PdbLoadMode_EventOrModulo   = PDB_SC_LDMOD(3),  ///< Registers loaded when PDB counter reaches MOD or on trigger input event
    };
 
    /**
@@ -12134,8 +12540,8 @@ public:
     * When this bit is set, any of the channel sequence error flags generates a sequence error interrupt
     */
    enum PdbErrorAction {
-      PdbErrorAction_None      = PDB_SC_PDBEIE(0), ///< No interrupt on error
-      PdbErrorAction_Interrupt = PDB_SC_PDBEIE(1), ///< Interrupt on error
+      PdbErrorAction_None        = PDB_SC_PDBEIE(0),  ///< No interrupt on error
+      PdbErrorAction_Interrupt   = PDB_SC_PDBEIE(1),  ///< Interrupt on error
    };
 
    /**
@@ -12145,8 +12551,8 @@ public:
     * Select continuous or one-shot mode
     */
    enum PdbMode {
-      PdbMode_OneShot    = PDB_SC_CONT(0), ///< Sequence runs once only
-      PdbMode_Continuous = PDB_SC_CONT(1), ///< Sequence runs continuously once triggered
+      PdbMode_OneShot      = PDB_SC_CONT(0),  ///< Sequence runs once only
+      PdbMode_Continuous   = PDB_SC_CONT(1),  ///< Sequence runs continuously once triggered
    };
 
    /**
@@ -12156,7 +12562,7 @@ public:
     * Selects a PDB channel
     */
    enum PdbChannel {
-      PdbChannel_0 = 0, ///< Channel 0
+      PdbChannel_0   = 0,  ///< Channel 0
    };
 
    /**
@@ -12166,24 +12572,24 @@ public:
     * The PDB input clock is divided by this factor
     */
    enum PdbPrescale {
-      PdbPrescale_DivBy_1    = PDB_SC_MULT(0)|PDB_SC_PRESCALER(0), ///< Divide by 1
-      PdbPrescale_DivBy_2    = PDB_SC_MULT(0)|PDB_SC_PRESCALER(1), ///< Divide by 2
-      PdbPrescale_DivBy_4    = PDB_SC_MULT(0)|PDB_SC_PRESCALER(2), ///< Divide by 4
-      PdbPrescale_DivBy_8    = PDB_SC_MULT(0)|PDB_SC_PRESCALER(3), ///< Divide by 8
-      PdbPrescale_DivBy_10   = PDB_SC_MULT(1)|PDB_SC_PRESCALER(0), ///< Divide by 10
-      PdbPrescale_DivBy_16   = PDB_SC_MULT(0)|PDB_SC_PRESCALER(4), ///< Divide by 16
-      PdbPrescale_DivBy_20   = PDB_SC_MULT(1)|PDB_SC_PRESCALER(1), ///< Divide by 20
-      PdbPrescale_DivBy_32   = PDB_SC_MULT(0)|PDB_SC_PRESCALER(5), ///< Divide by 32
-      PdbPrescale_DivBy_40   = PDB_SC_MULT(1)|PDB_SC_PRESCALER(2), ///< Divide by 40
-      PdbPrescale_DivBy_64   = PDB_SC_MULT(0)|PDB_SC_PRESCALER(6), ///< Divide by 64
-      PdbPrescale_DivBy_80   = PDB_SC_MULT(1)|PDB_SC_PRESCALER(3), ///< Divide by 80
-      PdbPrescale_DivBy_128  = PDB_SC_MULT(0)|PDB_SC_PRESCALER(7), ///< Divide by 128
-      PdbPrescale_DivBy_160  = PDB_SC_MULT(1)|PDB_SC_PRESCALER(4), ///< Divide by 160
-      PdbPrescale_DivBy_320  = PDB_SC_MULT(1)|PDB_SC_PRESCALER(5), ///< Divide by 320
-      PdbPrescale_DivBy_640  = PDB_SC_MULT(1)|PDB_SC_PRESCALER(6), ///< Divide by 640
-      PdbPrescale_DivBy_1280 = PDB_SC_MULT(1)|PDB_SC_PRESCALER(7), ///< Divide by 1280
-      PdbPrescale_DivBy_2560 = PDB_SC_MULT(2)|PDB_SC_PRESCALER(7), ///< Divide by 2560
-      PdbPrescale_DivBy_5120 = PDB_SC_MULT(3)|PDB_SC_PRESCALER(7), ///< Divide by 5120
+      PdbPrescale_DivBy_1      = PDB_SC_MULT(0)|PDB_SC_PRESCALER(0),  ///< Divide by 1
+      PdbPrescale_DivBy_2      = PDB_SC_MULT(0)|PDB_SC_PRESCALER(1),  ///< Divide by 2
+      PdbPrescale_DivBy_4      = PDB_SC_MULT(0)|PDB_SC_PRESCALER(2),  ///< Divide by 4
+      PdbPrescale_DivBy_8      = PDB_SC_MULT(0)|PDB_SC_PRESCALER(3),  ///< Divide by 8
+      PdbPrescale_DivBy_10     = PDB_SC_MULT(1)|PDB_SC_PRESCALER(0),  ///< Divide by 10
+      PdbPrescale_DivBy_16     = PDB_SC_MULT(0)|PDB_SC_PRESCALER(4),  ///< Divide by 16
+      PdbPrescale_DivBy_20     = PDB_SC_MULT(1)|PDB_SC_PRESCALER(1),  ///< Divide by 20
+      PdbPrescale_DivBy_32     = PDB_SC_MULT(0)|PDB_SC_PRESCALER(5),  ///< Divide by 32
+      PdbPrescale_DivBy_40     = PDB_SC_MULT(1)|PDB_SC_PRESCALER(2),  ///< Divide by 40
+      PdbPrescale_DivBy_64     = PDB_SC_MULT(0)|PDB_SC_PRESCALER(6),  ///< Divide by 64
+      PdbPrescale_DivBy_80     = PDB_SC_MULT(1)|PDB_SC_PRESCALER(3),  ///< Divide by 80
+      PdbPrescale_DivBy_128    = PDB_SC_MULT(0)|PDB_SC_PRESCALER(7),  ///< Divide by 128
+      PdbPrescale_DivBy_160    = PDB_SC_MULT(1)|PDB_SC_PRESCALER(4),  ///< Divide by 160
+      PdbPrescale_DivBy_320    = PDB_SC_MULT(1)|PDB_SC_PRESCALER(5),  ///< Divide by 320
+      PdbPrescale_DivBy_640    = PDB_SC_MULT(1)|PDB_SC_PRESCALER(6),  ///< Divide by 640
+      PdbPrescale_DivBy_1280   = PDB_SC_MULT(1)|PDB_SC_PRESCALER(7),  ///< Divide by 1280
+      PdbPrescale_DivBy_2560   = PDB_SC_MULT(2)|PDB_SC_PRESCALER(7),  ///< Divide by 2560
+      PdbPrescale_DivBy_5120   = PDB_SC_MULT(3)|PDB_SC_PRESCALER(7),  ///< Divide by 5120
    };
 
    /**
@@ -12193,7 +12599,7 @@ public:
     * 
     */
    enum PdbPrescale_Auto {
-      PdbPrescale_Auto_Calculated = PDB_SC_MULT(3)|PDB_SC_PRESCALER(0), ///< Auto select
+      PdbPrescale_Auto_Calculated   = PDB_SC_MULT(3)|PDB_SC_PRESCALER(0),  ///< Auto select
    };
 
    /**
@@ -12203,9 +12609,9 @@ public:
     * Selects the action taken when the timer reaches the interrupt delay value
     */
    enum PdbAction {
-      PdbAction_None      = PDB_SC_DMAEN(0)|PDB_SC_PDBIE(0), ///< No action on event
-      PdbAction_Interrupt = PDB_SC_DMAEN(0)|PDB_SC_PDBIE(1), ///< Interrupt on event
-      PdbAction_Dma       = PDB_SC_DMAEN(1)|PDB_SC_PDBIE(1), ///< DMA request on event
+      PdbAction_None        = PDB_SC_DMAEN(0)|PDB_SC_PDBIE(0),  ///< No action on event
+      PdbAction_Interrupt   = PDB_SC_DMAEN(0)|PDB_SC_PDBIE(1),  ///< Interrupt on event
+      PdbAction_Dma         = PDB_SC_DMAEN(1)|PDB_SC_PDBIE(1),  ///< DMA request on event
    };
 
    /**
@@ -12215,10 +12621,10 @@ public:
     * Select pre-trigger mode
     */
    enum PdbPretrigger0 {
-      PdbPretrigger0_Disabled   = PDB_C1_EN(0<<0)|PDB_C1_TOS(0<<0)|PDB_C1_BB(0<<0), ///< Pretrigger disabled
-      PdbPretrigger0_Bypassed   = PDB_C1_EN(1<<0)|PDB_C1_TOS(0<<0)|PDB_C1_BB(0<<0), ///< Pretrigger asserts 1 clock after trigger
-      PdbPretrigger0_Delayed    = PDB_C1_EN(1<<0)|PDB_C1_TOS(1<<0)|PDB_C1_BB(0<<0), ///< Pretrigger asserts 1 clock + delay after trigger
-      PdbPretrigger0_BackToBack = PDB_C1_EN(1<<0)|PDB_C1_TOS(0<<0)|PDB_C1_BB(1<<0), ///< Back-to-back, pretrigger asserts 2 clocks after previous acknowledge
+      PdbPretrigger0_Disabled     = PDB_C1_EN(0<<0)|PDB_C1_TOS(0<<0)|PDB_C1_BB(0<<0),  ///< Pretrigger disabled
+      PdbPretrigger0_Bypassed     = PDB_C1_EN(1<<0)|PDB_C1_TOS(0<<0)|PDB_C1_BB(0<<0),  ///< Pretrigger asserts 1 clock after trigger
+      PdbPretrigger0_Delayed      = PDB_C1_EN(1<<0)|PDB_C1_TOS(1<<0)|PDB_C1_BB(0<<0),  ///< Pretrigger asserts 1 clock + delay after trigger
+      PdbPretrigger0_BackToBack   = PDB_C1_EN(1<<0)|PDB_C1_TOS(0<<0)|PDB_C1_BB(1<<0),  ///< Back-to-back, pretrigger asserts 2 clocks after previous acknowledge
    };
 
    /**
@@ -12228,10 +12634,10 @@ public:
     * Select pre-trigger mode
     */
    enum PdbPretrigger1 {
-      PdbPretrigger1_Disabled   = PDB_C1_EN(0<<1)|PDB_C1_TOS(0<<1)|PDB_C1_BB(0<<1), ///< Pretrigger disabled
-      PdbPretrigger1_Bypassed   = PDB_C1_EN(1<<1)|PDB_C1_TOS(0<<1)|PDB_C1_BB(0<<1), ///< Pretrigger asserts 1 clock after trigger
-      PdbPretrigger1_Delayed    = PDB_C1_EN(1<<1)|PDB_C1_TOS(1<<1)|PDB_C1_BB(0<<1), ///< Pretrigger asserts 1 clock + delay after trigger
-      PdbPretrigger1_BackToBack = PDB_C1_EN(1<<1)|PDB_C1_TOS(0<<1)|PDB_C1_BB(1<<1), ///< Back-to-back, pretrigger asserts 2 clocks after previous acknowledge
+      PdbPretrigger1_Disabled     = PDB_C1_EN(0<<1)|PDB_C1_TOS(0<<1)|PDB_C1_BB(0<<1),  ///< Pretrigger disabled
+      PdbPretrigger1_Bypassed     = PDB_C1_EN(1<<1)|PDB_C1_TOS(0<<1)|PDB_C1_BB(0<<1),  ///< Pretrigger asserts 1 clock after trigger
+      PdbPretrigger1_Delayed      = PDB_C1_EN(1<<1)|PDB_C1_TOS(1<<1)|PDB_C1_BB(0<<1),  ///< Pretrigger asserts 1 clock + delay after trigger
+      PdbPretrigger1_BackToBack   = PDB_C1_EN(1<<1)|PDB_C1_TOS(0<<1)|PDB_C1_BB(1<<1),  ///< Back-to-back, pretrigger asserts 2 clocks after previous acknowledge
    };
 
    /**
@@ -12241,8 +12647,8 @@ public:
     * Enable the trigger to DAC 0
     */
    enum PdbPulseOutput0 {
-      PdbPulseOutput0_Disabled = PDB_POEN_POEN(0<<0), ///< Pulse output disabled
-      PdbPulseOutput0_Enabled  = PDB_POEN_POEN(1<<0), ///< Pulse output 0 is enabled
+      PdbPulseOutput0_Disabled   = PDB_POEN_POEN(0<<0),  ///< Pulse output disabled
+      PdbPulseOutput0_Enabled    = PDB_POEN_POEN(1<<0),  ///< Pulse output 0 is enabled
    };
 
    /**
@@ -12252,16 +12658,16 @@ public:
     * Enable the trigger to DAC 1
     */
    enum PdbPulseOutput1 {
-      PdbPulseOutput1_Disabled = PDB_POEN_POEN(0<<1), ///< Pulse output disabled
-      PdbPulseOutput1_Enabled  = PDB_POEN_POEN(1<<1), ///< Pulse output 1 is enabled
+      PdbPulseOutput1_Disabled   = PDB_POEN_POEN(0<<1),  ///< Pulse output disabled
+      PdbPulseOutput1_Enabled    = PDB_POEN_POEN(1<<1),  ///< Pulse output 1 is enabled
    };
 
-class Pdb0BasicInfo {
+class PdbBasicInfo {
 
 public:
-}; // class Pdb0BasicInfo
+}; // class PdbBasicInfo 
 
-class Pdb0Info : public Pdb0BasicInfo {
+class Pdb0Info : public PdbBasicInfo {
 public:
    /*
     * Template:pdb0_1ch_2pt_0dac_2po
@@ -12304,6 +12710,30 @@ public:
    
    //! Number of IRQs for hardware
    static constexpr uint32_t irqCount  = sizeofArray(irqNums);
+   
+   /**
+    * Enable interrupts in NVIC
+    */
+   static void enableNvicInterrupts() {
+      NVIC_EnableIRQ(irqNums[0]);
+   }
+   
+   /**
+    * Enable and set priority of interrupts in NVIC
+    * Any pending NVIC interrupts are first cleared.
+    *
+    * @param[in]  nvicPriority  Interrupt priority
+    */
+   static void enableNvicInterrupts(NvicPriority nvicPriority) {
+      enableNvicInterrupt(irqNums[0], nvicPriority);
+   }
+   
+   /**
+    * Disable interrupts in NVIC
+    */
+   static void disableNvicInterrupts() {
+      NVIC_DisableIRQ(irqNums[0]);
+   }
    
    /**
     *  Enable clock to Pdb0
@@ -12398,16 +12828,16 @@ public:
  * along with simple accessor functions.
  */
    /**
-    * Pit Interrupt indices
+    * IRQ entry
     * (irq_enum)
     *
-    * Used to identify peripheral interrupt
+    * Select amongst interrupts associated with the peripheral
     */
    enum PitIrqNum {
-      PitIrqNum_Ch0 = 0, ///< Periodic Interrupt Timer
-      PitIrqNum_Ch1 = 1, ///< Periodic Interrupt Timer
-      PitIrqNum_Ch2 = 2, ///< Periodic Interrupt Timer
-      PitIrqNum_Ch3 = 3, ///< Periodic Interrupt Timer
+      PitIrqNum_Ch0   = 0,  ///< Maps to PIT_Ch0_IRQn
+      PitIrqNum_Ch1   = 1,  ///< Maps to PIT_Ch1_IRQn
+      PitIrqNum_Ch2   = 2,  ///< Maps to PIT_Ch2_IRQn
+      PitIrqNum_Ch3   = 3,  ///< Maps to PIT_Ch3_IRQn
    };
 
    /**
@@ -12417,11 +12847,15 @@ public:
     * Selected PIT channel
     */
    enum PitChannelNum : uint8_t {
-      PitChannelNum_0    = 0,          ///< Channel 0
-      PitChannelNum_1    = 1,          ///< Channel 1
-      PitChannelNum_2    = 2,          ///< Channel 2
-      PitChannelNum_3    = 3,          ///< Channel 3
-      PitChannelNum_None = 0b10000000, ///< Channel Not Allocated
+      PitChannelNum_0         = 0,           ///< Channel 0
+      PitChannelNum_PIT_CH0   = 0,           ///< Pin PIT_CH0
+      PitChannelNum_1         = 1,           ///< Channel 1
+      PitChannelNum_PIT_CH1   = 1,           ///< Pin PIT_CH1
+      PitChannelNum_2         = 2,           ///< Channel 2
+      PitChannelNum_PIT_CH2   = 2,           ///< Pin PIT_CH2
+      PitChannelNum_3         = 3,           ///< Channel 3
+      PitChannelNum_PIT_CH3   = 3,           ///< Pin PIT_CH3
+      PitChannelNum_None      = 0b10000000,  ///< Channel Not Allocated
    };
 
    /**
@@ -12431,8 +12865,8 @@ public:
     * Disabled PIT module clock
     */
    enum PitOperation : uint8_t {
-      PitOperation_Enabled  = PIT_MCR_MDIS(0), ///< PIT enabled
-      PitOperation_Disabled = PIT_MCR_MDIS(1), ///< PIT disabled
+      PitOperation_Enabled    = PIT_MCR_MDIS(0),  ///< PIT enabled
+      PitOperation_Disabled   = PIT_MCR_MDIS(1),  ///< PIT disabled
    };
 
    /**
@@ -12442,8 +12876,8 @@ public:
     * Determines if timers are stopped in Debug mode
     */
    enum PitDebugMode : uint8_t {
-      PitDebugMode_RunInDebug  = PIT_MCR_FRZ(0), ///< Timers run in Debug
-      PitDebugMode_StopInDebug = PIT_MCR_FRZ(1), ///< Timers stop in Debug
+      PitDebugMode_RunInDebug    = PIT_MCR_FRZ(0),  ///< Timers run in Debug
+      PitDebugMode_StopInDebug   = PIT_MCR_FRZ(1),  ///< Timers stop in Debug
    };
 
    /**
@@ -12453,26 +12887,29 @@ public:
     * Allows operation of this channel
     */
    enum PitChannelEnable : uint8_t {
-      PitChannelEnable_Disabled = PIT_TCTRL_TEN(0), ///< Channel disabled
-      PitChannelEnable_Enabled  = PIT_TCTRL_TEN(1), ///< Channel enabled
+      PitChannelEnable_Disabled   = PIT_TCTRL_TEN(0),  ///< Channel disabled
+      PitChannelEnable_Enabled    = PIT_TCTRL_TEN(1),  ///< Channel enabled
    };
 
    /**
-    * Timer Interrupt Enable
+    * Action on timer event
     * (pit_tctrl_tie[0])
     *
     * Allows interrupts from this channel
     */
-   enum PitChannelIrq : uint8_t {
-      PitChannelIrq_Disabled = PIT_TCTRL_TIE(0), ///< Interrupts are disabled
-      PitChannelIrq_Enabled  = PIT_TCTRL_TIE(1), ///< Interrupts are enabled
+   enum PitChannelAction : uint8_t {
+      PitChannelAction_None        = PIT_TCTRL_TIE(0),  ///< None
+      PitChannelAction_Interrupt   = PIT_TCTRL_TIE(1),  ///< Interrupt
    };
 
 class PitBasicInfo {
-   
+
 public:
    //! Common class based callback code has been generated for this class of peripheral
    static constexpr bool irqHandlerInstalled = false;
+   
+   /** Bit-mask of allocated channels */
+   static inline uint32_t allocatedChannels = 0;
    
    /**
     * Class used to do initialisation of the Pit
@@ -12497,6 +12934,13 @@ public:
     */
    class Init {
    
+   private:
+      /**
+       * Prevent implicit parameter conversions
+       */
+      template <typename... Types>
+      constexpr Init(Types...) = delete;
+   
    public:
       /**
        * Copy Constructor
@@ -12508,7 +12952,8 @@ public:
        */
       constexpr Init() = default;
    
-      /// Module Control Register
+      // Module Disable (pit_mcr_mdis)
+      // Freeze in Debug (pit_mcr_frz)
       uint32_t mcr = 0;
 
       /**
@@ -12557,7 +13002,7 @@ public:
     *
     *       PitChannelEnable_Enabled , // Timer Channel Enable - Channel enabled
     *       PitChannelChain_Disabled , // Chain with previous channel - Timers are not chained
-    *       PitChannelIrq_Disabled ,   // Timer Interrupt Enable - Interrupts are disabled
+    *       PitChannelAction_None ,    // Timer Interrupt Enable - Interrupts are disabled
     *       callBackFunction,          // Call-back function to use
     *       NvicPriority_Normal ,      // IRQ level for this peripheral - Normal
     *       3999_ticks,                // Reload value for channel (in ticks or seconds)
@@ -12572,6 +13017,13 @@ public:
     */
    class ChannelInit {
    
+   private:
+      /**
+       * Prevent implicit parameter conversions
+       */
+      template <typename... Types>
+      ChannelInit(Types...) = delete;
+   
    public:
       /**
        * Copy Constructor
@@ -12583,14 +13035,33 @@ public:
        */
       constexpr ChannelInit() = default;
    
-      /// Reload value channel 0
+      // Reload value channel 0 (pit_ldval_tsv[0])
       Ticks ldval = 0_ticks;
 
-      /// Timer Control Register
+      // Timer Channel Enable (pit_tctrl_ten[0])
+      // Action on timer event (pit_tctrl_tie[0])
       uint8_t tctrl = 0;
 
-      /// Pit Channel Number
+      // IRQ priority levels (nvic_irqLevel)
+      NvicPriority irqlevel = NvicPriority_Normal;
+   
+      // Pit Channel Number (pit_channelNumber)
       PitChannelNum channelnumber = PitChannelNum_None;
+
+      /**
+       * Constructor for IRQ priority levels
+       *
+       * @tparam   Types
+       * @param    rest
+       *
+       * @param nvicPriority Priority level used to configure the NVIC
+       *        Subset of available levels
+       */
+      template <typename... Types>
+      constexpr ChannelInit(NvicPriority nvicPriority, Types... rest) : ChannelInit(rest...) {
+   
+         irqlevel = nvicPriority;
+      }
 
       /**
        * Constructor for Pit Channel Number
@@ -12635,22 +13106,22 @@ public:
       }
    
       /**
-       * Constructor for Timer Interrupt Enable
+       * Constructor for Action on timer event
        *
        * @tparam   Types
        * @param    rest
        *
-       * @param pitChannelIrq Allows interrupts from this channel
+       * @param pitChannelAction Allows interrupts from this channel
        */
       template <typename... Types>
-      constexpr ChannelInit(PitChannelIrq pitChannelIrq, Types... rest) : ChannelInit(rest...) {
+      constexpr ChannelInit(PitChannelAction pitChannelAction, Types... rest) : ChannelInit(rest...) {
    
-         tctrl = (tctrl&~PIT_TCTRL_TIE_MASK) | pitChannelIrq;
+         tctrl = (tctrl&~PIT_TCTRL_TIE_MASK) | pitChannelAction;
       }
    
    };// class PitBasicInfo::ChannelInit
    
-}; // class PitBasicInfo
+}; // class PitBasicInfo 
 
 class PitInfo : public PitBasicInfo {
 public:
@@ -12668,7 +13139,7 @@ public:
    
    /**
     * Enable interrupts in NVIC
-    * @param pitIrqNum Used to identify peripheral interrupt
+    * @param pitIrqNum Select amongst interrupts associated with the peripheral
     */
    static void enableNvicInterrupts(PitIrqNum pitIrqNum) {
       NVIC_EnableIRQ(irqNums[pitIrqNum]);
@@ -12679,7 +13150,7 @@ public:
     * Any pending NVIC interrupts are first cleared.
     *
     * @param[in]  nvicPriority  Interrupt priority
-    * @param pitIrqNum Used to identify peripheral interrupt
+    * @param pitIrqNum Select amongst interrupts associated with the peripheral
     */
    static void enableNvicInterrupts(PitIrqNum pitIrqNum, NvicPriority nvicPriority) {
       enableNvicInterrupt(irqNums[pitIrqNum], nvicPriority);
@@ -12687,7 +13158,7 @@ public:
    
    /**
     * Disable interrupts in NVIC
-    * @param pitIrqNum Used to identify peripheral interrupt
+    * @param pitIrqNum Select amongst interrupts associated with the peripheral
     */
    static void disableNvicInterrupts(PitIrqNum pitIrqNum) {
       NVIC_DisableIRQ(irqNums[pitIrqNum]);
@@ -12716,10 +13187,14 @@ public:
    }
    
    /**
-    * Disables the clock to Pit and all mapped pins
+    * Disables Pit
     */
    static void disable() {
       
+      disableNvicInterrupts(PitIrqNum_Ch0);
+      disableNvicInterrupts(PitIrqNum_Ch1);
+      disableNvicInterrupts(PitIrqNum_Ch2);
+      disableNvicInterrupts(PitIrqNum_Ch3);
       disableClock();
    }
    
@@ -12732,6 +13207,59 @@ public:
    //! Number of PIT channels
    static constexpr uint32_t NumChannels  = 4;
 
+   
+   /**
+    * Configure PIT from values specified in init
+    * The peripheral is enabled.
+    * Only shared hardware is initialised. Channel hardware is unchanged.
+    * Channel reservations are cleared.
+    *
+    * @param init Class containing initialisation values
+    */
+   static void configure(const Init &init) {
+   
+      // Enable peripheral
+      enable();
+      (void)pit->MCR; // Dummy read to ensure clock enable completed (errata e7914)
+   
+      // Configure common settings
+      pit->MCR    = init.mcr;
+   
+      // Clear channel reservations
+      allocatedChannels = -1;
+   }
+   
+   /**
+    * Configure PIT with default settings.
+    * Shared hardware is initialised.
+    * All channel hardware is configured with their default settings.
+    * The configuration is determined from Configure.usbdmProject
+    */
+   static inline void defaultConfigure() {
+   
+      // Update shared hardware
+      configure(DefaultInitValue);
+   
+   }
+   
+   /**
+    * Enables and configures the PIT if not already done.
+    * If required:
+    *  - Shared hardware is initialised.
+    *  - All channel hardware is configured with their default settings.
+    *  - The configuration is determined from Configure.usbdmProject
+    */
+   static void defaultConfigureIfNeeded() {
+   
+       enable();
+   
+      // Check if disabled and configure if so
+      if ((pit->MCR & PIT_MCR_MDIS_MASK) != 0) {
+         // Update shared hardware
+         configure(DefaultInitValue);
+      }
+   }
+   
    /**
     * Default initialisation value for Pit
     * This value is created from Configure.usbdmProject settings
@@ -12741,39 +13269,64 @@ public:
       PitDebugMode_StopInDebug,  // (pit_mcr_frz) Freeze in Debug - Timers stop in Debug
    };
 
+   
+   /**
+    * Configure PIT channel from values specified in init
+    * The PIT shared hardware will be default initialised if necessary.
+    * This version allows the channel number to be explicitly given to allow
+    * sharing of an init class for channels requiring the same configuration.
+    *
+    * @param channeNum Number of channel to initialise
+    * @param init      Class containing initialisation values (channel number is ignored)
+    */
+   static void configure(PitChannelNum channelNum, const ChannelInit &init) {
+   
+      // Enable peripheral if needed using default settings
+      defaultConfigureIfNeeded();
+   
+      // Disable channel
+      pit->CHANNEL[channelNum].TCTRL = 0;
+   
+      Ticks ldval = init.ldval;
+   
+   
+      pit->CHANNEL[channelNum].LDVAL = ldval;
+   
+      enableNvicInterrupts(PitIrqNum(channelNum), init.irqlevel);
+   
+      // Configure channel
+      pit->CHANNEL[channelNum].TCTRL = init.tctrl;
+   }
+   
+   /**
+    * Configure multiple PIT channels
+    *
+    * @tparam N   Number of channels (deduced)
+    *
+    * @param ar   Array of channel-init structures
+    */
+   template<int N>
+   static void configure(const ChannelInit (&ar)[N]) {
+      for (int i=0; i<N; i++) {
+         configure(ar[i]);
+      }
+   }
+   
+   /**
+    * Configure PIT channel from values specified in init.
+    * The PIT shared hardware will be default initialised if necessary
+    *
+    * @param init Class containing initialisation values
+    */
+   static void configure(const ChannelInit &init) {
+      configure(init.channelnumber, init);
+   }
+   
    /**
     * Default initialisation values for PIT channels
     * This value is created from Configure.usbdmProject settings
     */
    static constexpr ChannelInit DefaultChannelInitValues[] = {
-      {
-      PitChannelNum_0,
-
-      PitChannelEnable_Disabled , // (pit_tctrl_ten[0]) Timer Channel Enable - Channel disabled
-      PitChannelIrq_Disabled , // (pit_tctrl_tie[0]) Timer Interrupt Enable - Interrupts are disabled
-      0_ticks,  // (pit_ldval_tsv[0]) Reload value channel 0
-      },
-      {
-      PitChannelNum_1,
-
-      PitChannelEnable_Disabled , // (pit_tctrl_ten[1]) Timer Channel Enable - Channel disabled
-      PitChannelIrq_Disabled , // (pit_tctrl_tie[1]) Timer Interrupt Enable - Interrupts are disabled
-      0_ticks,  // (pit_ldval_tsv[1]) Reload value channel 1
-      },
-      {
-      PitChannelNum_2,
-
-      PitChannelEnable_Disabled , // (pit_tctrl_ten[2]) Timer Channel Enable - Channel disabled
-      PitChannelIrq_Disabled , // (pit_tctrl_tie[2]) Timer Interrupt Enable - Interrupts are disabled
-      0_ticks,  // (pit_ldval_tsv[2]) Reload value channel 2
-      },
-      {
-      PitChannelNum_3,
-
-      PitChannelEnable_Disabled , // (pit_tctrl_ten[3]) Timer Channel Enable - Channel disabled
-      PitChannelIrq_Disabled , // (pit_tctrl_tie[3]) Timer Interrupt Enable - Interrupts are disabled
-      0_ticks,  // (pit_ldval_tsv[3]) Reload value channel 3
-      },
    }; // DefaultChannelInitValues
 
    /**
@@ -12854,8 +13407,8 @@ public:
     * On exit from VLLS mode, this bit should be reconfigured before clearing PMC_REGSC[ACKISO]
     */
    enum RcmResetPinStopFilter {
-      RcmResetPinStopFilter_Disabled           = RCM_RPFC_RSTFLTSS(0), ///< No filter
-      RcmResetPinStopFilter_LowPowerOscillator = RCM_RPFC_RSTFLTSS(1), ///< LPO clock based filter
+      RcmResetPinStopFilter_Disabled             = RCM_RPFC_RSTFLTSS(0),  ///< No filter
+      RcmResetPinStopFilter_LowPowerOscillator   = RCM_RPFC_RSTFLTSS(1),  ///< LPO clock based filter
    };
 
    /**
@@ -12865,9 +13418,9 @@ public:
     * Controls the reset reset pin filter in RUN and WAIT modes
     */
    enum RcmResetPinRunWaitFilter {
-      RcmResetPinRunWaitFilter_Disabled           = RCM_RPFC_RSTFLTSRW(0), ///< No filter
-      RcmResetPinRunWaitFilter_BusClock           = RCM_RPFC_RSTFLTSRW(1), ///< Bus clock based filter
-      RcmResetPinRunWaitFilter_LowPowerOscillator = RCM_RPFC_RSTFLTSRW(2), ///< LPO clock based filter
+      RcmResetPinRunWaitFilter_Disabled             = RCM_RPFC_RSTFLTSRW(0),  ///< No filter
+      RcmResetPinRunWaitFilter_BusClock             = RCM_RPFC_RSTFLTSRW(1),  ///< Bus clock based filter
+      RcmResetPinRunWaitFilter_LowPowerOscillator   = RCM_RPFC_RSTFLTSRW(2),  ///< LPO clock based filter
    };
 
    /**
@@ -12877,38 +13430,38 @@ public:
     * Selects the reset pin filter width
     */
    enum RcmResetFilter {
-      RcmResetFilter_1Cycles  = RCM_RPFW_RSTFLTSEL(0),  ///< 1 Cycles
-      RcmResetFilter_2Cycles  = RCM_RPFW_RSTFLTSEL(1),  ///< 2 Cycles
-      RcmResetFilter_3Cycles  = RCM_RPFW_RSTFLTSEL(2),  ///< 3 Cycles
-      RcmResetFilter_4Cycles  = RCM_RPFW_RSTFLTSEL(3),  ///< 4 Cycles
-      RcmResetFilter_5Cycles  = RCM_RPFW_RSTFLTSEL(4),  ///< 5 Cycles
-      RcmResetFilter_6Cycles  = RCM_RPFW_RSTFLTSEL(5),  ///< 6 Cycles
-      RcmResetFilter_7Cycles  = RCM_RPFW_RSTFLTSEL(6),  ///< 7 Cycles
-      RcmResetFilter_8Cycles  = RCM_RPFW_RSTFLTSEL(7),  ///< 8 Cycles
-      RcmResetFilter_9Cycles  = RCM_RPFW_RSTFLTSEL(8),  ///< 9 Cycles
-      RcmResetFilter_10Cycles = RCM_RPFW_RSTFLTSEL(9),  ///< 10 Cycles
-      RcmResetFilter_11Cycles = RCM_RPFW_RSTFLTSEL(10), ///< 11 Cycles
-      RcmResetFilter_12Cycles = RCM_RPFW_RSTFLTSEL(11), ///< 12 Cycles
-      RcmResetFilter_13Cycles = RCM_RPFW_RSTFLTSEL(12), ///< 13 Cycles
-      RcmResetFilter_14Cycles = RCM_RPFW_RSTFLTSEL(13), ///< 14 Cycles
-      RcmResetFilter_15Cycles = RCM_RPFW_RSTFLTSEL(14), ///< 15 Cycles
-      RcmResetFilter_16Cycles = RCM_RPFW_RSTFLTSEL(15), ///< 16 Cycles
-      RcmResetFilter_17Cycles = RCM_RPFW_RSTFLTSEL(16), ///< 17 Cycles
-      RcmResetFilter_18Cycles = RCM_RPFW_RSTFLTSEL(17), ///< 18 Cycles
-      RcmResetFilter_19Cycles = RCM_RPFW_RSTFLTSEL(18), ///< 19 Cycles
-      RcmResetFilter_20Cycles = RCM_RPFW_RSTFLTSEL(19), ///< 20 Cycles
-      RcmResetFilter_21Cycles = RCM_RPFW_RSTFLTSEL(20), ///< 21 Cycles
-      RcmResetFilter_22Cycles = RCM_RPFW_RSTFLTSEL(21), ///< 22 Cycles
-      RcmResetFilter_23Cycles = RCM_RPFW_RSTFLTSEL(22), ///< 23 Cycles
-      RcmResetFilter_24Cycles = RCM_RPFW_RSTFLTSEL(23), ///< 24 Cycles
-      RcmResetFilter_25Cycles = RCM_RPFW_RSTFLTSEL(24), ///< 25 Cycles
-      RcmResetFilter_26Cycles = RCM_RPFW_RSTFLTSEL(25), ///< 26 Cycles
-      RcmResetFilter_27Cycles = RCM_RPFW_RSTFLTSEL(26), ///< 27 Cycles
-      RcmResetFilter_28Cycles = RCM_RPFW_RSTFLTSEL(27), ///< 28 Cycles
-      RcmResetFilter_29Cycles = RCM_RPFW_RSTFLTSEL(28), ///< 29 Cycles
-      RcmResetFilter_30Cycles = RCM_RPFW_RSTFLTSEL(29), ///< 30 Cycles
-      RcmResetFilter_31Cycles = RCM_RPFW_RSTFLTSEL(30), ///< 31 Cycles
-      RcmResetFilter_32Cycles = RCM_RPFW_RSTFLTSEL(31), ///< 32 Cycles
+      RcmResetFilter_1Cycles    = RCM_RPFW_RSTFLTSEL(0),   ///< 1 Cycles
+      RcmResetFilter_2Cycles    = RCM_RPFW_RSTFLTSEL(1),   ///< 2 Cycles
+      RcmResetFilter_3Cycles    = RCM_RPFW_RSTFLTSEL(2),   ///< 3 Cycles
+      RcmResetFilter_4Cycles    = RCM_RPFW_RSTFLTSEL(3),   ///< 4 Cycles
+      RcmResetFilter_5Cycles    = RCM_RPFW_RSTFLTSEL(4),   ///< 5 Cycles
+      RcmResetFilter_6Cycles    = RCM_RPFW_RSTFLTSEL(5),   ///< 6 Cycles
+      RcmResetFilter_7Cycles    = RCM_RPFW_RSTFLTSEL(6),   ///< 7 Cycles
+      RcmResetFilter_8Cycles    = RCM_RPFW_RSTFLTSEL(7),   ///< 8 Cycles
+      RcmResetFilter_9Cycles    = RCM_RPFW_RSTFLTSEL(8),   ///< 9 Cycles
+      RcmResetFilter_10Cycles   = RCM_RPFW_RSTFLTSEL(9),   ///< 10 Cycles
+      RcmResetFilter_11Cycles   = RCM_RPFW_RSTFLTSEL(10),  ///< 11 Cycles
+      RcmResetFilter_12Cycles   = RCM_RPFW_RSTFLTSEL(11),  ///< 12 Cycles
+      RcmResetFilter_13Cycles   = RCM_RPFW_RSTFLTSEL(12),  ///< 13 Cycles
+      RcmResetFilter_14Cycles   = RCM_RPFW_RSTFLTSEL(13),  ///< 14 Cycles
+      RcmResetFilter_15Cycles   = RCM_RPFW_RSTFLTSEL(14),  ///< 15 Cycles
+      RcmResetFilter_16Cycles   = RCM_RPFW_RSTFLTSEL(15),  ///< 16 Cycles
+      RcmResetFilter_17Cycles   = RCM_RPFW_RSTFLTSEL(16),  ///< 17 Cycles
+      RcmResetFilter_18Cycles   = RCM_RPFW_RSTFLTSEL(17),  ///< 18 Cycles
+      RcmResetFilter_19Cycles   = RCM_RPFW_RSTFLTSEL(18),  ///< 19 Cycles
+      RcmResetFilter_20Cycles   = RCM_RPFW_RSTFLTSEL(19),  ///< 20 Cycles
+      RcmResetFilter_21Cycles   = RCM_RPFW_RSTFLTSEL(20),  ///< 21 Cycles
+      RcmResetFilter_22Cycles   = RCM_RPFW_RSTFLTSEL(21),  ///< 22 Cycles
+      RcmResetFilter_23Cycles   = RCM_RPFW_RSTFLTSEL(22),  ///< 23 Cycles
+      RcmResetFilter_24Cycles   = RCM_RPFW_RSTFLTSEL(23),  ///< 24 Cycles
+      RcmResetFilter_25Cycles   = RCM_RPFW_RSTFLTSEL(24),  ///< 25 Cycles
+      RcmResetFilter_26Cycles   = RCM_RPFW_RSTFLTSEL(25),  ///< 26 Cycles
+      RcmResetFilter_27Cycles   = RCM_RPFW_RSTFLTSEL(26),  ///< 27 Cycles
+      RcmResetFilter_28Cycles   = RCM_RPFW_RSTFLTSEL(27),  ///< 28 Cycles
+      RcmResetFilter_29Cycles   = RCM_RPFW_RSTFLTSEL(28),  ///< 29 Cycles
+      RcmResetFilter_30Cycles   = RCM_RPFW_RSTFLTSEL(29),  ///< 30 Cycles
+      RcmResetFilter_31Cycles   = RCM_RPFW_RSTFLTSEL(30),  ///< 31 Cycles
+      RcmResetFilter_32Cycles   = RCM_RPFW_RSTFLTSEL(31),  ///< 32 Cycles
    };
 
    /**
@@ -12918,15 +13471,15 @@ public:
     * Reflects the state of the EZP_MS pin during the last Chip Reset
     */
    enum RcmModePinEZP {
-      RcmModePinEZP_Negated  = RCM_MR_EZP_MS(0), ///< Negated (logic 1)
-      RcmModePinEZP_Asserted = RCM_MR_EZP_MS(1), ///< Asserted (logic 0)
+      RcmModePinEZP_Negated    = RCM_MR_EZP_MS(0),  ///< Negated (logic 1)
+      RcmModePinEZP_Asserted   = RCM_MR_EZP_MS(1),  ///< Asserted (logic 0)
    };
 
 class RcmBasicInfo {
 
 public:
-}; // class RcmBasicInfo
-   
+}; // class RcmBasicInfo 
+
 class RcmInfo : public RcmBasicInfo {
 public:
    /*
@@ -12962,8 +13515,8 @@ public:
     * Allows the MCU to enter any very low power modes: VLPR, VLPW, and VLPS
     */
    enum SmcAllowVeryLowPower : uint8_t {
-      SmcAllowVeryLowPower_Disabled = SMC_PMPROT_AVLP(0), ///< VLPR, VLPW and VLPS are not allowed
-      SmcAllowVeryLowPower_Enabled  = SMC_PMPROT_AVLP(1), ///< VLPR, VLPW and VLPS are allowed
+      SmcAllowVeryLowPower_Disabled   = SMC_PMPROT_AVLP(0),  ///< VLPR, VLPW and VLPS are not allowed
+      SmcAllowVeryLowPower_Enabled    = SMC_PMPROT_AVLP(1),  ///< VLPR, VLPW and VLPS are allowed
    };
 
    /**
@@ -12973,8 +13526,8 @@ public:
     * Allows the MCU to enter any low leakage stop mode: LLS
     */
    enum SmcAllowLowLeakageStop : uint8_t {
-      SmcAllowLowLeakageStop_Disabled = SMC_PMPROT_ALLS(0), ///< LLS is not allowed
-      SmcAllowLowLeakageStop_Enabled  = SMC_PMPROT_ALLS(1), ///< LLS is allowed
+      SmcAllowLowLeakageStop_Disabled   = SMC_PMPROT_ALLS(0),  ///< LLS is not allowed
+      SmcAllowLowLeakageStop_Enabled    = SMC_PMPROT_ALLS(1),  ///< LLS is allowed
    };
 
    /**
@@ -12984,8 +13537,8 @@ public:
     * Allows the MCU to enter any low leakage stop mode: VLLSx
     */
    enum SmcAllowVeryLowLeakageStop : uint8_t {
-      SmcAllowVeryLowLeakageStop_Disabled = SMC_PMPROT_AVLLS(0), ///< VLLSx is not allowed
-      SmcAllowVeryLowLeakageStop_Enabled  = SMC_PMPROT_AVLLS(1), ///< VLLSx is allowed
+      SmcAllowVeryLowLeakageStop_Disabled   = SMC_PMPROT_AVLLS(0),  ///< VLLSx is not allowed
+      SmcAllowVeryLowLeakageStop_Enabled    = SMC_PMPROT_AVLLS(1),  ///< VLLSx is allowed
    };
 
    /**
@@ -12995,8 +13548,8 @@ public:
     * Determines the clock speed restrictions that apply
     */
    enum SmcRunMode : uint8_t {
-      SmcRunMode_Normal       = SMC_PMCTRL_RUNM(0), ///< Normal RUN
-      SmcRunMode_VeryLowPower = SMC_PMCTRL_RUNM(2), ///< Very Low Power RUN
+      SmcRunMode_Normal         = SMC_PMCTRL_RUNM(0),  ///< Normal RUN
+      SmcRunMode_VeryLowPower   = SMC_PMCTRL_RUNM(2),  ///< Very Low Power RUN
    };
 
    /**
@@ -13007,8 +13560,8 @@ public:
     * occurs while in a VLP mode (VLPR, VLPW or VLPS)
     */
    enum SmcExitLowPowerOnInt : uint8_t {
-      SmcExitLowPowerOnInt_Disabled = SMC_PMCTRL_LPWUI(0), ///< Stay in VLPR on int
-      SmcExitLowPowerOnInt_Enabled  = SMC_PMCTRL_LPWUI(1), ///< Exit VLPR on int
+      SmcExitLowPowerOnInt_Disabled   = SMC_PMCTRL_LPWUI(0),  ///< Stay in VLPR on int
+      SmcExitLowPowerOnInt_Enabled    = SMC_PMCTRL_LPWUI(1),  ///< Exit VLPR on int
    };
 
    /**
@@ -13021,8 +13574,8 @@ public:
     * entry sequence and is set if the sequence was aborted.
     */
    enum SmcStopOutcome {
-      SmcStopOutcome_Successful = SMC_PMCTRL_STOPA(0), ///< Entry Successful
-      SmcStopOutcome_Aborted    = SMC_PMCTRL_STOPA(1), ///< Entry Aborted
+      SmcStopOutcome_Successful   = SMC_PMCTRL_STOPA(0),  ///< Entry Successful
+      SmcStopOutcome_Aborted      = SMC_PMCTRL_STOPA(1),  ///< Entry Aborted
    };
 
    /**
@@ -13034,10 +13587,10 @@ public:
     * This field is cleared by hardware on any successful write to the PMPROT register
     */
    enum SmcStopMode : uint8_t {
-      SmcStopMode_NormalStop         = SMC_PMCTRL_STOPM(0), ///< Normal Stop (STOP)
-      SmcStopMode_VeryLowPowerStop   = SMC_PMCTRL_STOPM(2), ///< Very-Low-Power Stop (VLPS)
-      SmcStopMode_LowLeakageStop     = SMC_PMCTRL_STOPM(3), ///< Low-Leakage Stop (LLSx)
-      SmcStopMode_VeryLowLeakageStop = SMC_PMCTRL_STOPM(4), ///< Very-Low-Leakage Stop (VLLSx)
+      SmcStopMode_NormalStop           = SMC_PMCTRL_STOPM(0),  ///< Normal Stop (STOP)
+      SmcStopMode_VeryLowPowerStop     = SMC_PMCTRL_STOPM(2),  ///< Very-Low-Power Stop (VLPS)
+      SmcStopMode_LowLeakageStop       = SMC_PMCTRL_STOPM(3),  ///< Low-Leakage Stop (LLSx)
+      SmcStopMode_VeryLowLeakageStop   = SMC_PMCTRL_STOPM(4),  ///< Very-Low-Leakage Stop (VLLSx)
    };
 
    /**
@@ -13047,8 +13600,8 @@ public:
     * Controls whether the Power-On-Reset detect circuit is enabled in VLLS0 mode (Brown-out detection)
     */
    enum SmcPowerOnResetInVlls0 : uint8_t {
-      SmcPowerOnResetInVlls0_Enabled  = SMC_STOPCTRL_PORPO(0), ///< POR detect circuit is enabled in VLLS0
-      SmcPowerOnResetInVlls0_Disabled = SMC_STOPCTRL_PORPO(1), ///< POR detect circuit is disabled in VLLS0
+      SmcPowerOnResetInVlls0_Enabled    = SMC_STOPCTRL_PORPO(0),  ///< POR detect circuit is enabled in VLLS0
+      SmcPowerOnResetInVlls0_Disabled   = SMC_STOPCTRL_PORPO(1),  ///< POR detect circuit is disabled in VLLS0
    };
 
    /**
@@ -13058,10 +13611,10 @@ public:
     * Controls which VLLS sub-mode to enter if STOPM = VLLSx
     */
    enum SmcLowLeakageStopMode : uint8_t {
-      SmcLowLeakageStopMode_VLLS0 = SMC_STOPCTRL_VLLSM(0), ///< Enter VLLS0 in VLLSx mode
-      SmcLowLeakageStopMode_VLLS1 = SMC_STOPCTRL_VLLSM(1), ///< Enter VLLS1 in VLLSx mode
-      SmcLowLeakageStopMode_VLLS2 = SMC_STOPCTRL_VLLSM(2), ///< Enter VLLS2 in VLLSx mode
-      SmcLowLeakageStopMode_VLLS3 = SMC_STOPCTRL_VLLSM(3), ///< Enter VLLS3 in VLLSx mode
+      SmcLowLeakageStopMode_VLLS0   = SMC_STOPCTRL_VLLSM(0),  ///< Enter VLLS0 in VLLSx mode
+      SmcLowLeakageStopMode_VLLS1   = SMC_STOPCTRL_VLLSM(1),  ///< Enter VLLS1 in VLLSx mode
+      SmcLowLeakageStopMode_VLLS2   = SMC_STOPCTRL_VLLSM(2),  ///< Enter VLLS2 in VLLSx mode
+      SmcLowLeakageStopMode_VLLS3   = SMC_STOPCTRL_VLLSM(3),  ///< Enter VLLS3 in VLLSx mode
    };
 
    /**
@@ -13071,13 +13624,13 @@ public:
     * Shows the execution state of the processor
     */
    enum SmcStatus : uint8_t {
-      SmcStatus_RUN  = SMC_PMSTAT_PMSTAT(1<<0), ///< Processor is in Normal Run mode
-      SmcStatus_VLPR = SMC_PMSTAT_PMSTAT(1<<2), ///< Processor is in Very Low Power Run mode
-      SmcStatus_VLPW = SMC_PMSTAT_PMSTAT(1<<3), ///< Processor is in Very Low Power Wait mode
-      SmcStatus_STOP = SMC_PMSTAT_PMSTAT(1<<1), ///< Processor is in Stop mode
-      SmcStatus_VLPS = SMC_PMSTAT_PMSTAT(1<<4), ///< Processor is in Very Low Power Stop mode
-      SmcStatus_LLS  = SMC_PMSTAT_PMSTAT(1<<5), ///< Processor is in Low Leakage Stop mode
-      SmcStatus_VLLS = SMC_PMSTAT_PMSTAT(1<<6), ///< Processor is in Very Low Leakage Stop mode
+      SmcStatus_RUN    = SMC_PMSTAT_PMSTAT(1<<0),  ///< Processor is in Normal Run mode
+      SmcStatus_VLPR   = SMC_PMSTAT_PMSTAT(1<<2),  ///< Processor is in Very Low Power Run mode
+      SmcStatus_VLPW   = SMC_PMSTAT_PMSTAT(1<<3),  ///< Processor is in Very Low Power Wait mode
+      SmcStatus_STOP   = SMC_PMSTAT_PMSTAT(1<<1),  ///< Processor is in Stop mode
+      SmcStatus_VLPS   = SMC_PMSTAT_PMSTAT(1<<4),  ///< Processor is in Very Low Power Stop mode
+      SmcStatus_LLS    = SMC_PMSTAT_PMSTAT(1<<5),  ///< Processor is in Low Leakage Stop mode
+      SmcStatus_VLLS   = SMC_PMSTAT_PMSTAT(1<<6),  ///< Processor is in Very Low Leakage Stop mode
    };
 
    consteval uint32_t make16(uint8_t pmctrl, uint8_t stopctrl=0, uint8_t bias=0) {
@@ -13116,7 +13669,7 @@ public:
    }
    
    /**
-    * Disables the clock to Smc and all mapped pins
+    * Disables Smc
     */
    static void disable() {
       
@@ -13474,9 +14027,9 @@ public:
     * Enable DMA or interrupts requests on Transmit FIFO space
     */
    enum SpiTxFifoRequest {
-      SpiTxFifoRequest_Disabled  = SPI_RSER_TFFF_RE(0)|SPI_RSER_TFFF_DIRS(0), ///< No requests
-      SpiTxFifoRequest_Interrupt = SPI_RSER_TFFF_RE(1)|SPI_RSER_TFFF_DIRS(0), ///< Interrupt
-      SpiTxFifoRequest_Dma       = SPI_RSER_TFFF_RE(1)|SPI_RSER_TFFF_DIRS(1), ///< DMA
+      SpiTxFifoRequest_Disabled    = SPI_RSER_TFFF_RE(0)|SPI_RSER_TFFF_DIRS(0),  ///< No requests
+      SpiTxFifoRequest_Interrupt   = SPI_RSER_TFFF_RE(1)|SPI_RSER_TFFF_DIRS(0),  ///< Interrupt
+      SpiTxFifoRequest_Dma         = SPI_RSER_TFFF_RE(1)|SPI_RSER_TFFF_DIRS(1),  ///< DMA
    };
 
    /**
@@ -13486,9 +14039,9 @@ public:
     * Enable DMA or interrupts requests on Receive FIFO data
     */
    enum SpiRxFifoRequest {
-      SpiRxFifoRequest_Disabled  = SPI_RSER_RFDF_RE(0)|SPI_RSER_RFDF_DIRS(0), ///< No requests
-      SpiRxFifoRequest_Interrupt = SPI_RSER_RFDF_RE(1)|SPI_RSER_RFDF_DIRS(0), ///< Interrupt
-      SpiRxFifoRequest_Dma       = SPI_RSER_RFDF_RE(1)|SPI_RSER_RFDF_DIRS(1), ///< DMA
+      SpiRxFifoRequest_Disabled    = SPI_RSER_RFDF_RE(0)|SPI_RSER_RFDF_DIRS(0),  ///< No requests
+      SpiRxFifoRequest_Interrupt   = SPI_RSER_RFDF_RE(1)|SPI_RSER_RFDF_DIRS(0),  ///< Interrupt
+      SpiRxFifoRequest_Dma         = SPI_RSER_RFDF_RE(1)|SPI_RSER_RFDF_DIRS(1),  ///< DMA
    };
 
    /**
@@ -13498,8 +14051,8 @@ public:
     * Controls Transmit FIFO Underflow interrupts (on TFUF flag)
     */
    enum SpiTxFifoUnderflowInterrupt {
-      SpiTxFifoUnderflowInterrupt_Disabled = SPI_RSER_TFUF_RE(0), ///< No requests
-      SpiTxFifoUnderflowInterrupt_Enabled  = SPI_RSER_TFUF_RE(1), ///< Interrupt on underflow
+      SpiTxFifoUnderflowInterrupt_Disabled   = SPI_RSER_TFUF_RE(0),  ///< No requests
+      SpiTxFifoUnderflowInterrupt_Enabled    = SPI_RSER_TFUF_RE(1),  ///< Interrupt on underflow
    };
 
    /**
@@ -13509,8 +14062,8 @@ public:
     * Receive FIFO Overflow interrupts (on RFOF flag)
     */
    enum SpiRxFifoOverflowInterrupt {
-      SpiRxFifoOverflowInterrupt_Disabled = SPI_RSER_RFOF_RE(0), ///< No requests
-      SpiRxFifoOverflowInterrupt_Enabled  = SPI_RSER_RFOF_RE(1), ///< Interrupt on overflow
+      SpiRxFifoOverflowInterrupt_Disabled   = SPI_RSER_RFOF_RE(0),  ///< No requests
+      SpiRxFifoOverflowInterrupt_Enabled    = SPI_RSER_RFOF_RE(1),  ///< Interrupt on overflow
    };
 
    /**
@@ -13520,8 +14073,8 @@ public:
     * Transmit complete interrupts (TCF Flag)
     */
    enum SpiTxCompleteInterrupt {
-      SpiTxCompleteInterrupt_Disabled = SPI_RSER_TCF_RE(0), ///< No requests
-      SpiTxCompleteInterrupt_Enabled  = SPI_RSER_TCF_RE(1), ///< Interrupt on completion
+      SpiTxCompleteInterrupt_Disabled   = SPI_RSER_TCF_RE(0),  ///< No requests
+      SpiTxCompleteInterrupt_Enabled    = SPI_RSER_TCF_RE(1),  ///< Interrupt on completion
    };
 
    /**
@@ -13531,26 +14084,26 @@ public:
     * End of Queue interrupts (EOQF flag)
     */
    enum SpiEndOfQueueInterrupt {
-      SpiEndOfQueueInterrupt_Disabled = SPI_RSER_EOQF_RE(0), ///< No requests
-      SpiEndOfQueueInterrupt_Enabled  = SPI_RSER_EOQF_RE(1), ///< Interrupt on end of queue
+      SpiEndOfQueueInterrupt_Disabled   = SPI_RSER_EOQF_RE(0),  ///< No requests
+      SpiEndOfQueueInterrupt_Enabled    = SPI_RSER_EOQF_RE(1),  ///< Interrupt on end of queue
    };
 
    /**
     * Polarity for PCS signals
-    * (spi_mcr_pcsis)
+    * (spi_mcr_pcsis_enum)
     *
     * Mask to select the polarity of Peripheral Chip Select Lines (PCSx)
     * Selected PCS signals will be active-low i.e. PCS will go low when accessing the peripheral
     */
-   enum SpiPcsActiveLow {
-      SpiPcsActiveLow_Pcs0 = SPI_MCR_PCSIS(1U<<0), ///< Pcs0 is active-low
-      SpiPcsActiveLow_Pcs1 = SPI_MCR_PCSIS(1U<<1), ///< Pcs1 is active-low
-      SpiPcsActiveLow_Pcs2 = SPI_MCR_PCSIS(1U<<2), ///< Pcs2 is active-low
-      SpiPcsActiveLow_Pcs3 = SPI_MCR_PCSIS(1U<<3), ///< Pcs3 is active-low
-      SpiPcsActiveLow_Pcs4 = SPI_MCR_PCSIS(1U<<4), ///< Pcs4 is active-low
-      SpiPcsActiveLow_Pcs5 = SPI_MCR_PCSIS(1U<<5), ///< Pcs5 is active-low
-      SpiPcsActiveLow_None = SPI_MCR_PCSIS(0),    ///< All PCSx active-high
-      SpiPcsActiveLow_All  = SPI_MCR_PCSIS(-1),   ///< All PCSx active-low
+   enum SpiPcsActiveLow : uint32_t {
+      SpiPcsActiveLow_Pcs0   = SPI_MCR_PCSIS(1U<<0),  ///< PCS0 is active-low
+      SpiPcsActiveLow_Pcs1   = SPI_MCR_PCSIS(1U<<1),  ///< PCS1 is active-low
+      SpiPcsActiveLow_Pcs2   = SPI_MCR_PCSIS(1U<<2),  ///< PCS2 is active-low
+      SpiPcsActiveLow_Pcs3   = SPI_MCR_PCSIS(1U<<3),  ///< PCS3 is active-low
+      SpiPcsActiveLow_Pcs4   = SPI_MCR_PCSIS(1U<<4),  ///< PCS4 is active-low
+      SpiPcsActiveLow_Pcs5   = SPI_MCR_PCSIS(1U<<5),  ///< PCS5 is active-low
+      SpiPcsActiveLow_None   = SPI_MCR_PCSIS(0),      ///< All PCSx active-high
+      SpiPcsActiveLow_All    = SPI_MCR_PCSIS(-1),     ///< All PCSx active-low
    };
 
    /**
@@ -13560,10 +14113,10 @@ public:
     * Selectively clear transmit or receive FIFOs
     */
    enum SpiClearFifo {
-      SpiClearFifo_None = SPI_MCR_CLR_TXF(0)|SPI_MCR_CLR_RXF(0), ///< FIFOs not affected
-      SpiClearFifo_Rx   = SPI_MCR_CLR_TXF(0)|SPI_MCR_CLR_RXF(1), ///< Clear Rx FIFO
-      SpiClearFifo_Tx   = SPI_MCR_CLR_TXF(1)|SPI_MCR_CLR_RXF(0), ///< Clear Tx FIFO
-      SpiClearFifo_Both = SPI_MCR_CLR_TXF(1)|SPI_MCR_CLR_RXF(1), ///< Clear Rx & Tx FIFOs
+      SpiClearFifo_None   = SPI_MCR_CLR_TXF(0)|SPI_MCR_CLR_RXF(0),  ///< FIFOs not affected
+      SpiClearFifo_Rx     = SPI_MCR_CLR_TXF(0)|SPI_MCR_CLR_RXF(1),  ///< Clear Rx FIFO
+      SpiClearFifo_Tx     = SPI_MCR_CLR_TXF(1)|SPI_MCR_CLR_RXF(0),  ///< Clear Tx FIFO
+      SpiClearFifo_Both   = SPI_MCR_CLR_TXF(1)|SPI_MCR_CLR_RXF(1),  ///< Clear Rx & Tx FIFOs
    };
 
    /**
@@ -13573,10 +14126,10 @@ public:
     * Selectively enable transmit or receive FIFOs
     */
    enum SpiEnableFifo {
-      SpiEnableFifo_Both = SPI_MCR_DIS_TXF(0)|SPI_MCR_DIS_RXF(0), ///< Rx and Tx FIFOs enabled
-      SpiEnableFifo_Rx   = SPI_MCR_DIS_TXF(0)|SPI_MCR_DIS_RXF(1), ///< Enable Rx FIFO
-      SpiEnableFifo_Tx   = SPI_MCR_DIS_TXF(1)|SPI_MCR_DIS_RXF(0), ///< Enable Tx FIFO
-      SpiEnableFifo_None = SPI_MCR_DIS_TXF(1)|SPI_MCR_DIS_RXF(1), ///< Disable Rx & Tx FIFOs
+      SpiEnableFifo_Both   = SPI_MCR_DIS_TXF(0)|SPI_MCR_DIS_RXF(0),  ///< Rx and Tx FIFOs enabled
+      SpiEnableFifo_Rx     = SPI_MCR_DIS_TXF(0)|SPI_MCR_DIS_RXF(1),  ///< Enable Rx FIFO
+      SpiEnableFifo_Tx     = SPI_MCR_DIS_TXF(1)|SPI_MCR_DIS_RXF(0),  ///< Enable Tx FIFO
+      SpiEnableFifo_None   = SPI_MCR_DIS_TXF(1)|SPI_MCR_DIS_RXF(1),  ///< Disable Rx & Tx FIFOs
    };
 
    /**
@@ -13586,8 +14139,8 @@ public:
     * Whether to operate as Master or Slave device
     */
    enum SpiMasterSlave {
-      SpiMasterSlave_Slave  = SPI_MCR_MSTR(0), ///< Operate as Master
-      SpiMasterSlave_Master = SPI_MCR_MSTR(1), ///< Operate as Slave
+      SpiMasterSlave_Slave    = SPI_MCR_MSTR(0),  ///< Operate as Master
+      SpiMasterSlave_Master   = SPI_MCR_MSTR(1),  ///< Operate as Slave
    };
 
    /**
@@ -13598,10 +14151,10 @@ public:
     * This field is only valid when CPHA bit 0.
     */
    enum SpiModifiedTiming {
-      SpiModifiedTiming_Normal   = SPI_MCR_MTFE(0)|SPI_MCR_SMPL_PT(0), ///< Normal Timing
-      SpiModifiedTiming_0_Clocks = SPI_MCR_MTFE(1)|SPI_MCR_SMPL_PT(0), ///< No delay from SCK edge to SIN sample
-      SpiModifiedTiming_1_Clocks = SPI_MCR_MTFE(1)|SPI_MCR_SMPL_PT(1), ///< 1 clock  from SCK edge to SIN sample
-      SpiModifiedTiming_2_Clocks = SPI_MCR_MTFE(1)|SPI_MCR_SMPL_PT(2), ///< 2 clocks from SCK edge to SIN sample
+      SpiModifiedTiming_Normal     = SPI_MCR_MTFE(0)|SPI_MCR_SMPL_PT(0),  ///< Normal Timing
+      SpiModifiedTiming_0_Clocks   = SPI_MCR_MTFE(1)|SPI_MCR_SMPL_PT(0),  ///< No delay from SCK edge to SIN sample
+      SpiModifiedTiming_1_Clocks   = SPI_MCR_MTFE(1)|SPI_MCR_SMPL_PT(1),  ///< 1 clock  from SCK edge to SIN sample
+      SpiModifiedTiming_2_Clocks   = SPI_MCR_MTFE(1)|SPI_MCR_SMPL_PT(2),  ///< 2 clocks from SCK edge to SIN sample
    };
 
    /**
@@ -13611,8 +14164,8 @@ public:
     * Discard incoming data or overwite previous data on RxFIFO overflow
     */
    enum SpiRxOverflowHandling {
-      SpiRxOverflowHandling_Ignore    = SPI_MCR_ROOE(0), ///< Ignore incoming
-      SpiRxOverflowHandling_Overwrite = SPI_MCR_ROOE(1), ///< Overwrite existing
+      SpiRxOverflowHandling_Ignore      = SPI_MCR_ROOE(0),  ///< Ignore incoming
+      SpiRxOverflowHandling_Overwrite   = SPI_MCR_ROOE(1),  ///< Overwrite existing
    };
 
    /**
@@ -13622,8 +14175,8 @@ public:
     * Enables Doze mode (when processor is waiting?)
     */
    enum SpiDoze {
-      SpiDoze_Disabled = SPI_MCR_DOZE(0), ///< Ignore doze
-      SpiDoze_Enabled  = SPI_MCR_DOZE(1), ///< Suspend in doze
+      SpiDoze_Disabled   = SPI_MCR_DOZE(0),  ///< Ignore doze
+      SpiDoze_Enabled    = SPI_MCR_DOZE(1),  ///< Suspend in doze
    };
 
    /**
@@ -13633,8 +14186,8 @@ public:
     * Enable transfers to be stopped on the next frame boundary when the device enters Debug mode.
     */
    enum SpiFreeze {
-      SpiFreeze_Disabled = SPI_MCR_FRZ(0), ///< Continue in debug
-      SpiFreeze_Enabled  = SPI_MCR_FRZ(1), ///< Suspend in debug
+      SpiFreeze_Disabled   = SPI_MCR_FRZ(0),  ///< Continue in debug
+      SpiFreeze_Enabled    = SPI_MCR_FRZ(1),  ///< Suspend in debug
    };
 
    /**
@@ -13644,8 +14197,8 @@ public:
     * Whether the Serial Communication Clock (SCK) runs continuously
     */
    enum SpiContinuousClock {
-      SpiContinuousClock_Disable = SPI_MCR_CONT_SCKE(0), ///< Clock during transfers only
-      SpiContinuousClock_Enable  = SPI_MCR_CONT_SCKE(1), ///< Continuous clock
+      SpiContinuousClock_Disable   = SPI_MCR_CONT_SCKE(0),  ///< Clock during transfers only
+      SpiContinuousClock_Enable    = SPI_MCR_CONT_SCKE(1),  ///< Continuous clock
    };
 
    /**
@@ -13659,10 +14212,10 @@ public:
     * 3: Active-low clock (idles high), Data changes on leading edge of SCK and is captured on the following edge.
     */
    enum SpiMode {
-      SpiMode_0 = SPI_CTAR_CPOL(0)|SPI_CTAR_CPHA(0), ///< Mode 0: CPOL=0, CPHA=0
-      SpiMode_1 = SPI_CTAR_CPOL(0)|SPI_CTAR_CPHA(1), ///< Mode 1: CPOL=0, CPHA=1
-      SpiMode_2 = SPI_CTAR_CPOL(1)|SPI_CTAR_CPHA(0), ///< Mode 2: CPOL=1, CPHA=0
-      SpiMode_3 = SPI_CTAR_CPOL(1)|SPI_CTAR_CPHA(1), ///< Mode 3: CPOL=1, CPHA=1
+      SpiMode_0   = SPI_CTAR_CPOL(0)|SPI_CTAR_CPHA(0),  ///< Mode 0: CPOL=0, CPHA=0
+      SpiMode_1   = SPI_CTAR_CPOL(0)|SPI_CTAR_CPHA(1),  ///< Mode 1: CPOL=0, CPHA=1
+      SpiMode_2   = SPI_CTAR_CPOL(1)|SPI_CTAR_CPHA(0),  ///< Mode 2: CPOL=1, CPHA=0
+      SpiMode_3   = SPI_CTAR_CPOL(1)|SPI_CTAR_CPHA(1),  ///< Mode 3: CPOL=1, CPHA=1
    };
 
    /**
@@ -13672,19 +14225,19 @@ public:
     * Transfers are from 4 to 16 bits in size
     */
    enum SpiFrameSize {
-      SpiFrameSize_4_bits  = SPI_CTAR_FMSZ(4-1),  ///< 4 bits/transfer
-      SpiFrameSize_5_bits  = SPI_CTAR_FMSZ(5-1),  ///< 5 bits/transfer
-      SpiFrameSize_6_bits  = SPI_CTAR_FMSZ(6-1),  ///< 6 bits/transfer
-      SpiFrameSize_7_bits  = SPI_CTAR_FMSZ(7-1),  ///< 7 bits/transfer
-      SpiFrameSize_8_bits  = SPI_CTAR_FMSZ(8-1),  ///< 8 bits/transfer
-      SpiFrameSize_9_bits  = SPI_CTAR_FMSZ(9-1),  ///< 9 bits/transfer
-      SpiFrameSize_10_bits = SPI_CTAR_FMSZ(10-1), ///< 10 bits/transfer
-      SpiFrameSize_11_bits = SPI_CTAR_FMSZ(11-1), ///< 11 bits/transfer
-      SpiFrameSize_12_bits = SPI_CTAR_FMSZ(12-1), ///< 12 bits/transfer
-      SpiFrameSize_13_bits = SPI_CTAR_FMSZ(13-1), ///< 13 bits/transfer
-      SpiFrameSize_14_bits = SPI_CTAR_FMSZ(14-1), ///< 14 bits/transfer
-      SpiFrameSize_15_bits = SPI_CTAR_FMSZ(15-1), ///< 15 bits/transfer
-      SpiFrameSize_16_bits = SPI_CTAR_FMSZ(16-1), ///< 16 bits/transfer
+      SpiFrameSize_4_bits    = SPI_CTAR_FMSZ(4-1),   ///< 4 bits/transfer
+      SpiFrameSize_5_bits    = SPI_CTAR_FMSZ(5-1),   ///< 5 bits/transfer
+      SpiFrameSize_6_bits    = SPI_CTAR_FMSZ(6-1),   ///< 6 bits/transfer
+      SpiFrameSize_7_bits    = SPI_CTAR_FMSZ(7-1),   ///< 7 bits/transfer
+      SpiFrameSize_8_bits    = SPI_CTAR_FMSZ(8-1),   ///< 8 bits/transfer
+      SpiFrameSize_9_bits    = SPI_CTAR_FMSZ(9-1),   ///< 9 bits/transfer
+      SpiFrameSize_10_bits   = SPI_CTAR_FMSZ(10-1),  ///< 10 bits/transfer
+      SpiFrameSize_11_bits   = SPI_CTAR_FMSZ(11-1),  ///< 11 bits/transfer
+      SpiFrameSize_12_bits   = SPI_CTAR_FMSZ(12-1),  ///< 12 bits/transfer
+      SpiFrameSize_13_bits   = SPI_CTAR_FMSZ(13-1),  ///< 13 bits/transfer
+      SpiFrameSize_14_bits   = SPI_CTAR_FMSZ(14-1),  ///< 14 bits/transfer
+      SpiFrameSize_15_bits   = SPI_CTAR_FMSZ(15-1),  ///< 15 bits/transfer
+      SpiFrameSize_16_bits   = SPI_CTAR_FMSZ(16-1),  ///< 16 bits/transfer
    };
 
    /**
@@ -13694,8 +14247,8 @@ public:
     * Transmission order
     */
    enum SpiBitOrder {
-      SpiBitOrder_MsbFirst = SPI_CTAR_LSBFE(0), ///< MSB sent first
-      SpiBitOrder_LsbFirst = SPI_CTAR_LSBFE(1), ///< LSB sent first
+      SpiBitOrder_MsbFirst   = SPI_CTAR_LSBFE(0),  ///< MSB sent first
+      SpiBitOrder_LsbFirst   = SPI_CTAR_LSBFE(1),  ///< LSB sent first
    };
 
    /**
@@ -13705,8 +14258,8 @@ public:
     * Selects between available CTAR registers
     */
    enum SpiCtarSelect : uint8_t {
-      SpiCtarSelect_0 = 0, ///< CTAR 0
-      SpiCtarSelect_1 = 1, ///< CTAR 1
+      SpiCtarSelect_0   = 0,  ///< CTAR 0
+      SpiCtarSelect_1   = 1,  ///< CTAR 1
    };
 
    /**
@@ -13716,9 +14269,9 @@ public:
     * Select whether Peripheral Select is returned to idle between transfers or transactions
     */
    enum SpiPeripheralSelectMode : uint8_t {
-      SpiPeripheralSelectMode_Transfer    = (0), ///< Negated between each transfer
-      SpiPeripheralSelectMode_Transaction = (1), ///< Negated between each transaction
-      SpiPeripheralSelectMode_Continuous  = (2), ///< Asserted until another device is selected
+      SpiPeripheralSelectMode_Transfer      = (0),  ///< Negated between each transfer
+      SpiPeripheralSelectMode_Transaction   = (1),  ///< Negated between each transaction
+      SpiPeripheralSelectMode_Continuous    = (2),  ///< Asserted until another device is selected
    };
 
    /**
@@ -13728,36 +14281,32 @@ public:
     * Select whether Peripheral Select is returned to idle between transfers
     */
    enum SpiSelectMode {
-      SpiSelectMode_Idle       = SPI_PUSHR_CONT(0), ///< Idle between transactions
-      SpiSelectMode_Continuous = SPI_PUSHR_CONT(1), ///< Asserted between transactions
+      SpiSelectMode_Idle         = SPI_PUSHR_CONT(0),  ///< Idle between transactions
+      SpiSelectMode_Continuous   = SPI_PUSHR_CONT(1),  ///< Asserted between transactions
    };
 
    /**
     * Peripheral Chip Select
-    * (spi_pushr_pcs)
+    * (spi_pushr_pcs_enum)
     *
     * Mask to select which Peripheral Chip Select Line (PCS) to assert during transaction
     * Note: more than one PCS may be asserted (allows use of an external decoder)
     */
-   enum SpiPeripheralSelect {
-      SpiPeripheralSelect_Pcs0 = SPI_PUSHR_PCS(1U<<0), ///< Assert Pcs0 during transaction
-      SpiPeripheralSelect_Pcs1 = SPI_PUSHR_PCS(1U<<1), ///< Assert Pcs1 during transaction
-      SpiPeripheralSelect_Pcs2 = SPI_PUSHR_PCS(1U<<2), ///< Assert Pcs2 during transaction
-      SpiPeripheralSelect_Pcs3 = SPI_PUSHR_PCS(1U<<3), ///< Assert Pcs3 during transaction
-      SpiPeripheralSelect_Pcs4 = SPI_PUSHR_PCS(1U<<4), ///< Assert Pcs4 during transaction
-      SpiPeripheralSelect_Pcs5 = SPI_PUSHR_PCS(1U<<5), ///< Assert Pcs5 during transaction
-      SpiPeripheralSelect_None = SPI_PUSHR_PCS(0),    ///< PCSx not asserted
+   enum SpiPeripheralSelect : uint32_t {
+      SpiPeripheralSelect_Pcs0   = SPI_PUSHR_PCS(1U<<0),  ///< Assert PCS0 during transaction
+      SpiPeripheralSelect_Pcs1   = SPI_PUSHR_PCS(1U<<1),  ///< Assert PCS1 during transaction
+      SpiPeripheralSelect_Pcs2   = SPI_PUSHR_PCS(1U<<2),  ///< Assert PCS2 during transaction
+      SpiPeripheralSelect_Pcs3   = SPI_PUSHR_PCS(1U<<3),  ///< Assert PCS3 during transaction
+      SpiPeripheralSelect_Pcs4   = SPI_PUSHR_PCS(1U<<4),  ///< Assert PCS4 during transaction
+      SpiPeripheralSelect_Pcs5   = SPI_PUSHR_PCS(1U<<5),  ///< Assert PCS5 during transaction
+      SpiPeripheralSelect_None   = SPI_PUSHR_PCS(0),      ///< PCSx not asserted
    };
 
 class SpiBasicInfo {
-   
+
 public:
-   /**
-    * Type definition for Spi0 interrupt call back.
-    *
-    * @param status Interrupt status value from SPI->SR
-    */
-   typedef void (*CallbackFunction)(uint32_t status);
+   //! Common class based callback code has been generated for this class of peripheral
+   static constexpr bool irqHandlerInstalled = false;
    
    /**
     * Class used to do initialisation of a CTAR in Spi0
@@ -13884,7 +14433,7 @@ public:
          ctarNum = spiCtarSelect;
       }
    
-   };
+   }; // class SerialInit
    /**
     * Class used to do initialisation of shared settings for Spi0
     *
@@ -14087,7 +14636,7 @@ public:
          pushrFinal |= (spiPeripheralSelectMode>=2)?SPI_PUSHR_CONT_MASK:0;
       }
    
-   };
+   }; // class Config
    /**
     * Class used to do initialisation of Spi0
     *
@@ -14252,8 +14801,9 @@ public:
          ctars[1].ctarNum = SpiCtarSelect_1;
       }
    
-   };
-};
+   }; // class Init
+   
+}; // class SpiBasicInfo 
 
 class Spi0Info : public SpiBasicInfo {
 public:
@@ -14302,6 +14852,33 @@ public:
    //! Number of IRQs for hardware
    static constexpr uint32_t irqCount  = sizeofArray(irqNums);
    
+   //! Default IRQ level
+   static constexpr NvicPriority irqLevel =  NvicPriority_Normal;
+   
+   /**
+    * Enable interrupts in NVIC
+    */
+   static void enableNvicInterrupts() {
+      NVIC_EnableIRQ(irqNums[0]);
+   }
+   
+   /**
+    * Enable and set priority of interrupts in NVIC
+    * Any pending NVIC interrupts are first cleared.
+    *
+    * @param[in]  nvicPriority  Interrupt priority
+    */
+   static void enableNvicInterrupts(NvicPriority nvicPriority) {
+      enableNvicInterrupt(irqNums[0], nvicPriority);
+   }
+   
+   /**
+    * Disable interrupts in NVIC
+    */
+   static void disableNvicInterrupts() {
+      NVIC_DisableIRQ(irqNums[0]);
+   }
+   
    /**
     *  Enable clock to Spi0
     */
@@ -14326,10 +14903,11 @@ public:
    }
    
    /**
-    * Disables the clock to Spi0 and all mapped pins
+    * Disables Spi0
     */
    static void disable() {
       
+      disableNvicInterrupts();
       disableAllPins();
       disableClock();
    }
@@ -14381,14 +14959,13 @@ public:
     */
    static constexpr SpiBasicInfo::Config DefaultConfigValue = {
       SpiModifiedTiming_Normal , // (spi_mcr_mtfe) Modified Timing Format - Normal Timing
-      SpiPcsActiveLow(SPI_MCR_PCSIS(0x0)) , // (spi_mcr_pcsis) Polarity for PCS signals
       SpiDoze_Enabled , // (spi_mcr_doze) Enables Doze mode (when processor is waiting?) - Suspend in doze
       SpiFreeze_Enabled , // (spi_mcr_frz) Controls SPI operation while in debug mode - Suspend in debug
       SpiRxOverflowHandling_Ignore , // (spi_mcr_rooe) Handling of Rx Overflow Data - Ignore incoming
       SpiContinuousClock_Disable , // (spi_mcr_cont_scke) Continuous SCK Enable - Clock during transfers only
       SpiCtarSelect_0 , // (spi_ctar_sel) CTAR Selection - CTAR 0
-      SpiPeripheralSelectMode_Transfer , // (PeripheralSelectMode) Controls PCS between transfers/transactions - Negated between each transfer
-      SpiPeripheralSelect(SPI_PUSHR_PCS(0x0)),  // (spi_pushr_pcs) Peripheral Chip Select
+      SpiPeripheralSelectMode_Transfer,  // (PeripheralSelectMode) Controls PCS between transfers/transactions - Negated between each transfer
+   
    };
 
    /**
@@ -14465,15 +15042,38 @@ public:
  * along with simple accessor functions.
  */
    /**
+    * Software Trigger
+    * (tsi_gencs_swts)
+    *
+    * Used to start a scan when software trigger mode is selected
+    */
+   enum TsiSoftwareTrigger : uint32_t {
+      TsiSoftwareTrigger_NoAction    = TSI_GENCS_SWTS(0),  ///< NoAction
+      TsiSoftwareTrigger_StartScan   = TSI_GENCS_SWTS(1),  ///< Start scan
+   };
+
+   /**
+    * Out of Range Flag
+    * (tsi_gencs_outrgf)
+    *
+    * This flag is set when Out of Range is detected.
+    * Write 1 , when this flag is set, to clear it.
+    */
+   enum TsiOutOfRangeFlag : uint32_t {
+      TsiOutOfRangeFlag_InRange              = TSI_GENCS_OUTRGF(0),  ///< In Range
+      TsiOutOfRangeFlag_OutOfRangeDetected   = TSI_GENCS_OUTRGF(1),  ///< Out of Range detected
+   };
+
+   /**
     * Select scan mode
     * (tsi_gencs_scanmode)
     *
-    * Selects between software triggered or automatic hardare scanning
+    * Enables and selects between software triggered or automatic hardware scanning
     */
-   enum TsiScanMode {
-      TsiScanMode_Disabled  = TSI_GENCS_TSIEN(0)|TSI_GENCS_STM(0)|TSI_GENCS_SWTS(0), ///< Disabled
-      TsiScanMode_Triggered = TSI_GENCS_TSIEN(1)|TSI_GENCS_STM(0)|TSI_GENCS_SWTS(1), ///< Software triggered single scan
-      TsiScanMode_Periodic  = TSI_GENCS_TSIEN(1)|TSI_GENCS_STM(1)|TSI_GENCS_SWTS(0), ///< Hardware scanning (repeated periodically)
+   enum TsiScanMode : uint32_t {
+      TsiScanMode_Disabled    = TSI_GENCS_TSIEN(0)|TSI_GENCS_STM(0),  ///< Disabled
+      TsiScanMode_Triggered   = TSI_GENCS_TSIEN(1)|TSI_GENCS_STM(0),  ///< Software triggered single scan
+      TsiScanMode_Periodic    = TSI_GENCS_TSIEN(1)|TSI_GENCS_STM(1),  ///< Hardware scanning (repeated periodically)
    };
 
    /**
@@ -14482,49 +15082,32 @@ public:
     *
     * Controls operation while in Low Power Modes (STOP, VLPS, LLS and VLLS{3,2,1})
     */
-   enum TsiStopMode {
-      TsiStopMode_Disabled = TSI_GENCS_STPE(0), ///< Disabled in low power
-      TsiStopMode_Enabled  = TSI_GENCS_STPE(1), ///< Enabled in low power
+   enum TsiStopMode : uint32_t {
+      TsiStopMode_Disabled   = TSI_GENCS_STPE(0),  ///< Disabled in low power
+      TsiStopMode_Enabled    = TSI_GENCS_STPE(1),  ///< Enabled in low power
    };
 
    /**
-    * TSI event source
-    * (tsi_gencs_int)
+    * Touch Sensing Input Event Enable
+    * (tsi_gencs_intsource)
     *
-    * Selects which source to generate interrupts
+    * Enables events from Out-of-Range and End-of-Scan conditions
     */
-   enum TsiEventSource {
-      TsiEventSource_Disabled   = TSI_GENCS_TSIIE(0)|TSI_GENCS_ESOR(0), ///< Disabled
-      TsiEventSource_OutOfRange = TSI_GENCS_TSIIE(1)|TSI_GENCS_ESOR(0), ///< Out Of Range
-      TsiEventSource_EndOfScan  = TSI_GENCS_TSIIE(1)|TSI_GENCS_ESOR(1), ///< End Of Scan
+   enum TsiEventSource : uint32_t {
+      TsiEventSource_Disabled     = TSI_GENCS_TSIIE(0)|TSI_GENCS_ESOR(0),  ///< Disabled
+      TsiEventSource_OutOfRange   = TSI_GENCS_TSIIE(1)|TSI_GENCS_ESOR(0),  ///< Out Of Range
+      TsiEventSource_EndOfScan    = TSI_GENCS_TSIIE(1)|TSI_GENCS_ESOR(1),  ///< End Of Scan
    };
 
    /**
-    * Error Interrupt Enable
+    * Action on Error
     * (tsi_gencs_erie)
     *
-    * Caused either by a Short or Overrun Error
+    * Action taken on Short Detection or Overrun Error
     */
-   enum TsiErrorInterrupt {
-      TsiErrorInterrupt_Disabled = TSI_GENCS_ERIE(0), ///< Interrupt disabled
-      TsiErrorInterrupt_Enabled  = TSI_GENCS_ERIE(1), ///< Interrupt enabled
-   };
-
-   /**
-    * Electrode Oscillator Prescaler
-    * (tsi_gencs_ps)
-    *
-    * Only be changed if the TSI module is disabled
-    */
-   enum TsiElectrodePrescaler {
-      TsiElectrodePrescaler_DivBy1   = TSI_GENCS_PS(0), ///< Divide by 1
-      TsiElectrodePrescaler_DivBy2   = TSI_GENCS_PS(1), ///< Divide by 2
-      TsiElectrodePrescaler_DivBy4   = TSI_GENCS_PS(2), ///< Divide by 4
-      TsiElectrodePrescaler_DivBy8   = TSI_GENCS_PS(3), ///< Divide by 8
-      TsiElectrodePrescaler_DivBy16  = TSI_GENCS_PS(4), ///< Divide by 16
-      TsiElectrodePrescaler_DivBy32  = TSI_GENCS_PS(5), ///< Divide by 32
-      TsiElectrodePrescaler_DivBy64  = TSI_GENCS_PS(6), ///< Divide by 64
-      TsiElectrodePrescaler_DivBy128 = TSI_GENCS_PS(7), ///< Divide by 128
+   enum TsiErrorAction : uint32_t {
+      TsiErrorAction_None        = TSI_GENCS_ERIE(0),  ///< None
+      TsiErrorAction_Interrupt   = TSI_GENCS_ERIE(1),  ///< Interrupt
    };
 
    /**
@@ -14533,7 +15116,56 @@ public:
     *
     * Number of Consecutive Scans Per Electrode
     */
-   enum TsiConsecutiveScan : uint8_t {
+   enum TsiConsecutiveScan : uint32_t {
+      TsiConsecutiveScan_1Time     = TSI_GENCS_NSCN(0),   ///< Scan Electrode 1 time
+      TsiConsecutiveScan_2Times    = TSI_GENCS_NSCN(1),   ///< Scan Electrode 2 times
+      TsiConsecutiveScan_3Times    = TSI_GENCS_NSCN(2),   ///< Scan Electrode 3 times
+      TsiConsecutiveScan_4Times    = TSI_GENCS_NSCN(3),   ///< Scan Electrode 4 times
+      TsiConsecutiveScan_5Times    = TSI_GENCS_NSCN(4),   ///< Scan Electrode 5 times
+      TsiConsecutiveScan_6Times    = TSI_GENCS_NSCN(5),   ///< Scan Electrode 6 times
+      TsiConsecutiveScan_7Times    = TSI_GENCS_NSCN(6),   ///< Scan Electrode 7 times
+      TsiConsecutiveScan_8Times    = TSI_GENCS_NSCN(7),   ///< Scan Electrode 8 times
+      TsiConsecutiveScan_9Times    = TSI_GENCS_NSCN(8),   ///< Scan Electrode 9 times
+      TsiConsecutiveScan_10Times   = TSI_GENCS_NSCN(9),   ///< Scan Electrode 10 times
+      TsiConsecutiveScan_11Times   = TSI_GENCS_NSCN(10),  ///< Scan Electrode 11 times
+      TsiConsecutiveScan_12Times   = TSI_GENCS_NSCN(11),  ///< Scan Electrode 12 times
+      TsiConsecutiveScan_13Times   = TSI_GENCS_NSCN(12),  ///< Scan Electrode 13 times
+      TsiConsecutiveScan_14Times   = TSI_GENCS_NSCN(13),  ///< Scan Electrode 14 times
+      TsiConsecutiveScan_15Times   = TSI_GENCS_NSCN(14),  ///< Scan Electrode 15 times
+      TsiConsecutiveScan_16Times   = TSI_GENCS_NSCN(15),  ///< Scan Electrode 16 times
+      TsiConsecutiveScan_17Times   = TSI_GENCS_NSCN(16),  ///< Scan Electrode 17 times
+      TsiConsecutiveScan_18Times   = TSI_GENCS_NSCN(17),  ///< Scan Electrode 18 times
+      TsiConsecutiveScan_19Times   = TSI_GENCS_NSCN(18),  ///< Scan Electrode 19 times
+      TsiConsecutiveScan_20Times   = TSI_GENCS_NSCN(19),  ///< Scan Electrode 20 times
+      TsiConsecutiveScan_21Times   = TSI_GENCS_NSCN(20),  ///< Scan Electrode 21 times
+      TsiConsecutiveScan_22Times   = TSI_GENCS_NSCN(21),  ///< Scan Electrode 22 times
+      TsiConsecutiveScan_23Times   = TSI_GENCS_NSCN(22),  ///< Scan Electrode 23 times
+      TsiConsecutiveScan_24Times   = TSI_GENCS_NSCN(23),  ///< Scan Electrode 24 times
+      TsiConsecutiveScan_25Times   = TSI_GENCS_NSCN(24),  ///< Scan Electrode 25 times
+      TsiConsecutiveScan_26Times   = TSI_GENCS_NSCN(25),  ///< Scan Electrode 26 times
+      TsiConsecutiveScan_27Times   = TSI_GENCS_NSCN(26),  ///< Scan Electrode 27 times
+      TsiConsecutiveScan_28Times   = TSI_GENCS_NSCN(27),  ///< Scan Electrode 28 times
+      TsiConsecutiveScan_29Times   = TSI_GENCS_NSCN(28),  ///< Scan Electrode 29 times
+      TsiConsecutiveScan_30Times   = TSI_GENCS_NSCN(29),  ///< Scan Electrode 30 times
+      TsiConsecutiveScan_31Times   = TSI_GENCS_NSCN(30),  ///< Scan Electrode 31 times
+      TsiConsecutiveScan_32Times   = TSI_GENCS_NSCN(31),  ///< Scan Electrode 32 times
+   };
+
+   /**
+    * Prescaler for Electrode Oscillator Frequency
+    * (tsi_gencs_ps)
+    *
+    * Only be changed if the TSI module is disabled
+    */
+   enum TsiElectrodePrescaler : uint32_t {
+      TsiElectrodePrescaler_DivBy1     = TSI_GENCS_PS(0),  ///< Divide by 1
+      TsiElectrodePrescaler_DivBy2     = TSI_GENCS_PS(1),  ///< Divide by 2
+      TsiElectrodePrescaler_DivBy4     = TSI_GENCS_PS(2),  ///< Divide by 4
+      TsiElectrodePrescaler_DivBy8     = TSI_GENCS_PS(3),  ///< Divide by 8
+      TsiElectrodePrescaler_DivBy16    = TSI_GENCS_PS(4),  ///< Divide by 16
+      TsiElectrodePrescaler_DivBy32    = TSI_GENCS_PS(5),  ///< Divide by 32
+      TsiElectrodePrescaler_DivBy64    = TSI_GENCS_PS(6),  ///< Divide by 64
+      TsiElectrodePrescaler_DivBy128   = TSI_GENCS_PS(7),  ///< Divide by 128
    };
 
    /**
@@ -14542,23 +15174,23 @@ public:
     *
     * 
     */
-   enum TsiLowPowerScanInterval {
-      TsiLowPowerScanInterval_1ms   = TSI_GENCS_LPSCNITV(0),  ///< 1 ms interval
-      TsiLowPowerScanInterval_5ms   = TSI_GENCS_LPSCNITV(1),  ///< 5 ms interval
-      TsiLowPowerScanInterval_10ms  = TSI_GENCS_LPSCNITV(2),  ///< 10 ms interval
-      TsiLowPowerScanInterval_15ms  = TSI_GENCS_LPSCNITV(3),  ///< 15 ms interval
-      TsiLowPowerScanInterval_20ms  = TSI_GENCS_LPSCNITV(4),  ///< 20 ms interval
-      TsiLowPowerScanInterval_30ms  = TSI_GENCS_LPSCNITV(5),  ///< 30 ms interval
-      TsiLowPowerScanInterval_40ms  = TSI_GENCS_LPSCNITV(6),  ///< 40 ms interval
-      TsiLowPowerScanInterval_50ms  = TSI_GENCS_LPSCNITV(7),  ///< 50 ms interval
-      TsiLowPowerScanInterval_75ms  = TSI_GENCS_LPSCNITV(8),  ///< 75 ms interval
-      TsiLowPowerScanInterval_100ms = TSI_GENCS_LPSCNITV(9),  ///< 100 ms interval
-      TsiLowPowerScanInterval_125ms = TSI_GENCS_LPSCNITV(10), ///< 125 ms interval
-      TsiLowPowerScanInterval_150ms = TSI_GENCS_LPSCNITV(11), ///< 150 ms interval
-      TsiLowPowerScanInterval_200ms = TSI_GENCS_LPSCNITV(12), ///< 200 ms interval
-      TsiLowPowerScanInterval_300ms = TSI_GENCS_LPSCNITV(13), ///< 300 ms interval
-      TsiLowPowerScanInterval_400ms = TSI_GENCS_LPSCNITV(14), ///< 400 ms interval
-      TsiLowPowerScanInterval_500ms = TSI_GENCS_LPSCNITV(15), ///< 500 ms interval
+   enum TsiLowPowerScanInterval : uint32_t {
+      TsiLowPowerScanInterval_1ms     = TSI_GENCS_LPSCNITV(0),   ///< 1 ms interval
+      TsiLowPowerScanInterval_5ms     = TSI_GENCS_LPSCNITV(1),   ///< 5 ms interval
+      TsiLowPowerScanInterval_10ms    = TSI_GENCS_LPSCNITV(2),   ///< 10 ms interval
+      TsiLowPowerScanInterval_15ms    = TSI_GENCS_LPSCNITV(3),   ///< 15 ms interval
+      TsiLowPowerScanInterval_20ms    = TSI_GENCS_LPSCNITV(4),   ///< 20 ms interval
+      TsiLowPowerScanInterval_30ms    = TSI_GENCS_LPSCNITV(5),   ///< 30 ms interval
+      TsiLowPowerScanInterval_40ms    = TSI_GENCS_LPSCNITV(6),   ///< 40 ms interval
+      TsiLowPowerScanInterval_50ms    = TSI_GENCS_LPSCNITV(7),   ///< 50 ms interval
+      TsiLowPowerScanInterval_75ms    = TSI_GENCS_LPSCNITV(8),   ///< 75 ms interval
+      TsiLowPowerScanInterval_100ms   = TSI_GENCS_LPSCNITV(9),   ///< 100 ms interval
+      TsiLowPowerScanInterval_125ms   = TSI_GENCS_LPSCNITV(10),  ///< 125 ms interval
+      TsiLowPowerScanInterval_150ms   = TSI_GENCS_LPSCNITV(11),  ///< 150 ms interval
+      TsiLowPowerScanInterval_200ms   = TSI_GENCS_LPSCNITV(12),  ///< 200 ms interval
+      TsiLowPowerScanInterval_300ms   = TSI_GENCS_LPSCNITV(13),  ///< 300 ms interval
+      TsiLowPowerScanInterval_400ms   = TSI_GENCS_LPSCNITV(14),  ///< 400 ms interval
+      TsiLowPowerScanInterval_500ms   = TSI_GENCS_LPSCNITV(15),  ///< 500 ms interval
    };
 
    /**
@@ -14567,33 +15199,35 @@ public:
     *
     * 
     */
-   enum TsiLowPowerClockSource {
-      TsiLowPowerClockSource_LpoClk   = TSI_GENCS_LPCLKS(0), ///< LPOCLK
-      TsiLowPowerClockSource_Erclk32k = TSI_GENCS_LPCLKS(1), ///< VLPOSCCLK
+   enum TsiLowPowerClockSource : uint32_t {
+      TsiLowPowerClockSource_LpoClk     = TSI_GENCS_LPCLKS(0),  ///< LPOCLK
+      TsiLowPowerClockSource_Erclk32k   = TSI_GENCS_LPCLKS(1),  ///< VLPOSCCLK
    };
 
    /**
     * End of Scan Flag
     * (tsi_gencs_eosf)
     *
-    * This flag is set when End of Scan is reached.
-    * Write 1 to clear
+    * This flag is set when all active electrodes are finished scanning
+    * after a scan trigger.
+    * Write 1 , when this flag is set, to clear it.
     */
-   enum TsiEndOfScan {
-      TsiEndOfScan_NotEndOfScan = TSI_GENCS_EOSF(0), ///< Not end of scan
-      TsiEndOfScan_EndOfScan    = TSI_GENCS_EOSF(1), ///< End of scan
+   enum TsiEndOfScanFlag : uint32_t {
+      TsiEndOfScanFlag_ScanNotComplete   = TSI_GENCS_EOSF(0),  ///< Scan not complete
+      TsiEndOfScanFlag_ScanComplete      = TSI_GENCS_EOSF(1),  ///< Scan complete
    };
 
    /**
-    * Out of Range Flag
-    * (tsi_gencs_outrgf)
+    * Scan In Progress status
+    * (tsi_gencs_scnip)
     *
-    * This flag is set when Out of Range is detected.
-    * Write 1 to clear
+    * This read-only bit indicates if scan is in progress.
+    * This bit will get asserted after the analogue bias circuit is
+    * stable after a trigger and it changes automatically by the TSI.
     */
-   enum TsiOutOfRange {
-      TsiOutOfRange_InRange            = TSI_GENCS_OUTRGF(0), ///< In Range
-      TsiOutOfRange_OutOfRangeDetected = TSI_GENCS_OUTRGF(1), ///< Out of Range detected
+   enum TsiScanInProgess : uint32_t {
+      TsiScanInProgess_NoScanInProgress   = TSI_GENCS_SCNIP(0),  ///< Idle - No scan in progress
+      TsiScanInProgess_ScanInProgress     = TSI_GENCS_SCNIP(1),  ///< Busy - Scan in progress
    };
 
    /**
@@ -14603,9 +15237,9 @@ public:
     * Indicates that the external electrode appears shorted
     * Write 1 to clear
     */
-   enum TsiElectrodeError {
-      TsiElectrodeError_NoFault       = TSI_GENCS_EXTERF(0), ///< No fault
-      TsiElectrodeError_ShortToVddVss = TSI_GENCS_EXTERF(1), ///< Short to VDD/VSS
+   enum TsiElectrodeError : uint32_t {
+      TsiElectrodeError_NoFault         = TSI_GENCS_EXTERF(0),  ///< No fault
+      TsiElectrodeError_ShortToVddVss   = TSI_GENCS_EXTERF(1),  ///< Short to VDD/VSS
    };
 
    /**
@@ -14615,20 +15249,9 @@ public:
     * This flag is set when a scan trigger occurs while a scan is still in progress.
     * Write 1 to clear
     */
-   enum TsiOverrun {
-      TsiOverrun_NoOverrun       = TSI_GENCS_OVRF(0), ///< No overrun
-      TsiOverrun_OverrunOccurred = TSI_GENCS_OVRF(1), ///< Overrun occurred
-   };
-
-   /**
-    * Scan In Progress status
-    * (tsi_gencs_scnip)
-    *
-    * This flag is set while a scan is in progress
-    */
-   enum TsiScanInProgess {
-      TsiScanInProgess_Inactive = TSI_GENCS_SCNIP(0), ///< No active scan
-      TsiScanInProgess_Active   = TSI_GENCS_SCNIP(1), ///< Active scan
+   enum TsiOverrun : uint32_t {
+      TsiOverrun_NoOverrun         = TSI_GENCS_OVRF(0),  ///< No overrun
+      TsiOverrun_OverrunOccurred   = TSI_GENCS_OVRF(1),  ///< Overrun occurred
    };
 
    /**
@@ -14637,7 +15260,7 @@ public:
     *
     * Modulus == 0 indicates continuous mode
     */
-   enum TsiScanPeriod : uint8_t {
+   enum TsiScanPeriod : uint32_t {
    };
 
    /**
@@ -14646,23 +15269,23 @@ public:
     *
     * Charge current in uA
     */
-   enum TsiReferenceChargeCurrent {
-      TsiReferenceChargeCurrent_2uA  = TSI_SCANC_REFCHRG(0),  ///< 2 uA
-      TsiReferenceChargeCurrent_4uA  = TSI_SCANC_REFCHRG(1),  ///< 4 uA
-      TsiReferenceChargeCurrent_6uA  = TSI_SCANC_REFCHRG(2),  ///< 6 uA
-      TsiReferenceChargeCurrent_8uA  = TSI_SCANC_REFCHRG(3),  ///< 8 uA
-      TsiReferenceChargeCurrent_10uA = TSI_SCANC_REFCHRG(4),  ///< 10 uA
-      TsiReferenceChargeCurrent_12uA = TSI_SCANC_REFCHRG(5),  ///< 12 uA
-      TsiReferenceChargeCurrent_14uA = TSI_SCANC_REFCHRG(6),  ///< 14 uA
-      TsiReferenceChargeCurrent_16uA = TSI_SCANC_REFCHRG(7),  ///< 16 uA
-      TsiReferenceChargeCurrent_18uA = TSI_SCANC_REFCHRG(8),  ///< 18 uA
-      TsiReferenceChargeCurrent_20uA = TSI_SCANC_REFCHRG(9),  ///< 20 uA
-      TsiReferenceChargeCurrent_22uA = TSI_SCANC_REFCHRG(10), ///< 22 uA
-      TsiReferenceChargeCurrent_24uA = TSI_SCANC_REFCHRG(11), ///< 24 uA
-      TsiReferenceChargeCurrent_26uA = TSI_SCANC_REFCHRG(12), ///< 26 uA
-      TsiReferenceChargeCurrent_28uA = TSI_SCANC_REFCHRG(13), ///< 28 uA
-      TsiReferenceChargeCurrent_30uA = TSI_SCANC_REFCHRG(14), ///< 30 uA
-      TsiReferenceChargeCurrent_32uA = TSI_SCANC_REFCHRG(15), ///< 32 uA
+   enum TsiReferenceChargeCurrent : uint32_t {
+      TsiReferenceChargeCurrent_2uA    = TSI_SCANC_REFCHRG(0),   ///< 2 uA
+      TsiReferenceChargeCurrent_4uA    = TSI_SCANC_REFCHRG(1),   ///< 4 uA
+      TsiReferenceChargeCurrent_6uA    = TSI_SCANC_REFCHRG(2),   ///< 6 uA
+      TsiReferenceChargeCurrent_8uA    = TSI_SCANC_REFCHRG(3),   ///< 8 uA
+      TsiReferenceChargeCurrent_10uA   = TSI_SCANC_REFCHRG(4),   ///< 10 uA
+      TsiReferenceChargeCurrent_12uA   = TSI_SCANC_REFCHRG(5),   ///< 12 uA
+      TsiReferenceChargeCurrent_14uA   = TSI_SCANC_REFCHRG(6),   ///< 14 uA
+      TsiReferenceChargeCurrent_16uA   = TSI_SCANC_REFCHRG(7),   ///< 16 uA
+      TsiReferenceChargeCurrent_18uA   = TSI_SCANC_REFCHRG(8),   ///< 18 uA
+      TsiReferenceChargeCurrent_20uA   = TSI_SCANC_REFCHRG(9),   ///< 20 uA
+      TsiReferenceChargeCurrent_22uA   = TSI_SCANC_REFCHRG(10),  ///< 22 uA
+      TsiReferenceChargeCurrent_24uA   = TSI_SCANC_REFCHRG(11),  ///< 24 uA
+      TsiReferenceChargeCurrent_26uA   = TSI_SCANC_REFCHRG(12),  ///< 26 uA
+      TsiReferenceChargeCurrent_28uA   = TSI_SCANC_REFCHRG(13),  ///< 28 uA
+      TsiReferenceChargeCurrent_30uA   = TSI_SCANC_REFCHRG(14),  ///< 30 uA
+      TsiReferenceChargeCurrent_32uA   = TSI_SCANC_REFCHRG(15),  ///< 32 uA
    };
 
    /**
@@ -14671,23 +15294,23 @@ public:
     *
     * Charge current in uA
     */
-   enum TsiExternalChargeCurrent {
-      TsiExternalChargeCurrent_2uA  = TSI_SCANC_EXTCHRG(0),  ///< 2 uA
-      TsiExternalChargeCurrent_4uA  = TSI_SCANC_EXTCHRG(1),  ///< 4 uA
-      TsiExternalChargeCurrent_6uA  = TSI_SCANC_EXTCHRG(2),  ///< 6 uA
-      TsiExternalChargeCurrent_8uA  = TSI_SCANC_EXTCHRG(3),  ///< 8 uA
-      TsiExternalChargeCurrent_10uA = TSI_SCANC_EXTCHRG(4),  ///< 10 uA
-      TsiExternalChargeCurrent_12uA = TSI_SCANC_EXTCHRG(5),  ///< 12 uA
-      TsiExternalChargeCurrent_14uA = TSI_SCANC_EXTCHRG(6),  ///< 14 uA
-      TsiExternalChargeCurrent_16uA = TSI_SCANC_EXTCHRG(7),  ///< 16 uA
-      TsiExternalChargeCurrent_18uA = TSI_SCANC_EXTCHRG(8),  ///< 18 uA
-      TsiExternalChargeCurrent_20uA = TSI_SCANC_EXTCHRG(9),  ///< 20 uA
-      TsiExternalChargeCurrent_22uA = TSI_SCANC_EXTCHRG(10), ///< 22 uA
-      TsiExternalChargeCurrent_24uA = TSI_SCANC_EXTCHRG(11), ///< 24 uA
-      TsiExternalChargeCurrent_26uA = TSI_SCANC_EXTCHRG(12), ///< 26 uA
-      TsiExternalChargeCurrent_28uA = TSI_SCANC_EXTCHRG(13), ///< 28 uA
-      TsiExternalChargeCurrent_30uA = TSI_SCANC_EXTCHRG(14), ///< 30 uA
-      TsiExternalChargeCurrent_32uA = TSI_SCANC_EXTCHRG(15), ///< 32 uA
+   enum TsiExternalChargeCurrent : uint32_t {
+      TsiExternalChargeCurrent_2uA    = TSI_SCANC_EXTCHRG(0),   ///< 2 uA
+      TsiExternalChargeCurrent_4uA    = TSI_SCANC_EXTCHRG(1),   ///< 4 uA
+      TsiExternalChargeCurrent_6uA    = TSI_SCANC_EXTCHRG(2),   ///< 6 uA
+      TsiExternalChargeCurrent_8uA    = TSI_SCANC_EXTCHRG(3),   ///< 8 uA
+      TsiExternalChargeCurrent_10uA   = TSI_SCANC_EXTCHRG(4),   ///< 10 uA
+      TsiExternalChargeCurrent_12uA   = TSI_SCANC_EXTCHRG(5),   ///< 12 uA
+      TsiExternalChargeCurrent_14uA   = TSI_SCANC_EXTCHRG(6),   ///< 14 uA
+      TsiExternalChargeCurrent_16uA   = TSI_SCANC_EXTCHRG(7),   ///< 16 uA
+      TsiExternalChargeCurrent_18uA   = TSI_SCANC_EXTCHRG(8),   ///< 18 uA
+      TsiExternalChargeCurrent_20uA   = TSI_SCANC_EXTCHRG(9),   ///< 20 uA
+      TsiExternalChargeCurrent_22uA   = TSI_SCANC_EXTCHRG(10),  ///< 22 uA
+      TsiExternalChargeCurrent_24uA   = TSI_SCANC_EXTCHRG(11),  ///< 24 uA
+      TsiExternalChargeCurrent_26uA   = TSI_SCANC_EXTCHRG(12),  ///< 26 uA
+      TsiExternalChargeCurrent_28uA   = TSI_SCANC_EXTCHRG(13),  ///< 28 uA
+      TsiExternalChargeCurrent_30uA   = TSI_SCANC_EXTCHRG(14),  ///< 30 uA
+      TsiExternalChargeCurrent_32uA   = TSI_SCANC_EXTCHRG(15),  ///< 32 uA
    };
 
    /**
@@ -14696,10 +15319,10 @@ public:
     *
     * 
     */
-   enum TsiClockSource {
-      TsiClockSource_LpoClk   = TSI_SCANC_AMCLKS(0), ///< LPOSCCLK
-      TsiClockSource_McgirClk = TSI_SCANC_AMCLKS(1), ///< MCGIRCLK
-      TsiClockSource_OscerClk = TSI_SCANC_AMCLKS(2), ///< OSCERCLK
+   enum TsiClockSource : uint32_t {
+      TsiClockSource_LpoClk     = TSI_SCANC_AMCLKS(0),  ///< LPOSCCLK
+      TsiClockSource_McgirClk   = TSI_SCANC_AMCLKS(1),  ///< MCGIRCLK
+      TsiClockSource_OscerClk   = TSI_SCANC_AMCLKS(2),  ///< OSCERCLK
    };
 
    /**
@@ -14708,15 +15331,15 @@ public:
     *
     * Input Clock Source division factor
     */
-   enum TsiClockDivider {
-      TsiClockDivider_DivBy1   = TSI_SCANC_AMPSC(0), ///< Divided by 1
-      TsiClockDivider_DivBy2   = TSI_SCANC_AMPSC(1), ///< Divided by 2
-      TsiClockDivider_DivBy4   = TSI_SCANC_AMPSC(2), ///< Divided by 4
-      TsiClockDivider_DivBy8   = TSI_SCANC_AMPSC(3), ///< Divided by 8
-      TsiClockDivider_DivBy16  = TSI_SCANC_AMPSC(4), ///< Divided by 16
-      TsiClockDivider_DivBy32  = TSI_SCANC_AMPSC(5), ///< Divided by 32
-      TsiClockDivider_DivBy64  = TSI_SCANC_AMPSC(6), ///< Divided by 64
-      TsiClockDivider_DivBy128 = TSI_SCANC_AMPSC(7), ///< Divided by 128
+   enum TsiClockDivider : uint32_t {
+      TsiClockDivider_DivBy1     = TSI_SCANC_AMPSC(0),  ///< Divided by 1
+      TsiClockDivider_DivBy2     = TSI_SCANC_AMPSC(1),  ///< Divided by 2
+      TsiClockDivider_DivBy4     = TSI_SCANC_AMPSC(2),  ///< Divided by 4
+      TsiClockDivider_DivBy8     = TSI_SCANC_AMPSC(3),  ///< Divided by 8
+      TsiClockDivider_DivBy16    = TSI_SCANC_AMPSC(4),  ///< Divided by 16
+      TsiClockDivider_DivBy32    = TSI_SCANC_AMPSC(5),  ///< Divided by 32
+      TsiClockDivider_DivBy64    = TSI_SCANC_AMPSC(6),  ///< Divided by 64
+      TsiClockDivider_DivBy128   = TSI_SCANC_AMPSC(7),  ///< Divided by 128
    };
 
    /**
@@ -14725,23 +15348,48 @@ public:
     *
     * Used to select a TSI input
     */
-   enum TsiInput {
-      TsiInput_0  = 0,  ///< Input 0
-      TsiInput_1  = 1,  ///< Input 1
-      TsiInput_2  = 2,  ///< Input 2
-      TsiInput_3  = 3,  ///< Input 3
-      TsiInput_4  = 4,  ///< Input 4
-      TsiInput_5  = 5,  ///< Input 5
-      TsiInput_6  = 6,  ///< Input 6
-      TsiInput_7  = 7,  ///< Input 7
-      TsiInput_8  = 8,  ///< Input 8
-      TsiInput_9  = 9,  ///< Input 9
-      TsiInput_10 = 10, ///< Input 10
-      TsiInput_11 = 11, ///< Input 11
-      TsiInput_12 = 12, ///< Input 12
-      TsiInput_13 = 13, ///< Input 13
-      TsiInput_14 = 14, ///< Input 14
-      TsiInput_15 = 15, ///< Input 15
+   enum TsiInput : uint32_t {
+      TsiInput_Ptb0    = 0,   ///< TSI0_CH0 [-]
+      TsiInput_Pta0    = 1,   ///< TSI0_CH1 [-]
+      TsiInput_Pta1    = 2,   ///< TSI0_CH2 [-]
+      TsiInput_Pta2    = 3,   ///< TSI0_CH3 [-]
+      TsiInput_Pta3    = 4,   ///< TSI0_CH4 [-]
+      TsiInput_Pta4    = 5,   ///< TSI0_CH5 [-]
+      TsiInput_Ptb1    = 6,   ///< TSI0_CH6 [-]
+      TsiInput_Ptb2    = 7,   ///< TSI0_CH7 [-]
+      TsiInput_Ptb3    = 8,   ///< TSI0_CH8 [-]
+      TsiInput_Ptb16   = 9,   ///< TSI0_CH9 [-]
+      TsiInput_Ptb17   = 10,  ///< TSI0_CH10 [-]
+      TsiInput_Ptb18   = 11,  ///< TSI0_CH11 [-]
+      TsiInput_Ptb19   = 12,  ///< TSI0_CH12 [-]
+      TsiInput_Ptc0    = 13,  ///< TSI0_CH13 [-]
+      TsiInput_Ptc1    = 14,  ///< TSI0_CH14 [-]
+      TsiInput_Ptc2    = 15,  ///< TSI0_CH15 [-]
+   };
+
+   /**
+    * Channels enabled as TSI inputs
+    * (tsi_pen_enum)
+    *
+    * Bitmask representing the selected channels
+    */
+   enum PinEnableMask : uint32_t {
+      PinEnableMask_Ptb0    = TSI_PEN_PEN(1U<<0),   ///< TSI0_CH0 [-]
+      PinEnableMask_Pta0    = TSI_PEN_PEN(1U<<1),   ///< TSI0_CH1 [-]
+      PinEnableMask_Pta1    = TSI_PEN_PEN(1U<<2),   ///< TSI0_CH2 [-]
+      PinEnableMask_Pta2    = TSI_PEN_PEN(1U<<3),   ///< TSI0_CH3 [-]
+      PinEnableMask_Pta3    = TSI_PEN_PEN(1U<<4),   ///< TSI0_CH4 [-]
+      PinEnableMask_Pta4    = TSI_PEN_PEN(1U<<5),   ///< TSI0_CH5 [-]
+      PinEnableMask_Ptb1    = TSI_PEN_PEN(1U<<6),   ///< TSI0_CH6 [-]
+      PinEnableMask_Ptb2    = TSI_PEN_PEN(1U<<7),   ///< TSI0_CH7 [-]
+      PinEnableMask_Ptb3    = TSI_PEN_PEN(1U<<8),   ///< TSI0_CH8 [-]
+      PinEnableMask_Ptb16   = TSI_PEN_PEN(1U<<9),   ///< TSI0_CH9 [-]
+      PinEnableMask_Ptb17   = TSI_PEN_PEN(1U<<10),  ///< TSI0_CH10 [-]
+      PinEnableMask_Ptb18   = TSI_PEN_PEN(1U<<11),  ///< TSI0_CH11 [-]
+      PinEnableMask_Ptb19   = TSI_PEN_PEN(1U<<12),  ///< TSI0_CH12 [-]
+      PinEnableMask_Ptc0    = TSI_PEN_PEN(1U<<13),  ///< TSI0_CH13 [-]
+      PinEnableMask_Ptc1    = TSI_PEN_PEN(1U<<14),  ///< TSI0_CH14 [-]
+      PinEnableMask_Ptc2    = TSI_PEN_PEN(1U<<15),  ///< TSI0_CH15 [-]
    };
 
    /**
@@ -14750,23 +15398,23 @@ public:
     *
     * Selects which input is active in low-power mode
     */
-   enum TsiLowPowerInput {
-      TsiLowPowerInput_0  = TSI_PEN_LPSP(0),  ///< Input 0
-      TsiLowPowerInput_1  = TSI_PEN_LPSP(1),  ///< Input 1
-      TsiLowPowerInput_2  = TSI_PEN_LPSP(2),  ///< Input 2
-      TsiLowPowerInput_3  = TSI_PEN_LPSP(3),  ///< Input 3
-      TsiLowPowerInput_4  = TSI_PEN_LPSP(4),  ///< Input 4
-      TsiLowPowerInput_5  = TSI_PEN_LPSP(5),  ///< Input 5
-      TsiLowPowerInput_6  = TSI_PEN_LPSP(6),  ///< Input 6
-      TsiLowPowerInput_7  = TSI_PEN_LPSP(7),  ///< Input 7
-      TsiLowPowerInput_8  = TSI_PEN_LPSP(8),  ///< Input 8
-      TsiLowPowerInput_9  = TSI_PEN_LPSP(9),  ///< Input 9
-      TsiLowPowerInput_10 = TSI_PEN_LPSP(10), ///< Input 10
-      TsiLowPowerInput_11 = TSI_PEN_LPSP(11), ///< Input 11
-      TsiLowPowerInput_12 = TSI_PEN_LPSP(12), ///< Input 12
-      TsiLowPowerInput_13 = TSI_PEN_LPSP(13), ///< Input 13
-      TsiLowPowerInput_14 = TSI_PEN_LPSP(14), ///< Input 14
-      TsiLowPowerInput_15 = TSI_PEN_LPSP(15), ///< Input 15
+   enum TsiLowPowerInput : uint32_t {
+      TsiLowPowerInput_Ptb0    = TSI_PEN_LPSP(0),   ///< TSI0_CH0 [-]
+      TsiLowPowerInput_Pta0    = TSI_PEN_LPSP(1),   ///< TSI0_CH1 [-]
+      TsiLowPowerInput_Pta1    = TSI_PEN_LPSP(2),   ///< TSI0_CH2 [-]
+      TsiLowPowerInput_Pta2    = TSI_PEN_LPSP(3),   ///< TSI0_CH3 [-]
+      TsiLowPowerInput_Pta3    = TSI_PEN_LPSP(4),   ///< TSI0_CH4 [-]
+      TsiLowPowerInput_Pta4    = TSI_PEN_LPSP(5),   ///< TSI0_CH5 [-]
+      TsiLowPowerInput_Ptb1    = TSI_PEN_LPSP(6),   ///< TSI0_CH6 [-]
+      TsiLowPowerInput_Ptb2    = TSI_PEN_LPSP(7),   ///< TSI0_CH7 [-]
+      TsiLowPowerInput_Ptb3    = TSI_PEN_LPSP(8),   ///< TSI0_CH8 [-]
+      TsiLowPowerInput_Ptb16   = TSI_PEN_LPSP(9),   ///< TSI0_CH9 [-]
+      TsiLowPowerInput_Ptb17   = TSI_PEN_LPSP(10),  ///< TSI0_CH10 [-]
+      TsiLowPowerInput_Ptb18   = TSI_PEN_LPSP(11),  ///< TSI0_CH11 [-]
+      TsiLowPowerInput_Ptb19   = TSI_PEN_LPSP(12),  ///< TSI0_CH12 [-]
+      TsiLowPowerInput_Ptc0    = TSI_PEN_LPSP(13),  ///< TSI0_CH13 [-]
+      TsiLowPowerInput_Ptc1    = TSI_PEN_LPSP(14),  ///< TSI0_CH14 [-]
+      TsiLowPowerInput_Ptc2    = TSI_PEN_LPSP(15),  ///< TSI0_CH15 [-]
    };
 
    /**
@@ -14775,7 +15423,7 @@ public:
     *
     * Determines the low threshold for the channel active in low power mode
     */
-   enum TsiLowThreshold : uint16_t {
+   enum TsiLowThreshold : uint32_t {
    };
 
    /**
@@ -14784,15 +15432,15 @@ public:
     *
     * Determines the high threshold for the channel active in low power mode
     */
-   enum TsiHighThreshold : uint16_t {
+   enum TsiHighThreshold : uint32_t {
    };
 
-class Tsi0BasicInfo {
+class TsiBasicInfo {
 
 public:
-}; // class TsiBasicInfo
+}; // class TsiBasicInfo 
 
-class Tsi0Info : public Tsi0BasicInfo {
+class Tsi0Info : public TsiBasicInfo {
 public:
    /*
     * Template:tsi0_mk
@@ -14835,6 +15483,30 @@ public:
    
    //! Number of IRQs for hardware
    static constexpr uint32_t irqCount  = sizeofArray(irqNums);
+   
+   /**
+    * Enable interrupts in NVIC
+    */
+   static void enableNvicInterrupts() {
+      NVIC_EnableIRQ(irqNums[0]);
+   }
+   
+   /**
+    * Enable and set priority of interrupts in NVIC
+    * Any pending NVIC interrupts are first cleared.
+    *
+    * @param[in]  nvicPriority  Interrupt priority
+    */
+   static void enableNvicInterrupts(NvicPriority nvicPriority) {
+      enableNvicInterrupt(irqNums[0], nvicPriority);
+   }
+   
+   /**
+    * Disable interrupts in NVIC
+    */
+   static void disableNvicInterrupts() {
+      NVIC_DisableIRQ(irqNums[0]);
+   }
    
    /**
     *  Enable clock to Tsi0
@@ -14889,6 +15561,16 @@ public:
       return 0;
    }
 
+   /**
+    * Set Software Trigger
+    * (tsi_gencs_swts)
+    *
+    * @param tsiSoftwareTrigger Used to start a scan when software trigger mode is selected
+    */
+   static void setStartScan(TsiSoftwareTrigger tsiSoftwareTrigger) {
+      tsi->GENCS = (tsi->GENCS&~TSI_GENCS_SWTS_MASK) | tsiSoftwareTrigger;
+   }
+   
    //! Number of signals available in info table
    static constexpr int numSignals  = 16;
 
@@ -14954,9 +15636,9 @@ public:
     * Select amongst interrupts associated with the peripheral
     */
    enum Uart0IrqNum {
-      Uart0IrqNum_Lon   = 0, ///< Maps to UART0_Lon_IRQn
-      Uart0IrqNum_RxTx  = 1, ///< Maps to UART0_RxTx_IRQn
-      Uart0IrqNum_Error = 2, ///< Maps to UART0_Error_IRQn
+      Uart0IrqNum_Lon     = 0,  ///< Maps to UART0_Lon_IRQn
+      Uart0IrqNum_RxTx    = 1,  ///< Maps to UART0_RxTx_IRQn
+      Uart0IrqNum_Error   = 2,  ///< Maps to UART0_Error_IRQn
    };
 
    /**
@@ -14966,8 +15648,8 @@ public:
     * Enable interrupt on transmission complete
     */
    enum UartTxCompleteAction : uint8_t {
-      UartTxCompleteAction_None      = UART_C2_TCIE(0), ///< None
-      UartTxCompleteAction_Interrupt = UART_C2_TCIE(1), ///< Interrupt
+      UartTxCompleteAction_None        = UART_C2_TCIE(0),  ///< None
+      UartTxCompleteAction_Interrupt   = UART_C2_TCIE(1),  ///< Interrupt
    };
 
    /**
@@ -14977,8 +15659,8 @@ public:
     * Enable interrupt on tidele line detect
     */
    enum UartIdleLineDetectAction : uint8_t {
-      UartIdleLineDetectAction_None      = UART_C2_ILIE(0), ///< None
-      UartIdleLineDetectAction_Interrupt = UART_C2_ILIE(1), ///< Interrupt
+      UartIdleLineDetectAction_None        = UART_C2_ILIE(0),  ///< None
+      UartIdleLineDetectAction_Interrupt   = UART_C2_ILIE(1),  ///< Interrupt
    };
 
    /**
@@ -14988,9 +15670,9 @@ public:
     * Enable transmit holding register empty DMA/Interrupt action
     */
    enum UartTxEmptyAction : uint16_t {
-      UartTxEmptyAction_None      = (UART_C5_TDMAS(0)<<8)|UART_C2_TIE(0), ///< None
-      UartTxEmptyAction_Interrupt = (UART_C5_TDMAS(0)<<8)|UART_C2_TIE(1), ///< Interrupt
-      UartTxEmptyAction_Dma       = (UART_C5_TDMAS(1)<<8)|UART_C2_TIE(1), ///< DMA
+      UartTxEmptyAction_None        = (UART_C5_TDMAS(0)<<8)|UART_C2_TIE(0),  ///< None
+      UartTxEmptyAction_Interrupt   = (UART_C5_TDMAS(0)<<8)|UART_C2_TIE(1),  ///< Interrupt
+      UartTxEmptyAction_Dma         = (UART_C5_TDMAS(1)<<8)|UART_C2_TIE(1),  ///< DMA
    };
 
    /**
@@ -15000,9 +15682,9 @@ public:
     * Enable receive buffer full DMA/interrupt action
     */
    enum UartRxFullAction : uint16_t {
-      UartRxFullAction_None      = (UART_C5_RDMAS(0)<<8)|UART_C2_RIE(0), ///< None
-      UartRxFullAction_Interrupt = (UART_C5_RDMAS(0)<<8)|UART_C2_RIE(1), ///< Interrupt
-      UartRxFullAction_Dma       = (UART_C5_RDMAS(1)<<8)|UART_C2_RIE(1), ///< DMA
+      UartRxFullAction_None        = (UART_C5_RDMAS(0)<<8)|UART_C2_RIE(0),  ///< None
+      UartRxFullAction_Interrupt   = (UART_C5_RDMAS(0)<<8)|UART_C2_RIE(1),  ///< Interrupt
+      UartRxFullAction_Dma         = (UART_C5_RDMAS(1)<<8)|UART_C2_RIE(1),  ///< DMA
    };
 
    /**
@@ -15012,8 +15694,8 @@ public:
     * 
     */
    enum UartLinBreakAction : uint8_t {
-      UartLinBreakAction_None      = UART_BDH_LBKDIE(0), ///< None
-      UartLinBreakAction_Interrupt = UART_BDH_LBKDIE(1), ///< Interrupt
+      UartLinBreakAction_None        = UART_BDH_LBKDIE(0),  ///< None
+      UartLinBreakAction_Interrupt   = UART_BDH_LBKDIE(1),  ///< Interrupt
    };
 
    /**
@@ -15023,64 +15705,52 @@ public:
     * 
     */
    enum UartRxdActiveEdgeAction : uint8_t {
-      UartRxdActiveEdgeAction_None      = UART_BDH_RXEDGIE(0), ///< None
-      UartRxdActiveEdgeAction_Interrupt = UART_BDH_RXEDGIE(1), ///< Interrupt
-   };
-
-   /**
-    * UART baud rate
-    * (uart_baud_rate)
-    *
-    * Baud rate for UART
-    * Values available will depend on clock source frequency
-    */
-   enum UartBaudRate {
-      UartBaudRate_110    = 110,    ///< 110
-      UartBaudRate_300    = 300,    ///< 300
-      UartBaudRate_600    = 600,    ///< 600
-      UartBaudRate_1200   = 1200,   ///< 1200
-      UartBaudRate_2400   = 2400,   ///< 2400
-      UartBaudRate_4800   = 4800,   ///< 4800
-      UartBaudRate_9600   = 9600,   ///< 9600
-      UartBaudRate_14400  = 14400,  ///< 14400
-      UartBaudRate_19200  = 19200,  ///< 19200
-      UartBaudRate_28800  = 28800,  ///< 28800
-      UartBaudRate_38400  = 38400,  ///< 38400
-      UartBaudRate_56000  = 56000,  ///< 56000
-      UartBaudRate_57600  = 57600,  ///< 57600
-      UartBaudRate_115200 = 115200, ///< 115200
+      UartRxdActiveEdgeAction_None        = UART_BDH_RXEDGIE(0),  ///< None
+      UartRxdActiveEdgeAction_Interrupt   = UART_BDH_RXEDGIE(1),  ///< Interrupt
    };
 
 class UartBasicInfo {
-   
+
 public:
+   //! Common class based callback code has been generated for this class of peripheral
+   static constexpr bool irqHandlerInstalled = false;
+   
    /**
     * Set baud rate
-    * (for UART with fixed /16 prescaler)
+    * (uart_baudrate, uart_c4_brfa_present)
+    * (for UART with fractional divider)
     *
+    * @param uart     Hardware instance pointer
+    * @param clockFrequency   Clock frequency
     * @param uartBaudRate Baud rate for UART
-    *        Values available will depend on clock source frequency
+    *        Values available will depend on peripheral clock frequency
     */
    static void setBaudRate(volatile UART_Type *const uart, uint32_t clockFrequency, UartBaudRate uartBaudRate) {
-   
+      /*
+       * Baudrate = clockFrequency / (OSR x (SBR + BRFD))
+       * Fixed OSR = 16
+       *
+       * (OSR x (SBR + BRFA/32)) = clockFrequency/Baudrate
+       * (SBR + BRFA/32) = clockFrequency/(Baudrate*OSR)
+       * divisor = 32*SBR + BRFA = 2*clockFrequency/Baudrate
+       * SBR  = divisor>>5
+       * BRFA = divisor&0b11111
+       */
       // Disable UART before changing registers
       uint8_t c2Value = uart->C2;
       uart->C2 = 0;
    
-      // Fixed over-sample ratio
-      constexpr unsigned overSample=16;
-   
-      /*
-       * Baudrate = ClockFrequency / (OverSample x Divider)
-       * Divider  = ClockFrequency / (OverSample x Baudrate)
-       */
-      // Calculate UART divisor with rounding
-      uint32_t divisor = (clockFrequency<<1)/(overSample * uartBaudRate);
-      divisor = (divisor>>1)|(divisor&0b1);
+      // Rounded divider with 32-bit fraction
+      uint32_t divisor = (2*clockFrequency+(uartBaudRate/2))/uartBaudRate;
+      // Whole divider
+      uint32_t sbr = divisor>>5;
+      // Fractional (/32) divider to get closer to the baud rate
+      uint32_t brfa = divisor&0b11111;
    
       // Set Baud rate register
-      uart->BDH = (uart->BDH&~UART_BDH_SBR_MASK) | UART_BDH_SBR((divisor>>8));
-      uart->BDL = UART_BDL_SBR(divisor);
+      uart->BDH = (uart->BDH&~UART_BDH_SBR_MASK) | UART_BDH_SBR((sbr>>8));
+      uart->BDL = UART_BDL_SBR(sbr);
+      uart->C4  = (uart->C4&~UART_C4_BRFA_MASK) | UART_C4_BRFA(brfa);
    
       // Restore UART settings
       uart->C2 = c2Value;
@@ -15135,8 +15805,8 @@ XXXXXXXXXXXXXXXXXXXXXX
        */
       constexpr Init() = default;
    
-      // UART baud rate (uart_baud_rate)
-      UartBaudRate baud = UartBaudRate(0);
+      // UART baud rate (uart_baudrate)
+      UartBaudRate baudrate = UartBaudRate(0);
 
       // LIN break detect action (uart_bdh_lbkdie)
       // RxD input active edge action (uart_bdh_rxedgie)
@@ -15182,18 +15852,18 @@ XXXXXXXXXXXXXXXXXXXXXX
    
       /**
        * Constructor for UART baud rate
-       * (uart_baud_rate)
+       * (uart_baudrate)
        *
        * @tparam   Types
        * @param    rest
        *
        * @param uartBaudRate Baud rate for UART
-       *        Values available will depend on clock source frequency
+       *        Values available will depend on peripheral clock frequency
        */
       template <typename... Types>
       constexpr Init(UartBaudRate uartBaudRate, Types... rest) : Init(rest...) {
    
-         baud = uartBaudRate;
+         baudrate = uartBaudRate;
       }
    
       /**
@@ -15258,8 +15928,8 @@ XXXXXXXXXXXXXXXXXXXXXX
    
    }; // class UartBasicInfo::Init
    
-}; // class UartBasicInfo
-   
+}; // class UartBasicInfo 
+
 class Uart0Info : public UartBasicInfo {
 public:
    /*
@@ -15358,10 +16028,13 @@ public:
    }
    
    /**
-    * Disables the clock to Uart0 and all mapped pins
+    * Disables Uart0
     */
    static void disable() {
       
+      disableNvicInterrupts(Uart0IrqNum_Lon);
+      disableNvicInterrupts(Uart0IrqNum_RxTx);
+      disableNvicInterrupts(Uart0IrqNum_Error);
       disableAllPins();
       disableClock();
    }
@@ -15376,12 +16049,20 @@ public:
    static constexpr unsigned instance = 0;
    
    /**
-    * Clear UART error status
-    * This also discards the current received data value
+    * Clear UART status 
+
+    * This includes:
+    * - Idle detect flag
+    * - Overrun flag
+    * - Noise flag
+    * - Framing error flag
+    * - Parity error flag
     */
    static void clearError() {
-         (void)uart->S1;
-         (void)uart->D;
+   
+      // Flags are cleared by reading status and then data
+      (void)uart->S1;
+      (void)uart->D;
    }
    
    /**
@@ -15397,7 +16078,7 @@ public:
     * Set baud rate
     *
     * @param uartBaudRate Baud rate for UART
-    *        Values available will depend on clock source frequency
+    *        Values available will depend on peripheral clock frequency
     */
    static void setBaudRate(UartBaudRate uartBaudRate) {
    
@@ -15429,9 +16110,6 @@ public:
       // RxD input active edge action (uart_bdh_rxedgie)
       uart->BDH = init.bdh;
    
-      // UART baud rate (uart_baud_rate)
-      setBaudRate(init.baud);
-   
       // Transmit complete action (uart_c2_tcie)
       // Idle line detect action (uart_c2_ilie)
       uart->C2 = init.c2;
@@ -15439,6 +16117,9 @@ public:
       // Transmit empty DMA/Interrupt action (uart_c5_tdmas)
       // Receive full DMA/interrupt action (uart_c5_rdmas)
       uart->C5 = init.c5;
+   
+      // UART baud rate (uart_baudrate)
+      setBaudRate(init.baudrate);
    }
    
    /**
@@ -15446,7 +16127,7 @@ public:
     * This value is created from Configure.usbdmProject settings
     */
    static constexpr Init DefaultInitValue = {
-      UartBaudRate_115200 , // (uart_baud_rate) UART baud rate - 115200
+      UartBaudRate_115200 , // (uart_baudrate) UART baud rate - 115200
       UartLinBreakAction_None , // (uart_bdh_lbkdie) LIN break detect action - None
       UartRxdActiveEdgeAction_None , // (uart_bdh_rxedgie) RxD input active edge action - None
       UartTxCompleteAction_None , // (uart_c2_tcie) Transmit complete action - None
@@ -15504,13 +16185,16 @@ public:
     * Select amongst interrupts associated with the peripheral
     */
    enum Uart1IrqNum {
-      Uart1IrqNum_RxTx  = 0, ///< Maps to UART1_RxTx_IRQn
-      Uart1IrqNum_Error = 1, ///< Maps to UART1_Error_IRQn
+      Uart1IrqNum_RxTx    = 0,  ///< Maps to UART1_RxTx_IRQn
+      Uart1IrqNum_Error   = 1,  ///< Maps to UART1_Error_IRQn
    };
 
 class Uart1BasicInfo {
-   
+
 public:
+   //! Common class based callback code has been generated for this class of peripheral
+   static constexpr bool irqHandlerInstalled = true;
+   
    /**
     * Type definition for Uart interrupt call back.
     */
@@ -15525,31 +16209,40 @@ public:
    
    /**
     * Set baud rate
-    * (for UART with fixed /16 prescaler)
+    * (uart_baudrate, uart_c4_brfa_present)
+    * (for UART with fractional divider)
     *
+    * @param uart     Hardware instance pointer
+    * @param clockFrequency   Clock frequency
     * @param uartBaudRate Baud rate for UART
-    *        Values available will depend on clock source frequency
+    *        Values available will depend on peripheral clock frequency
     */
    static void setBaudRate(volatile UART1_Type *const uart, uint32_t clockFrequency, UartBaudRate uartBaudRate) {
-   
+      /*
+       * Baudrate = clockFrequency / (OSR x (SBR + BRFD))
+       * Fixed OSR = 16
+       *
+       * (OSR x (SBR + BRFA/32)) = clockFrequency/Baudrate
+       * (SBR + BRFA/32) = clockFrequency/(Baudrate*OSR)
+       * divisor = 32*SBR + BRFA = 2*clockFrequency/Baudrate
+       * SBR  = divisor>>5
+       * BRFA = divisor&0b11111
+       */
       // Disable UART before changing registers
       uint8_t c2Value = uart->C2;
       uart->C2 = 0;
    
-      // Fixed over-sample ratio
-      constexpr unsigned overSample=16;
-   
-      /*
-       * Baudrate = ClockFrequency / (OverSample x Divider)
-       * Divider  = ClockFrequency / (OverSample x Baudrate)
-       */
-      // Calculate UART divisor with rounding
-      uint32_t divisor = (clockFrequency<<1)/(overSample * uartBaudRate);
-      divisor = (divisor>>1)|(divisor&0b1);
+      // Rounded divider with 32-bit fraction
+      uint32_t divisor = (2*clockFrequency+(uartBaudRate/2))/uartBaudRate;
+      // Whole divider
+      uint32_t sbr = divisor>>5;
+      // Fractional (/32) divider to get closer to the baud rate
+      uint32_t brfa = divisor&0b11111;
    
       // Set Baud rate register
-      uart->BDH = (uart->BDH&~UART_BDH_SBR_MASK) | UART_BDH_SBR((divisor>>8));
-      uart->BDL = UART_BDL_SBR(divisor);
+      uart->BDH = (uart->BDH&~UART_BDH_SBR_MASK) | UART_BDH_SBR((sbr>>8));
+      uart->BDL = UART_BDL_SBR(sbr);
+      uart->C4  = (uart->C4&~UART_C4_BRFA_MASK) | UART_C4_BRFA(brfa);
    
       // Restore UART settings
       uart->C2 = c2Value;
@@ -15604,8 +16297,8 @@ XXXXXXXXXXXXXXXXXXXXXX
        */
       constexpr Init() = default;
    
-      // UART baud rate (uart_baud_rate)
-      UartBaudRate baud = UartBaudRate(0);
+      // UART baud rate (uart_baudrate)
+      UartBaudRate baudrate = UartBaudRate(0);
 
       // LIN break detect action (uart_bdh_lbkdie)
       // RxD input active edge action (uart_bdh_rxedgie)
@@ -15651,18 +16344,18 @@ XXXXXXXXXXXXXXXXXXXXXX
    
       /**
        * Constructor for UART baud rate
-       * (uart_baud_rate)
+       * (uart_baudrate)
        *
        * @tparam   Types
        * @param    rest
        *
        * @param uartBaudRate Baud rate for UART
-       *        Values available will depend on clock source frequency
+       *        Values available will depend on peripheral clock frequency
        */
       template <typename... Types>
       constexpr Init(UartBaudRate uartBaudRate, Types... rest) : Init(rest...) {
    
-         baud = uartBaudRate;
+         baudrate = uartBaudRate;
       }
    
       /**
@@ -15727,8 +16420,8 @@ XXXXXXXXXXXXXXXXXXXXXX
    
    }; // class Uart1BasicInfo::Init
    
-}; // class Uart1BasicInfo
-   
+}; // class Uart1BasicInfo 
+
 class Uart1Info : public Uart1BasicInfo {
 public:
    /*
@@ -15776,9 +16469,6 @@ public:
    //! Number of IRQs for hardware
    static constexpr uint32_t irqCount  = sizeofArray(irqNums);
    
-   //! Default IRQ level
-   static constexpr NvicPriority irqLevel =  NvicPriority_NotInstalled;
-   
    /**
     * Enable interrupts in NVIC
     * @param uart1IrqNum Select amongst interrupts associated with the peripheral
@@ -15806,6 +16496,82 @@ public:
       NVIC_DisableIRQ(irqNums[uart1IrqNum]);
    }
    
+   template<typename T>
+   using CallbackWrapper = USBDM::CallbackWrapper<T, Uart1Info>;
+   
+   /**
+    * Function to wrap a member function as a static callback function
+    * Example:
+    * @code
+    * class AClass {
+    * public:
+    *    int y;
+    *
+    *    // Member function used as callback
+    *    // This function must match CallbackFunction
+    *    void callbackFuction() {
+    *       ...;
+    *    }
+    * };
+    * ...
+    *    AClass *tester = new AClass{};
+    *
+    *    auto cb = Uart1::wrapCallback(tester, &AClass::callbackFuction);
+    *    Uart1::setCallback(cb);
+    *   @endcode
+    *
+    * @tparam T               Type of class containing callback (inferred)
+    *
+    * @param classInstance    Pointer to instance of class
+    * @param memberFunction   Pointer to the member function
+    *
+    * @return  Wrapper
+    */
+   template<typename T>
+   static auto wrapCallback(T *classInstance, void (T::*memberFunction)()) {
+      static CallbackWrapper<T> sClass(classInstance, memberFunction);
+      return sClass.callback;
+   }
+   
+   /**
+    * UART interrupt handler -  Calls UART callback
+    *
+    * @tparam uart1IrqNum Select amongst interrupts associated with the peripheral
+    */
+   template<Uart1IrqNum uart1IrqNum>
+   static void irqHandler() {
+   
+      // Execute call-back
+      sCallbacks[uart1IrqNum]();
+   }
+   
+   /** Callback function for Uart1 */
+   static inline CallbackFunction sCallbacks[2] = {
+      Uart1Info::unhandledCallback,  // UART1_RxTx_IRQn 
+      Uart1Info::unhandledCallback,  // UART1_Error_IRQn 
+   };
+   
+   /**
+    * Set interrupt callback function.
+    *
+    * @param uart1IrqNum Select amongst interrupts associated with the peripheral
+    * @param  uartCallback Callback function to execute on interrupt
+    *                             Use nullptr to remove callback.
+    */
+   static void setCallback(Uart1IrqNum uart1IrqNum, CallbackFunction uartCallback) {
+      if (uartCallback == nullptr) {
+         uartCallback = unhandledCallback;
+      }
+      // Allow either no handler set yet or removing handler
+      // Allow either no handler set yet or removing handler or setting same handler
+      usbdm_assert(
+            (sCallbacks[uart1IrqNum] == unhandledCallback) ||
+            (sCallbacks[uart1IrqNum] == uartCallback) ||
+            (uartCallback == unhandledCallback),
+            "Handler already set");
+      sCallbacks[uart1IrqNum] = uartCallback;
+   }
+   
    /**
     *  Enable clock to Uart1
     */
@@ -15830,7 +16596,7 @@ public:
    }
    
    /**
-    * Disables the clock to Uart1 and all mapped pins
+    * Disables Uart1
     */
    static void disable() {
       
@@ -15849,56 +16615,21 @@ public:
    //! Peripheral instance number
    static constexpr unsigned instance = 1;
    
-   /** Callback functions for UART */
-   static CallbackFunction sCallbacks[irqCount];
-   
    /**
-    * Set interrupt callback function.
-    *
-    * @param uart1IrqNum Select amongst interrupts associated with the peripheral
-    * @param uartCallback Callback function to execute on interrupt
-    *                     Use nullptr to remove callback.
-    */
-   static void setCallback(Uart1IrqNum uart1IrqNum, CallbackFunction uartCallback) {
-      if (uartCallback == nullptr) {
-         uartCallback = unhandledCallback;
-      }
-      // Allow either no handler set yet or removing handler
-      usbdm_assert(
-            (sCallbacks[uart1IrqNum] == unhandledCallback) || (uartCallback == unhandledCallback),
-            "Handler already set");
-      sCallbacks[uart1IrqNum] = uartCallback;
-   }
-   
-   /**
-    * UART interrupt handler -  Calls UART callback
-    *
-    * @tparam channel Channel number
-    */
-   static void RxTx_irqHandler() {
-   
-      // Execute call-back
-      sCallbacks[Uart1IrqNum_RxTx]();
-   }
-   
-   /**
-    * UART interrupt handler -  Calls UART callback
-    *
-    * @tparam channel Channel number
-    */
-   static void Error_irqHandler() {
-   
-      // Execute call-back
-      sCallbacks[Uart1IrqNum_Error]();
-   }
-   
-   /**
-    * Clear UART error status
-    * This also discards the current received data value
+    * Clear UART status 
+
+    * This includes:
+    * - Idle detect flag
+    * - Overrun flag
+    * - Noise flag
+    * - Framing error flag
+    * - Parity error flag
     */
    static void clearError() {
-         (void)uart->S1;
-         (void)uart->D;
+   
+      // Flags are cleared by reading status and then data
+      (void)uart->S1;
+      (void)uart->D;
    }
    
    /**
@@ -15914,7 +16645,7 @@ public:
     * Set baud rate
     *
     * @param uartBaudRate Baud rate for UART
-    *        Values available will depend on clock source frequency
+    *        Values available will depend on peripheral clock frequency
     */
    static void setBaudRate(UartBaudRate uartBaudRate) {
    
@@ -15946,9 +16677,6 @@ public:
       // RxD input active edge action (uart_bdh_rxedgie)
       uart->BDH = init.bdh;
    
-      // UART baud rate (uart_baud_rate)
-      setBaudRate(init.baud);
-   
       // Transmit complete action (uart_c2_tcie)
       // Idle line detect action (uart_c2_ilie)
       uart->C2 = init.c2;
@@ -15956,6 +16684,9 @@ public:
       // Transmit empty DMA/Interrupt action (uart_c5_tdmas)
       // Receive full DMA/interrupt action (uart_c5_rdmas)
       uart->C5 = init.c5;
+   
+      // UART baud rate (uart_baudrate)
+      setBaudRate(init.baudrate);
    }
    
    /**
@@ -15963,7 +16694,7 @@ public:
     * This value is created from Configure.usbdmProject settings
     */
    static constexpr Init DefaultInitValue = {
-      UartBaudRate_115200 , // (uart_baud_rate) UART baud rate - 115200
+      UartBaudRate_115200 , // (uart_baudrate) UART baud rate - 115200
       UartLinBreakAction_None , // (uart_bdh_lbkdie) LIN break detect action - None
       UartRxdActiveEdgeAction_None , // (uart_bdh_rxedgie) RxD input active edge action - None
       UartTxCompleteAction_None , // (uart_c2_tcie) Transmit complete action - None
@@ -16020,8 +16751,8 @@ public:
     * Select amongst interrupts associated with the peripheral
     */
    enum Uart2IrqNum {
-      Uart2IrqNum_RxTx  = 0, ///< Maps to UART2_RxTx_IRQn
-      Uart2IrqNum_Error = 1, ///< Maps to UART2_Error_IRQn
+      Uart2IrqNum_RxTx    = 0,  ///< Maps to UART2_RxTx_IRQn
+      Uart2IrqNum_Error   = 1,  ///< Maps to UART2_Error_IRQn
    };
 
 class Uart2Info : public Uart1BasicInfo {
@@ -16122,12 +16853,20 @@ public:
    static constexpr unsigned instance = 2;
    
    /**
-    * Clear UART error status
-    * This also discards the current received data value
+    * Clear UART status 
+
+    * This includes:
+    * - Idle detect flag
+    * - Overrun flag
+    * - Noise flag
+    * - Framing error flag
+    * - Parity error flag
     */
    static void clearError() {
-         (void)uart->S1;
-         (void)uart->D;
+   
+      // Flags are cleared by reading status and then data
+      (void)uart->S1;
+      (void)uart->D;
    }
    
    /**
@@ -16143,7 +16882,7 @@ public:
     * Set baud rate
     *
     * @param uartBaudRate Baud rate for UART
-    *        Values available will depend on clock source frequency
+    *        Values available will depend on peripheral clock frequency
     */
    static void setBaudRate(UartBaudRate uartBaudRate) {
    
@@ -16199,6 +16938,21 @@ public:
 class UsbBasicInfo {
 
 public:
+   //! Common class based callback code has been generated for this class of peripheral
+   static constexpr bool irqHandlerInstalled = true;
+   
+   /**
+    * Type definition for Usb interrupt call back.
+    */
+   typedef void (*CallbackFunction)();
+   
+   /**
+    * Callback to catch unhandled interrupt
+    */
+   static void unhandledCallback() {
+      setAndCheckErrorCode(E_NO_HANDLER);
+   }
+   
    /**
     * Class used to do initialisation of the Usb Clock Recovery
     *
@@ -16240,8 +16994,8 @@ public:
    
    }; // class UsbBasicInfo::ClockRecoveryInit
    
-}; // class UsbBasicInfo
-   
+}; // class UsbBasicInfo 
+
 class Usb0Info : public UsbBasicInfo {
 public:
    /*
@@ -16290,7 +17044,7 @@ public:
    static constexpr uint32_t irqCount  = sizeofArray(irqNums);
    
    //! Default IRQ level
-   static constexpr NvicPriority irqLevel =  NvicPriority_NotInstalled;
+   static constexpr NvicPriority irqLevel =  NvicPriority_Normal;
    
    /**
     * Enable interrupts in NVIC
@@ -16314,6 +17068,74 @@ public:
     */
    static void disableNvicInterrupts() {
       NVIC_DisableIRQ(irqNums[0]);
+   }
+   
+   template<typename T>
+   using CallbackWrapper = USBDM::CallbackWrapper<T, Usb0Info>;
+   
+   /**
+    * Function to wrap a member function as a static callback function
+    * Example:
+    * @code
+    * class AClass {
+    * public:
+    *    int y;
+    *
+    *    // Member function used as callback
+    *    // This function must match CallbackFunction
+    *    void callbackFuction() {
+    *       ...;
+    *    }
+    * };
+    * ...
+    *    AClass *tester = new AClass{};
+    *
+    *    auto cb = Usb0::wrapCallback(tester, &AClass::callbackFuction);
+    *    Usb0::setCallback(cb);
+    *   @endcode
+    *
+    * @tparam T               Type of class containing callback (inferred)
+    *
+    * @param classInstance    Pointer to instance of class
+    * @param memberFunction   Pointer to the member function
+    *
+    * @return  Wrapper
+    */
+   template<typename T>
+   static auto wrapCallback(T *classInstance, void (T::*memberFunction)()) {
+      static CallbackWrapper<T> sClass(classInstance, memberFunction);
+      return sClass.callback;
+   }
+   
+   /**
+    * USB interrupt handler -  Calls USB callback
+    */
+   static void irqHandler() {
+   
+      // Execute call-back
+      sCallback();
+   }
+   
+   /** Callback function for Usb0 */
+   static inline CallbackFunction sCallback = Usb0Info::unhandledCallback; // USB0_IRQn;
+   
+   /**
+    * Set interrupt callback function.
+    *
+    * @param  usbCallback Callback function to execute on interrupt
+    *                             Use nullptr to remove callback.
+    */
+   static void setCallback(CallbackFunction usbCallback) {
+      if (usbCallback == nullptr) {
+         usbCallback = unhandledCallback;
+      }
+      // Allow either no handler set yet or removing handler or setting same handler
+      usbdm_assert(
+            (sCallback == unhandledCallback) ||
+            (sCallback == usbCallback) ||
+            (usbCallback == unhandledCallback),
+            "Handler already set");
+      sCallback = usbCallback;
    }
    
    /**
@@ -16340,7 +17162,7 @@ public:
    }
    
    /**
-    * Disables the clock to Usb0 and all mapped pins
+    * Disables Usb0
     */
    static void disable() {
       
@@ -16411,8 +17233,8 @@ public:
     * Determines whether a software reset is performed
     */
    enum UsbdcdSoftwareReset {
-      UsbdcdSoftwareReset_NoAction = USBDCD_CONTROL_SR(0), ///< No effect
-      UsbdcdSoftwareReset_Reset    = USBDCD_CONTROL_SR(1), ///< Software reset
+      UsbdcdSoftwareReset_NoAction   = USBDCD_CONTROL_SR(0),  ///< No effect
+      UsbdcdSoftwareReset_Reset      = USBDCD_CONTROL_SR(1),  ///< Software reset
    };
 
    /**
@@ -16422,8 +17244,8 @@ public:
     * Determines whether the charger detection sequence is initiated
     */
    enum UsbdcdStart {
-      UsbdcdStart_NoAction      = USBDCD_CONTROL_START(0), ///< No effect
-      UsbdcdStart_StartSequence = USBDCD_CONTROL_START(1), ///< Start sequence
+      UsbdcdStart_NoAction        = USBDCD_CONTROL_START(0),  ///< No effect
+      UsbdcdStart_StartSequence   = USBDCD_CONTROL_START(1),  ///< Start sequence
    };
 
    /**
@@ -16433,8 +17255,8 @@ public:
     * Enables/disables interrupts to the system.
     */
    enum UsbdcdEventAction {
-      UsbdcdEventAction_None      = USBDCD_CONTROL_IE(0), ///< Interrupts disabled
-      UsbdcdEventAction_Interrupt = USBDCD_CONTROL_IE(1), ///< Interrupts enabled
+      UsbdcdEventAction_None        = USBDCD_CONTROL_IE(0),  ///< Interrupts disabled
+      UsbdcdEventAction_Interrupt   = USBDCD_CONTROL_IE(1),  ///< Interrupts enabled
    };
 
    /**
@@ -16444,8 +17266,8 @@ public:
     * Indicates whether an interrupt is pending.
     */
    enum UsbdcdEvent {
-      UsbdcdEvent_None             = USBDCD_CONTROL_IF(0), ///< No interrupt
-      UsbdcdEvent_InterruptPending = USBDCD_CONTROL_IF(1), ///< Interrupt Pending
+      UsbdcdEvent_None               = USBDCD_CONTROL_IF(0),  ///< No interrupt
+      UsbdcdEvent_InterruptPending   = USBDCD_CONTROL_IF(1),  ///< Interrupt Pending
    };
 
    /**
@@ -16455,7 +17277,7 @@ public:
     * Used to clear pending interrupt
     */
    enum UsbdcdEventAcknowledge {
-      UsbdcdEventAcknowledge_ClearFlag = USBDCD_CONTROL_IACK(0), ///< Write 1 to clear IF
+      UsbdcdEventAcknowledge_ClearFlag   = USBDCD_CONTROL_IACK(0),  ///< Write 1 to clear IF
    };
 
    /**
@@ -16465,8 +17287,8 @@ public:
     * Specifies the unit of measure for the clock speed.
     */
    enum UsbdcdClockUnit {
-      UsbdcdClockUnit_Khz = USBDCD_CLOCK_CLOCK_UNIT(0), ///< kHz
-      UsbdcdClockUnit_Mhz = USBDCD_CLOCK_CLOCK_UNIT(1), ///< MHz
+      UsbdcdClockUnit_Khz   = USBDCD_CLOCK_CLOCK_UNIT(0),  ///< kHz
+      UsbdcdClockUnit_Mhz   = USBDCD_CLOCK_CLOCK_UNIT(1),  ///< MHz
    };
 
    /**
@@ -16487,20 +17309,19 @@ Indicates whether the sequence is running
     * Indicates whether the sequence is running.
     */
    enum UsbdcdActiveStatus {
-      UsbdcdActiveStatus_Idle            = USBDCD_STATUS_ACTIVE(0), ///< Sequence not running
-      UsbdcdActiveStatus_SequenceRunning = USBDCD_STATUS_ACTIVE(1), ///< Sequence running
+      UsbdcdActiveStatus_Idle              = USBDCD_STATUS_ACTIVE(0),  ///< Sequence not running
+      UsbdcdActiveStatus_SequenceRunning   = USBDCD_STATUS_ACTIVE(1),  ///< Sequence running
    };
 
    /**
     * Timeout Flag
-                    Indicates whether the detection sequence has passed the timeout threshhold
     * (usbdcd_status_to)
     *
     * Indicates whether the detection sequence has passed the 1s timeout threshhold.
     */
    enum UsbdcdTimeoutStatus {
-      UsbdcdTimeoutStatus_NoTimeout       = USBDCD_STATUS_TO(0), ///< <= 1 second
-      UsbdcdTimeoutStatus_TimeoutOccurred = USBDCD_STATUS_TO(1), ///< >= 1 second since contact
+      UsbdcdTimeoutStatus_NoTimeout         = USBDCD_STATUS_TO(0),  ///< <= 1 second
+      UsbdcdTimeoutStatus_TimeoutOccurred   = USBDCD_STATUS_TO(1),  ///< >= 1 second since contact
    };
 
    /**
@@ -16511,8 +17332,8 @@ Indicates whether there is an error in the detection sequence
     * Indicates whether there is an error in the detection sequence.
     */
    enum UsbdcdErrorStatus {
-      UsbdcdErrorStatus_NoError       = USBDCD_STATUS_ERR(0), ///< No sequence errors
-      UsbdcdErrorStatus_SequenceError = USBDCD_STATUS_ERR(1), ///< Sequence errors
+      UsbdcdErrorStatus_NoError         = USBDCD_STATUS_ERR(0),  ///< No sequence errors
+      UsbdcdErrorStatus_SequenceError   = USBDCD_STATUS_ERR(1),  ///< Sequence errors
    };
 
    /**
@@ -16522,10 +17343,10 @@ Indicates whether there is an error in the detection sequence
     * Indicates the status of the charger detection sequence.
     */
    enum UsbdcdProgress {
-      UsbdcdProgress_NotDetected          = USBDCD_STATUS_SEQ_STAT(0), ///< Not enabled/detected
-      UsbdcdProgress_DataPinComplete      = USBDCD_STATUS_SEQ_STAT(1), ///< Data pin complete
-      UsbdcdProgress_ChargingPortComplete = USBDCD_STATUS_SEQ_STAT(2), ///< Charging port complete
-      UsbdcdProgress_ChargerTypeComplete  = USBDCD_STATUS_SEQ_STAT(3), ///< Charger type complete
+      UsbdcdProgress_NotDetected            = USBDCD_STATUS_SEQ_STAT(0),  ///< Not enabled/detected
+      UsbdcdProgress_DataPinComplete        = USBDCD_STATUS_SEQ_STAT(1),  ///< Data pin complete
+      UsbdcdProgress_ChargingPortComplete   = USBDCD_STATUS_SEQ_STAT(2),  ///< Charging port complete
+      UsbdcdProgress_ChargerTypeComplete    = USBDCD_STATUS_SEQ_STAT(3),  ///< Charger type complete
    };
 
    /**
@@ -16536,10 +17357,10 @@ Reports how the charger detection is attached
     * Indicates how the charger detection is attached.
     */
    enum UsbdcdOutcome {
-      UsbdcdOutcome_NoResults        = USBDCD_STATUS_SEQ_RES(0), ///< No results
-      UsbdcdOutcome_StandardHost     = USBDCD_STATUS_SEQ_RES(1), ///< Standard host
-      UsbdcdOutcome_ChargingPort     = USBDCD_STATUS_SEQ_RES(2), ///< Charging port
-      UsbdcdOutcome_DedicatedCharger = USBDCD_STATUS_SEQ_RES(3), ///< Dedicated charger
+      UsbdcdOutcome_NoResults          = USBDCD_STATUS_SEQ_RES(0),  ///< No results
+      UsbdcdOutcome_StandardHost       = USBDCD_STATUS_SEQ_RES(1),  ///< Standard host
+      UsbdcdOutcome_ChargingPort       = USBDCD_STATUS_SEQ_RES(2),  ///< Charging port
+      UsbdcdOutcome_DedicatedCharger   = USBDCD_STATUS_SEQ_RES(3),  ///< Dedicated charger
    };
 
    /**
@@ -16601,8 +17422,8 @@ Reports how the charger detection is attached
 class UsbdcdBasicInfo {
 
 public:
-}; // class UsbdcdBasicInfo
-   
+}; // class UsbdcdBasicInfo 
+
 class Usbdcd0Info : public UsbdcdBasicInfo {
 public:
    /*
@@ -16613,6 +17434,30 @@ public:
    
    //! Number of IRQs for hardware
    static constexpr uint32_t irqCount  = sizeofArray(irqNums);
+   
+   /**
+    * Enable interrupts in NVIC
+    */
+   static void enableNvicInterrupts() {
+      NVIC_EnableIRQ(irqNums[0]);
+   }
+   
+   /**
+    * Enable and set priority of interrupts in NVIC
+    * Any pending NVIC interrupts are first cleared.
+    *
+    * @param[in]  nvicPriority  Interrupt priority
+    */
+   static void enableNvicInterrupts(NvicPriority nvicPriority) {
+      enableNvicInterrupt(irqNums[0], nvicPriority);
+   }
+   
+   /**
+    * Disable interrupts in NVIC
+    */
+   static void disableNvicInterrupts() {
+      NVIC_DisableIRQ(irqNums[0]);
+   }
    
    /**
     *  Enable clock to Usbdcd0
@@ -16658,8 +17503,8 @@ public:
     * Controls the bandgap reference within the Voltage Reference module
     */
    enum VrefEnable {
-      VrefEnable_Disabled = VREF_SC_VREFEN(0), ///< Disabled
-      VrefEnable_Enabled  = VREF_SC_VREFEN(1), ///< Enabled
+      VrefEnable_Disabled   = VREF_SC_VREFEN(0),  ///< Disabled
+      VrefEnable_Enabled    = VREF_SC_VREFEN(1),  ///< Enabled
    };
 
    /**
@@ -16671,8 +17516,8 @@ public:
     * If it is desired to keep the regulator enabled in very low power modes see PmcBandgapLowPowerEnable
     */
    enum VrefReg {
-      VrefReg_Disabled = VREF_SC_REGEN(0), ///< Disabled
-      VrefReg_Enabled  = VREF_SC_REGEN(1), ///< Enabled
+      VrefReg_Disabled   = VREF_SC_REGEN(0),  ///< Disabled
+      VrefReg_Enabled    = VREF_SC_REGEN(1),  ///< Enabled
    };
 
    /**
@@ -16686,8 +17531,8 @@ public:
     * voltage reference must also be enabled. See PmcBandgapLowPowerEnable
     */
    enum VrefChop {
-      VrefChop_Disabled = VREF_TRM_CHOPEN(0), ///< Disabled
-      VrefChop_Enabled  = VREF_TRM_CHOPEN(1), ///< Enabled
+      VrefChop_Disabled   = VREF_TRM_CHOPEN(0),  ///< Disabled
+      VrefChop_Enabled    = VREF_TRM_CHOPEN(1),  ///< Enabled
    };
 
    /**
@@ -16698,8 +17543,8 @@ public:
     * data sheet
     */
    enum VrefIcomp {
-      VrefIcomp_Disabled = VREF_SC_ICOMPEN(0), ///< Disabled
-      VrefIcomp_Enabled  = VREF_SC_ICOMPEN(1), ///< Enabled
+      VrefIcomp_Disabled   = VREF_SC_ICOMPEN(0),  ///< Disabled
+      VrefIcomp_Enabled    = VREF_SC_ICOMPEN(1),  ///< Enabled
    };
 
    /**
@@ -16709,8 +17554,8 @@ public:
     * 
     */
    enum VrefStable {
-      VrefStable_NotReady = VREF_SC_VREFST(0), ///< Not ready
-      VrefStable_Ready    = VREF_SC_VREFST(1), ///< Ready
+      VrefStable_NotReady   = VREF_SC_VREFST(0),  ///< Not ready
+      VrefStable_Ready      = VREF_SC_VREFST(1),  ///< Ready
    };
 
    /**
@@ -16720,16 +17565,18 @@ public:
     * Selects the buffer mode for the Voltage Reference module
     */
    enum VrefBuffer {
-      VrefBuffer_Bandgap   = VREF_SC_MODE_LV(0), ///< Bandgap on only, for stabilisation and startup
-      VrefBuffer_HighPower = VREF_SC_MODE_LV(1), ///< High power buffer mode enabled
-      VrefBuffer_LowPower  = VREF_SC_MODE_LV(2), ///< Low-power buffer mode enabled
+      VrefBuffer_Bandgap     = VREF_SC_MODE_LV(0),  ///< Bandgap on only, for stabilisation and startup
+      VrefBuffer_HighPower   = VREF_SC_MODE_LV(1),  ///< High power buffer mode enabled
+      VrefBuffer_LowPower    = VREF_SC_MODE_LV(2),  ///< Low-power buffer mode enabled
    };
 
+    extern void waitUS(uint32_t usToWait);
+   
 class VrefBasicInfo {
 
 public:
-}; // class VrefBasicInfo
-   
+}; // class VrefBasicInfo 
+
 class VrefInfo : public VrefBasicInfo {
 public:
    /*
@@ -16843,8 +17690,8 @@ public:
     * still trigger a reset/interrupt
     */
    enum WdogEnable : uint16_t {
-      WdogEnable_Disabled = WDOG_STCTRLH_WDOGEN(0), ///< Watchdog disabled
-      WdogEnable_Enabled  = WDOG_STCTRLH_WDOGEN(1), ///< Watchdog enabled
+      WdogEnable_Disabled   = WDOG_STCTRLH_WDOGEN(0),  ///< Watchdog disabled
+      WdogEnable_Enabled    = WDOG_STCTRLH_WDOGEN(1),  ///< Watchdog enabled
    };
 
    /**
@@ -16854,8 +17701,8 @@ public:
     * Disables watchdog test mode until next reset
     */
    enum WdogTestMode : uint16_t {
-      WdogTestMode_Enabled  = WDOG_STCTRLH_DISTESTWDOG(0), ///< Test mode enabled
-      WdogTestMode_Disabled = WDOG_STCTRLH_DISTESTWDOG(1), ///< Test mode disabled
+      WdogTestMode_Enabled    = WDOG_STCTRLH_DISTESTWDOG(0),  ///< Test mode enabled
+      WdogTestMode_Disabled   = WDOG_STCTRLH_DISTESTWDOG(1),  ///< Test mode disabled
    };
 
    /**
@@ -16865,8 +17712,8 @@ public:
     * Control watchdog operation in WAIT mode
     */
    enum WdogEnableInWait : uint16_t {
-      WdogEnableInWait_Disabled = WDOG_STCTRLH_WAITEN(0), ///< Disabled in WAIT mode
-      WdogEnableInWait_Enabled  = WDOG_STCTRLH_WAITEN(1), ///< Enabled in WAIT mode
+      WdogEnableInWait_Disabled   = WDOG_STCTRLH_WAITEN(0),  ///< Disabled in WAIT mode
+      WdogEnableInWait_Enabled    = WDOG_STCTRLH_WAITEN(1),  ///< Enabled in WAIT mode
    };
 
    /**
@@ -16876,8 +17723,8 @@ public:
     * Control watchdog operation in STOP mode
     */
    enum WdogEnableInStop : uint16_t {
-      WdogEnableInStop_Disabled = WDOG_STCTRLH_STOPEN(0), ///< Disabled in STOP mode
-      WdogEnableInStop_Enabled  = WDOG_STCTRLH_STOPEN(1), ///< Enabled in STOP mode
+      WdogEnableInStop_Disabled   = WDOG_STCTRLH_STOPEN(0),  ///< Disabled in STOP mode
+      WdogEnableInStop_Enabled    = WDOG_STCTRLH_STOPEN(1),  ///< Enabled in STOP mode
    };
 
    /**
@@ -16887,8 +17734,8 @@ public:
     * Control watchdog operation in DEBUG mode
     */
    enum WdogEnableInDebug : uint16_t {
-      WdogEnableInDebug_Disabled = WDOG_STCTRLH_DBGEN(0), ///< Disabled in DEBUG mode
-      WdogEnableInDebug_Enabled  = WDOG_STCTRLH_DBGEN(1), ///< Enabled in DEBUG mode
+      WdogEnableInDebug_Disabled   = WDOG_STCTRLH_DBGEN(0),  ///< Disabled in DEBUG mode
+      WdogEnableInDebug_Enabled    = WDOG_STCTRLH_DBGEN(1),  ///< Enabled in DEBUG mode
    };
 
    /**
@@ -16900,8 +17747,8 @@ public:
     * This still requires the unlock sequence
     */
    enum WdogAllowUpdate : uint16_t {
-      WdogAllowUpdate_Disabled = WDOG_STCTRLH_ALLOWUPDATE(0), ///< Update Disabled
-      WdogAllowUpdate_Enabled  = WDOG_STCTRLH_ALLOWUPDATE(1), ///< Update Enabled
+      WdogAllowUpdate_Disabled   = WDOG_STCTRLH_ALLOWUPDATE(0),  ///< Update Disabled
+      WdogAllowUpdate_Enabled    = WDOG_STCTRLH_ALLOWUPDATE(1),  ///< Update Enabled
    };
 
    /**
@@ -16911,8 +17758,8 @@ public:
     * Windowing mode only allows refresh during a restricted window
     */
    enum WdogWindow : uint16_t {
-      WdogWindow_Disabled = WDOG_STCTRLH_WINEN(0), ///< Windowing mode disabled
-      WdogWindow_Enabled  = WDOG_STCTRLH_WINEN(1), ///< Windowing mode enabled
+      WdogWindow_Disabled   = WDOG_STCTRLH_WINEN(0),  ///< Windowing mode disabled
+      WdogWindow_Enabled    = WDOG_STCTRLH_WINEN(1),  ///< Windowing mode enabled
    };
 
    /**
@@ -16923,8 +17770,8 @@ public:
     * The reset occurs after a delay of 128 bus clocks following the interrupt vector fetch.
     */
    enum WdogAction : uint16_t {
-      WdogAction_ImmediateReset      = WDOG_STCTRLH_IRQRSTEN(0), ///< Immediate Reset
-      WdogAction_ResetAfterInterrupt = WDOG_STCTRLH_IRQRSTEN(1), ///< Interrupt followed by reset
+      WdogAction_ImmediateReset        = WDOG_STCTRLH_IRQRSTEN(0),  ///< Immediate Reset
+      WdogAction_ResetAfterInterrupt   = WDOG_STCTRLH_IRQRSTEN(1),  ///< Interrupt followed by reset
    };
 
    /**
@@ -16934,8 +17781,8 @@ public:
     * Clock source for watchdog
     */
    enum WdogClock : uint16_t {
-      WdogClock_LpoClk       = WDOG_STCTRLH_CLKSRC(0), ///< 1 kHz low-power oscillator (LPOCLK)
-      WdogClock_SystemBusClk = WDOG_STCTRLH_CLKSRC(1), ///< System bus clock
+      WdogClock_LpoClk         = WDOG_STCTRLH_CLKSRC(0),  ///< 1 kHz low-power oscillator (LPOCLK)
+      WdogClock_SystemBusClk   = WDOG_STCTRLH_CLKSRC(1),  ///< System bus clock
    };
 
    /**
@@ -16945,14 +17792,14 @@ public:
     * This prescaler divides the input clock for the watchdog counter
     */
    enum WdogPrescale : uint16_t {
-      WdogPrescale_Direct = WDOG_PRESC_PRESCVAL(0), ///< Prescaler = 1
-      WdogPrescale_DivBy2 = WDOG_PRESC_PRESCVAL(1), ///< Prescaler = 2
-      WdogPrescale_DivBy3 = WDOG_PRESC_PRESCVAL(2), ///< Prescaler = 3
-      WdogPrescale_DivBy4 = WDOG_PRESC_PRESCVAL(3), ///< Prescaler = 4
-      WdogPrescale_DivBy5 = WDOG_PRESC_PRESCVAL(4), ///< Prescaler = 5
-      WdogPrescale_DivBy6 = WDOG_PRESC_PRESCVAL(5), ///< Prescaler = 6
-      WdogPrescale_DivBy7 = WDOG_PRESC_PRESCVAL(6), ///< Prescaler = 7
-      WdogPrescale_DivBy8 = WDOG_PRESC_PRESCVAL(7), ///< Prescaler = 8
+      WdogPrescale_Direct   = WDOG_PRESC_PRESCVAL(0),  ///< Prescaler = 1
+      WdogPrescale_DivBy2   = WDOG_PRESC_PRESCVAL(1),  ///< Prescaler = 2
+      WdogPrescale_DivBy3   = WDOG_PRESC_PRESCVAL(2),  ///< Prescaler = 3
+      WdogPrescale_DivBy4   = WDOG_PRESC_PRESCVAL(3),  ///< Prescaler = 4
+      WdogPrescale_DivBy5   = WDOG_PRESC_PRESCVAL(4),  ///< Prescaler = 5
+      WdogPrescale_DivBy6   = WDOG_PRESC_PRESCVAL(5),  ///< Prescaler = 6
+      WdogPrescale_DivBy7   = WDOG_PRESC_PRESCVAL(6),  ///< Prescaler = 7
+      WdogPrescale_DivBy8   = WDOG_PRESC_PRESCVAL(7),  ///< Prescaler = 8
    };
 
    /**
@@ -16964,8 +17811,8 @@ public:
     * The interrupt can be cleared by writing 1 to this bit. It also gets cleared on a system reset
     */
    enum WdogException {
-      WdogException_NoInterrupt      = WDOG_STCTRLL_INTFLG(0), ///< No interrupt
-      WdogException_InterruptPending = WDOG_STCTRLL_INTFLG(1), ///< Interrupt pending
+      WdogException_NoInterrupt        = WDOG_STCTRLL_INTFLG(0),  ///< No interrupt
+      WdogException_InterruptPending   = WDOG_STCTRLL_INTFLG(1),  ///< Interrupt pending
    };
 
    /**
@@ -16975,8 +17822,8 @@ public:
     * Key values needed for refreshing the WDOG
     */
    enum WdogRefresh {
-      WdogRefresh_1 = 0xA602, ///< 1st refresh value
-      WdogRefresh_2 = 0xB480, ///< 2nd refresh value
+      WdogRefresh_1   = 0xA602,  ///< 1st refresh value
+      WdogRefresh_2   = 0xB480,  ///< 2nd refresh value
    };
 
    /**
@@ -16986,8 +17833,8 @@ public:
     * Key values needed for unlocking the WDOG
     */
    enum WdogUnlock {
-      WdogUnlock_1 = 0xC520, ///< 1st unlock value
-      WdogUnlock_2 = 0xD928, ///< 2nd unlock value
+      WdogUnlock_1   = 0xC520,  ///< 1st unlock value
+      WdogUnlock_2   = 0xD928,  ///< 2nd unlock value
    };
 
 class WdogBasicInfo {
@@ -17063,8 +17910,8 @@ public:
    
    }; // class WdogBasicInfo::Init
    
-}; // class WdogBasicInfo
-   
+}; // class WdogBasicInfo 
+
 class WdogInfo : public WdogBasicInfo {
 public:
    /*
@@ -17079,6 +17926,33 @@ public:
    //! Number of IRQs for hardware
    static constexpr uint32_t irqCount  = sizeofArray(irqNums);
    
+   //! Default IRQ level
+   static constexpr NvicPriority irqLevel =  NvicPriority_Normal;
+   
+   /**
+    * Enable interrupts in NVIC
+    */
+   static void enableNvicInterrupts() {
+      NVIC_EnableIRQ(irqNums[0]);
+   }
+   
+   /**
+    * Enable and set priority of interrupts in NVIC
+    * Any pending NVIC interrupts are first cleared.
+    *
+    * @param[in]  nvicPriority  Interrupt priority
+    */
+   static void enableNvicInterrupts(NvicPriority nvicPriority) {
+      enableNvicInterrupt(irqNums[0], nvicPriority);
+   }
+   
+   /**
+    * Disable interrupts in NVIC
+    */
+   static void disableNvicInterrupts() {
+      NVIC_DisableIRQ(irqNums[0]);
+   }
+   
    /**
     * Basic enable of Wdog
     * Includes enabling clock and configuring all mapped pins if mapPinsOnEnable is selected in configuration
@@ -17087,10 +17961,11 @@ public:
    }
    
    /**
-    * Disables the clock to Wdog and all mapped pins
+    * Disables Wdog
     */
    static void disable() {
       
+      disableNvicInterrupts();
    }
    
    //! Hardware base address as uint32_t
@@ -17134,7 +18009,6 @@ public:
 ///  PTB0           | SDA_SWD_OE_B                  | GPIOB_0                                            | p20                       | SDA_SWD_OE_B
 ///  PTB1           | SDA_RST_TGTMCU_B              | GPIOB_1                                            | p21                       | SDA_RST_TGTMCU_B
 ///  PTC1           | SDA_SPI0_RST_B                | GPIOC_1                                            | p22                       | SDA_SPI0_RST_B (not used)
-///  PTC2           | SDA_SPI0_CS                   | GPIOC_2                                            | p23                       | SDA_SPI0_CS (not used)
 ///  PTC3           | -                             | UART1_RX                                           | p24                       | UART1_TX_TGTMCU_R
 ///  PTC4           | -                             | UART1_TX                                           | p25                       | UART1_RX_TGTMCU_R
 ///  PTC5           |                               | SPI0_SCK                                           | p26                       | SDA_SPI0_SCK
@@ -17142,6 +18016,9 @@ public:
 ///  PTC7           |                               | SPI0_SIN                                           | p28                       | SDA_SPI0_SIN
 ///  PTD4           | SDA_LED                       | GPIOD_4                                            | p29                       | SDA_LED
 ///  PTD5           | SDA_USB_P5V_SENSE             | ADC0_SE6b                                          | p30                       | SDA_USB_P5V_SENSE
+///  PTD5           | SDA_USB_P5V_SENSE             | GPIOD_5                                            | p30                       | -
+///  PTD6           | POWER_EN                      | GPIOD_6                                            | p31                       | -
+///  PTD7           | VTRG_FAULT_B                  | GPIOD_7                                            | p32                       | -
 ///  RESET_b        |                               | RESET_b                                            | p19                       | Reset button
 ///  TEMP_SENSOR    | InternalTemperature           | ADC0_SE26                                          | Internal                  | Internal temperature sensor
 ///  USB0_DM        | -                             | USB0_DM                                            | p4                        | SDA_USB_DN
@@ -17172,7 +18049,6 @@ public:
 ///  PTB0           | SDA_SWD_OE_B                  | GPIOB_0                                            | p20                       | SDA_SWD_OE_B
 ///  PTB1           | SDA_RST_TGTMCU_B              | GPIOB_1                                            | p21                       | SDA_RST_TGTMCU_B
 ///  PTC1           | SDA_SPI0_RST_B                | GPIOC_1                                            | p22                       | SDA_SPI0_RST_B (not used)
-///  PTC2           | SDA_SPI0_CS                   | GPIOC_2                                            | p23                       | SDA_SPI0_CS (not used)
 ///  PTC3           | -                             | UART1_RX                                           | p24                       | UART1_TX_TGTMCU_R
 ///  PTC4           | -                             | UART1_TX                                           | p25                       | UART1_RX_TGTMCU_R
 ///  PTC5           |                               | SPI0_SCK                                           | p26                       | SDA_SPI0_SCK
@@ -17180,6 +18056,9 @@ public:
 ///  PTC7           |                               | SPI0_SIN                                           | p28                       | SDA_SPI0_SIN
 ///  PTD4           | SDA_LED                       | GPIOD_4                                            | p29                       | SDA_LED
 ///  PTD5           | SDA_USB_P5V_SENSE             | ADC0_SE6b                                          | p30                       | SDA_USB_P5V_SENSE
+///  PTD5           | SDA_USB_P5V_SENSE             | GPIOD_5                                            | p30                       | -
+///  PTD6           | POWER_EN                      | GPIOD_6                                            | p31                       | -
+///  PTD7           | VTRG_FAULT_B                  | GPIOD_7                                            | p32                       | -
 ///
 ///
 /// @section PinsByFunction Pins by Peripheral
@@ -17195,8 +18074,10 @@ public:
 ///  PTB0           | SDA_SWD_OE_B                  | GPIOB_0                                            | p20                       | SDA_SWD_OE_B
 ///  PTB1           | SDA_RST_TGTMCU_B              | GPIOB_1                                            | p21                       | SDA_RST_TGTMCU_B
 ///  PTC1           | SDA_SPI0_RST_B                | GPIOC_1                                            | p22                       | SDA_SPI0_RST_B (not used)
-///  PTC2           | SDA_SPI0_CS                   | GPIOC_2                                            | p23                       | SDA_SPI0_CS (not used)
 ///  PTD4           | SDA_LED                       | GPIOD_4                                            | p29                       | SDA_LED
+///  PTD5           | SDA_USB_P5V_SENSE             | GPIOD_5                                            | p30                       | -
+///  PTD6           | POWER_EN                      | GPIOD_6                                            | p31                       | -
+///  PTD7           | VTRG_FAULT_B                  | GPIOD_7                                            | p32                       | -
 ///  PTA0           |                               | JTAG_TCLK                                          | p12                       | SDA_JTAG_TCLK
 ///  PTA3           |                               | JTAG_TMS                                           | p15                       | SDA_JTAG_TMS
 ///  RESET_b        |                               | RESET_b                                            | p19                       | Reset button

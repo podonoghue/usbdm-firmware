@@ -43,7 +43,6 @@ namespace USBDM {
 template<class Info>
 class WdogBase_T : public Info {
 
-
 protected:
 // No private methods found
 
@@ -358,8 +357,6 @@ public:
       }
    }
 };
-
-//template<class Info> typename WdogBase_T<Info>::CallbackFunction WdogBase_T<Info>::callback = WdogBase_T<Info>::unhandledCallback;
 
    /**
     * Class representing WDOG

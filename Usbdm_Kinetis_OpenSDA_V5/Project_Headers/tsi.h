@@ -27,8 +27,6 @@ namespace USBDM {
  * @{
  */
 
-// No user defined TSI inputs found
-// No user defined TSI0 inputs found
 
 
 /**
@@ -114,7 +112,7 @@ public:
    }
 
    // /TSI/classInfo not found
-   
+   // /TSI/InitMethod not found
    /**
     * Set the electrode scan configuration for active mode.\n
     * This controls the count interval of the internal oscillator when sampling a pin:\n
@@ -229,8 +227,8 @@ public:
     */
    static void enableTsiInterrupts(
          TsiEventSource    tsiEventSource,
-         TsiErrorInterrupt tsiErrorInterrupt = TsiErrorInterrupt_Disabled) {
-      tsi->GENCS = (tsi->GENCS&~(TSI_GENCS_TSIIE_MASK|TSI_GENCS_ERIE_MASK))|tsiEventSource|tsiErrorInterrupt;
+         TsiErrorAction    tsiErrorAction = TsiErrorAction_None) {
+      tsi->GENCS = (tsi->GENCS&~(TSI_GENCS_TSIIE_MASK|TSI_GENCS_ERIE_MASK))|tsiEventSource|tsiErrorAction;
    }
 
    /**
@@ -289,24 +287,24 @@ public:
    /**
     * Class representing a TSI input pin
     *
-    * @tparam tsiInput Number of TSI electrode (input) to configure
+    * @tparam tsiChannel Number of TSI electrode (input) to configure
     */
-   template<TsiInput tsiInput>
+   template<TsiInput tsiChannel>
    class Pin {
 
    private:
       // Check if electrode mapped to pin
-      static CheckPinExistsAndIsMapped<tsiInput> check;
+      static CheckPinExistsAndIsMapped<tsiChannel> check;
 
       // PCR for pin associated with electrode
-      using Pcr = PcrTable_T<Info, limitElectrode(tsiInput)>;
+      using Pcr = PcrTable_T<Info, limitElectrode(tsiChannel)>;
 
    public:
       /// TSI input number
-      static constexpr TsiInput         TSI_INPUT          = tsiInput;
+      static constexpr TsiInput         TSI_INPUT          = tsiChannel;
 
       /// TSI input as low-power input number
-      static constexpr TsiLowPowerInput TSI_LOWPOWER_INPUT = TsiLowPowerInput(TSI_PEN_LPSP(tsiInput));
+      static constexpr TsiLowPowerInput TSI_LOWPOWER_INPUT = TsiLowPowerInput(TSI_PEN_LPSP(tsiChannel));
 
       /**
        * Configure the pin associated with a TSI input electrode.
@@ -322,7 +320,7 @@ public:
        * @return 16-bit count value
        */
       static uint16_t getCount() {
-         return Info::tsi->CNTR[tsiInput];
+         return Info::tsi->CNTR[tsiChannel];
       }
    };
 

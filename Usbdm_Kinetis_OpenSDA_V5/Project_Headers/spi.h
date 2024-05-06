@@ -82,40 +82,34 @@ protected:
     */
    uint32_t  pushrMaskFinal;
 
-   /**
-    * Callback function type
-    */
-   CallbackFunction callback = unhandledCallback;
-
-#if false
-   /**
-    * Callback function (trampoline)
-    */
-   void irqHandler(uint32_t status) {
-      callback(status);
-   }
-
-   struct IrqInformation {
-      Spi *This;
-   };
-
-   // Table used to obtain SPI class instance from static interrupt handler
-   static IrqInformation irqInformation[];
-#endif
+//   /**
+//    * Callback function type
+//    */
+//   CallbackFunction callback = unhandledCallback;
+//
+//#if true
+//   /**
+//    * Callback function (trampoline)
+//    */
+//   void irqHandler(uint32_t status) {
+//      callback(status);
+//   }
+//
+//   struct IrqInformation {
+//      Spi *This;
+//   };
+//
+//   // Table used to obtain SPI class instance from static interrupt handler
+//   static IrqInformation irqInformation[];
+//#endif
 
    /**
     * Constructor
     *
-    * @param[in]  instanceNum    SPI Instance number (for IRQ index)
     * @param[in]  baseAddress    Base address of SPI
     */
-   Spi(unsigned instanceNum, uint32_t baseAddress) :
+   Spi(uint32_t baseAddress) :
       spi(baseAddress), pushrMask(0), pushrMaskFinal(0) {
-#if false
-      irqInformation[instanceNum].This = this;
-#else
-      (void)instanceNum;
-#endif
    }
 
    /**
@@ -146,7 +140,7 @@ protected:
     * Used for ASC, DT and CSSCK
     *
     * @param[in]  clockFrequency Clock frequency of SPI in Hz
-    * @param[in]  delay          Desired delay in seconds
+    * @param[in]  delay_ns       Desired delay in nanoseconds
     * @param[out] bestPrescale   Best prescaler value (0=>/1, 1=>/3, 2=/5, 3=>/7)
     * @param[out] bestDivider    Best divider value (N=>/(2**(N+1)))
     *
@@ -369,7 +363,7 @@ public:
     *
     * @return Clock frequency of SPI in Hz for these factors
     */
-    
+
    static uint32_t calculateSpeed(uint32_t clockFrequency, uint32_t spiCtarValue);
    /**
     * Calculate CTAR timing related values \n
@@ -380,7 +374,7 @@ public:
     *
     * @return Combined masks for CTAR (BR, PBR, PCSSCK, CSSCK, PDT, DT, PCSSCK and CSSCK)
     */
-    
+
    static uint32_t calculateCtarTiming(uint32_t clockFrequency, uint32_t frequency) {
 
       int bestPrescale, bestDivider;
@@ -904,21 +898,6 @@ public:
       return status;
    }
 
-#if false
-   /**
-    * Set Callback function\n
-    *
-    *  @param[in]  callback  Callback function to be executed on interrupt.\n
-    *                        Use nullptr to remove callback.
-    */
-   void setCallback(CallbackFunction callback) {
-//      usbdm_assert(Info::irqHandlerInstalled, "SPI not configure for interrupts");
-      if (callback == nullptr) {
-         callback = Spi::unhandledCallback;
-      }
-      this->callback = callback;
-   }
-#endif
 };
 
 #if false
@@ -1359,6 +1338,7 @@ public:
    static constexpr uint32_t spiPOPR   = Info::baseAddress + offsetof(SPI_Type, POPR);
 
 protected:
+//   static SpiBase_T<Info> *thisPtr;
 
 public:
    /**
@@ -1375,38 +1355,6 @@ public:
       return status;
    }
 
-#if false
-   /**
-    * IRQ handler
-    */
-   static void irqHandler() {
-      irqInformation[Info::instance].This->callback(SpiBase_T<Info>::getStatus());
-   }
-#endif
-
-   /**
-    * Enable interrupts in NVIC
-    */
-   static void enableNvicInterrupts() {
-      NVIC_EnableIRQ(Info::irqNums[0]);
-   }
-
-   /**
-    * Enable and set priority of interrupts in NVIC
-    * Any pending NVIC interrupts are first cleared.
-    *
-    * @param[in]  nvicPriority  Interrupt priority
-    */
-   static void enableNvicInterrupts(NvicPriority nvicPriority) {
-      enableNvicInterrupt(Info::irqNums[0], nvicPriority);
-   }
-
-   /**
-    * Disable interrupts in NVIC
-    */
-   static void disableNvicInterrupts() {
-      NVIC_DisableIRQ(Info::irqNums[0]);
-   }
 
 #ifdef __CMSIS_RTOS
 protected:
@@ -1541,14 +1489,21 @@ public:
    }
 
    /**
+    * Dummy routine
+    */
+   static void irqHandler() {
+//      thisPtr->_irqHandler();
+   }
+
+   /**
     * Constructor
     */
-   SpiBase_T() : Spi(Info::instance, Info::baseAddress) {
+   SpiBase_T() : Spi(Info::baseAddress) {
 
       // Check pin assignments
-      static_assert(Info::info[Info::sckPin].gpioBit  != PinIndex::UNMAPPED_PCR, "SPIx_SCK has not been assigned to a pin - Modify Configure.usbdm");
-      static_assert(Info::info[Info::sinPin].gpioBit  != PinIndex::UNMAPPED_PCR, "SPIx_SIN has not been assigned to a pin - Modify Configure.usbdm");
-      static_assert(Info::info[Info::soutPin].gpioBit != PinIndex::UNMAPPED_PCR, "SPIx_SOUT has not been assigned to a pin - Modify Configure.usbdm");
+      static_assert(Info::info[Info::sckPin].pinIndex  != PinIndex::UNMAPPED_PCR, "SPIx_SCK has not been assigned to a pin - Modify Configure.usbdm");
+      static_assert(Info::info[Info::sinPin].pinIndex  != PinIndex::UNMAPPED_PCR, "SPIx_SIN has not been assigned to a pin - Modify Configure.usbdm");
+      static_assert(Info::info[Info::soutPin].pinIndex != PinIndex::UNMAPPED_PCR, "SPIx_SOUT has not been assigned to a pin - Modify Configure.usbdm");
 
       configure(Info::DefaultInitValue);
    }
@@ -1556,7 +1511,7 @@ public:
    /**
     * Constructor
     */
-   SpiBase_T(const typename SpiBasicInfo::Init &init) : Spi(Info::instance, Info::baseAddress) {
+   SpiBase_T(const typename SpiBasicInfo::Init &init) : Spi(Info::baseAddress) {
 
       // Check pin assignments
       static_assert(Info::info[Info::sckPin].pinIndex  != PinIndex::UNMAPPED_PCR, "SPIx_SCK has not been assigned to a pin - Modify Configure.usbdm");
@@ -1724,6 +1679,9 @@ public:
 #endif
 
 };
+
+/** Used by ISR to obtain handle of object */
+//template<class Info> SpiBase_T<Info> *SpiBase_T<Info>::thisPtr = nullptr;
 
 #if false
 template<class Info>

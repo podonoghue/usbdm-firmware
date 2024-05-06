@@ -205,7 +205,7 @@ protected:
    /**
     * Dummy callback used to catch use of unset required callback
     */
-   static ErrorCode unsetUserCallback(const UserEvent) {
+   static ErrorCode defaultUserCallback(const UserEvent) {
       return E_NO_HANDLER;
    }
 
@@ -393,14 +393,14 @@ protected:
       fUsb->ERREN = mask;
    }
 
-   /**
-    * Enable/disable OTG interrupts
-    *
-    * @param[in]  mask Mask of interrupts to enable e.g. USB_OTGICR_IDEN_MASK, USB_OTGICR_ONEMSECEN_MASK etc
-    */
-   static void setOtgInterrupts(uint8_t mask=0xFF) {
-      fUsb->OTGICR = mask;
-   }
+//   /**
+//    * Enable/disable OTG interrupts
+//    *
+//    * @param[in]  mask Mask of interrupts to enable e.g. USB_OTGICR_IDEN_MASK, USB_OTGICR_ONEMSECEN_MASK etc
+//    */
+//   static void setOtgInterrupts(uint8_t mask=0xFF) {
+//      fUsb->OTGICR = mask;
+//   }
 
 protected:
    /**
@@ -444,7 +444,7 @@ protected:
     */
    static void setUserCallback(UserCallbackFunction callback) {
       if (callback == nullptr) {
-         callback = unsetUserCallback;
+         callback = defaultUserCallback;
       }
       fUserCallbackFunction = callback;
    }
@@ -755,7 +755,7 @@ UsbBase::SOFCallbackFunction UsbBase_T<Info, EP0_SIZE>::fSofCallbackFunction = u
  *  @return     Else stalls endpoint
  */
 template<class Info, int EP0_SIZE>
-UsbBase::UserCallbackFunction UsbBase_T<Info, EP0_SIZE>::fUserCallbackFunction = unsetUserCallback;
+UsbBase::UserCallbackFunction UsbBase_T<Info, EP0_SIZE>::fUserCallbackFunction = defaultUserCallback;
 
 /**
  * Unhandled SETUP callback \n
@@ -1110,8 +1110,12 @@ void UsbBase_T<Info, EP0_SIZE>::initialise() {
    // Make sure no interrupt during setup
    Info::disableNvicInterrupts();
 
+#ifdef USB_OTGISTAT_IDCHG_MASK
    fUsb->OTGISTAT = 0;
+#endif
+#ifdef USB_OTGICR_IDEN_MASK
    fUsb->OTGICR   = 0;
+#endif
    fUsb->OTGCTL   = 0;
    fUsb->INTEN    = 0;
    fUsb->ERRSTAT  = 0;
@@ -1130,9 +1134,13 @@ void UsbBase_T<Info, EP0_SIZE>::initialise() {
    MPU->CESR = MPU_CESR_SPERR_MASK;
 #endif
 
+#ifdef SIM_SOPT1CFG
    // Enable USB regulator
    SIM->SOPT1CFG  = SIM_SOPT1CFG_URWE_MASK;
+#endif
+#ifdef SIM_SOPT1_USBREGEN_MASK
    SIM->SOPT1     = SIM->SOPT1 | SIM_SOPT1_USBREGEN_MASK;
+#endif
 
 #ifdef USB_CLK_RECOVER_IRC_EN_IRC_EN
    // IRC clock enable
@@ -1431,9 +1439,9 @@ void UsbBase_T<Info, EP0_SIZE>::handleGetDescriptor() {
             char utf8Buff[sizeof(SERIAL_NO)+10];
 
             // Generate Semi-unique Serial number
-            uint32_t uid = SIM->UIDH^SIM->UIDMH^SIM->UIDML^SIM->UIDL;
+            uint32_t uid = SimInfo::getUidl()^SimInfo::getUidml();
             StringFormatter sf(utf8Buff, sizeof(utf8Buff));
-            sf.setPadding(Padding_LeadingZeroes).setWidth(6).write(SERIAL_NO).write(uid, Radix_16).write('\0');
+            sf.setPadding(Padding_LeadingZeroes).setWidth(Width_6).write(SERIAL_NO).write(uid, Radix_16).write('\0');
 
             // Use endpoint internal buffer directly - may result in truncation
             dataPtr = fControlEndpoint.getTxBuffer();

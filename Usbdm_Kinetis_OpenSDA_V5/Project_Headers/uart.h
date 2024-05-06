@@ -33,6 +33,7 @@ namespace USBDM {
  * @brief C++ Class allowing access to UART interface
  * @{
  */
+#if true // /UART/enablePeripheralSupport
 
 /**
  * @brief Abstract Base class for UART interface
@@ -133,13 +134,6 @@ protected:
       }
    }
 
-   /**
-    * Handler for interrupts when no handler set
-    */
-   static void unhandledCallback(uint8_t) {
-      setAndCheckErrorCode(E_NO_HANDLER);
-   }
-
 public:
 
    /**
@@ -162,11 +156,9 @@ public:
    }
 
    /**
-    * Set baud factor value for interface
+    * Set baud rate for interface
     *
-    * This is calculated from baud rate and LPUART clock frequency
-    *
-    * @param[in]  baudrate  Interface speed in bits-per-second
+    * @param[in]  uartBaudRate  Interface speed in bits-per-second
     */
    virtual void setBaudRate(UartBaudRate uartBaudRate) = 0;
 
@@ -213,14 +205,7 @@ public:
 };
 
 /**
- * Type definition for UART interrupt call back
- *
- *  @param[in]  status - Interrupt flags e.g. UART_S1_TDRE, UART_S1_RDRF etc
- */
-typedef void (*UARTCallbackFunction)(uint8_t status);
-
-/**
- * @brief Abstract template class representing an UART interface with associated hardware
+ * @brief Template class representing an UART interface
  *
  * @tparam Info   Class describing UART hardware
  */
@@ -231,13 +216,13 @@ private:
    Uart_T(Uart_T&&) = delete;
 
 public:
-   /** Get reference to UART hardware as struct */
+   /** Get reference to hardware as struct */
    static volatile UART_Type &uartPtr() { return Info::uart(); }
 
-   /** Base address of LPUART hardware as uint32_t */
+   /** Base address of hardware as uint32_t */
    static constexpr uint32_t uartBase = Info::baseAddress;
 
-   /** Address of UART.D register as uint32_t */
+   /** Address of DATA register as uint32_t */
    static constexpr uint32_t uartD = Info::baseAddress + offsetof(UART_Type, D);
 
 #ifdef __CMSIS_RTOS
@@ -296,6 +281,11 @@ public:
    }
 #endif
 
+   /**
+    * Set baud rate for interface
+    *
+    * @param[in]  uartBaudRate  Interface speed in bits-per-second
+    */
    virtual void setBaudRate(UartBaudRate uartBaudRate) override {
       Info::setBaudRate(uartBaudRate);
    }
@@ -337,7 +327,7 @@ protected:
     * Clear UART error status
     */
    virtual void clearError() override {
-      Uart0Info::clearError();
+      Info::clearError();
    }
 
 public:
@@ -587,6 +577,8 @@ template<class Info, int rxSize, int txSize> volatile uint32_t   UartBuffered_T<
     */
    class Uart1 : public Uart_T<Uart1Info> {};
    
+
+#endif // /UART/enablePeripheralSupport
 
 /**
  * End UART_Group

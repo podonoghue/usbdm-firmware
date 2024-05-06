@@ -11,7 +11,7 @@
    <item key="$peripheral$GPIOA_polarity"                  value="20" />
    <item key="$peripheral$GPIOB_polarity"                  value="3" />
    <item key="$peripheral$GPIOC_polarity"                  value="8" />
-   <item key="$peripheral$GPIOD_polarity"                  value="16" />
+   <item key="$peripheral$GPIOD_polarity"                  value="144" />
    <item key="$peripheral$I2C0_userDescription"            value="User I2C" />
    <item key="$peripheral$SPI0_codeIdentifier"             value="SDA_SPI" />
    <item key="$peripheral$SPI0_userDescription"            value="User SPI" />
@@ -25,7 +25,6 @@
    <item key="$pin$PTB0_pcrSetting_1"                      value="100" />
    <item key="$pin$PTB1_pcrSetting_1"                      value="100" />
    <item key="$pin$PTC1_pcrSetting_1"                      value="100" />
-   <item key="$pin$PTC2_pcrSetting_1"                      value="100" />
    <item key="$pin$PTC3_pcrSetting_3"                      value="300" />
    <item key="$pin$PTC4_pcrSetting_3"                      value="300" />
    <item key="$pin$PTC5_pcrSetting_2"                      value="200" />
@@ -33,6 +32,7 @@
    <item key="$pin$PTC7_pcrSetting_2"                      value="200" />
    <item key="$pin$PTD4_pcrSetting_1"                      value="100" />
    <item key="$pin$PTD5_pcrSetting_0"                      value="0" />
+   <item key="$pin$PTD5_pcrSetting_1"                      value="100" />
    <item key="$pin$PTD6_pcrSetting_1"                      value="100" />
    <item key="$pin$PTD7_pcrSetting_1"                      value="100" />
    <item key="$signal$ADC0_SE14_codeIdentifier"            value="Analogue_A0" />
@@ -96,6 +96,9 @@
    <item key="$signal$GPIOD_3_descriptionSetting"          value="D12" />
    <item key="$signal$GPIOD_4_codeIdentifier"              value="SDA_LED" />
    <item key="$signal$GPIOD_4_descriptionSetting"          value="SDA_LED" />
+   <item key="$signal$GPIOD_5_codeIdentifier"              value="SDA_USB_P5V_SENSE" />
+   <item key="$signal$GPIOD_6_codeIdentifier"              value="POWER_EN" />
+   <item key="$signal$GPIOD_7_codeIdentifier"              value="VTRG_FAULT_B" />
    <item key="$signal$GPIOE_0_codeIdentifier"              value="Digital_D1" />
    <item key="$signal$GPIOE_0_descriptionSetting"          value="D1" />
    <item key="$signal$GPIOE_1_codeIdentifier"              value="Digital_D0" />
@@ -124,13 +127,11 @@
    <item key="$signal$XTAL32_descriptionSetting"           value="Reserved(XTAL32)" />
    <item key="/CMP0/cmp_fpr_filt_per"                      value="0" />
    <item key="/CMP1/cmp_fpr_filt_per"                      value="0" />
-   <item key="/DMA0/irqHandlingMethod"                     value="$NotInstalled" />
    <item key="/FTM0/ftm_deadtime_dtval"                    value="0" />
-   <item key="/FTM0/ftm_mode_init"                         value="false" />
    <item key="/FTM1/ftm_deadtime_dtval"                    value="0" />
-   <item key="/FTM1/ftm_mode_init"                         value="false" />
    <item key="/GPIOB/irqHandlingMethod"                    value="$ClassMethod" />
    <item key="/GPIOD/irqHandlingMethod"                    value="$ClassMethod" />
+   <item key="/GPIOE/enablePeripheralSupport"              value="false" />
    <item key="/LINKER/heapSize"                            value="4096" />
    <item key="/LINKER/stackSize"                           value="4096" />
    <item key="/LLWU/llwu_filt1_filtsel"                    value="3" />
@@ -155,10 +156,10 @@
    <item key="/MCG/system_mcgfllclk_clock[3]"              value="41943040" />
    <item key="/OSC0/configurePeripheralInStartUp"          value="true" />
    <item key="/OSC0/enablePeripheralSupport"               value="true" />
+   <item key="/PCR/nvic_irqLevel"                          value="(int8_t)255" />
    <item key="/PDB0/pdb_ch0_dly0"                          value="0" />
    <item key="/PDB0/pdb_ch0_dly1"                          value="0" />
    <item key="/PIT/enablePeripheralSupport"                value="true" />
-   <item key="/PMC/pmc_lvdsc1_lvdack"                      value="false" />
    <item key="/SIM/configurePeripheralInStartUp"           value="true" />
    <item key="/SIM/enablePeripheralSupport"                value="true" />
    <item key="/SIM/sim_clkdiv1_outdiv1[1]"                 value="0" />

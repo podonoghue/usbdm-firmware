@@ -82,7 +82,7 @@ typedef struct {
  */
 __attribute__((__naked__, __weak__, __interrupt__))
 void HardFault_Handler(void) {
-#if defined(DEBUG_BUILD)
+#if defined(DEBUG_BUILD) && false
    /*
     * Determines the active stack pointer and loads it into r0
     * This is used as the 1st argument to _HardFault_Handler(volatile ExceptionFrame *exceptionFrame)
@@ -105,6 +105,8 @@ void HardFault_Handler(void) {
 }
 #pragma GCC diagnostic pop
 
+extern "C" {
+#if defined(DEBUG_BUILD) && false
 /******************************************************************************/
 /* Hard fault handler in C with stack frame location as input parameter
  *
@@ -118,7 +120,6 @@ void HardFault_Handler(void) {
  *   - Accessed unaligned memory - unlikely I guess
  *
  */
-extern "C" {
 __attribute__((__naked__))
 void _HardFault_Handler(
       volatile ExceptionFrame *exceptionFrame __attribute__((__unused__)),
@@ -128,7 +129,7 @@ void _HardFault_Handler(
    using namespace USBDM;
 
    console.setPadding(Padding_LeadingZeroes);
-   console.setWidth(8);
+   console.setWidth(Width_8);
    console.writeln("\n[Hardfault]\n - Stack frame:\n");
    console.writeln("R0  = 0x", exceptionFrame->r0,  Radix_16);
    console.writeln("R1  = 0x", exceptionFrame->r1,  Radix_16);
@@ -155,6 +156,7 @@ void _HardFault_Handler(
       __asm__("bkpt");
    }
 }
+#endif
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
@@ -186,13 +188,13 @@ void SVC_Handler(void)                        WEAK_DEFAULT_HANDLER;
 void DebugMon_Handler(void)                   WEAK_DEFAULT_HANDLER;
 void PendSV_Handler(void)                     WEAK_DEFAULT_HANDLER;
 void SysTick_Handler(void)                    WEAK_DEFAULT_HANDLER;
-void DMA0_CH0_IRQHandler(void)                WEAK_DEFAULT_HANDLER;
-void DMA0_CH1_IRQHandler(void)                WEAK_DEFAULT_HANDLER;
-void DMA0_CH2_IRQHandler(void)                WEAK_DEFAULT_HANDLER;
-void DMA0_CH3_IRQHandler(void)                WEAK_DEFAULT_HANDLER;
+void DMA0_Ch0_IRQHandler(void)                WEAK_DEFAULT_HANDLER;
+void DMA0_Ch1_IRQHandler(void)                WEAK_DEFAULT_HANDLER;
+void DMA0_Ch2_IRQHandler(void)                WEAK_DEFAULT_HANDLER;
+void DMA0_Ch3_IRQHandler(void)                WEAK_DEFAULT_HANDLER;
 void DMA0_Error_IRQHandler(void)              WEAK_DEFAULT_HANDLER;
-void FTF_Command_IRQHandler(void)             WEAK_DEFAULT_HANDLER;
-void FTF_ReadCollision_IRQHandler(void)       WEAK_DEFAULT_HANDLER;
+void FTFL_Command_IRQHandler(void)            WEAK_DEFAULT_HANDLER;
+void FTFL_ReadCollision_IRQHandler(void)      WEAK_DEFAULT_HANDLER;
 void PMC_IRQHandler(void)                     WEAK_DEFAULT_HANDLER;
 void LLWU_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void WDOG_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
@@ -213,10 +215,10 @@ void FTM1_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void CMT_IRQHandler(void)                     WEAK_DEFAULT_HANDLER;
 void RTC_Alarm_IRQHandler(void)               WEAK_DEFAULT_HANDLER;
 void RTC_Seconds_IRQHandler(void)             WEAK_DEFAULT_HANDLER;
-void PIT0_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
-void PIT1_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
-void PIT2_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
-void PIT3_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
+void PIT_Ch0_IRQHandler(void)                 WEAK_DEFAULT_HANDLER;
+void PIT_Ch1_IRQHandler(void)                 WEAK_DEFAULT_HANDLER;
+void PIT_Ch2_IRQHandler(void)                 WEAK_DEFAULT_HANDLER;
+void PIT_Ch3_IRQHandler(void)                 WEAK_DEFAULT_HANDLER;
 void PDB0_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void USBDCD0_IRQHandler(void)                 WEAK_DEFAULT_HANDLER;
 void TSI0_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
@@ -256,14 +258,14 @@ VectorTable const __vector_table = {
       SysTick_Handler,                         /*   15,   -1  System Tick Timer                                                                */
 
                                                /* External Interrupts */
-      DMA0_CH0_IRQHandler,                     /*   16,    0  Direct memory access controller                                                  */
-      DMA0_CH1_IRQHandler,                     /*   17,    1  Direct memory access controller                                                  */
-      DMA0_CH2_IRQHandler,                     /*   18,    2  Direct memory access controller                                                  */
-      DMA0_CH3_IRQHandler,                     /*   19,    3  Direct memory access controller                                                  */
+      DMA0_Ch0_IRQHandler,                     /*   16,    0  Direct memory access controller                                                  */
+      DMA0_Ch1_IRQHandler,                     /*   17,    1  Direct memory access controller                                                  */
+      DMA0_Ch2_IRQHandler,                     /*   18,    2  Direct memory access controller                                                  */
+      DMA0_Ch3_IRQHandler,                     /*   19,    3  Direct memory access controller                                                  */
       DMA0_Error_IRQHandler,                   /*   20,    4  DMA error interrupt                                                              */
       Default_Handler,                         /*   21,    5                                                                                   */
-      FTF_Command_IRQHandler,                  /*   22,    6  Flash Memory Interface                                                           */
-      FTF_ReadCollision_IRQHandler,            /*   23,    7  Flash Memory Interface                                                           */
+      FTFL_Command_IRQHandler,                 /*   22,    6  Flash Memory Interface                                                           */
+      FTFL_ReadCollision_IRQHandler,           /*   23,    7  Flash Memory Interface                                                           */
       PMC_IRQHandler,                          /*   24,    8  Power Management Controller                                                      */
       LLWU_IRQHandler,                         /*   25,    9  Low Leakage Wakeup                                                               */
       WDOG_IRQHandler,                         /*   26,   10  External Watchdog Monitor                                                        */
@@ -274,8 +276,8 @@ VectorTable const __vector_table = {
       UART0_Lon_IRQHandler,                    /*   31,   15  Serial Communication Interface                                                   */
       UART0_RxTx_IRQHandler,                   /*   32,   16  Serial Communication Interface                                                   */
       UART0_Error_IRQHandler,                  /*   33,   17  Serial Communication Interface                                                   */
-      Uart1::RxTx_irqHandler,                  /*   34,   18  Serial Communication Interface                                                   */
-      Uart1::Error_irqHandler,                 /*   35,   19  Serial Communication Interface                                                   */
+      Uart1::irqHandler<Uart1IrqNum_RxTx>,     /*   34,   18  Serial Communication Interface                                                   */
+      Uart1::irqHandler<Uart1IrqNum_Error>,    /*   35,   19  Serial Communication Interface                                                   */
       UART2_RxTx_IRQHandler,                   /*   36,   20  Serial Communication Interface                                                   */
       UART2_Error_IRQHandler,                  /*   37,   21  Serial Communication Interface                                                   */
       ADC0_IRQHandler,                         /*   38,   22  Analogue to Digital Converter                                                    */
@@ -286,10 +288,10 @@ VectorTable const __vector_table = {
       CMT_IRQHandler,                          /*   43,   27  Carrier Modulator Transmitter                                                    */
       RTC_Alarm_IRQHandler,                    /*   44,   28  Real Time Clock                                                                  */
       RTC_Seconds_IRQHandler,                  /*   45,   29  Real Time Clock                                                                  */
-      PIT0_IRQHandler,                         /*   46,   30  Periodic Interrupt Timer                                                         */
-      PIT1_IRQHandler,                         /*   47,   31  Periodic Interrupt Timer                                                         */
-      PIT2_IRQHandler,                         /*   48,   32  Periodic Interrupt Timer                                                         */
-      PIT3_IRQHandler,                         /*   49,   33  Periodic Interrupt Timer                                                         */
+      PIT_Ch0_IRQHandler,                      /*   46,   30  Periodic Interrupt Timer                                                         */
+      PIT_Ch1_IRQHandler,                      /*   47,   31  Periodic Interrupt Timer                                                         */
+      PIT_Ch2_IRQHandler,                      /*   48,   32  Periodic Interrupt Timer                                                         */
+      PIT_Ch3_IRQHandler,                      /*   49,   33  Periodic Interrupt Timer                                                         */
       PDB0_IRQHandler,                         /*   50,   34  Programmable Delay Block                                                         */
       Usb0::irqHandler,                        /*   51,   35  Universal Serial Bus                                                             */
       USBDCD0_IRQHandler,                      /*   52,   36  USB Device Charger Detection                                                     */
@@ -297,9 +299,9 @@ VectorTable const __vector_table = {
       MCG_IRQHandler,                          /*   54,   38  Multipurpose Clock Generator                                                     */
       LPTMR0_IRQHandler,                       /*   55,   39  Low Power Timer                                                                  */
       PORTA_IRQHandler,                        /*   56,   40  General Purpose Input/Output                                                     */
-      PortB::irqHandler,                       /*   57,   41  General Purpose Input/Output                                                     */
+      PcrBase::irqHandler<PortIrqNum_PortB>,   /*   57,   41  General Purpose Input/Output                                                     */
       PORTC_IRQHandler,                        /*   58,   42  General Purpose Input/Output                                                     */
-      PortD::irqHandler,                       /*   59,   43  General Purpose Input/Output                                                     */
+      PcrBase::irqHandler<PortIrqNum_PortD>,   /*   59,   43  General Purpose Input/Output                                                     */
       PORTE_IRQHandler,                        /*   60,   44  General Purpose Input/Output                                                     */
       SWI_IRQHandler,                          /*   61,   45  Software interrupt                                                               */
    }

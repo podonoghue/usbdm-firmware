@@ -53,14 +53,9 @@ private:
    using VddPowerFaultMonitor = USBDM::GpioD<7, USBDM::ActiveLow>;
 
    /**
-    * Callback for Vdd changes
-    */
-   static void (*fCallback)(VddState);
-
-   /**
     * Target Vdd state
     */
-   static VddState vddState;
+   static inline VddState vddState = VddState_None;
 
    /**
     * Dummy routine used if callback is not set
@@ -71,6 +66,11 @@ private:
 #endif
    }
 
+   /**
+    * Callback for Vdd changes
+    */
+   static inline void (*fCallback)(VddState) = nullCallback;
+
 public:
 
    /**
@@ -79,9 +79,9 @@ public:
     *
     * @param status Bit mask for entire port
     */
-   static void powerFaultCallback(uint32_t status) {
+   static void powerFaultCallback() {
 
-      if ((VddPowerFaultMonitor::BITMASK & status) != 0) {
+      if (VddPowerFaultMonitor::getAndClearInterruptState()) {
 
          // In case Vdd overload
          Control::off();

@@ -55,7 +55,7 @@ private:
 
 protected:
 
-
+// /I2C/protected not found
    static constexpr unsigned TIMEOUT_LIMIT = 100000;
 
    /// Mode of operation (Interrupt/Polled)
@@ -68,9 +68,6 @@ protected:
    const uint8_t              *txDataPtr;           //!< Pointer to transmit data for current transaction
    uint8_t                     addressedDevice;     //!< Address of device being communicated with
    ErrorCode                   errorCode;           //!< Error code from last transaction
-
-   /** I2C baud rate divisor table */
-   static const uint16_t I2C_DIVISORS[4*16];
 
    /**
     * Construct I2C interface
@@ -88,18 +85,6 @@ protected:
     * Destructor
     */
    ~I2c() {}
-
-   /**
-    * Calculate value for baud rate register of I2C
-    *
-    * This is calculated from processor bus frequency and given bps
-    *
-    * @param[in]  clockFrequency Frequency of I2C input clock
-    * @param[in]  speed          Interface speed in bits-per-second
-    *
-    * @return I2C_F value representing speed
-    */
-   static uint8_t calculateBPSValue(uint32_t clockFrequency, uint32_t speed);
 
    /**
     * Start Rx/Tx sequence by sending address byte
@@ -121,7 +106,7 @@ protected:
    }
 
 public:
-
+// /I2C/public not found
 
 #ifdef __CMSIS_RTOS
    /**
@@ -507,7 +492,19 @@ public:
    virtual osStatus endTransaction() override {
       return mutex().release();
    }
-#endif 
+#endif
+
+   /**
+    * Class-based interrupt handler
+    * Polls device
+    */
+    void _irqHandler() {
+      poll();
+      if (state == I2C_State::i2c_idle) {
+        // Execute call-back
+        Info::sCallback(errorCode);
+      }
+   }
 
 public:
    // No class Info found
@@ -526,7 +523,7 @@ public:
 
       thisPtr = this;
 
-      configure(init);
+      Info::configure(init);
 
       busHangReset();
    }
@@ -536,8 +533,16 @@ public:
     */
    virtual ~I2cBase_T() {}
 
+   /**
+    * IRQ handler
+    */
+   static void irqHandler() {
+      thisPtr->_irqHandler();
+   }
 
 
+// /I2C/static not found
+// /I2C/InitMethod not found
    /**
     * Set speed for interface in bits-per-second
     *
@@ -565,7 +570,7 @@ public:
             __asm__("nop");
          }
       };
-#ifdef PORT_PCR_MUX_MASK
+#if true // /PCR/_present
       // I2C SCL (clock) Pin
       using sclGpio = Gpio_T<PcrValue(0), Info::sclPinIndex, ActiveHigh>;
 

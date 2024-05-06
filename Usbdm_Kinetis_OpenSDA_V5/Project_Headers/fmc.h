@@ -38,7 +38,7 @@ public:
     * This value is created from Configure.usbdmProject settings (Peripheral Parameters->FMC)
     */
    static constexpr FmcInfo::FlashBank0Init DefaultFlashBank0InitValue {
-      FmcPageBuffer_Disabled,  // (fmc_pfb0cr_b0sebe) Bank 0 Single Entry Buffer Enable - Buffer is disabled
+      FmcPageBuffer_Enabled,  // (fmc_pfb0cr_b0sebe) Bank 0 Single Entry Buffer Enable - Buffer is enabled
    };
    
 

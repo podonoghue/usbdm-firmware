@@ -22,17 +22,17 @@ private:
    // Reset data (in/out)
    using Pin      = USBDM::GpioB<1>;
 
-   static bool  fResetActivity;
+   static bool inline fResetActivity = false;
 
    /**
     * Callback used to monitor reset events
     *
     * @param status
     */
-   static void callback(uint32_t status) {
+   static void callback() {
 
       // Check if RESET pin event and pin is low
-      if ((Pin::BITMASK & status) && isLow()) {
+      if (Pin::getAndClearInterruptState() && isLow()) {
          fResetActivity = true;
       }
    }

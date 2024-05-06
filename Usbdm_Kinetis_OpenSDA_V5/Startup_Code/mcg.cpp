@@ -54,7 +54,7 @@ const ClockInfo Mcg::clockInfo[] = {
       SimBusClkDivider_DivBy2 | // (sim_clkdiv1_outdiv2[0]) Bus Clock Divider (OUTDIV2) - Divide by [1-16] - /2
       SimCoreClkDivider_DivBy2,  // (sim_clkdiv1_outdiv1[0]) Core &amp; System Clock Divider (OUTDIV1) - Divide by [1-16] - /2
 
-      Sim::DefaultSopt2Values[ClockConfig_RUN_PEE_48MHz].sopt2,
+      Sim::DefaultClockSouceInitValues[ClockConfig_RUN_PEE_48MHz].sopt2,
 
       /// Clock Mode 
       McgClockMode_PEE,  // (mcgClockMode[0]) MCG Clock Mode - PLL Engaged External (PEE)
@@ -106,12 +106,14 @@ const ClockInfo Mcg::clockInfo[] = {
     *  MCG Fixed Frequency Clock [MCGFFCLK]
     *  Used as input clock to FLL and available to some peripherals
     *  Derived from External Reference Clock or Slow IRC
+    *  (Full configuration - definition)
     */
    volatile uint32_t SystemMcgFFClock;
    
    /**
     *  System MCG Output Clock [MCGOUTCLK]
     *  MCG Main clock output
+    *  (Full configuration - definition)
     */
    volatile uint32_t SystemMcgOutClock;
    
@@ -119,12 +121,14 @@ const ClockInfo Mcg::clockInfo[] = {
     *  FLL Output clock frequency
     *  Output of FLL.
     *  Available as MCGFLLCLK and used for MCGOUTCLK in FEI or FEE clock modes
+    *  (Full configuration - definition)
     */
    volatile uint32_t SystemMcgFllClock;
    
    /**
     *  PLL Output clock frequency
     *  Output of PLL
+    *  (Full configuration - definition)
     */
    volatile uint32_t SystemMcgPllClock;
    
@@ -132,6 +136,9 @@ const ClockInfo Mcg::clockInfo[] = {
 
 /** Current clock mode (FEI out of reset) */
 McgClockMode Mcg::currentClockMode = McgClockMode_FEI;
+
+// /MCG/staticDefinitions
+// /MCG/staticDefinitions not found 
 
 #if true // /MCG/enablePeripheralSupport
 #if USBDM_ERRATA_E2448
@@ -155,15 +162,15 @@ static void setSysDividers(uint32_t simClkDiv1) {
    for (int t=0;t<10;t++) {
       __asm__ volatile("nop");
    }
-#endif
+#endif // defined(FMC_PFAPR_M2PFD_MASK)
    // Change CLKDIV1
    SIM->CLKDIV1 = simClkDiv1;
 #if defined(FMC_PFAPR_M2PFD_MASK)
    // Restore original PFAPR
    FMC->PFAPR   = temp;
-#endif
+#endif // defined(FMC_PFAPR_M2PFD_MASK)
 }
-#else
+#else // !USBDM_ERRATA_E2448
 /**
  *  Change SIM->CLKDIV1 value
  *
@@ -173,12 +180,7 @@ static void setSysDividers(uint32_t simClkDiv1) {
    // Change CLKDIV1
    SIM->CLKDIV1 = simClkDiv1;
 }
-#endif
-#endif
-
-// /MCG/staticDefinitions not found 
-
-#if true // /MCG/enablePeripheralSupport
+#endif // USBDM_ERRATA_E2448
 
 constexpr McgClockMode clockTransitionTable[][8] = {
    /* from to => FEI                FEE,               FBI,               BLPI,              FBE,              BLPE,               PBE,               PEE */
@@ -570,7 +572,7 @@ void Mcg::SystemCoreClockUpdate(void) {
 #endif // /MCG/enablePeripheralSupport
  
 /**
- * Initialise MCG to default settings.
+ * Initialise MCG as part of startup sequence
  */
 void Mcg::startupConfigure() {
 

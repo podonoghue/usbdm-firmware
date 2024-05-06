@@ -48,6 +48,16 @@ namespace USBDM {
 #pragma GCC push_options
 #pragma GCC optimize ("Os")
 
+   /**
+    * Interrupt indices for PORTs
+    *
+    * These are used to index into the jump table for PORT interrupts
+    */
+   enum PortIrqNum : int8_t {
+      PortIrqNum_PortB, // Used by PORTB
+      PortIrqNum_PortD, // Used by PORTD
+   };
+   
 /**
 * Port pin index
 *
@@ -228,11 +238,12 @@ enum class PinIndex : int16_t {
 * Global indices for ports
 */
 enum class PortIndex : int16_t {
-   PortA = 0,
-   PortB = 1,
-   PortC = 2,
-   PortD = 3,
-   PortE = 4,
+   NoPort = -1,
+   PortA  = 0,
+   PortB  = 1,
+   PortC  = 2,
+   PortD  = 3,
+   PortE  = 4,
 };
    
    /**
@@ -243,6 +254,9 @@ enum class PortIndex : int16_t {
     * @return portIndex
     */
    constexpr PortIndex mapPinToPort(PinIndex pinIndex) {
+      if (int(pinIndex)<0) {
+         return PortIndex::NoPort;
+       }
       return PortIndex(int(pinIndex)/32);
    }
    
@@ -502,6 +516,8 @@ constexpr auto operator /(unsigned left,  Hertz right)   { return Seconds(left/r
 constexpr auto operator /(int left,       Hertz right)   { return Seconds(left/right.getValue()); }
 constexpr auto operator /(Ticks left,     Hertz right)   { return Seconds(left.getValue()/right.getValue()); }
 
+using Percent  = float;
+
 #else
 enum Ticks : unsigned {
 
@@ -509,6 +525,8 @@ enum Ticks : unsigned {
 //   using Ticks    = unsigned;
    using Seconds  = float;
    using Hertz    = float;
+   using Percent  = float;
+
 #endif
 
    /**
@@ -575,8 +593,8 @@ union Seconds_Ticks {
    consteval auto operator"" _MHz(unsigned long long int num)   { return static_cast<Hertz>((double)(num*1000000)); };
    consteval auto operator"" _MHz(long double num)              { return static_cast<Hertz>((double)(num*1000000)); };
 
-//   consteval auto operator"" _percent(unsigned long long int num)  { return static_cast<double>(num)*0.01; };
-//   consteval auto operator"" _percent(long double num)             { return static_cast<double>(num)*0.01; };
+   consteval auto operator"" _percent(unsigned long long int num)  { return static_cast<Percent>((num)*0.01); };
+   consteval auto operator"" _percent(long double num)             { return static_cast<Percent>((num)*0.01); };
 
    /**
     * IRQ priority levels
@@ -586,14 +604,14 @@ union Seconds_Ticks {
     * Subset of available levels
     */
    enum NvicPriority : int8_t {
-      NvicPriority_NotInstalled = (int8_t)255,                ///< Not Installed
-      NvicPriority_VeryLow      = (1<<__NVIC_PRIO_BITS)-1,    ///< VeryLow
-      NvicPriority_Low          = (NvicPriority_VeryLow*5/6), ///< Low
-      NvicPriority_Midlow       = (NvicPriority_VeryLow*4/6), ///< Midlow
-      NvicPriority_Normal       = (NvicPriority_VeryLow*3/6), ///< Normal
-      NvicPriority_MidHigh      = (NvicPriority_VeryLow*2/6), ///< MidHigh
-      NvicPriority_High         = (NvicPriority_VeryLow*1/6), ///< High
-      NvicPriority_VeryHigh     = 0,                          ///< VeryHigh
+      NvicPriority_Disabled   = (int8_t)255,                 ///< Interrupts Disabled
+      NvicPriority_VeryLow    = (1<<__NVIC_PRIO_BITS)-1,     ///< Very Low
+      NvicPriority_Low        = (NvicPriority_VeryLow*5/6),  ///< Low
+      NvicPriority_Midlow     = (NvicPriority_VeryLow*4/6),  ///< Mid-low
+      NvicPriority_Normal     = (NvicPriority_VeryLow*3/6),  ///< Normal
+      NvicPriority_MidHigh    = (NvicPriority_VeryLow*2/6),  ///< Mid-High
+      NvicPriority_High       = (NvicPriority_VeryLow*1/6),  ///< High
+      NvicPriority_VeryHigh   = 0,                           ///< Very High
    };
 
 
@@ -683,7 +701,7 @@ public:
  * @param[in]  nvicPriority  Interrupt priority
  *
  * @note Any pending interrupts are cleared before enabling.
- * @note NvicPriority_NotInstalled will actually disable interrupts
+ * @note NvicPriority_Disabled will actually disable interrupts
  */
 void enableNvicInterrupt(IRQn_Type irqNum, NvicPriority nvicPriority);
 
@@ -803,8 +821,8 @@ constexpr bool operator ==(PcrValue pcrValue, uint32_t mask) {
     * Pin filtering on digital inputs
     */
    enum PinFilter : uint32_t {
-      PinFilter_None    = PORT_PCR_PFE(0), ///< No pin filter
-      PinFilter_Passive = PORT_PCR_PFE(1), ///< Pin filter enabled
+      PinFilter_None      = PORT_PCR_PFE(0),  ///< No pin filter
+      PinFilter_Passive   = PORT_PCR_PFE(1),  ///< Pin filter enabled
    };
 
    /**
@@ -814,9 +832,9 @@ constexpr bool operator ==(PcrValue pcrValue, uint32_t mask) {
     * Pin pull device (up/down/none) on digital inputs
     */
    enum PinPull : uint32_t {
-      PinPull_None = PORT_PCR_PD(0b00), ///< No pull device
-      PinPull_Up   = PORT_PCR_PD(0b11), ///< Weak pull-up
-      PinPull_Down = PORT_PCR_PD(0b10), ///< Weak pull-down
+      PinPull_None   = PORT_PCR_PD(0b00),  ///< No pull device
+      PinPull_Up     = PORT_PCR_PD(0b11),  ///< Weak pull-up
+      PinPull_Down   = PORT_PCR_PD(0b10),  ///< Weak pull-down
    };
 
    /**
@@ -826,8 +844,8 @@ constexpr bool operator ==(PcrValue pcrValue, uint32_t mask) {
     * Pin drive strength of digital outputs
     */
    enum PinDriveStrength : uint32_t {
-      PinDriveStrength_Low  = PORT_PCR_DSE(0), ///< Low drive strength
-      PinDriveStrength_High = PORT_PCR_DSE(1), ///< High drive strength
+      PinDriveStrength_Low    = PORT_PCR_DSE(0),  ///< Low drive strength
+      PinDriveStrength_High   = PORT_PCR_DSE(1),  ///< High drive strength
    };
 
    /**
@@ -837,8 +855,8 @@ constexpr bool operator ==(PcrValue pcrValue, uint32_t mask) {
     * Pin drive mode (push-pull/open-drain) of digital outputs
     */
    enum PinDriveMode : uint32_t {
-      PinDriveMode_PushPull  = PORT_PCR_ODE(0), ///< Push-pull
-      PinDriveMode_OpenDrain = PORT_PCR_ODE(1), ///< Open-drain
+      PinDriveMode_PushPull    = PORT_PCR_ODE(0),  ///< Push-pull
+      PinDriveMode_OpenDrain   = PORT_PCR_ODE(1),  ///< Open-drain
    };
 
    /**
@@ -848,8 +866,8 @@ constexpr bool operator ==(PcrValue pcrValue, uint32_t mask) {
     * Pin slew rate of digital outputs
     */
    enum PinSlewRate : uint32_t {
-      PinSlewRate_Fast = PORT_PCR_SRE(0), ///< Fast
-      PinSlewRate_Slow = PORT_PCR_SRE(1), ///< Slow
+      PinSlewRate_Fast   = PORT_PCR_SRE(0),  ///< Fast
+      PinSlewRate_Slow   = PORT_PCR_SRE(1),  ///< Slow
    };
 
    /**
@@ -859,8 +877,8 @@ constexpr bool operator ==(PcrValue pcrValue, uint32_t mask) {
     * Prevents modification of some of the PCR values once set
     */
    enum PinLock : uint32_t {
-      PinLock_Unlocked = PORT_PCR_LK(0), ///< PCR not locked after 1st write
-      PinLock_Locked   = PORT_PCR_LK(1), ///< PCR locked after 1st write
+      PinLock_Unlocked   = PORT_PCR_LK(0),  ///< PCR not locked after 1st write
+      PinLock_Locked     = PORT_PCR_LK(1),  ///< PCR locked after 1st write
    };
 
    /**
@@ -870,15 +888,15 @@ constexpr bool operator ==(PcrValue pcrValue, uint32_t mask) {
     * DMA and/or interrupt actions to happen on pin change or level
     */
    enum PinAction : uint32_t {
-      PinAction_None       = PORT_PCR_IRQC(0),  ///< No interrupt or DMA function
-      PinAction_DmaRising  = PORT_PCR_IRQC(1),  ///< Generate DMA request on rising edge
-      PinAction_DmaFalling = PORT_PCR_IRQC(2),  ///< Generate DMA request on falling edge
-      PinAction_DmaEither  = PORT_PCR_IRQC(3),  ///< Generate DMA request on either edge
-      PinAction_IrqLow     = PORT_PCR_IRQC(8),  ///< Generate IRQ request on low level
-      PinAction_IrqRising  = PORT_PCR_IRQC(9),  ///< Generate IRQ request on rising edge
-      PinAction_IrqFalling = PORT_PCR_IRQC(10), ///< Generate IRQ request on falling edge
-      PinAction_IrqEither  = PORT_PCR_IRQC(11), ///< Generate IRQ request on either edge
-      PinAction_IrqHigh    = PORT_PCR_IRQC(12), ///< Generate IRQ request on high level
+      PinAction_None         = PORT_PCR_IRQC(0),   ///< No interrupt or DMA function
+      PinAction_DmaRising    = PORT_PCR_IRQC(1),   ///< Generate DMA request on rising edge
+      PinAction_DmaFalling   = PORT_PCR_IRQC(2),   ///< Generate DMA request on falling edge
+      PinAction_DmaEither    = PORT_PCR_IRQC(3),   ///< Generate DMA request on either edge
+      PinAction_IrqLow       = PORT_PCR_IRQC(8),   ///< Generate IRQ request on low level
+      PinAction_IrqRising    = PORT_PCR_IRQC(9),   ///< Generate IRQ request on rising edge
+      PinAction_IrqFalling   = PORT_PCR_IRQC(10),  ///< Generate IRQ request on falling edge
+      PinAction_IrqEither    = PORT_PCR_IRQC(11),  ///< Generate IRQ request on either edge
+      PinAction_IrqHigh      = PORT_PCR_IRQC(12),  ///< Generate IRQ request on high level
    };
 
    /**
@@ -888,16 +906,16 @@ constexpr bool operator ==(PcrValue pcrValue, uint32_t mask) {
     * Which function is mapped to the pin
     */
    enum PinMux : uint32_t {
-      PinMux_Analogue = PORT_PCR_MUX(0), ///< Analogue function (ADC/TSI etc)
-      PinMux_Gpio     = PORT_PCR_MUX(1), ///< GPIO function
-      PinMux_2        = PORT_PCR_MUX(2), ///< Multiplexor 2 function
-      PinMux_3        = PORT_PCR_MUX(3), ///< Multiplexor 3 function
-      PinMux_4        = PORT_PCR_MUX(4), ///< Multiplexor 4 function
-      PinMux_5        = PORT_PCR_MUX(5), ///< Multiplexor 5 function
-      PinMux_6        = PORT_PCR_MUX(6), ///< Multiplexor 6 function
-      PinMux_7        = PORT_PCR_MUX(7), ///< Multiplexor 7 function
-      PinMux_Tsi      = PORT_PCR_MUX(0), ///< Touch Sense Input
-      PinMux_Disabled = PORT_PCR_MUX(0), ///< Disabled
+      PinMux_Analogue   = PORT_PCR_MUX(0),  ///< Analogue function (ADC/TSI etc)
+      PinMux_Gpio       = PORT_PCR_MUX(1),  ///< GPIO function
+      PinMux_2          = PORT_PCR_MUX(2),  ///< Multiplexor 2 function
+      PinMux_3          = PORT_PCR_MUX(3),  ///< Multiplexor 3 function
+      PinMux_4          = PORT_PCR_MUX(4),  ///< Multiplexor 4 function
+      PinMux_5          = PORT_PCR_MUX(5),  ///< Multiplexor 5 function
+      PinMux_6          = PORT_PCR_MUX(6),  ///< Multiplexor 6 function
+      PinMux_7          = PORT_PCR_MUX(7),  ///< Multiplexor 7 function
+      PinMux_Tsi        = PORT_PCR_MUX(0),  ///< Touch Sense Input
+      PinMux_Disabled   = PORT_PCR_MUX(0),  ///< Disabled
    };
 
    /**
@@ -1062,12 +1080,17 @@ constexpr PcrValue analoguePcrValue(PcrValue op) {
     * Example1:
     * @code
     * // Initialisation value
-    * static constexpr PcrInit pcrInit(PinDriveStrength_High, PinSlewRate_Slow, PinPull_Down, PinFilter_Passive);
+    * static constexpr PcrInit pcrInit {
+    *    PinDriveStrength_High,
+    *    PinSlewRate_Slow,
+    *    PinPull_Down,
+    *    PinFilter_Passive
+    * };
     *
-    * Initialise devices
-    * Led::setOutput(pcrInit.value);
-    * Switch::setInput(pcrInit.value);
-    * Cmt::setOutput(pcrInit.value);
+    * // Initialise devices
+    * Led::setOutput(pcrInit);
+    * Switch::setInput(pcrInit);
+    * Cmt::setOutput(pcrInit);
     * @endcode
     */
    class PcrInit {
@@ -1379,7 +1402,7 @@ public:
  *
  * @param[in] status 32-bit value from ISFR (each bit indicates a pin interrupt source)
  */
-typedef void (*PinCallbackFunction)(uint32_t status);
+typedef void (*PinCallbackFunction)();
 
 /**
  * Provides common unhandledCallback for all PORTs
@@ -1503,16 +1526,67 @@ public:
 
 private:
    /**
-    * This class is not intended to be instantiated
+    * Restrict
     */
-   PcrBase() = delete;
    PcrBase(const PcrBase&) = delete;
    PcrBase(PcrBase&&) = delete;
 
+protected:
+   PcrBase() = default;
+
 public:
    /** Callback to catch unhandled interrupt */
-   static void unhandledCallback(uint32_t) {
+   static void unhandledCallback() {
       setAndCheckErrorCode(E_NO_HANDLER);
+   }
+   
+   /**
+    * Get Port Interrupt indices from portIndex
+    *
+    * @param portIndex Port index e.g. PortB. Used to determine return value
+    *
+    * @return IRQ number
+    */
+   static constexpr PortIrqNum getIrqIndex(PortIndex portIndex) {
+      if (portIndex == PortIndex::PortB) {
+         return PortIrqNum_PortB;
+      }
+      if (portIndex == PortIndex::PortD) {
+         return PortIrqNum_PortD;
+      }
+      // Interrupts not support by port or they are disabled
+      (void)portIndex;
+      return PortIrqNum(-1);
+   }
+   
+   /** Callback functions for ISRs */
+   static PinCallbackFunction sCallbacks[];
+   
+   /**
+    * Set callback for Pin interrupts
+    *
+    * @param callback The function to call on Pin interrupt.
+    *                 Use nullptr to set default handler
+    *
+    * @note There is a single callback function for all pins on a port.
+    *       It is necessary to identify the originating pin in the callback
+    */
+   static void setPinCallback(PortIrqNum portIrqNum, PinCallbackFunction pinCallback) {
+   
+      if (pinCallback == nullptr) {
+         pinCallback = PcrBase::unhandledCallback;
+      }
+      // Allow either no handler set yet or removing handler
+      usbdm_assert(
+            (sCallbacks[portIrqNum] == PcrBase::unhandledCallback) || (pinCallback == PcrBase::unhandledCallback),
+            "Handler already set");
+      sCallbacks[portIrqNum] = pinCallback;
+   }
+   
+   template<PortIrqNum portIrqNum>
+   static void irqHandler() {
+   
+      sCallbacks[portIrqNum]();
    }
    
    /**
@@ -1520,9 +1594,12 @@ public:
     *
     * @param portIndex Port index e.g. PortIndex::PortA. Used to determine return value
     *
-    * @return Pointer to relevant PORT
+    * @return Address of relevant PORT or 0 if none.
     */
    static constexpr uint32_t getPortAddress(PortIndex portIndex) {
+      if (portIndex == PortIndex::NoPort) {
+         return 0;
+      }
    
       if (portIndex <= PortIndex::PortA) {
          return PORTA_BasePtr;
@@ -1583,29 +1660,24 @@ public:
     */
    static constexpr IRQn_Type getIrqNum(PortIndex portIndex) {
    
-      if (portIndex <= PortIndex::PortA) {
-         constexpr IRQn_Type PortIrqs[] = PORTA_IRQS;
-         return PortIrqs[0];
+      if (portIndex == PortIndex::PortA) {
+         return PORTA_IRQn;
       }
-      if (portIndex <= PortIndex::PortB) {
-         constexpr IRQn_Type PortIrqs[] = PORTB_IRQS;
-         return PortIrqs[0];
+      if (portIndex == PortIndex::PortB) {
+         return PORTB_IRQn;
       }
-      if (portIndex <= PortIndex::PortC) {
-         constexpr IRQn_Type PortIrqs[] = PORTC_IRQS;
-         return PortIrqs[0];
+      if (portIndex == PortIndex::PortC) {
+         return PORTC_IRQn;
       }
-      if (portIndex <= PortIndex::PortD) {
-         constexpr IRQn_Type PortIrqs[] = PORTD_IRQS;
-         return PortIrqs[0];
+      if (portIndex == PortIndex::PortD) {
+         return PORTD_IRQn;
       }
-      if (portIndex <= PortIndex::PortE) {
-         constexpr IRQn_Type PortIrqs[] = PORTE_IRQS;
-         return PortIrqs[0];
+      if (portIndex == PortIndex::PortE) {
+         return PORTE_IRQn;
       }
-      // INVALID_PCR, UNMAPPED_PCR, FIXED_NO_PCR
-      static_assert("Illegal Port");
-      return IRQn_Type(0);
+      // Interrupts not support by port
+      (void)portIndex;
+      return IRQn_Type(-1);
    }
    
    /**
@@ -1688,7 +1760,7 @@ public:
  * @tparam portIndex PortIndex used to determine associated port
  */
 template<PortIndex portIndex>
-class PcrBase_T {
+class PcrBase_T : public PcrBase {
 
 private:
    /**
@@ -1710,38 +1782,22 @@ public:
    static constexpr HardwarePtr<PORT_Type> port = PcrBase::getPortAddress(portIndex);
 #endif
 
-   /// Hardware IRQ number
+   /// Hardware IRQ number (Negative if interrupts are not supported by PORT)
    static constexpr IRQn_Type irqNum = PcrBase::getIrqNum(portIndex);
+
+   /// Hardware IRQ index (Negative if interrupts are not supported by PORT or disabled)
+   static constexpr PortIrqNum portIrqNum = PcrBase::getIrqIndex(portIndex);
 
    /// Indicates if USBDM port pin interrupt handler has been installed in vector table
    static constexpr bool HANDLER_INSTALLED = PcrBase::isHandlerInstalled(mapPortToPin(portIndex));
 
 public:
-
-   /** Callback functions for ISRs */
-   static PinCallbackFunction fCallback;
-
-   /**
-    * Interrupt handler\n
-    *  - Clears interrupt flag
-    *  - Calls callback
-    */
-   static void irqHandler() {
-      // Capture interrupt flags
-      uint32_t status = port->ISFR;
-
-      // Clear flags
-      port->ISFR = status;
-
-      // Pass to call-back
-      fCallback(status);
-   }
-
+#if true   // /GPIO/irqHandlingMethod   
    /**
     * Set callback for Pin interrupts
     *
-    * @param[in] callback The function to call on Pin interrupt. \n
-    *                     nullptr to indicate none
+    * @param[in] pinCallback The function to call on Pin interrupt. \n
+    *                        nullptr to indicate none
     *
     * @return E_NO_ERROR            No error
     * @return E_HANDLER_ALREADY_SET Handler already set
@@ -1749,28 +1805,17 @@ public:
     * @note There is a single callback function for all pins on the related port.
     *       It is necessary to identify the originating pin in the callback
     */
-   static ErrorCode setPinCallback(PinCallbackFunction callback) {
-
-      // Always OK to remove shared handler
-      if (callback == nullptr) {
-         fCallback = PcrBase::unhandledCallback;
-         return E_NO_ERROR;
-      }
-#ifdef DEBUG_BUILD
-      // Callback is shared across all port pins. Check if different callback already assigned
-      if ((fCallback != PcrBase::unhandledCallback) && (fCallback != callback)) {
-         return setErrorCode(ErrorCode::E_HANDLER_ALREADY_SET);
-      }
-#endif
-      fCallback = callback;
-      return E_NO_ERROR;
+   static void setPinCallback(PinCallbackFunction pinCallback) {
+      static_assert(portIrqNum>=0, "Port doesn't support interrupts or they are disabled");
+      PcrBase::setPinCallback(portIrqNum, pinCallback);
    }
+#endif // /GPIO/irqHandlingMethod
 
    /**
     * Enable Pin interrupts in NVIC.
     */
    static void enableNvicPinInterrupts() {
-      static_assert(irqNum>=0, "Pin does not support interrupts");
+      static_assert(irqNum>=0, "Port doesn't support interrupts");
       NVIC_EnableIRQ(irqNum);
    }
 
@@ -1781,7 +1826,7 @@ public:
     * @param[in]  nvicPriority  Interrupt priority
     */
    static void enableNvicPinInterrupts(NvicPriority nvicPriority) {
-      static_assert(irqNum>=0, "Pin does not support interrupts");
+      static_assert(irqNum>=0, "Port doesn't support interrupts");
       enableNvicInterrupt(irqNum, nvicPriority);
    }
 
@@ -1789,7 +1834,7 @@ public:
     * Disable Pin interrupts in NVIC.
     */
    static void disableNvicPinInterrupts() {
-      static_assert(irqNum>=0, "Pin does not support interrupts");
+      static_assert(irqNum>=0, "Port doesn't support interrupts");
       NVIC_DisableIRQ(irqNum);
    }
    /**
@@ -1871,9 +1916,6 @@ public:
       return fn;
    }
 };
-
-template<PortIndex portIndex>
-PinCallbackFunction USBDM::PcrBase_T<portIndex>::fCallback = PcrBase::unhandledCallback;
 
 
 /**
@@ -2363,6 +2405,119 @@ class PcrTable_T : public Pcr_T<Info::info[index].pcrValue, Info::info[index].pi
 #define USBDM_OR5(a,b,c,d,e)   (PcrValue)(a|b|c|d|e)
 #define USBDM_OR6(a,b,c,d,e,f) (PcrValue)(a|b|c|d|e|f)
 #endif
+
+/**
+ * Helper class to wrap member functions as static callback function
+ *
+ * @tparam T      Type of class containing callback
+ * @tparam unique Type used to obtain unique instance
+ * @tparam P      Parameters of callback
+ */
+template<typename T, typename unique, typename... P>
+class CallbackWrapper {
+
+   typedef  void(T::*TMemberFunction)(P...);
+
+   inline static TMemberFunction memberFunction;
+   inline static T*              classInstance;
+
+private:
+   /** No Default Constructor */
+   constexpr CallbackWrapper() = delete;
+   
+   /** No Copy Constructor */
+   constexpr CallbackWrapper(const CallbackWrapper &) = delete;
+
+   /** No Copy-Assignment */
+   CallbackWrapper& operator=(const CallbackWrapper&) = delete; 
+   
+public:
+   /**
+    * Function to wrap a member function as a static callback function
+    *
+    * @param classInstance    Reference to instance of class
+    * @param memberFunction   Pointer to the member function
+    *
+    * @return  Wrapper
+    */
+   constexpr CallbackWrapper(T *classInstance, TMemberFunction memberFunction) {
+      CallbackWrapper::classInstance  = classInstance;
+      CallbackWrapper::memberFunction = memberFunction;
+   }
+
+   /**
+    * Static callback function
+    *
+    * @param args
+    */
+   static void callback(P... args) {
+      (classInstance->*memberFunction)(args...);
+   }
+};
+
+/**
+ * Function to wrap a member function as a static callback function
+ *
+ * @tparam T               Type of class containing callback (inferred)
+ *
+ * @param classInstance    Reference to instance of class
+ * @param memberFunction   Pointer to the member function
+ *
+ * @return  Wrapper
+ */
+template<typename T>
+inline auto wrapCallback(T &classInstance, void (T::*memberFunction)()) {
+   static CallbackWrapper<T, PinIndex> sClass(&classInstance, memberFunction);
+   return sClass.callback;
+}
+
+/**
+ * Function to wrap a member function as a static callback function
+ *
+ * @tparam T               Type of class containing callback (inferred)
+ *
+ * @param classInstance    Pointer to instance of class
+ * @param memberFunction   Pointer to the member function
+ *
+ * @return  Wrapper
+ */
+template<typename T>
+inline auto wrapCallback(T *classInstance, void (T::*memberFunction)()) {
+   static CallbackWrapper<T, PinIndex> sClass(classInstance, memberFunction);
+   return sClass.callback;
+}
+
+/**
+ * Function to wrap a member function as a static callback function
+ *
+ * @tparam T               Type of class containing callback (inferred)
+ *
+ * @param classInstance    Reference to instance of class
+ * @param memberFunction   Pointer to the member function
+ *
+ * @return  Wrapper
+ */
+template<typename T, typename... P>
+auto wrapCallback(T &classInstance, void (T::*memberFunction)(P...)) {
+   static CallbackWrapper<T, PinIndex, P...> sClass(&classInstance, memberFunction);
+   return sClass.callback;
+}
+
+/**
+ * Function to wrap a member function as a static callback function
+ *
+ * @tparam T               Type of class containing callback (inferred)
+ *
+ * @param classInstance    Pointer to instance of class
+ * @param memberFunction   Pointer to the member function
+ *
+ * @return  Wrapper
+ */
+template<typename T, typename... P>
+auto wrapCallback(T *classInstance, void (T::*memberFunction)(P...)) {
+   static CallbackWrapper<T, PinIndex, P...> sClass(classInstance, memberFunction);
+   return sClass.callback;
+}
 
 #pragma GCC pop_options
 

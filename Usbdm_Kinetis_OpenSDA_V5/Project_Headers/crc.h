@@ -223,7 +223,6 @@ public:
          CrcSeed(0xffffffff)
       };
       Info::configure(init);
-      writePolynomial(0x04c11db7);
    }
 
    /**
@@ -240,7 +239,6 @@ public:
          CrcSeed(0xffffffff)
       };
       Info::configure(init);
-      writePolynomial(0x1EDC6F41);
    }
 
    /**
@@ -309,15 +307,18 @@ public:
    template<typename T>
    static uint32_t calculateCrc(const T *data, unsigned size) {
       static_assert((sizeof(T) == 1) || (sizeof(T) == 2) || (sizeof(T) == 4), "Illegal size");
-      while (size-->0) {
+      while (size>0) {
          if constexpr (sizeof(T) == 1) {
             writeData8(*data++);
+            size--;
          }
          else if constexpr (sizeof(T) == 2) {
             writeData16(*data++);
+            size -= 2;
          }
          else if constexpr (sizeof(T) == 4) {
             writeData32(*data++);
+            size -= 4;
          }
       }
       return getCalculatedCrc();

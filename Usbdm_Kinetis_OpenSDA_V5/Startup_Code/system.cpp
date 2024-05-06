@@ -21,6 +21,7 @@ void SystemCoreClockUpdate(void) {
    /**
     *  System Core Clock
     *  Clocks the ARM Cortex-M4 core and bus masters
+    *  (Full configuration - definition)
     */
    uint32_t SystemCoreClock;
    
@@ -28,6 +29,7 @@ void SystemCoreClockUpdate(void) {
     *  System Bus Clock
     *  Clocks the bus slaves and peripherals
     *        - Must be &lt;= Core Clock frequency and an integer divisor
+    *  (Full configuration - definition)
     */
    uint32_t SystemBusClock;
    

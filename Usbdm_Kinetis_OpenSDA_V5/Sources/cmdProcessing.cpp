@@ -166,10 +166,10 @@ USBDM_ErrorCode f_CMD_DEBUG(void) {
       case BDM_DBG_TESTALTSPEED:
          return BDM_RC_OK;
 
-      case   BDM_DBG_SWD_ERASE_LOOP:  //!< - Mass erase on reset capture
+      case BDM_DBG_SWD_ERASE_LOOP:  //!< - Mass erase on reset capture
          return Swd::kinetisMassErase();
 
-      case   BDM_DBG_SWD:  //!< - Test ARM-SWD functions
+      case BDM_DBG_SWD:  //!< - Test ARM-SWD functions
          return Swd::connect();
       case BDM_DBG_SERIAL_ON:
          Usb0::setDiscardCharacters(false);

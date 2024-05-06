@@ -52,11 +52,14 @@ typedef USBDM::GpioB<0,ActiveLow>                            SDA_SWD_OE_B;      
 /// SDA_SPI0_RST_B (not used)
 typedef USBDM::GpioC<1,ActiveHigh>                           SDA_SPI0_RST_B;                               // PTC1(p22)
 
-/// SDA_SPI0_CS (not used)
-typedef USBDM::GpioC<2,ActiveHigh>                           SDA_SPI0_CS;                                  // PTC2(p23)
+typedef USBDM::GpioD<7,ActiveLow>                            VTRG_FAULT_B;                                 // PTD7(p32)
 
 /// SDA_LED
 typedef USBDM::GpioD<4,ActiveLow>                            SDA_LED;                                      // PTD4(p29)
+
+typedef USBDM::GpioD<6,ActiveHigh>                           POWER_EN;                                     // PTD6(p31)
+
+typedef USBDM::GpioD<5,ActiveHigh>                           SDA_USB_P5V_SENSE;                            // PTD5(p30)
 
 /// User SPI
 typedef Spi0                                                 SDA_SPI;                                      

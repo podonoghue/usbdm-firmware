@@ -60,7 +60,7 @@ public:
    };
 
 public:
-
+// /VREF/InitMethod not found
    // No class Info found
    /**
     * Enable Vref output pin as Vref output.

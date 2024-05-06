@@ -529,11 +529,6 @@ protected:
    /** Bit-mask of allocated channels */
    static uint32_t allocatedChannels;
 
-   /** Callback to catch unhandled interrupt */
-   static void noHandlerCallback(DmaChannelNum, uint32_t) {
-      setAndCheckErrorCode(E_NO_HANDLER);
-   }
-
 public:
    /**
     * Enable and configure shared DMA settings.
@@ -559,11 +554,11 @@ public:
 
       // Clear call-backs
       for (unsigned channel=0; channel<Info::NumVectors; channel++) {
-         Info::sCallbacks[channel] = noHandlerCallback;
+         Info::sCallbacks[channel] = Info::unhandledCallback;
       }
 #ifndef NDEBUG
       // Clear the TCDs
-      for (unsigned index=0; index<sizeof(dma->TCD_RAW);index++) {
+      for (unsigned index=0; index<(sizeof(dma->TCD_RAW)/sizeof(dma->TCD_RAW[0]));index++) {
          dma->TCD_RAW[index] = 0;
       }
 #endif
@@ -850,6 +845,7 @@ public:
     *
     * @note There is no clear option as the flag is automatically cleared by the DMA controller when
     *        the transfer starts.
+    * @note May use DmaChannelNum_All to apply to all channels
     */
    static void __attribute__((always_inline)) startSoftwareRequest(DmaChannelNum dmaChannelNum) {
 
@@ -857,96 +853,128 @@ public:
    }
 
    /**
-    * Enable/disable DMA hardware requests on multiple channels.
+    * Enable DMA hardware requests on multiple channels.
     * The channel should be configured beforehand using configureTransfer().
     *
     * @param[in]  dmaChannelMask Mask for channels being modified
-    * @param[in]  enable         True => enable, False => disable
     */
-   static void __attribute__((always_inline)) enableMultipleRequests(uint32_t dmaChannelMask, bool enable=true) {
+   static void __attribute__((always_inline)) enableMultipleRequests(uint32_t dmaChannelMask) {
 
       usbdm_assert((dmaChannelMask&~((1<<Info::NumChannels)-1)) != 0, "Illegal DMA channel");
 
-      if (enable) {
-         dma->ERQ = dma->ERQ | dmaChannelMask;
-      }
-      else {
-         dma->ERQ = dma->ERQ & ~dmaChannelMask;
-      }
+      dma->ERQ = dma->ERQ | dmaChannelMask;
    }
 
    /**
-    * Enable/disable DMA hardware requests on a channel.
+    * Disable DMA hardware requests on multiple channels.
+    * The channel should be configured beforehand using configureTransfer().
+    *
+    * @param[in]  dmaChannelMask Mask for channels being modified
+    */
+   static void __attribute__((always_inline)) disableMultipleRequests(uint32_t dmaChannelMask) {
+
+      usbdm_assert((dmaChannelMask&~((1<<Info::NumChannels)-1)) != 0, "Illegal DMA channel");
+
+      dma->ERQ = dma->ERQ & ~dmaChannelMask;
+   }
+
+   /**
+    * Enable DMA hardware requests on a channel.
     * The channel should be configured beforehand using configureTransfer().
     *
     * @param[in]  dmaChannelNum  Channel being modified
-    * @param[in]  enable         True => enable, False => disable
     *
     * @note May use DmaChannelNum_All to apply to all channels
     */
-   static void __attribute__((always_inline)) enableRequests(DmaChannelNum dmaChannelNum, bool enable=true) {
+   static void __attribute__((always_inline)) enableRequest(DmaChannelNum dmaChannelNum) {
 
-      if (enable) {
-         dma->SERQ = dmaChannelNum;
-      }
-      else {
-         dma->CERQ = dmaChannelNum;
-      }
+      dma->SERQ = dmaChannelNum;
+   }
+
+   /**
+    * Disable DMA hardware requests on a channel.
+    * The channel should be configured beforehand using configureTransfer().
+    *
+    * @param[in]  dmaChannelNum  Channel being modified
+    *
+    * @note May use DmaChannelNum_All to apply to all channels
+    */
+   static void __attribute__((always_inline)) disableRequest(DmaChannelNum dmaChannelNum) {
+
+      dma->CERQ = dmaChannelNum;
    }
 
 #ifdef DMA_EARS_EDREQ_0_MASK
    /**
-    * Enable/disable DMA asynchronous requests on a channel\n
+    * Enable DMA asynchronous requests on a channel\n
     * The channel should be configured beforehand using configureTransfer()
     *
     * @param[in]  dmaChannelNum Channel being modified
-    * @param[in]  enable        True => enable, False => disable
+    *
+    * @note May use DmaChannelNum_All to apply to all channels
     */
-   static void __attribute__((always_inline)) enableAsynchronousRequests(DmaChannelNum dmaChannelNum, bool enable=true) {
+   static void __attribute__((always_inline)) enableAsynchronousRequests(DmaChannelNum dmaChannelNum) {
 
-      if (enable) {
-         dma->EARS = dma->EARS | (1<<dmaChannelNum);
-      }
-      else {
-         dma->EARS = dma->EARS & ~(1<<dmaChannelNum);
-      }
+      dma->EARS = dma->EARS | (1<<dmaChannelNum);
+   }
+   /**
+    * Disable DMA asynchronous requests on a channel\n
+    * The channel should be configured beforehand using configureTransfer()
+    *
+    * @param[in]  dmaChannelNum Channel being modified
+    */
+   static void __attribute__((always_inline)) disableAsynchronousRequests(DmaChannelNum dmaChannelNum) {
+
+      dma->EARS = dma->EARS & ~(1<<dmaChannelNum);
    }
 #endif
 
    /**
-    * Enable/disable error interrupts on multiple channels.
+    * Enable error interrupts on multiple channels.
     *
     * @param[in]  dmaChannelMask Mask for channels being modified
-    * @param[in]  enable         True => enable, False => disable
     */
-   static void __attribute__((always_inline)) enableMultipleErrorInterrupts(uint32_t dmaChannelMask, bool enable=true) {
+   static void __attribute__((always_inline)) enableMultipleErrorInterrupts(uint32_t dmaChannelMask) {
 
       usbdm_assert((dmaChannelMask&~((1<<Info::NumChannels)-1)) == 0, "Illegal DMA channel");
 
-      if (enable) {
-         dma->EEI = dma->EEI | dmaChannelMask;
-      }
-      else {
-         dma->EEI = dma->EEI & ~dmaChannelMask;
-      }
+      dma->EEI = dma->EEI | dmaChannelMask;
+   }
+
+   /**
+    * Disable error interrupts on multiple channels.
+    *
+    * @param[in]  dmaChannelMask Mask for channels being modified
+    */
+   static void __attribute__((always_inline)) disableMultipleErrorInterrupts(uint32_t dmaChannelMask) {
+
+      usbdm_assert((dmaChannelMask&~((1<<Info::NumChannels)-1)) == 0, "Illegal DMA channel");
+
+      dma->EEI = dma->EEI & ~dmaChannelMask;
    }
 
    /**
     * Enable/disable error interrupts for a channel.
     *
     * @param[in]  dmaChannelNum Channel being modified
-    * @param[in]  enable        True => enable, False => disable
     *
     * @note May use DmaChannelNum_All to apply to all channels
     */
-   static void __attribute__((always_inline)) enableErrorInterrupts(DmaChannelNum dmaChannelNum, bool enable=true) {
+   static void __attribute__((always_inline)) enableErrorInterrupts(DmaChannelNum dmaChannelNum) {
 
-      if (enable) {
-         dma->SEEI = dmaChannelNum;
-      }
-      else {
-         dma->CEEI = dmaChannelNum;
-      }
+      dma->SEEI = dmaChannelNum;
+   }
+
+   /**
+    * Enable/disable error interrupts for a channel.
+    *
+    * @param[in]  dmaChannelNum Channel being modified
+    *
+    * @note May use DmaChannelNum_All to apply to all channels
+    */
+   static void __attribute__((always_inline)) disableErrorInterrupts(DmaChannelNum dmaChannelNum) {
+
+      dma->CEEI = dmaChannelNum;
    }
 
    /**
@@ -965,18 +993,12 @@ public:
     * Clear interrupt request flags on multiple channels.
     *
     * @param[in]  dmaChannelMask Mask for channels being modified
-    * @param[in]  enable         True => enable, False => disable
     */
-   static void __attribute__((always_inline)) clearMultipleInterruptRequests(uint32_t dmaChannelMask, bool enable=true) {
+   static void __attribute__((always_inline)) clearMultipleInterruptRequests(uint32_t dmaChannelMask) {
 
       usbdm_assert((dmaChannelMask&~((1<<Info::NumChannels)-1)) != 0, "Illegal DMA channel");
 
-      if (enable) {
-         dma->INT = dma->INT | dmaChannelMask;
-      }
-      else {
-         dma->INT = dma->INT & ~dmaChannelMask;
-      }
+      dma->INT = dmaChannelMask;
    }
 
    /**
@@ -989,6 +1011,30 @@ public:
    static void __attribute__((always_inline)) clearInterruptRequest(DmaChannelNum dmaChannelNum) {
 
       dma->CINT = dmaChannelNum;
+   }
+
+   /**
+    * Clear channel error flags on multiple channels.
+    *
+    * @param[in]  dmaChannelMask Mask for channels being modified
+    */
+   static void __attribute__((always_inline)) clearMultipleChannelErrorFlags(uint32_t dmaChannelMask) {
+
+      usbdm_assert((dmaChannelMask&~((1<<Info::NumChannels)-1)) != 0, "Illegal DMA channel");
+
+      dma->ERR = dmaChannelMask;
+   }
+
+   /**
+    * Clear channel error flag for a channel.
+    *
+    * @param[in]  dmaChannelNum  Channel being modified
+    *
+    * @note May use DmaChannelNum_All to apply to all channels
+    */
+   static void __attribute__((always_inline)) clearChannelErrorFlag(DmaChannelNum dmaChannelNum) {
+
+      dma->CERR = dmaChannelNum;
    }
 
 };

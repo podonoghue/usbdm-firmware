@@ -74,7 +74,7 @@ public:
     * @endcode
     */
    template<class T, void(T::*callback)(uint32_t), T &object>
-   static typename Info::Alarm_CallbackFunction wrapCallback() {
+   static typename Info::CallbackFunction wrapCallback() {
       static typename Info::RtcAlarmCallbackFunction fn = [](uint32_t timeSinceEpoch) {
          (object.*callback)(timeSinceEpoch);
       };
@@ -113,9 +113,9 @@ public:
     * @endcode
     */
    template<class T, void(T::*callback)(uint32_t)>
-   static typename Info::Alarm_CallbackFunction wrapCallback(T &object) {
+   static typename Info::CallbackFunction wrapCallback(T &object) {
       static T &obj = object;
-      static typename Info::Alarm_CallbackFunction fn = [](uint32_t timeSinceEpoch) {
+      static typename Info::CallbackFunction fn = [](uint32_t timeSinceEpoch) {
          (obj.*callback)(timeSinceEpoch);
       };
       return fn;
