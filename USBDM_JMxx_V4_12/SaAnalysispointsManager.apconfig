@@ -1,6 +1,6 @@
 <Analysispoints>
 	<Name>AnalysispointsManager</Name>
-	<ProjectPath>C:/Users/podonoghue/Documents/Development/USBDM/usbdm-firmware/USBDM_JMxx/SaAnalysispointsManager.apconfig</ProjectPath>
+	<ProjectPath>Z:/Documents/Development/TestCodewarrior11/USBDM_JMxx_V4_12/SaAnalysispointsManager.apconfig</ProjectPath>
 	<MaxNumberOfCores>1</MaxNumberOfCores>
 	<Comments>Analysispoints Manager</Comments>
 	<IgnoreAll>false</IgnoreAll>

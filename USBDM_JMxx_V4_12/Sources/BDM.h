@@ -102,4 +102,6 @@ extern void (*bdm_tx_ptr)(uint8_t);   // Pointer to BDM Tx routines
 #define bdm_rx()      (*bdm_rx_ptr)() 
 #define bdmTx(data)  (*bdm_tx_ptr)(data) 
 
+// Indicates reset is being asserted by BDM
+extern uint8_t resetInProgress ;
 #endif // _BDM_H_

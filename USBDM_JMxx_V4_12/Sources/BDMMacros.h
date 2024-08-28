@@ -191,8 +191,11 @@ extern void doWAIT16(void);        //! Wait fot 16 bit times
 //  Write command byte, truncated sequence
 extern void BDM_CMD_0_0_T(uint8_t cmd);
 
-//  Special for Software Reset HCS08, truncated sequence
+//  Special for Software Reset HCS08, truncated sequence, BKGD left 3-state
 extern void BDM_CMD_1W1B_0_T(uint8_t cmd, uint16_t parameter1, uint8_t parameter2);
+
+//  Special for Software Reset HCS08, truncated sequence, BKGD left low
+extern void BDM_CMD_1W1B_0_TL(uint8_t cmd, uint16_t parameter1, uint8_t parameter2);
 
 //  Special truncated sequence
 extern void BDM_CMD_1B_0_T(uint8_t cmd, uint8_t parameter);
@@ -353,7 +356,9 @@ extern uint8_t BDM_CMD_1A_1L(uint8_t cmd, uint32_t addr, uint32_t *result);
 
 #define BDM08_CMD_READ_LAST(val_stat_p)        BDM_CMD_0_1W_NOACK(_BDM08_READ_LAST,val_stat_p)    //!< Read last 8-bit memory location accessed with status (HCS08)
 
-#define BDM08_CMD_RESET(addr,val)              BDM_CMD_1W1B_0_T(_BDM_WRITE_BYTE, addr, val) //!< Reset Target (HCS08)
+#define BDM08_CMD_RESET(addr,val)              BDM_CMD_1W1B_0_T(_BDM_WRITE_BYTE, addr, val) //!< Reset Target (HCS08) (BKGD 3-state)
+#define BDM08_CMD_RESET_SPECIAL(addr,val)      BDM_CMD_1W1B_0_TL(_BDM_WRITE_BYTE, addr, val) //!< Reset Target (HCS08) (BKGD low)
+
 //#define BDM08_CMD_WRITEBLOCK(addr,value)     BDM_CMD_1W1B_0(_BDM_WRITE_BLOCK,addr,value)     //!< Write Block (HCS08)
 
 #define BDMRS08_CMD_RESET()                  BDM_CMD_0_0_T(RS_BDC_RESET)                     //!< Reset Target (RS08)

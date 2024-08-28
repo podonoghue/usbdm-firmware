@@ -107,6 +107,9 @@ Change History
 #error "BDM.c requires a Compiler fix (MTWX31284) that is only available in Versions later than 5.0.29"
 #endif
 
+// Indicates reset is being asserted by BDM
+uint8_t resetInProgress=FALSE ;
+
 //=============================================================================================================================================
 #define BDM_SYNC_REQms            1U //!< ms - length of the longest possible SYNC REQUEST pulse (128 BDM cycles @ 400kHz = 320us plus some extra time)
 #define SYNC_TIMEOUTus          460U //!< us - longest time for the target to completed a SYNC pulse (16+128+margin cycles @ 400kHz = 375us)
@@ -580,7 +583,11 @@ uint8_t rc;
    }
    switch (cable_status.target_type) {
       case T_HCS08:
-          BDM08_CMD_RESET(bdm_option.SBDFRaddress, HCS_SBDFR_BDFR);
+         if (mode == RESET_SPECIAL) {  // Special mode - need BKGD held low out of reset
+            BDM08_CMD_RESET_SPECIAL(bdm_option.SBDFRaddress, HCS_SBDFR_BDFR);
+         } else {
+            BDM08_CMD_RESET(bdm_option.SBDFRaddress, HCS_SBDFR_BDFR);
+         }
          break;
       case T_RS08:
          BDMRS08_CMD_RESET();
@@ -1222,6 +1229,7 @@ void bdm_txEmpty(uint8_t data) {
 // 3,4,14/15
 void bdm_tx1(uint8_t data) {
    asm {
+//	  Acc = data
 //      BDM_ENABLE_ASM                          // Enable BKGD (high)
       SEC                                     // Set sentinel for 1st ROLA
       BRA   Entry
@@ -1254,6 +1262,7 @@ void bdm_tx1(uint8_t data) {
 // 5,6,14/15
 void bdm_tx2(uint8_t data) {
    asm {
+//	  Acc = data
 //      BDM_ENABLE_ASM                          // Enable BKGD (high)
       SEC                                     // Set sentinel for 1st ROLA
       BRA   Entry
@@ -1290,6 +1299,7 @@ void bdm_tx2(uint8_t data) {
 // 7,8,14/15
 void bdm_tx3(uint8_t data) {
    asm {
+//	  Acc = data
 //    BDM_ENABLE_ASM                          // Enable BKGD (high)
       SEC                                     // Set sentinel for 1st ROLA
       BRA   Entry
@@ -1325,6 +1335,7 @@ void bdm_tx3(uint8_t data) {
 //!
 void bdm_txGeneric(uint8_t data) {
    asm {
+//	  Acc = data
 //   BDM_ENABLE_ASM       // Enable BKGD (high)
      SEC                  // Set sentinel for 1st ROLA
      BRA   Entry
@@ -1365,7 +1376,8 @@ void bdm_txGeneric(uint8_t data) {
 //!
 void bdm_txGeneric(uint8_t data) {
    asm {
-      BDM_ENABLE_ASM                // Enable BKGD (high)
+//	  Acc = data
+//    BDM_ENABLE_ASM                // Enable BKGD (high)
       MOV  #8,bitCount              // # of bits to send
 
    Loop:
@@ -2448,7 +2460,7 @@ void BDM_CMD_1B_0_T(uint8_t cmd, uint8_t parameter) {
 //   enableInterrupts();
 }
    
-//!  Special for Software Reset HCS08, truncated sequence
+//!  Special for Software Reset HCS08, truncated sequence leave BKGD 3-state
 //!
 //! @param cmd         command byte to write
 //! @param parameter1  word parameter to write
@@ -2461,6 +2473,23 @@ void BDM_CMD_1W1B_0_T(uint8_t cmd, uint16_t parameter1, uint8_t parameter2) {
    bdmTx(cmd);
    bdmTx16(parameter1);
    bdmTx(parameter2);
+//   enableInterrupts();
+}
+
+//!  Special for Software Reset HCS08, truncated sequence leave BKGD low
+//!
+//! @param cmd         command byte to write
+//! @param parameter1  word parameter to write
+//! @param parameter2  byte parameter to write
+//!
+//! @note Interrupts are left disabled
+//!
+void BDM_CMD_1W1B_0_TL(uint8_t cmd, uint16_t parameter1, uint8_t parameter2) {
+   bdm_txPrepare();
+   bdmTx(cmd);
+   bdmTx16(parameter1);
+   bdmTx(parameter2);
+   BDM_LOW(); // drive BKGD low (out of reset)
 //   enableInterrupts();
 }
 

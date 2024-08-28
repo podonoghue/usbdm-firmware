@@ -205,6 +205,7 @@ void bdm_resetSense(void) {
    CLEAR_RESET_SENSE_FLAG();                // Acknowledge RESET IC Event
    if (RESET_IS_LOW) {
       cable_status.reset = RESET_DETECTED;  // Record that reset was asserted
+//      BDM_LOW();
    }
 }
 #endif
