@@ -50,12 +50,16 @@ fi
 
 SOURCE_ROOT="${HOME_DIR}"
 FLASH_IMAGES="${ECLIPSE_ROOT}/PackageFiles/FlashImages"
-MK_FLASH_DIR="${FLASH_IMAGES}/MKxx_${VERSION}"
+MK_FLASH_DIR="${FLASH_IMAGES}/MKxx"
 MK_FLASH_REFERENCE="${MK_FLASH_DIR}/Reference"
+
+echo "MK_FLASH_REFERENCE=${MK_FLASH_REFERENCE}"
 
 mkdir -p ${FLASH_IMAGES}
 mkdir -p ${MK_FLASH_DIR}
 mkdir -p ${MK_FLASH_REFERENCE}
+
+touch ${MK_FLASH_DIR}/_${VERSION}
 
 echo "***  Doing reference OpenSDA v1"
 FIRMWARE_VERSIONS="OpenSDAv1 OpenSDAv1_Power OpenSDAv1_Unique_ID OpenSDAv1_Unique_ID_Power"

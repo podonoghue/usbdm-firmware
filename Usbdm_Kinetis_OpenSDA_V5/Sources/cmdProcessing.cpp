@@ -206,6 +206,7 @@ USBDM_ErrorCode f_CMD_SET_OPTIONS(void) {
    bdm_option.targetVdd          = (TargetVddSelect_t)commandBuffer[sub++];
    bdm_option.useAltBDMClock     = (ClkSwValues_t)commandBuffer[sub++];
    bdm_option.autoReconnect      = (AutoConnect_t)commandBuffer[sub++];
+   bdm_option.SBDFRaddress       = pack16BE(commandBuffer+sub++);
    return rc;
 }
 
