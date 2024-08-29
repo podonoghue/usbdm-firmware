@@ -1,0 +1,84 @@
+#!/bin/bash
+
+HOME_DIR="$(dirname $(readlink -f $0))"
+echo HOME_DIR=${HOME_DIR}
+
+VERSION=V4.12.1.330
+
+pausing() {
+   x=10
+   echo -n Pausing ...
+   while [ $x -gt 0 ];  do
+      sleep 1s
+      echo -n " $x"
+      x=$(( $x - 1 ))
+   done
+   echo 
+}
+
+CollectFiles() {
+
+clear
+echo "***  ****************************************  ***"
+echo "***  Collect Firmware files                     ***"
+echo "***  ****************************************  ***"
+
+shopt -s nullglob
+
+USBDM_ROOT="$(readlink -f ${HOME_DIR}/../..)"
+echo "USBDM_ROOT=${USBDM_ROOT}"
+
+ECLIPSE_ROOT="${USBDM_ROOT}/usbdm-eclipse-makefiles-build"
+echo "ECLIPSE_ROOT=${ECLIPSE_ROOT}"
+
+if [[ ! -d ${ECLIPSE_ROOT} ]]; then
+   echo "Can't find ECLIPSE_ROOT=${ECLIPSE_ROOT}"
+   exit
+fi
+
+SOURCE_ROOT="${HOME_DIR}"
+FLASH_IMAGES="${ECLIPSE_ROOT}/PackageFiles/FlashImages"
+JS16_FLASH_DIR="${FLASH_IMAGES}/JS16"
+JMxx_FLASH_DIR="${FLASH_IMAGES}/JMxx"
+TWR_FLASH_DIR="${FLASH_IMAGES}/TWR"
+
+echo Creating ${FLASH_IMAGES}
+mkdir -p ${FLASH_IMAGES}
+
+
+
+#*** JS16 based FIRMWARE_VERSIONSs
+FIRMWARE_VERSIONS="USBDM_CF_JS16CWJ USBDM_JS16CWJ USBDM_CF_SER_JS16CWJ USBDM_SER_JS16CWJ USBDM_SWD_SER_JS16CWJ USBDM_SWD_JS16CWJ"
+echo "Copying ${FIRMWARE_VERSIONS} to ${JS16_FLASH_DIR}"
+mkdir -p ${JS16_FLASH_DIR}
+touch ${JS16_FLASH_DIR}/_${VERSION}
+for file in ${FIRMWARE_VERSIONS}; do
+   cp -p "${SOURCE_ROOT}/${file}/"*.sx           "${JS16_FLASH_DIR}"   
+done
+
+#*** JMxx based FIRMWARE_VERSIONSs
+FIRMWARE_VERSIONS="USBDM_CF_JMxxCLD USBDM_CF_SER_JMxxCLD USBDM_JMxxCLC USBDM_JMxxCLD USBDM_JMxx_MC56F8006Demo"
+echo "Copying ${FIRMWARE_VERSIONS} to ${JMxx_FLASH_DIR}"
+mkdir -p ${JMxx_FLASH_DIR}
+touch ${JMxx_FLASH_DIR}/_${VERSION}
+for file in ${FIRMWARE_VERSIONS}; do
+   cp -p "${SOURCE_ROOT}/${file}/"*.sx           "${JMxx_FLASH_DIR}"   
+done
+
+#*** Tower based FIRMWARE_VERSIONSs
+FIRMWARE_VERSIONS="USBDM_TWR_CFV1 USBDM_TWR_HCS08 USBDM_TWR_Kinetis USBDM_TWR_CFVx USBDM_TWR_HCS12"
+echo "Copying ${FIRMWARE_VERSIONS} to ${TWR_FLASH_DIR}"
+mkdir -p ${TWR_FLASH_DIR}
+touch ${TWR_FLASH_DIR}/_${VERSION}
+for file in ${FIRMWARE_VERSIONS}; do
+   cp -p "${SOURCE_ROOT}/${file}/"*.sx           "${TWR_FLASH_DIR}"   
+done
+
+
+}
+
+CollectFiles
+pausing
+
+exit
+
