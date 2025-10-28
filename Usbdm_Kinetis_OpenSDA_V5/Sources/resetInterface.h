@@ -58,6 +58,7 @@ public:
 
       // IRQ on falling edge - reset detection
       Pin::setPcrOption(USBDM::PinAction_IrqFalling);
+      Pin::setPinCallback(nullptr);
       Pin::setPinCallback(callback);
       Pin::enableNvicPinInterrupts(USBDM::NvicPriority_Normal);
 

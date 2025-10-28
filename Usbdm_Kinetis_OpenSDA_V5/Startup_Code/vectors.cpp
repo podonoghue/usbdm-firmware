@@ -276,8 +276,8 @@ VectorTable const __vector_table = {
       UART0_Lon_IRQHandler,                    /*   31,   15  Serial Communication Interface                                                   */
       UART0_RxTx_IRQHandler,                   /*   32,   16  Serial Communication Interface                                                   */
       UART0_Error_IRQHandler,                  /*   33,   17  Serial Communication Interface                                                   */
-      Uart1::irqHandler<Uart1IrqNum_RxTx>,     /*   34,   18  Serial Communication Interface                                                   */
-      Uart1::irqHandler<Uart1IrqNum_Error>,    /*   35,   19  Serial Communication Interface                                                   */
+      Uart1::irqHandler<Uart1::IrqNum_RxTx>,   /*   34,   18  Serial Communication Interface                                                   */
+      Uart1::irqHandler<Uart1::IrqNum_Error>,  /*   35,   19  Serial Communication Interface                                                   */
       UART2_RxTx_IRQHandler,                   /*   36,   20  Serial Communication Interface                                                   */
       UART2_Error_IRQHandler,                  /*   37,   21  Serial Communication Interface                                                   */
       ADC0_IRQHandler,                         /*   38,   22  Analogue to Digital Converter                                                    */

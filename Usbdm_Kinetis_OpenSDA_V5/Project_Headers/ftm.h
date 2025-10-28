@@ -1,11 +1,8 @@
 /**
  * @file     ftm.h (180.ARM_Peripherals/Project_Headers/ftm.h)
  * @brief    Flexitimer Timer Module
- *
- * @version  V4.12.1.80
- * @date     13 April 2016
- *      Author: podonoghue
  */
+
 #ifndef HEADER_FTM_H
 #define HEADER_FTM_H
 
@@ -22,12 +19,1766 @@
 #include "pin_mapping.h"
 #include "gpio.h"
 
-#if false // /FTM/enablePeripheralSupport
+#if false // /FTM/_BasicInfoGuard
 
-/*
- * Default port information
- */
+// No handler defined for FTM0
+// No handler defined for FTM1
+
+
 namespace USBDM {
+/**
+ * @addtogroup FTM_Group FTM, PWM, Input capture and Output compare
+ * @brief Pins used for PWM, Input capture and Output compare
+ * @{
+ */
+
+/**
+ * Peripheral information for FTM, PWM, Input capture and Output compare.
+ * 
+ * This may include pin information, constants, register addresses, and default register values,
+ * along with simple accessor functions.
+ */
+   /**
+    * Timer Overflow Flag
+    * (ftm_sc_tof)
+    *
+    * Set by hardware when the FTM counter passes the value in the MOD register.
+    * The TOF bit is cleared by reading the SC register while TOF is set and then
+    * writing a 0 to TOF bit. Writing a 1 to TOF has no effect.
+    * If another overflow occurs between the read and write operations,
+    * the write operation has no effect; therefore, TOF remains set indicating
+    * an overflow has occurred. In this case, a TOF interrupt request is
+    * not lost due to the clearing sequence for a previous TOF.
+    */
+   enum FtmOverflowFlag : uint8_t {
+      FtmOverflowFlag_NoOverflow             = FTM_SC_TOF(0),  ///< No Overflow
+      FtmOverflowFlag_CounterHasOverflowed   = FTM_SC_TOF(1),  ///< Counter Has Overflowed
+   };
+
+   /**
+    * Timer Events
+    * (ftm_status_status)
+    *
+    * The STATUS register contains a copy of the CHnF status flag 
+    * from the CnSC for each FTM channel. (May also include SC[TOF])
+    */
+   enum FtmEventStatus : uint8_t {
+   };
+
+   /**
+    * Counting mode
+    * (ftm_sc_cpwms)
+    *
+    * Counting Mode
+    */
+   enum FtmCountMode : uint8_t {
+      FtmCountMode_LeftAligned     = FTM_SC_CPWMS(0),  ///< Left-aligned (count up)
+      FtmCountMode_CentreAligned   = FTM_SC_CPWMS(1),  ///< Centre-aligned (count up-down)
+   };
+
+   /**
+    * Clock Source
+    * (ftm_sc_clks)
+    *
+    * Selects the clock source for the module
+    */
+   enum FtmClockSource : uint8_t {
+      FtmClockSource_Disabled              = FTM_SC_CLKS(0),  ///< Disabled
+      FtmClockSource_SystemClock           = FTM_SC_CLKS(1),  ///< System clock
+      FtmClockSource_FixedFrequencyClock   = FTM_SC_CLKS(2),  ///< Fixed frequency clock
+      FtmClockSource_ExternalClock         = FTM_SC_CLKS(3),  ///< External clock
+   };
+
+   /**
+    * Counter clock prescaler
+    * (ftm_sc_ps)
+    *
+    * Selects the prescaler for the module
+    */
+   enum FtmPrescale : uint8_t {
+      FtmPrescale_DivBy1     = FTM_SC_PS(0),  ///< Divide by 1
+      FtmPrescale_DivBy2     = FTM_SC_PS(1),  ///< Divide by 2
+      FtmPrescale_DivBy4     = FTM_SC_PS(2),  ///< Divide by 4
+      FtmPrescale_DivBy8     = FTM_SC_PS(3),  ///< Divide by 8
+      FtmPrescale_DivBy16    = FTM_SC_PS(4),  ///< Divide by 16
+      FtmPrescale_DivBy32    = FTM_SC_PS(5),  ///< Divide by 32
+      FtmPrescale_DivBy64    = FTM_SC_PS(6),  ///< Divide by 64
+      FtmPrescale_DivBy128   = FTM_SC_PS(7),  ///< Divide by 128
+   };
+
+   /**
+    * Action on Counter overflow
+    * (ftm_sc_action)
+    *
+    * Enable interrupt on counter overflow
+    */
+   enum FtmOverflowAction : uint8_t {
+      FtmOverflowAction_None        = FTM_SC_TOIE(0),  ///< No action
+      FtmOverflowAction_Interrupt   = FTM_SC_TOIE(1),  ///< Overflow Interrupt
+   };
+
+   /**
+    * Channel Number
+    * (ftm_channel_number)
+    *
+    * Selects a channel
+    */
+   enum FtmChannelNum : uint8_t {
+      FtmChannelNum_0      = 0,              ///< Channel 0
+      FtmChannelNum_1      = 1,              ///< Channel 1
+      FtmChannelNum_2      = 2,              ///< Channel 2
+      FtmChannelNum_3      = 3,              ///< Channel 3
+      FtmChannelNum_4      = 4,              ///< Channel 4
+      FtmChannelNum_5      = 5,              ///< Channel 5
+      FtmChannelNum_6      = 6,              ///< Channel 6
+      FtmChannelNum_7      = 7,              ///< Channel 7
+      FtmChannelNum_None   = (uint8_t(-1)),  ///< No Channel
+   };
+
+   /**
+    * Channel Output Control
+    * (ftm_invctrl_inven)
+    *
+    * Selects the inverting operation for the corresponding paired channels
+    * These bits control the inversion (swapping) of paired channel outputs.
+    * This register has a write buffer. (See INVC,SYNCMODE,SWINVC,HWINVC,SWSYNC,TRIGn)
+    * This bit is updated by the INVCTRL Register Synchronisation.
+    */
+   enum FtmInvertChannelPair {
+      FtmInvertChannelPair_Normal         = FTM_INVCTRL_INVEN(0),      ///< No outputs inverted
+      FtmInvertChannelPair_0_1_Inverted   = FTM_INVCTRL_INVEN(1U<<0),  ///< Invert Ch0/Ch1 outputs
+      FtmInvertChannelPair_2_3_Inverted   = FTM_INVCTRL_INVEN(1U<<1),  ///< Invert Ch2/Ch3 outputs
+      FtmInvertChannelPair_4_5_Inverted   = FTM_INVCTRL_INVEN(1U<<2),  ///< Invert Ch4/Ch5 outputs
+      FtmInvertChannelPair_6_7_Inverted   = FTM_INVCTRL_INVEN(1U<<3),  ///< Invert Ch6/Ch7 outputs
+   };
+
+   /**
+    * Channel Mode
+    * (ftm_cnsc_mode_independent[0])
+    *
+    * Determines channel operation (PWM/Input capture/Output compare)
+    */
+   enum FtmChannelMode : uint16_t {
+      FtmChannelMode_Disabled                  = FTM_CnSC_MS(0b00)|FTM_CnSC_ELS(0b00),  ///< Channel Disabled
+      FtmChannelMode_InputCaptureRisingEdge    = FTM_CnSC_MS(0b00)|FTM_CnSC_ELS(0b01),  ///< Input Capture Rising-edge
+      FtmChannelMode_InputCaptureFallingEdge   = FTM_CnSC_MS(0b00)|FTM_CnSC_ELS(0b10),  ///< Input Capture Falling-edge
+      FtmChannelMode_InputCaptureEitherEdge    = FTM_CnSC_MS(0b00)|FTM_CnSC_ELS(0b11),  ///< Input Capture Either-edge
+      FtmChannelMode_OutputCompare             = FTM_CnSC_MS(0b01)|FTM_CnSC_ELS(0b00),  ///< Software Compare (pin unused)
+      FtmChannelMode_OutputCompareToggle       = FTM_CnSC_MS(0b01)|FTM_CnSC_ELS(0b01),  ///< Output Compare Toggle
+      FtmChannelMode_OutputCompareClear        = FTM_CnSC_MS(0b01)|FTM_CnSC_ELS(0b10),  ///< Output Compare Clear
+      FtmChannelMode_OutputCompareSet          = FTM_CnSC_MS(0b01)|FTM_CnSC_ELS(0b11),  ///< Output Compare Set
+      FtmChannelMode_PwmHighTruePulses         = FTM_CnSC_MS(0b10)|FTM_CnSC_ELS(0b10),  ///< Pwm High-true Pulses (Edge/Centre)
+      FtmChannelMode_PwmLowTruePulses          = FTM_CnSC_MS(0b10)|FTM_CnSC_ELS(0b01),  ///< Pwm Low-true Pulses (Edge/Centre)
+   };
+
+   /**
+    * Action on Channel Event
+    * (ftm_cnsc_action_independent[0])
+    *
+    * Enable interrupt or DMA on channel event
+    */
+   enum FtmChannelAction : uint16_t {
+      FtmChannelAction_None        = FTM_CnSC_CHIE(0)|FTM_CnSC_DMA(0),  ///< No action
+      FtmChannelAction_Dma         = FTM_CnSC_CHIE(1)|FTM_CnSC_DMA(1),  ///< DMA request
+      FtmChannelAction_Interrupt   = FTM_CnSC_CHIE(1)|FTM_CnSC_DMA(0),  ///< Interrupt Request
+   };
+
+   /**
+    * Channel Input Filter
+    * (ftm_filter_fval_independent[0])
+    *
+    * Selects the filter value for the channel input
+    */
+   enum FtmInputFilter : uint8_t {
+      FtmInputFilter_Disabled    = (0),   ///< Filter Disabled
+      FtmInputFilter_4_clocks    = (1),   ///< 4 clock cycles
+      FtmInputFilter_8_clocks    = (2),   ///< 8 clock cycles
+      FtmInputFilter_12_clocks   = (3),   ///< 12 clock cycles
+      FtmInputFilter_16_clocks   = (4),   ///< 16 clock cycles
+      FtmInputFilter_20_clocks   = (5),   ///< 20 clock cycles
+      FtmInputFilter_24_clocks   = (6),   ///< 24 clock cycles
+      FtmInputFilter_28_clocks   = (7),   ///< 28 clock cycles
+      FtmInputFilter_32_clocks   = (8),   ///< 32 clock cycles
+      FtmInputFilter_36_clocks   = (9),   ///< 36 clock cycles
+      FtmInputFilter_40_clocks   = (10),  ///< 40 clock cycles
+      FtmInputFilter_44_clocks   = (11),  ///< 44 clock cycles
+      FtmInputFilter_48_clocks   = (12),  ///< 48 clock cycles
+      FtmInputFilter_52_clocks   = (13),  ///< 52 clock cycles
+      FtmInputFilter_56_clocks   = (14),  ///< 56 clock cycles
+      FtmInputFilter_60_clocks   = (15),  ///< 60 clock cycles
+   };
+
+   /**
+    * Odd channel mode
+    * (ftm_cnsc_mode_odd[1])
+    *
+    * Behaviour of second channel when channels are paired
+    */
+   enum FtmOddChannelMode : uint16_t {
+      FtmOddChannelMode_Disabled      = FTM_CnSC_ELS(0b00),  ///< Pin Disabled
+      FtmOddChannelMode_RisingEdge    = FTM_CnSC_ELS(0b01),  ///< Capture Rising-edge
+      FtmOddChannelMode_FallingEdge   = FTM_CnSC_ELS(0b10),  ///< Capture Falling-edge
+      FtmOddChannelMode_EitherEdge    = FTM_CnSC_ELS(0b11),  ///< Capture Either-edge
+      FtmOddChannelMode_Enabled       = FTM_CnSC_ELS(0b01),  ///< Pin controlled by FTM
+   };
+
+   /**
+    * Paired Channels Mode
+    * (ftm_cnsc_mode_even[0])
+    *
+    * Determines channel operation (Combined PWM or Dual-edge capture)
+    */
+   enum FtmEvenChannelMode : uint16_t {
+      FtmEvenChannelMode_Disabled                               = (FTM_COMBINE_DECAPEN0(0)<<8)|(FTM_COMBINE_COMBINE0(0)<<8)|FTM_CnSC_MS(0b00)|FTM_CnSC_ELS(0b00),  ///< Channel Pair Disabled
+      FtmEvenChannelMode_CombinePositivePulse                   = (FTM_COMBINE_DECAPEN0(0)<<8)|(FTM_COMBINE_COMBINE0(1)<<8)|FTM_CnSC_MS(0b00)|FTM_CnSC_ELS(0b10),  ///< Combined PWM Positive-pulse
+      FtmEvenChannelMode_CombineNegativePulse                   = (FTM_COMBINE_DECAPEN0(0)<<8)|(FTM_COMBINE_COMBINE0(1)<<8)|FTM_CnSC_MS(0b00)|FTM_CnSC_ELS(0b01),  ///< Combine PWM Negative-pulse
+      FtmEvenChannelMode_DualEdgeCaptureOneShotRisingEdge       = (FTM_COMBINE_DECAPEN0(1)<<8)|(FTM_COMBINE_COMBINE0(0)<<8)|FTM_CnSC_MS(0b00)|FTM_CnSC_ELS(0b01),  ///< Dual-edge Capture One-Shot Rising-edge
+      FtmEvenChannelMode_DualEdgeCaptureContinuousRisingEdge    = (FTM_COMBINE_DECAPEN0(1)<<8)|(FTM_COMBINE_COMBINE0(0)<<8)|FTM_CnSC_MS(0b01)|FTM_CnSC_ELS(0b01),  ///< Dual-edge Capture Continuous Rising-edge
+      FtmEvenChannelMode_DualEdgeCaptureOneShotFallingEdge      = (FTM_COMBINE_DECAPEN0(1)<<8)|(FTM_COMBINE_COMBINE0(0)<<8)|FTM_CnSC_MS(0b00)|FTM_CnSC_ELS(0b10),  ///< Dual-edge Capture One-Shot Falling-edge
+      FtmEvenChannelMode_DualEdgeCaptureContinuousFallingEdge   = (FTM_COMBINE_DECAPEN0(1)<<8)|(FTM_COMBINE_COMBINE0(0)<<8)|FTM_CnSC_MS(0b01)|FTM_CnSC_ELS(0b10),  ///< Dual-edge Capture Continuous Falling-edge
+      FtmEvenChannelMode_DualEdgeCaptureOneShotEitherEdge       = (FTM_COMBINE_DECAPEN0(1)<<8)|(FTM_COMBINE_COMBINE0(0)<<8)|FTM_CnSC_MS(0b00)|FTM_CnSC_ELS(0b11),  ///< Dual-edge Capture One-Shot Either-edge
+      FtmEvenChannelMode_DualEdgeCaptureContinuousEitherEdge    = (FTM_COMBINE_DECAPEN0(1)<<8)|(FTM_COMBINE_COMBINE0(0)<<8)|FTM_CnSC_MS(0b01)|FTM_CnSC_ELS(0b11),  ///< Dual-edge Capture Continuous Either-edge
+   };
+
+   /**
+    * Action on Odd channel (Ch1) event
+    * (ftm_combine_decap0)
+    *
+    * Enables the capture of the FTM counter value on odd channel events.
+    * In dual edge capture one-shot mode, this bit is cleared automatically
+    * by hardware when the capture occurs.
+    */
+   enum FtmSecondEventAction : uint8_t {
+      FtmSecondEventAction_NoCapture        = FTM_COMBINE_DECAP0(0),  ///< NoCapture
+      FtmSecondEventAction_CaptureOnEvent   = FTM_COMBINE_DECAP0(1),  ///< Capture 2nd event
+   };
+
+   /**
+    * Paired Channels Complementary Enable
+    * (ftm_combine_comp0)
+    *
+    * Enables Complementary mode for the paired channels.
+    * In Complementary mode the channel (n+1) output is the inverse of the channel (n) output.
+    * This field is write protected. It can be written only when MODE[WPDIS] = 1.
+    */
+   enum FtmComplementChannel : uint8_t {
+      FtmComplementChannel_Normal          = FTM_COMBINE_COMP0(0),  ///< Disabled
+      FtmComplementChannel_Complementary   = FTM_COMBINE_COMP0(1),  ///< Complementary outputs
+   };
+
+   /**
+    * Paired Channels Fault Control Enable
+    * (ftm_combine_faulten0)
+    *
+    * Enables the fault control of the channel pair.
+    * This field is write protected. It can be written only when MODE[WPDIS] = 1.
+    */
+   enum FtmFaultControl : uint8_t {
+      FtmFaultControl_Normal            = FTM_COMBINE_FAULTEN0(0),  ///< Disabled
+      FtmFaultControl_DisabledOnFault   = FTM_COMBINE_FAULTEN0(1),  ///< Disable outputs on fault
+   };
+
+   /**
+    * Paired Channels Deadtime Enable
+    * (ftm_combine_dten0)
+    *
+    * Enables the deadtime insertion in the channels (n) and (n+1).
+    * This field is write protected. It can be written only when MODE[WPDIS] = 1.
+    */
+   enum FtmDeadtime : uint8_t {
+      FtmDeadtime_Disabled   = FTM_COMBINE_DTEN0(0),  ///< Disabled
+      FtmDeadtime_Inserted   = FTM_COMBINE_DTEN0(1),  ///< Deadtime inserted
+   };
+
+   /**
+    * Paired Channels Synchronization Enable
+    * (ftm_combine_syncen0)
+    *
+    * Enables PWM synchronization of registers C(n)V and C(n+1)V.
+    */
+   enum FtmSyncEnable : uint8_t {
+      FtmSyncEnable_Disabled       = FTM_COMBINE_SYNCEN0(0),  ///< Disabled
+      FtmSyncEnable_Synchronised   = FTM_COMBINE_SYNCEN0(1),  ///< PWM Synchronised
+   };
+
+   /**
+    * PWM Synchronisation Mode
+    * (ftm_mode_pwmsync)
+    *
+    * Selects which triggers can be used by MOD, CnV, OUTMASK, and FTM
+    * counter synchronisation.
+    * Only available in legacy PWM synchronisation (SYNCMODE = 0).
+    */
+   enum FtmPwmSyncMode : uint8_t {
+      FtmPwmSyncMode_NoRestrictions   = FTM_MODE_PWMSYNC(0),  ///< Unrestricted
+      FtmPwmSyncMode_Restricted       = FTM_MODE_PWMSYNC(1),  ///< Restricted
+   };
+
+   /**
+    * Channel Output Polarity
+    * (ftm_pol_pol)
+    *
+    * Bitmask defining the active-low channel outputs (1=ActiveLow).
+    * This field is write protected. It can be written only when MODE[WPDIS] = 1.
+    */
+   enum FtmPolarity : uint16_t {
+      FtmPolarity_Ch0ActiveLow   = 1U<<0,  ///< FTM0_CH0 [-]
+      FtmPolarity_Ch1ActiveLow   = 1U<<1,  ///< FTM0_CH1 [-]
+      FtmPolarity_Ch2ActiveLow   = 1U<<2,  ///< FTM0_CH2 [-]
+      FtmPolarity_Ch3ActiveLow   = 1U<<3,  ///< FTM0_CH3 [-]
+      FtmPolarity_Ch4ActiveLow   = 1U<<4,  ///< FTM0_CH4 [-]
+      FtmPolarity_Ch5ActiveLow   = 1U<<5,  ///< FTM0_CH5 [-]
+      FtmPolarity_Ch6ActiveLow   = 1U<<6,  ///< FTM0_CH6 [-]
+      FtmPolarity_Ch7ActiveLow   = 1U<<7,  ///< FTM0_CH7 [-]
+   };
+
+
+   /**
+    * Combines two FtmPolarity values (by ORing)
+    * Used to create a combined FtmPolarity mask
+    * 
+    * @param left    Left operand
+    * @param right   Right operand
+    * 
+    * @return  Combined value
+    */
+   constexpr FtmPolarity operator|(FtmPolarity left, FtmPolarity right) {
+      return FtmPolarity(uint16_t(left)|uint16_t(right));
+   }
+   
+   /**
+    * Combines two FtmPolarity values (by ANDing) to produce a bool result
+    * Used to check a value against a FtmPolarity mask
+    * 
+    * @param left    Left operand
+    * @param right   Right operand
+    * 
+    * @return boolean value indicating if the result is non-zero
+    */
+   constexpr bool operator&(FtmPolarity left, FtmPolarity right) {
+      return bool(uint16_t(left)&uint16_t(right));
+   }
+   
+   /**
+    * Write Protection Disable
+    * (ftm_mode_wpdis)
+    *
+    * This value is applied after main FTM configuration
+    */
+   enum FtmWriteProtect : uint8_t {
+      FtmWriteProtect_Enabled    = FTM_MODE_WPDIS(0),  ///< Write protection is enabled.
+      FtmWriteProtect_Disabled   = FTM_MODE_WPDIS(1),  ///< Write protection is disabled
+   };
+
+   /**
+    * FTM Mode Enable
+    * (ftm_mode_ftmen)
+    *
+    * This field is write protected. It can be written only when MODE[WPDIS] = 1
+    */
+   enum FtmRegisterSet : uint8_t {
+      FtmRegisterSet_ftmRegistersOnly   = FTM_MODE_FTMEN(0),  ///< TPM registers only available
+      FtmRegisterSet_AllRegisters       = FTM_MODE_FTMEN(1),  ///< All registers available
+   };
+
+   /**
+    * Behaviour in BDM Mode
+    * (ftm_conf_bdmmode)
+    *
+    * Selects the FTM behavior in Debug mode.
+    */
+   enum FtmBdmmode : uint16_t {
+      FtmBdmmode_Stopped_OutputsFunctional   = FTM_CONF_BDMMODE(0),  ///< Stopped, outputs functional
+      FtmBdmmode_Stopped_OutputsSafeValue    = FTM_CONF_BDMMODE(1),  ///< Stopped, outputs forced to safe value
+      FtmBdmmode_Stopped_OutputsFrozen       = FTM_CONF_BDMMODE(2),  ///< Stopped, outputs frozen
+      FtmBdmmode_Functioning                 = FTM_CONF_BDMMODE(3),  ///< Functioning
+   };
+
+   /**
+    * TOF Frequency
+    * (ftm_conf_numtof)
+    *
+    * Selects the ratio between counter overflows and the number of times the TOF bit is set.
+    * The TOF is set for the 1st overflow and then ignored for N further overflows.
+    */
+   enum FtmOverflowDivider : uint16_t {
+   };
+
+   /**
+    * Global Time Base Output
+    * (ftm_conf_gtbeout)
+    *
+    * Enables the global time base signal generation to other FTMs
+    */
+   enum FtmGlobalTimebaseOutput : uint16_t {
+      FtmGlobalTimebaseOutput_Disabled   = FTM_CONF_GTBEOUT(0),  ///< Disabled
+      FtmGlobalTimebaseOutput_Enabled    = FTM_CONF_GTBEOUT(1),  ///< Enabled
+   };
+
+   /**
+    * External Global Time Base Enable
+    * (ftm_conf_gtbeen)
+    *
+    * Configures the FTM to use an external global time base signal that is generated by another FTM.
+    */
+   enum FtmGlobalExternalTimebase : uint16_t {
+      FtmGlobalExternalTimebase_Disabled   = FTM_CONF_GTBEEN(0),  ///< Disabled
+      FtmGlobalExternalTimebase_Enabled    = FTM_CONF_GTBEEN(1),  ///< Enabled
+   };
+
+   /**
+    * Channel Output Control
+    * (ftm_swoctrl_chNocv)
+    *
+    * Enables and selects value to force to channel output
+    * Each value controls an individual bit
+    * Non-conflicting values may be ORed together to affect multiple bits
+    */
+   enum FtmForceOutput {
+      FtmForceOutput_NotForced    = 0,       ///< No outputs forced
+      FtmForceOutput_Ch0Forced0   = 0x0100,  ///< Force Ch0 output 0
+      FtmForceOutput_Ch1Forced0   = 0x0200,  ///< Force Ch1 output 0
+      FtmForceOutput_Ch2Forced0   = 0x0400,  ///< Force Ch2 output 0
+      FtmForceOutput_Ch3Forced0   = 0x0800,  ///< Force Ch3 output 0
+      FtmForceOutput_Ch4Forced0   = 0x1000,  ///< Force Ch4 output 0
+      FtmForceOutput_Ch5Forced0   = 0x2000,  ///< Force Ch5 output 0
+      FtmForceOutput_Ch6Forced0   = 0x4000,  ///< Force Ch6 output 0
+      FtmForceOutput_Ch7Forced0   = 0x8000,  ///< Force Ch7 output 0
+      FtmForceOutput_Ch0Forced1   = 0x0101,  ///< Force Ch0 output 1
+      FtmForceOutput_Ch1Forced1   = 0x0202,  ///< Force Ch1 output 1
+      FtmForceOutput_Ch2Forced1   = 0x0404,  ///< Force Ch2 output 1
+      FtmForceOutput_Ch3Forced1   = 0x0808,  ///< Force Ch3 output 1
+      FtmForceOutput_Ch4Forced1   = 0x1010,  ///< Force Ch4 output 1
+      FtmForceOutput_Ch5Forced1   = 0x2020,  ///< Force Ch5 output 1
+      FtmForceOutput_Ch6Forced1   = 0x4040,  ///< Force Ch6 output 1
+      FtmForceOutput_Ch7Forced1   = 0x8080,  ///< Force Ch7 output 1
+   };
+
+   /**
+    * External Trigger Enable
+    * (ftm_exttrig_trig)
+    *
+    * Bitmask enabling generation of the external trigger when the FTM
+    * counter is equal to a channel CnV register or CNTIN
+    */
+   enum FtmExternalTrigger : uint8_t {
+      FtmExternalTrigger_Ch2     = 1U<<0,  ///< Trigger on FTM0_CH0 [-]
+      FtmExternalTrigger_Ch3     = 1U<<1,  ///< Trigger on FTM0_CH1 [-]
+      FtmExternalTrigger_Ch4     = 1U<<2,  ///< Trigger on FTM0_CH2 [-]
+      FtmExternalTrigger_Ch5     = 1U<<3,  ///< Trigger on FTM0_CH3 [-]
+      FtmExternalTrigger_Ch0     = 1U<<4,  ///< Trigger on FTM0_CH4 [-]
+      FtmExternalTrigger_Ch1     = 1U<<5,  ///< Trigger on FTM0_CH5 [-]
+      FtmExternalTrigger_Cntin   = 1U<<6,  ///< Trigger on FTM0_CH6 [-]
+   };
+
+
+   /**
+    * Combines two FtmExternalTrigger values (by ORing)
+    * Used to create a combined FtmExternalTrigger mask
+    * 
+    * @param left    Left operand
+    * @param right   Right operand
+    * 
+    * @return  Combined value
+    */
+   constexpr FtmExternalTrigger operator|(FtmExternalTrigger left, FtmExternalTrigger right) {
+      return FtmExternalTrigger(uint8_t(left)|uint8_t(right));
+   }
+   
+   /**
+    * Combines two FtmExternalTrigger values (by ANDing) to produce a bool result
+    * Used to check a value against a FtmExternalTrigger mask
+    * 
+    * @param left    Left operand
+    * @param right   Right operand
+    * 
+    * @return boolean value indicating if the result is non-zero
+    */
+   constexpr bool operator&(FtmExternalTrigger left, FtmExternalTrigger right) {
+      return bool(uint8_t(left)&uint8_t(right));
+   }
+   
+   /**
+    * Dead-time Prescaler Value
+    * (ftm_deadtime_dtps)
+    *
+    * Scale value for dead-time
+    */
+   enum FtmDeadtimePrescale : uint8_t {
+      FtmDeadtimePrescale_DivideBy1    = FTM_DEADTIME_DTPS(0),  ///< Divide by 1
+      FtmDeadtimePrescale_DivideBy4    = FTM_DEADTIME_DTPS(2),  ///< Divide by 4
+      FtmDeadtimePrescale_DivideBy16   = FTM_DEADTIME_DTPS(3),  ///< Divide by 16
+   };
+
+   /**
+    * Fault Control Mode
+    * (ftm_mode_faultm)
+    *
+    * This is a write-once after reset setting
+    */
+   enum FtmFaultMode : uint8_t {
+      FtmFaultMode_Disabled                            = FTM_MODE_FAULTM(0),  ///< Disabled
+      FtmFaultMode_EvenChannelsManualFaultClearing     = FTM_MODE_FAULTM(1),  ///< Even channels with manual fault clearing
+      FtmFaultMode_AllChannelsManualFaultClearing      = FTM_MODE_FAULTM(2),  ///< All channels with manual fault clearing
+      FtmFaultMode_AllChannelsAutomaticFaultClearing   = FTM_MODE_FAULTM(3),  ///< All channels with automatic fault clearing
+   };
+
+   /**
+    * Action on Fault event
+    * (ftm_mode_faultie)
+    *
+    * 
+    */
+   enum FtmFaultAction {
+      FtmFaultAction_Ignored     = FTM_MODE_FAULTIE(0),  ///< No action
+      FtmFaultAction_Interrupt   = FTM_MODE_FAULTIE(1),  ///< Interrupt
+   };
+
+   /**
+    * Fault Input Filter
+    * (ftm_fltctrl_ffval)
+    *
+    * Selects the filter value for the fault inputs.
+    */
+   enum FtmFaultFilter : uint16_t {
+      FtmFaultFilter_Disabled    = FTM_FLTCTRL_FFVAL(0),   ///< Filter Disabled
+      FtmFaultFilter_1_clock     = FTM_FLTCTRL_FFVAL(1),   ///< 1 Clock cycle
+      FtmFaultFilter_2_clocks    = FTM_FLTCTRL_FFVAL(2),   ///< 2 Clock cycles
+      FtmFaultFilter_3_clocks    = FTM_FLTCTRL_FFVAL(3),   ///< 3 Clock cycles
+      FtmFaultFilter_4_clocks    = FTM_FLTCTRL_FFVAL(4),   ///< 4 Clock cycles
+      FtmFaultFilter_5_clocks    = FTM_FLTCTRL_FFVAL(5),   ///< 5 Clock cycles
+      FtmFaultFilter_6_clocks    = FTM_FLTCTRL_FFVAL(6),   ///< 6 Clock cycles
+      FtmFaultFilter_7_clocks    = FTM_FLTCTRL_FFVAL(7),   ///< 7 Clock cycles
+      FtmFaultFilter_8_clocks    = FTM_FLTCTRL_FFVAL(8),   ///< 8 Clock cycles
+      FtmFaultFilter_9_clocks    = FTM_FLTCTRL_FFVAL(9),   ///< 9 Clock cycles
+      FtmFaultFilter_10_clocks   = FTM_FLTCTRL_FFVAL(10),  ///< 10 Clock cycles
+      FtmFaultFilter_11_clocks   = FTM_FLTCTRL_FFVAL(11),  ///< 11 Clock cycles
+      FtmFaultFilter_12_clocks   = FTM_FLTCTRL_FFVAL(12),  ///< 12 Clock cycles
+      FtmFaultFilter_13_clocks   = FTM_FLTCTRL_FFVAL(13),  ///< 13 Clock cycles
+      FtmFaultFilter_14_clocks   = FTM_FLTCTRL_FFVAL(14),  ///< 14 Clock cycles
+      FtmFaultFilter_15_clocks   = FTM_FLTCTRL_FFVAL(15),  ///< 15 Clock cycles
+   };
+
+   /**
+    * Fault Input 0 (FTM0_FLT0)
+    * (ftm_fltctrl_fault0en)
+    *
+    * Enables the fault input.
+    * This field is write protected. It can be written only when MODE[WPDIS] = 1.
+    */
+   enum FtmFault0Mode : uint16_t {
+      FtmFault0Mode_Disabled   = FTM_FLTCTRL_FAULT0EN(0)|FTM_FLTCTRL_FFLTR0EN(0),  ///< Fault input disabled
+      FtmFault0Mode_Direct     = FTM_FLTCTRL_FAULT0EN(1)|FTM_FLTCTRL_FFLTR0EN(0),  ///< Fault input enabled
+      FtmFault0Mode_Filtered   = FTM_FLTCTRL_FAULT0EN(1)|FTM_FLTCTRL_FFLTR0EN(1),  ///< Fault input enabled with filter
+   };
+
+   /**
+    * Fault Input 0 Polarity
+    * (ftm_fltpol_flt0pol)
+    *
+    * Defines the polarity of the fault input.
+    * This field is write protected. It can be written only when MODE[WPDIS] = 1.
+    */
+   enum FtmFault0Polarity : uint8_t {
+      FtmFault0Polarity_ActiveHigh   = FTM_FLTPOL_FLT0POL(0),  ///< Active High
+      FtmFault0Polarity_ActiveLow    = FTM_FLTPOL_FLT0POL(1),  ///< Active Low
+   };
+
+   /**
+    * Fault Input 1 (FTM0_FLT1)
+    * (ftm_fltctrl_fault1en)
+    *
+    * Enables the fault input.
+    * This field is write protected. It can be written only when MODE[WPDIS] = 1.
+    */
+   enum FtmFault1Mode : uint16_t {
+      FtmFault1Mode_Disabled   = FTM_FLTCTRL_FAULT1EN(0)|FTM_FLTCTRL_FFLTR1EN(0),  ///< Fault input disabled
+      FtmFault1Mode_Direct     = FTM_FLTCTRL_FAULT1EN(1)|FTM_FLTCTRL_FFLTR1EN(0),  ///< Fault input enabled
+      FtmFault1Mode_Filtered   = FTM_FLTCTRL_FAULT1EN(1)|FTM_FLTCTRL_FFLTR1EN(1),  ///< Fault input enabled with filter
+   };
+
+   /**
+    * Fault Input 1 Polarity
+    * (ftm_fltpol_flt1pol)
+    *
+    * Defines the polarity of the fault input.
+    * This field is write protected. It can be written only when MODE[WPDIS] = 1.
+    */
+   enum FtmFault1Polarity : uint8_t {
+      FtmFault1Polarity_ActiveHigh   = FTM_FLTPOL_FLT1POL(0),  ///< Active High
+      FtmFault1Polarity_ActiveLow    = FTM_FLTPOL_FLT1POL(1),  ///< Active Low
+   };
+
+   /**
+    * Fault Input 2 (FTM0_FLT2)
+    * (ftm_fltctrl_fault2en)
+    *
+    * Enables the fault input.
+    * This field is write protected. It can be written only when MODE[WPDIS] = 1.
+    */
+   enum FtmFault2Mode : uint16_t {
+      FtmFault2Mode_Disabled   = FTM_FLTCTRL_FAULT2EN(0)|FTM_FLTCTRL_FFLTR2EN(0),  ///< Fault input disabled
+      FtmFault2Mode_Direct     = FTM_FLTCTRL_FAULT2EN(1)|FTM_FLTCTRL_FFLTR2EN(0),  ///< Fault input enabled
+      FtmFault2Mode_Filtered   = FTM_FLTCTRL_FAULT2EN(1)|FTM_FLTCTRL_FFLTR2EN(1),  ///< Fault input enabled with filter
+   };
+
+   /**
+    * Fault Input 2 Polarity
+    * (ftm_fltpol_flt2pol)
+    *
+    * Defines the polarity of the fault input.
+    * This field is write protected. It can be written only when MODE[WPDIS] = 1.
+    */
+   enum FtmFault2Polarity : uint8_t {
+      FtmFault2Polarity_ActiveHigh   = FTM_FLTPOL_FLT2POL(0),  ///< Active High
+      FtmFault2Polarity_ActiveLow    = FTM_FLTPOL_FLT2POL(1),  ///< Active Low
+   };
+
+   /**
+    * Fault Input 3 (FTM0_FLT3)
+    * (ftm_fltctrl_fault3en)
+    *
+    * Enables the fault input.
+    * This field is write protected. It can be written only when MODE[WPDIS] = 1.
+    */
+   enum FtmFault3Mode : uint16_t {
+      FtmFault3Mode_Disabled   = FTM_FLTCTRL_FAULT3EN(0)|FTM_FLTCTRL_FFLTR3EN(0),  ///< Fault input disabled
+      FtmFault3Mode_Direct     = FTM_FLTCTRL_FAULT3EN(1)|FTM_FLTCTRL_FFLTR3EN(0),  ///< Fault input enabled
+      FtmFault3Mode_Filtered   = FTM_FLTCTRL_FAULT3EN(1)|FTM_FLTCTRL_FFLTR3EN(1),  ///< Fault input enabled with filter
+   };
+
+   /**
+    * Fault Input 3 Polarity
+    * (ftm_fltpol_flt3pol)
+    *
+    * Defines the polarity of the fault input.
+    * This field is write protected. It can be written only when MODE[WPDIS] = 1.
+    */
+   enum FtmFault3Polarity : uint8_t {
+      FtmFault3Polarity_ActiveHigh   = FTM_FLTPOL_FLT3POL(0),  ///< Active High
+      FtmFault3Polarity_ActiveLow    = FTM_FLTPOL_FLT3POL(1),  ///< Active Low
+   };
+
+   /**
+    * Synchronisation Mode
+    * (ftm_synconf_syncmode)
+    *
+    * Selects the PWM synchronisation mode
+    */
+   enum FtmSyncPwm : uint32_t {
+      FtmSyncPwm_LegacyPwmSynch     = FTM_SYNCONF_SYNCMODE(0),  ///< Legacy PWM synchronisation
+      FtmSyncPwm_EnhancedPwmSynch   = FTM_SYNCONF_SYNCMODE(1),  ///< Enhanced PWM synchronisation
+   };
+
+   /**
+    * Counter Reinitialisation
+    * (ftm_sync_reinit)
+    *
+    * Determines if the FTM counter is reinitialised when 
+    * the selected synchronisation trigger is detected. 
+    * Only available in legacy PWM synchronisation (SYNCMODE = 0).
+    */
+   enum FtmReinitOnSync : uint32_t {
+      FtmReinitOnSync_Disabled   = FTM_SYNC_REINIT(0),  ///< Counts normally
+      FtmReinitOnSync_Enabled    = FTM_SYNC_REINIT(1),  ///< Updated with initial value on trigger
+   };
+
+   /**
+    * Software Trigger for PWM synchronisation
+    * (ftm_sync_swsync)
+    *
+    * The software trigger happens when a 1 is written to SWSYNC bit.
+    * This bit will be cleared when the action happens.
+    */
+   enum FtmSyncSwsync : uint8_t {
+      FtmSyncSwsync_NotSelected   = FTM_SYNC_SWSYNC(0),  ///< Not selected
+      FtmSyncSwsync_Selected      = FTM_SYNC_SWSYNC(1),  ///< Selected
+   };
+
+   /**
+    * Hardware Trigger Clearing
+    * (ftm_synconf_hwtrigmode)
+    *
+    * Controls when hardware triggers are cleared
+    * Only available in enhanced PWM synchronisation (SYNCMODE = 1).
+    */
+   enum FtmTriggerClear : uint32_t {
+      FtmTriggerClear_OnTrigger   = FTM_SYNCONF_HWTRIGMODE(0),  ///< TRIGj cleared on trigger detect
+      FtmTriggerClear_Never       = FTM_SYNCONF_HWTRIGMODE(1),  ///< TRIGj unaffected on trigger event
+   };
+
+   /**
+    * Minimum Loading Point Enable
+    * (ftm_sync_cntmin)
+    *
+    * Selects the minimum loading point for loading of MOD/CNTIN/CnV from buffers. 
+    * If enabled, the loading occurs when the FTM counter reaches CNTIN.
+    */
+   enum FtmSyncCntmin : uint8_t {
+      FtmSyncCntmin_Disabled   = FTM_SYNC_CNTMIN(0),  ///< Disabled
+      FtmSyncCntmin_Enabled    = FTM_SYNC_CNTMIN(1),  ///< Enabled
+   };
+
+   /**
+    * Maximum Loading Point Enable
+    * (ftm_sync_cntmax)
+    *
+    * Selects the maximum loading point for loading of MOD/CNTIN/CnV from buffers.
+    * If enabled, the loading occurs when the FTM counter reaches MOD.
+    */
+   enum FtmSyncCntmax : uint8_t {
+      FtmSyncCntmax_Disabled   = FTM_SYNC_CNTMAX(0),  ///< Disabled
+      FtmSyncCntmax_Enabled    = FTM_SYNC_CNTMAX(1),  ///< Enabled
+   };
+
+   /**
+    * CNTIN Register Synchronisation
+    * (ftm_synconf_cntinc)
+    *
+    * CNTIN Register Synchronisation with buffer
+    * Only available in enhanced PWM synchronisation (SYNCMODE = 1).
+    */
+   enum FtmBufferSyncCounter : uint32_t {
+      FtmBufferSyncCounter_OnRisingClockEdge   = FTM_SYNCONF_CNTINC(0),  ///< On rising edges of system clock
+      FtmBufferSyncCounter_OnPwmSynch          = FTM_SYNCONF_CNTINC(1),  ///< By PWM synchronisation
+   };
+
+   /**
+    * CNTIN/MOD/CV Software Synchronisation
+    * (ftm_synconf_swwrbuf)
+    *
+    * Controls MOD/CNTIN/CV synchronisation by software trigger
+    * Only available in enhanced PWM synchronisation (SYNCMODE = 1).
+    */
+   enum FtmSwSyncRegs : uint32_t {
+      FtmSwSyncRegs_Unaffected          = FTM_SYNCONF_SWWRBUF(0),  ///< Unaffected
+      FtmSwSyncRegs_OnSoftwareTrigger   = FTM_SYNCONF_SWWRBUF(1),  ///< MOD/CNTIN/CV register synched
+   };
+
+   /**
+    * CNTIN/MOD/CV Hardware Synchronisation
+    * (ftm_synconf_hwwrbuf)
+    *
+    * Controls MOD/CNTIN/CV synchronisation by hardware trigger
+    * Only available in enhanced PWM synchronisation (SYNCMODE = 1).
+    */
+   enum FtmHwSyncRegs : uint32_t {
+      FtmHwSyncRegs_Unaffected          = FTM_SYNCONF_HWWRBUF(0),  ///< Unaffected
+      FtmHwSyncRegs_OnHardwareTrigger   = FTM_SYNCONF_HWWRBUF(1),  ///< MOD/CNTIN/CV registers synched
+   };
+
+   /**
+    * OUTMASK Register Synchronisation
+    * (ftm_sync_synchom)
+    *
+    * Selects when the OUTMASK register is updated with the value of its buffer
+    */
+   enum FtmSyncSynchom : uint8_t {
+      FtmSyncSynchom_OnRisingClockEdge   = FTM_SYNC_SYNCHOM(0),  ///< On rising edges of system clock
+      FtmSyncSynchom_OnPwmSynch          = FTM_SYNC_SYNCHOM(1),  ///< By PWM synchronisation
+   };
+
+   /**
+    * OUTMASK Software Synchronisation
+    * (ftm_synconf_swom)
+    *
+    * Controls OUTMASK synchronisation by software trigger
+    * Only available in enhanced PWM synchronisation (SYNCMODE = 1).
+    */
+   enum FtmSwSyncOutmask : uint32_t {
+      FtmSwSyncOutmask_Unaffected          = FTM_SYNCONF_SWOM(0),  ///< Unaffected
+      FtmSwSyncOutmask_OnSoftwareTrigger   = FTM_SYNCONF_SWOM(1),  ///< OUTMASK register synched
+   };
+
+   /**
+    * OUTMASK Hardware Synchronisation
+    * (ftm_synconf_hwom)
+    *
+    * Controls OUTMASK synchronisation by hardware trigger
+    * Only available in enhanced PWM synchronisation (SYNCMODE = 1).
+    */
+   enum FtmHwSyncOutmask : uint32_t {
+      FtmHwSyncOutmask_Unaffected          = FTM_SYNCONF_HWOM(0),  ///< Unaffected
+      FtmHwSyncOutmask_OnHardwareTrigger   = FTM_SYNCONF_HWOM(1),  ///< OUTMASK register synched
+   };
+
+   /**
+    * INVCTRL Register Synchronisation
+    * (ftm_synconf_invc)
+    *
+    * Controls INVCTRL Register Synchronisation with buffer
+    */
+   enum FtmBufferSyncInvctrl : uint32_t {
+      FtmBufferSyncInvctrl_OnRisingClockEdge   = FTM_SYNCONF_INVC(0),  ///< On rising edges of system clock
+      FtmBufferSyncInvctrl_OnPwmSynch          = FTM_SYNCONF_INVC(1),  ///< By PWM synchronisation
+   };
+
+   /**
+    * INVCTRL Software Synchronisation
+    * (ftm_synconf_swinvc)
+    *
+    * Controls INVCTRL synchronisation by software trigger
+    * Only available in enhanced PWM synchronisation (SYNCMODE = 1).
+    */
+   enum FtmSwSyncInvCtrl : uint32_t {
+      FtmSwSyncInvCtrl_Unaffected          = FTM_SYNCONF_SWINVC(0),  ///< Unaffected
+      FtmSwSyncInvCtrl_OnSoftwareTrigger   = FTM_SYNCONF_SWINVC(1),  ///< INVCTRL register synched
+   };
+
+   /**
+    * INVCTRL Hardware Synchronisation
+    * (ftm_synconf_hwinvc)
+    *
+    * Controls INVCTRL synchronisation by hardware trigger
+    * Only available in enhanced PWM synchronisation (SYNCMODE = 1).
+    */
+   enum FtmHwSyncInvctrl : uint32_t {
+      FtmHwSyncInvctrl_Unaffected          = FTM_SYNCONF_HWINVC(0),  ///< Unaffected
+      FtmHwSyncInvctrl_OnHardwareTrigger   = FTM_SYNCONF_HWINVC(1),  ///< INVCTRL register synched
+   };
+
+   /**
+    * SWOCTRL Register Synchronisation
+    * (ftm_synconf_swoc)
+    *
+    * Controls SWOCTRL Register Synchronisation with buffer
+    */
+   enum FtmBufferSyncSwoctrl : uint32_t {
+      FtmBufferSyncSwoctrl_OnRisingClockEdge   = FTM_SYNCONF_SWOC(0),  ///< On rising edges of system clock
+      FtmBufferSyncSwoctrl_OnPwmSynch          = FTM_SYNCONF_SWOC(1),  ///< By PWM synchronisation
+   };
+
+   /**
+    * SWOCTRL Software Synchronisation
+    * (ftm_synconf_swsoc)
+    *
+    * Controls SWOCTRL synchronisation by software trigger
+    * Only available in enhanced PWM synchronisation (SYNCMODE = 1).
+    */
+   enum FtmSwSyncSwoctrl : uint32_t {
+      FtmSwSyncSwoctrl_Unaffected          = FTM_SYNCONF_SWSOC(0),  ///< Unaffected
+      FtmSwSyncSwoctrl_OnSoftwareTrigger   = FTM_SYNCONF_SWSOC(1),  ///< SWOCTRL register synched
+   };
+
+   /**
+    * SWOCTRL Hardware Synchronisation
+    * (ftm_synconf_hwsoc)
+    *
+    * Controls SWOCTRL synchronisation by hardware trigger
+    * Only available in enhanced PWM synchronisation (SYNCMODE = 1).
+    */
+   enum FtmHwSyncSwoctrl : uint32_t {
+      FtmHwSyncSwoctrl_Unaffected          = FTM_SYNCONF_HWSOC(0),  ///< Unaffected
+      FtmHwSyncSwoctrl_OnHardwareTrigger   = FTM_SYNCONF_HWSOC(1),  ///< SWOCTRL register synched
+   };
+
+   /**
+    * CNT Software Synchronisation
+    * (ftm_synconf_swrstcnt)
+    *
+    * Controls counter synchronisation by software trigger
+    * Only available in enhanced PWM synchronisation (SYNCMODE = 1).
+    */
+   enum FtmSwSyncCounter : uint32_t {
+      FtmSwSyncCounter_Unaffected          = FTM_SYNCONF_SWRSTCNT(0),  ///< Unaffected
+      FtmSwSyncCounter_OnSoftwareTrigger   = FTM_SYNCONF_SWRSTCNT(1),  ///< Counter register synched
+   };
+
+   /**
+    * CNT Hardware Synchronisation
+    * (ftm_synconf_hwrstcnt)
+    *
+    * Controls Counter synchronisation by hardware trigger
+    * Only available in enhanced PWM synchronisation (SYNCMODE = 1).
+    */
+   enum FtmHwSyncCounter : uint32_t {
+      FtmHwSyncCounter_Unaffected          = FTM_SYNCONF_HWRSTCNT(0),  ///< Unaffected
+      FtmHwSyncCounter_OnHardwareTrigger   = FTM_SYNCONF_HWRSTCNT(1),  ///< Counter register synched
+   };
+
+   /**
+    * Load Enable
+    * (ftm_pwmload_ldok)
+    *
+    * Enables loading of MOD/CNTIN/CnV from buffers on load points.
+    * Loading will occur when the FTM counter wraps from MOD value to CNTIN
+    * value or at additional load points specified (e.g. FtmLoadPoint_Ch0)
+    * Loading is further qualified as follows:
+    * - MOD loading is unconditional
+    * - CNTIN is qualified by CNTINC
+    * - C(n)/C(n+1) is qualified by SYNCENm
+    */
+   enum FtmPwmload : uint16_t {
+      FtmPwmload_Disabled   = FTM_PWMLOAD_LDOK(0),  ///< Loading disabled
+      FtmPwmload_Enabled    = FTM_PWMLOAD_LDOK(1),  ///< Loading enabled
+   };
+
+   /**
+    * Load on Channel Match enable
+    * (ftm_pwmload_chsel)
+    *
+    * Selects which channels trigger loading of MOD/CNTIN/CnV from buffers. 
+    * If enabled, the loading occurs when the counter reaches CnV
+    */
+   enum FtmLoadPoint : uint16_t {
+      FtmLoadPoint_NoChannels   = FTM_PWMLOAD_CHSEL(0x0U),   ///< No Channels
+      FtmLoadPoint_Ch0          = FTM_PWMLOAD_CHSEL(1U<<0),  ///< Load on channel 0 match
+      FtmLoadPoint_Ch1          = FTM_PWMLOAD_CHSEL(1U<<1),  ///< Load on channel 1 match
+      FtmLoadPoint_Ch2          = FTM_PWMLOAD_CHSEL(1U<<2),  ///< Load on channel 2 match
+      FtmLoadPoint_Ch3          = FTM_PWMLOAD_CHSEL(1U<<3),  ///< Load on channel 3 match
+      FtmLoadPoint_Ch4          = FTM_PWMLOAD_CHSEL(1U<<4),  ///< Load on channel 4 match
+      FtmLoadPoint_Ch5          = FTM_PWMLOAD_CHSEL(1U<<5),  ///< Load on channel 5 match
+      FtmLoadPoint_Ch6          = FTM_PWMLOAD_CHSEL(1U<<6),  ///< Load on channel 6 match
+      FtmLoadPoint_Ch7          = FTM_PWMLOAD_CHSEL(1U<<7),  ///< Load on channel 7 match
+   };
+
+   /**
+    * Initialisation of Channel Outputs
+    * (ftm_mode_init)
+    *
+    * When written to 1 the channels outputs are initialised according to the state of
+    * their corresponding bit in the OUTINIT register
+    * This is applied after the main FTM configuration
+    */
+   enum FtmInitialiseOutputs : uint8_t {
+      FtmInitialiseOutputs_Initialise   = FTM_MODE_INIT(1),  ///< Initialise
+   };
+
+   /**
+    * Channel Output Initialisation Value
+    * (ftm_outinit_choi_masks)
+    *
+    * Bitmask defining the value that is forced
+    * into the channel output when initialisation occurs.
+    */
+   enum FtmInitialValue : uint16_t {
+      FtmInitialValue_Ch0_0   = 0xFE00U,  ///< Ch0 initially 0
+      FtmInitialValue_Ch1_0   = 0xFD00U,  ///< Ch1 initially 0
+      FtmInitialValue_Ch2_0   = 0xFB00U,  ///< Ch2 initially 0
+      FtmInitialValue_Ch3_0   = 0xF700U,  ///< Ch3 initially 0
+      FtmInitialValue_Ch4_0   = 0xEF00U,  ///< Ch4 initially 0
+      FtmInitialValue_Ch5_0   = 0xDF00U,  ///< Ch5 initially 0
+      FtmInitialValue_Ch6_0   = 0xBF00U,  ///< Ch6 initially 0
+      FtmInitialValue_Ch7_0   = 0x7F00U,  ///< Ch7 initially 0
+      FtmInitialValue_All_0   = 0x0000U,  ///< All initially 0
+      FtmInitialValue_Ch0_1   = 0xFF01U,  ///< Ch0 initially 1
+      FtmInitialValue_Ch1_1   = 0xFF02U,  ///< Ch1 initially 1
+      FtmInitialValue_Ch2_1   = 0xFF04U,  ///< Ch2 initially 1
+      FtmInitialValue_Ch3_1   = 0xFF08U,  ///< Ch3 initially 1
+      FtmInitialValue_Ch4_1   = 0xFF10U,  ///< Ch4 initially 1
+      FtmInitialValue_Ch5_1   = 0xFF20U,  ///< Ch5 initially 1
+      FtmInitialValue_Ch6_1   = 0xFF40U,  ///< Ch6 initially 1
+      FtmInitialValue_Ch7_1   = 0xFF80U,  ///< Ch7 initially 1
+      FtmInitialValue_All_1   = 0xFFFFU,  ///< All initially 1
+   };
+
+class FtmCommonInfo {
+
+public:
+   /**
+    * Calculate FTM timing parameters to achieve a given period
+    *
+    * @param[in]    inputClock Input clock to Timer
+    * @param[in]    period     Period in seconds
+    * @param[inout] sc         Proposed FTM.SC value (must include CPWMS fields)
+    *                          PS field is updated
+    * @param[out]   mod        Calculated FTM.MOD values
+    *
+    * @return E_NO_ERROR   Success!!
+    * @return E_TOO_SMALL  Requested period is too small for resolution (required resolution check to be enabled)
+    * @return E_TOO_LARGE  Requested period is too large
+    */
+   static ErrorCode calculateTimingParameters(float inputClock, Seconds period, uint8_t &sc, uint16_t &mod) {
+   
+      unsigned prescaleFactor=1;
+      unsigned prescalerValue=0;
+   
+      // Check if CPWMS is set (affects period calculation)
+      bool centreAligned = (sc&FTM_SC_CPWMS_MASK);
+   
+      constexpr uint32_t maxModValue = FTM_MOD_MOD_MASK;
+   
+      while (prescalerValue<=7) {
+         float clock    = inputClock/prescaleFactor;
+         float modValueF = period*clock;
+         if (centreAligned) {
+            // PeriodInTicks = 2*MOD
+            modValueF = modValueF/2;
+         }
+         else {
+            // PeriodInTicks = MOD+1
+            modValueF = modValueF - 1;
+         }
+         unsigned modValue = round(modValueF);
+         if (modValue <= maxModValue) {
+            sc   = (sc&~FTM_SC_PS_MASK)|FTM_SC_PS(prescalerValue);
+            mod  = modValue;
+            return E_NO_ERROR;
+         }
+         prescalerValue++;
+         prescaleFactor <<= 1;
+      }
+      // Too long a period
+      usbdm_assert(false, "Interval is too long");
+      return setErrorCode(E_TOO_LARGE);
+   }
+   
+}; /* class FtmCommonInfo */ 
+
+class FtmBasicInfo : public FtmCommonInfo {
+
+public:
+}; // class FtmBasicInfo 
+
+class Ftm0Info : public FtmBasicInfo {
+
+public:
+   //! Number of signals available in info table
+   static constexpr int numSignals  = 10;
+
+   //! Information for each signal of peripheral
+   static constexpr PinInfo  info[] = {
+
+         //      Signal                 Pin                                  PinIndex                PCR value
+         /*   0: FTM0_CH0             = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
+         /*   1: FTM0_CH1             = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
+         /*   2: FTM0_CH2             = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
+         /*   3: FTM0_CH3             = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
+         /*   4: FTM0_CH4             = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
+         /*   5: FTM0_CH5             = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
+         /*   6: FTM0_CH6             = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
+         /*   7: FTM0_CH7             = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
+         /*   8: FTM_CLKIN0           = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
+         /*   9: FTM_CLKIN1           = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
+   };
+
+   /**
+    * Initialise pins used by peripheral
+    *
+    * @note Only the lower 16-bits of the PCR registers are affected
+    */
+   static void initPCRs() {
+   }
+
+   /**
+    * Release pins used by peripheral
+    *
+    * @note Only the lower 16-bits of the PCR registers are affected
+    */
+   static void clearPCRs() {
+   }
+
+   class InfoFAULT {
+   public:
+      //! Number of signals available in info table
+      static constexpr int numSignals  = 4;
+
+      //! Information for each signal of peripheral
+      static constexpr PinInfo  info[] = {
+   
+            //      Signal                 Pin                                  PinIndex                PCR value
+            /*   0: FTM0_FLT0            = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
+            /*   1: FTM0_FLT1            = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
+            /*   2: FTM0_FLT2            = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
+            /*   3: FTM0_FLT3            = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
+      };
+
+      /**
+       * Initialise pins used by peripheral
+       *
+       * @note Only the lower 16-bits of the PCR registers are affected
+       */
+      static void initPCRs() {
+      }
+
+      /**
+       * Release pins used by peripheral
+       *
+       * @note Only the lower 16-bits of the PCR registers are affected
+       */
+      static void clearPCRs() {
+      }
+
+   }; 
+
+   /*
+    * Template:ftm0_8ch
+    */
+   //! Map all allocated pins on a peripheral when enabled
+   static constexpr bool mapPinsOnEnable = false;
+
+
+   
+   /**
+    * Configures all mapped pins associated with FTM0
+    *
+    * @note Locked pins will be unaffected
+    */
+   static void configureAllPins() {
+   
+      // Configure pins if selected and not already locked
+      if constexpr (mapPinsOnEnable) {
+         initPCRs();
+      }
+   }
+   
+   /**
+    * Disabled all mapped pins associated with FTM0
+    *
+    * @note Only the lower 16-bits of the PCR registers are modified
+    *
+    * @note Locked pins will be unaffected
+    */
+   static void disableAllPins() {
+   
+      // Disable pins if selected and not already locked
+      if constexpr (mapPinsOnEnable) {
+         clearPCRs();
+      }
+   }
+   
+   //! IRQ numbers for hardware
+   static constexpr IRQn_Type irqNums[]  = FTM0_IRQS;
+   
+   //! Number of IRQs for hardware
+   static constexpr uint32_t irqCount  = sizeofArray(irqNums);
+   
+   /**
+    * Enable interrupts in NVIC
+    */
+   static void enableNvicInterrupts() {
+      NVIC_EnableIRQ(irqNums[0]);
+   }
+   
+   /**
+    * Enable and set priority of interrupts in NVIC
+    * Any pending NVIC interrupts are first cleared.
+    *
+    * @param[in]  nvicPriority  Interrupt priority
+    */
+   static void enableNvicInterrupts(NvicPriority nvicPriority) {
+      enableNvicInterrupt(irqNums[0], nvicPriority);
+   }
+   
+   /**
+    * Disable interrupts in NVIC
+    */
+   static void disableNvicInterrupts() {
+      NVIC_DisableIRQ(irqNums[0]);
+   }
+   
+   /**
+    *  Enable clock to Ftm0
+    */
+   static void enableClock() {
+      SIM->SCGC6 = SIM->SCGC6 | SIM_SCGC6_FTM0_MASK;
+   }
+   
+   /**
+    *  Disable clock to Ftm0
+    */
+   static void disableClock() {
+      SIM->SCGC6 = SIM->SCGC6 & ~SIM_SCGC6_FTM0_MASK;
+   }
+   
+   //! Hardware base address as uint32_t
+   static constexpr uint32_t baseAddress = FTM0_BasePtr;
+   
+   //! Hardware base pointer
+   static constexpr HardwarePtr<FTM_Type> ftm = baseAddress;
+   
+   //! Peripheral instance number
+   static constexpr unsigned instance = 0;
+   
+   //! Number of channels implemented
+   static constexpr unsigned NumChannels = 8;
+
+   //! Number of channel event vectors implemented
+   static constexpr unsigned NumChannelVectors = 1;
+
+   // Minimum resolution for PWM interval
+   static constexpr uint32_t minimumResolution  = 100;
+
+   // Minimum usable interval in ticks
+   static constexpr uint32_t minimumInterval  = 20;
+
+   /**
+    * Enables/disable external trigger generation by a channel comparison or initialisation event
+    *
+    * @param[in] ftmExternalTrigger Indicates whether to use or ignore the given trigger
+    *                               Can combine non-conflicting triggers
+    */
+   static void enableExternalTrigger(FtmExternalTrigger ftmExternalTrigger) {
+         ftm->EXTTRIG = (ftm->EXTTRIG & (ftmExternalTrigger>>8))|ftmExternalTrigger;
+   }
+   
+   
+   /**
+    * Enable fault interrupts
+    */
+   static void enableFaultInterrupt() {
+      ftm->MODE = ftm->MODE | FTM_MODE_FAULTIE_MASK;
+   }
+   
+   /**
+    * Disable fault interrupts
+    */
+   static void disableFaultInterrupt() {
+      ftm->MODE = ftm->MODE & ~FTM_MODE_FAULTIE_MASK;
+   }
+   
+   /**
+    *  Disables fault detection input
+    *
+    *  @tparam inputNum        Number of fault input to enable (0..3)
+    */
+   template<int inputNum>
+   static void disableFault() {
+      static_assert(inputNum<=4, "Illegal fault channel");
+   
+      // Enable fault on channel
+      ftm->FLTCTRL = ftm->FLTCTRL & ~(1<<inputNum);
+   }
+   
+   /**
+    *  Enables fault detection input
+    *
+    *  @tparam inputNum           Number of fault input to enable (0..3)
+    *
+    *  @param[in]  polarity       Polarity of fault input
+    *  @param[in]  filterEnable   Whether to enable filtering on the fault input
+    *  @param[in]  filterDelay    Delay used by the filter (1..15) - Applies to all channels
+    *
+    *  NOTE - the filter delay is shared by all inputs
+    */
+public:
+   template<uint8_t inputNum>
+   static void enableFault(
+         Polarity polarity     = ActiveHigh,
+         bool     filterEnable = false,
+         uint32_t filterDelay  = FTM_FLTCTRL_FFVAL_MASK>>(FTM_FLTCTRL_FFVAL_SHIFT+1)) {
+   
+#ifdef DEBUG_BUILD
+      static_assert((inputNum<InfoFAULT::numSignals), "FtmBase_T: Illegal fault channel");
+      static_assert((inputNum>=InfoFAULT::numSignals)||(InfoFAULT::info[inputNum].pinIndex != PinIndex::UNMAPPED_PCR), "FtmBase_T: Fault signal is not mapped to a pin - Modify Configure.usbdm");
+      static_assert((inputNum>=InfoFAULT::numSignals)||(InfoFAULT::info[inputNum].pinIndex != PinIndex::INVALID_PCR),  "FtmBase_T: Non-existent signal used for fault input");
+      static_assert((inputNum>=InfoFAULT::numSignals)||(InfoFAULT::info[inputNum].pinIndex == PinIndex::UNMAPPED_PCR)||(InfoFAULT::info[inputNum].pinIndex == PinIndex::INVALID_PCR)||(InfoFAULT::info[inputNum].pinIndex >= PinIndex::MIN_PIN_INDEX), "Pcr_T: Illegal signal used for fault");
+#endif
+   
+      PcrTable_T<InfoFAULT, inputNum>::setPCR();
+   
+      if (polarity) {
+         // Set active high
+         ftm->FLTPOL = ftm->FLTPOL & ~(1<<inputNum);
+      }
+      else {
+         // Set active low
+         ftm->FLTPOL = ftm->FLTPOL | (1<<inputNum);
+      }
+      if (filterEnable) {
+         // Enable filter & set filter delay
+         ftm->FLTCTRL = ((ftm->FLTCTRL) & ~(FTM_FLTCTRL_FFVAL_MASK)) | (1<<(inputNum+FTM_FLTCTRL_FFLTR0EN_SHIFT)) | FTM_FLTCTRL_FFVAL(filterDelay);
+      }
+      else {
+         // Disable filter
+         ftm->FLTCTRL = ftm->FLTCTRL & ~(1<<(inputNum+FTM_FLTCTRL_FFLTR0EN_SHIFT));
+      }
+      // Enable fault input
+      ftm->FLTCTRL = ftm->FLTCTRL | (1<<inputNum);
+      // Enable fault mode (All channels, manual)
+      ftm->MODE    = ftm->MODE | FTM_MODE_FAULTM(2);
+   }
+
+   /**
+    * Set polarity of all channels
+    *
+    * @param channelMask   Bit mask 0 => active-high, 1 => active-low
+    *                      This can be created by ORing together FtmPolarity_ChN_ActiveLow values
+    */
+   static void setPolarity(uint32_t channelMask) {
+      ftm->POL = channelMask;
+   }
+   
+   /**
+    * Set polarity of selected channel
+    *
+    * @param ftmPolarity  Channel polarity to set
+    */
+   static void setPolarity(FtmPolarity ftmPolarity) {
+         ftm->POL= (ftm->POL&(ftmPolarity>>8))|ftmPolarity;
+   }
+
+   /**
+    * Get Clock Source
+    *
+    * @param ftmClockSource Selects the clock source for the module
+    *
+    * @return Clock frequency in Hz
+    */
+   static uint32_t getInputClockFrequency(FtmClockSource ftmClockSource) {
+   
+      switch(ftmClockSource) {
+         default: return 0;
+         case FtmClockSource_Disabled            : return 0;                                        ///< Disabled
+         case FtmClockSource_SystemClock         : return SystemBusClock;                           ///< System clock
+         case FtmClockSource_FixedFrequencyClock : return SystemMcgFFClock;                         ///< Fixed frequency clock
+         case FtmClockSource_ExternalClock       : return SimInfo::getFtm0ExternalClockFrequency(); ///< External clock
+
+      }
+   }
+
+}; // class Ftm0Info
+
+/**
+ * Peripheral information for FTM, PWM, Input capture and Output compare.
+ * 
+ * This may include pin information, constants, register addresses, and default register values,
+ * along with simple accessor functions.
+ */
+   /**
+    * Quadrature decoding mode
+    * (ftm_qdctrl_quadmode)
+    *
+    * Determines how the inputs control the counting sequence
+    */
+   enum FtmQuadratureMode : uint8_t {
+      FtmQuadratureMode_Phase_AB_Mode          = FTM_QDCTRL_QUADMODE(0),  ///< Phase-AB Mode
+      FtmQuadratureMode_Count_Direction_Mode   = FTM_QDCTRL_QUADMODE(1),  ///< Count-Direction Mode
+   };
+
+   /**
+    * Polarity of Phase A input
+    * (ftm_qdctrl_phapol)
+    *
+    * Polarity of Phase A input
+    */
+   enum FtmPhaseAPolarity : uint8_t {
+      FtmPhaseAPolarity_ActiveHigh   = FTM_QDCTRL_PHAPOL(0),  ///< Active High
+      FtmPhaseAPolarity_ActiveLow    = FTM_QDCTRL_PHAPOL(1),  ///< Active Low
+   };
+
+   /**
+    * Filtering on Phase A input
+    * (ftm_filter_qd_a)
+    *
+    * Filtering on Phase A input
+    */
+   enum FtmPhaseAFilter : uint16_t {
+      FtmPhaseAFilter_Disabled    = (FTM_QDCTRL_PHAFLTREN(0)<<8)|FTM_FILTER_CH0FVAL(0),   ///< Filter Disabled
+      FtmPhaseAFilter_4_clocks    = (FTM_QDCTRL_PHAFLTREN(1)<<8)|FTM_FILTER_CH0FVAL(1),   ///< 4 clock cycles
+      FtmPhaseAFilter_8_clocks    = (FTM_QDCTRL_PHAFLTREN(1)<<8)|FTM_FILTER_CH0FVAL(2),   ///< 8 clock cycles
+      FtmPhaseAFilter_12_clocks   = (FTM_QDCTRL_PHAFLTREN(1)<<8)|FTM_FILTER_CH0FVAL(3),   ///< 12 clock cycles
+      FtmPhaseAFilter_16_clocks   = (FTM_QDCTRL_PHAFLTREN(1)<<8)|FTM_FILTER_CH0FVAL(4),   ///< 16 clock cycles
+      FtmPhaseAFilter_20_clocks   = (FTM_QDCTRL_PHAFLTREN(1)<<8)|FTM_FILTER_CH0FVAL(5),   ///< 20 clock cycles
+      FtmPhaseAFilter_24_clocks   = (FTM_QDCTRL_PHAFLTREN(1)<<8)|FTM_FILTER_CH0FVAL(6),   ///< 24 clock cycles
+      FtmPhaseAFilter_28_clocks   = (FTM_QDCTRL_PHAFLTREN(1)<<8)|FTM_FILTER_CH0FVAL(7),   ///< 28 clock cycles
+      FtmPhaseAFilter_32_clocks   = (FTM_QDCTRL_PHAFLTREN(1)<<8)|FTM_FILTER_CH0FVAL(8),   ///< 32 clock cycles
+      FtmPhaseAFilter_36_clocks   = (FTM_QDCTRL_PHAFLTREN(1)<<8)|FTM_FILTER_CH0FVAL(9),   ///< 36 clock cycles
+      FtmPhaseAFilter_40_clocks   = (FTM_QDCTRL_PHAFLTREN(1)<<8)|FTM_FILTER_CH0FVAL(10),  ///< 40 clock cycles
+      FtmPhaseAFilter_44_clocks   = (FTM_QDCTRL_PHAFLTREN(1)<<8)|FTM_FILTER_CH0FVAL(11),  ///< 44 clock cycles
+      FtmPhaseAFilter_48_clocks   = (FTM_QDCTRL_PHAFLTREN(1)<<8)|FTM_FILTER_CH0FVAL(12),  ///< 48 clock cycles
+      FtmPhaseAFilter_52_clocks   = (FTM_QDCTRL_PHAFLTREN(1)<<8)|FTM_FILTER_CH0FVAL(13),  ///< 52 clock cycles
+      FtmPhaseAFilter_56_clocks   = (FTM_QDCTRL_PHAFLTREN(1)<<8)|FTM_FILTER_CH0FVAL(14),  ///< 56 clock cycles
+      FtmPhaseAFilter_60_clocks   = (FTM_QDCTRL_PHAFLTREN(1)<<8)|FTM_FILTER_CH0FVAL(15),  ///< 60 clock cycles
+   };
+
+   /**
+    * Polarity of Phase B input
+    * (ftm_qdctrl_phbpol)
+    *
+    * Polarity of Phase B input
+    */
+   enum FtmPhaseBPolarity {
+      FtmPhaseBPolarity_ActiveHigh   = FTM_QDCTRL_PHBPOL(0),  ///< Active High
+      FtmPhaseBPolarity_ActiveLow    = FTM_QDCTRL_PHBPOL(1),  ///< Active Low
+   };
+
+   /**
+    * Filtering on Phase B input
+    * (ftm_filter_qd_b)
+    *
+    * Filtering on Phase B input
+    */
+   enum FtmPhaseBFilter : uint16_t {
+      FtmPhaseBFilter_Disabled    = (FTM_QDCTRL_PHBFLTREN(0)<<8)|FTM_FILTER_CH1FVAL(0),   ///< Filter Disabled
+      FtmPhaseBFilter_4_clocks    = (FTM_QDCTRL_PHBFLTREN(1)<<8)|FTM_FILTER_CH1FVAL(1),   ///< 4 clock cycles
+      FtmPhaseBFilter_8_clocks    = (FTM_QDCTRL_PHBFLTREN(1)<<8)|FTM_FILTER_CH1FVAL(2),   ///< 8 clock cycles
+      FtmPhaseBFilter_12_clocks   = (FTM_QDCTRL_PHBFLTREN(1)<<8)|FTM_FILTER_CH1FVAL(3),   ///< 12 clock cycles
+      FtmPhaseBFilter_16_clocks   = (FTM_QDCTRL_PHBFLTREN(1)<<8)|FTM_FILTER_CH1FVAL(4),   ///< 16 clock cycles
+      FtmPhaseBFilter_20_clocks   = (FTM_QDCTRL_PHBFLTREN(1)<<8)|FTM_FILTER_CH1FVAL(5),   ///< 20 clock cycles
+      FtmPhaseBFilter_24_clocks   = (FTM_QDCTRL_PHBFLTREN(1)<<8)|FTM_FILTER_CH1FVAL(6),   ///< 24 clock cycles
+      FtmPhaseBFilter_28_clocks   = (FTM_QDCTRL_PHBFLTREN(1)<<8)|FTM_FILTER_CH1FVAL(7),   ///< 28 clock cycles
+      FtmPhaseBFilter_32_clocks   = (FTM_QDCTRL_PHBFLTREN(1)<<8)|FTM_FILTER_CH1FVAL(8),   ///< 32 clock cycles
+      FtmPhaseBFilter_36_clocks   = (FTM_QDCTRL_PHBFLTREN(1)<<8)|FTM_FILTER_CH1FVAL(9),   ///< 36 clock cycles
+      FtmPhaseBFilter_40_clocks   = (FTM_QDCTRL_PHBFLTREN(1)<<8)|FTM_FILTER_CH1FVAL(10),  ///< 40 clock cycles
+      FtmPhaseBFilter_44_clocks   = (FTM_QDCTRL_PHBFLTREN(1)<<8)|FTM_FILTER_CH1FVAL(11),  ///< 44 clock cycles
+      FtmPhaseBFilter_48_clocks   = (FTM_QDCTRL_PHBFLTREN(1)<<8)|FTM_FILTER_CH1FVAL(12),  ///< 48 clock cycles
+      FtmPhaseBFilter_52_clocks   = (FTM_QDCTRL_PHBFLTREN(1)<<8)|FTM_FILTER_CH1FVAL(13),  ///< 52 clock cycles
+      FtmPhaseBFilter_56_clocks   = (FTM_QDCTRL_PHBFLTREN(1)<<8)|FTM_FILTER_CH1FVAL(14),  ///< 56 clock cycles
+      FtmPhaseBFilter_60_clocks   = (FTM_QDCTRL_PHBFLTREN(1)<<8)|FTM_FILTER_CH1FVAL(15),  ///< 60 clock cycles
+   };
+
+class FtmquadBasicInfo : public FtmCommonInfo {
+
+public:
+}; // class FtmquadBasicInfo 
+
+class Ftm1Info : public FtmquadBasicInfo {
+
+public:
+   //! Number of signals available in info table
+   static constexpr int numSignals  = 10;
+
+   //! Information for each signal of peripheral
+   static constexpr PinInfo  info[] = {
+
+         //      Signal                 Pin                                  PinIndex                PCR value
+         /*   0: FTM1_CH0             = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
+         /*   1: FTM1_CH1             = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
+         /*   2: --                   = --                             */  { PinIndex::INVALID_PCR,  PcrValue(0)         },
+         /*   3: --                   = --                             */  { PinIndex::INVALID_PCR,  PcrValue(0)         },
+         /*   4: --                   = --                             */  { PinIndex::INVALID_PCR,  PcrValue(0)         },
+         /*   5: --                   = --                             */  { PinIndex::INVALID_PCR,  PcrValue(0)         },
+         /*   6: --                   = --                             */  { PinIndex::INVALID_PCR,  PcrValue(0)         },
+         /*   7: --                   = --                             */  { PinIndex::INVALID_PCR,  PcrValue(0)         },
+         /*   8: FTM_CLKIN0           = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
+         /*   9: FTM_CLKIN1           = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
+   };
+
+   /**
+    * Initialise pins used by peripheral
+    *
+    * @note Only the lower 16-bits of the PCR registers are affected
+    */
+   static void initPCRs() {
+   }
+
+   /**
+    * Release pins used by peripheral
+    *
+    * @note Only the lower 16-bits of the PCR registers are affected
+    */
+   static void clearPCRs() {
+   }
+
+   class InfoFAULT {
+   public:
+      //! Number of signals available in info table
+      static constexpr int numSignals  = 1;
+
+      //! Information for each signal of peripheral
+      static constexpr PinInfo  info[] = {
+   
+            //      Signal                 Pin                                  PinIndex                PCR value
+            /*   0: FTM1_FLT0            = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
+      };
+
+      /**
+       * Initialise pins used by peripheral
+       *
+       * @note Only the lower 16-bits of the PCR registers are affected
+       */
+      static void initPCRs() {
+      }
+
+      /**
+       * Release pins used by peripheral
+       *
+       * @note Only the lower 16-bits of the PCR registers are affected
+       */
+      static void clearPCRs() {
+      }
+
+   }; 
+
+   class InfoQUAD {
+   public:
+      //! Number of signals available in info table
+      static constexpr int numSignals  = 2;
+
+      //! Information for each signal of peripheral
+      static constexpr PinInfo  info[] = {
+   
+            //      Signal                 Pin                                  PinIndex                PCR value
+            /*   0: FTM1_QD_PHA          = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
+            /*   1: FTM1_QD_PHB          = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
+      };
+
+      /**
+       * Initialise pins used by peripheral
+       *
+       * @note Only the lower 16-bits of the PCR registers are affected
+       */
+      static void initPCRs() {
+      }
+
+      /**
+       * Release pins used by peripheral
+       *
+       * @note Only the lower 16-bits of the PCR registers are affected
+       */
+      static void clearPCRs() {
+      }
+
+   }; 
+
+   /*
+    * Template:ftm1_2ch_quad
+    */
+   //! Map all allocated pins on a peripheral when enabled
+   static constexpr bool mapPinsOnEnable = false;
+
+
+   
+   /**
+    * Configures all mapped pins associated with FTM1
+    *
+    * @note Locked pins will be unaffected
+    */
+   static void configureAllPins() {
+   
+      // Configure pins if selected and not already locked
+      if constexpr (mapPinsOnEnable) {
+         initPCRs();
+      }
+   }
+   
+   /**
+    * Disabled all mapped pins associated with FTM1
+    *
+    * @note Only the lower 16-bits of the PCR registers are modified
+    *
+    * @note Locked pins will be unaffected
+    */
+   static void disableAllPins() {
+   
+      // Disable pins if selected and not already locked
+      if constexpr (mapPinsOnEnable) {
+         clearPCRs();
+      }
+   }
+   
+   //! IRQ numbers for hardware
+   static constexpr IRQn_Type irqNums[]  = FTM1_IRQS;
+   
+   //! Number of IRQs for hardware
+   static constexpr uint32_t irqCount  = sizeofArray(irqNums);
+   
+   /**
+    * Enable interrupts in NVIC
+    */
+   static void enableNvicInterrupts() {
+      NVIC_EnableIRQ(irqNums[0]);
+   }
+   
+   /**
+    * Enable and set priority of interrupts in NVIC
+    * Any pending NVIC interrupts are first cleared.
+    *
+    * @param[in]  nvicPriority  Interrupt priority
+    */
+   static void enableNvicInterrupts(NvicPriority nvicPriority) {
+      enableNvicInterrupt(irqNums[0], nvicPriority);
+   }
+   
+   /**
+    * Disable interrupts in NVIC
+    */
+   static void disableNvicInterrupts() {
+      NVIC_DisableIRQ(irqNums[0]);
+   }
+   
+   /**
+    *  Enable clock to Ftm1
+    */
+   static void enableClock() {
+      SIM->SCGC6 = SIM->SCGC6 | SIM_SCGC6_FTM1_MASK;
+   }
+   
+   /**
+    *  Disable clock to Ftm1
+    */
+   static void disableClock() {
+      SIM->SCGC6 = SIM->SCGC6 & ~SIM_SCGC6_FTM1_MASK;
+   }
+   
+   //! Hardware base address as uint32_t
+   static constexpr uint32_t baseAddress = FTM1_BasePtr;
+   
+   //! Hardware base pointer
+   static constexpr HardwarePtr<FTMQUAD_Type> ftm = baseAddress;
+   
+   //! Peripheral instance number
+   static constexpr unsigned instance = 1;
+   
+   //! Number of channels implemented
+   static constexpr unsigned NumChannels = 2;
+
+   //! Number of channel event vectors implemented
+   static constexpr unsigned NumChannelVectors = 1;
+
+   // Minimum resolution for PWM interval
+   static constexpr uint32_t minimumResolution  = 100;
+
+   // Minimum usable interval in ticks
+   static constexpr uint32_t minimumInterval  = 20;
+
+   /**
+    * Enables/disable external trigger generation by a channel comparison or initialisation event
+    *
+    * @param[in] ftmExternalTrigger Indicates whether to use or ignore the given trigger
+    *                               Can combine non-conflicting triggers
+    */
+   static void enableExternalTrigger(FtmExternalTrigger ftmExternalTrigger) {
+         ftm->EXTTRIG = (ftm->EXTTRIG & (ftmExternalTrigger>>8))|ftmExternalTrigger;
+   }
+   
+   
+   /**
+    * Enable fault interrupts
+    */
+   static void enableFaultInterrupt() {
+      ftm->MODE = ftm->MODE | FTM_MODE_FAULTIE_MASK;
+   }
+   
+   /**
+    * Disable fault interrupts
+    */
+   static void disableFaultInterrupt() {
+      ftm->MODE = ftm->MODE & ~FTM_MODE_FAULTIE_MASK;
+   }
+   
+   /**
+    *  Disables fault detection input
+    *
+    *  @tparam inputNum        Number of fault input to enable (0..3)
+    */
+   template<int inputNum>
+   static void disableFault() {
+      static_assert(inputNum<=4, "Illegal fault channel");
+   
+      // Enable fault on channel
+      ftm->FLTCTRL = ftm->FLTCTRL & ~(1<<inputNum);
+   }
+   
+   /**
+    *  Enables fault detection input
+    *
+    *  @tparam inputNum           Number of fault input to enable (0..3)
+    *
+    *  @param[in]  polarity       Polarity of fault input
+    *  @param[in]  filterEnable   Whether to enable filtering on the fault input
+    *  @param[in]  filterDelay    Delay used by the filter (1..15) - Applies to all channels
+    *
+    *  NOTE - the filter delay is shared by all inputs
+    */
+public:
+   template<uint8_t inputNum>
+   static void enableFault(
+         Polarity polarity     = ActiveHigh,
+         bool     filterEnable = false,
+         uint32_t filterDelay  = FTM_FLTCTRL_FFVAL_MASK>>(FTM_FLTCTRL_FFVAL_SHIFT+1)) {
+   
+#ifdef DEBUG_BUILD
+      static_assert((inputNum<InfoFAULT::numSignals), "FtmBase_T: Illegal fault channel");
+      static_assert((inputNum>=InfoFAULT::numSignals)||(InfoFAULT::info[inputNum].pinIndex != PinIndex::UNMAPPED_PCR), "FtmBase_T: Fault signal is not mapped to a pin - Modify Configure.usbdm");
+      static_assert((inputNum>=InfoFAULT::numSignals)||(InfoFAULT::info[inputNum].pinIndex != PinIndex::INVALID_PCR),  "FtmBase_T: Non-existent signal used for fault input");
+      static_assert((inputNum>=InfoFAULT::numSignals)||(InfoFAULT::info[inputNum].pinIndex == PinIndex::UNMAPPED_PCR)||(InfoFAULT::info[inputNum].pinIndex == PinIndex::INVALID_PCR)||(InfoFAULT::info[inputNum].pinIndex >= PinIndex::MIN_PIN_INDEX), "Pcr_T: Illegal signal used for fault");
+#endif
+   
+      PcrTable_T<InfoFAULT, inputNum>::setPCR();
+   
+      if (polarity) {
+         // Set active high
+         ftm->FLTPOL = ftm->FLTPOL & ~(1<<inputNum);
+      }
+      else {
+         // Set active low
+         ftm->FLTPOL = ftm->FLTPOL | (1<<inputNum);
+      }
+      if (filterEnable) {
+         // Enable filter & set filter delay
+         ftm->FLTCTRL = ((ftm->FLTCTRL) & ~(FTM_FLTCTRL_FFVAL_MASK)) | (1<<(inputNum+FTM_FLTCTRL_FFLTR0EN_SHIFT)) | FTM_FLTCTRL_FFVAL(filterDelay);
+      }
+      else {
+         // Disable filter
+         ftm->FLTCTRL = ftm->FLTCTRL & ~(1<<(inputNum+FTM_FLTCTRL_FFLTR0EN_SHIFT));
+      }
+      // Enable fault input
+      ftm->FLTCTRL = ftm->FLTCTRL | (1<<inputNum);
+      // Enable fault mode (All channels, manual)
+      ftm->MODE    = ftm->MODE | FTM_MODE_FAULTM(2);
+   }
+
+   /**
+    * Set polarity of all channels
+    *
+    * @param channelMask   Bit mask 0 => active-high, 1 => active-low
+    *                      This can be created by ORing together FtmPolarity_ChN_ActiveLow values
+    */
+   static void setPolarity(uint32_t channelMask) {
+      ftm->POL = channelMask;
+   }
+   
+   /**
+    * Set polarity of selected channel
+    *
+    * @param ftmPolarity  Channel polarity to set
+    */
+   static void setPolarity(FtmPolarity ftmPolarity) {
+         ftm->POL= (ftm->POL&(ftmPolarity>>8))|ftmPolarity;
+   }
+
+   /**
+    * Get Clock Source
+    *
+    * @param ftmClockSource Selects the clock source for the module
+    *
+    * @return Clock frequency in Hz
+    */
+   static uint32_t getInputClockFrequency(FtmClockSource ftmClockSource) {
+   
+      switch(ftmClockSource) {
+         default: return 0;
+         case FtmClockSource_Disabled            : return 0;                                        ///< Disabled
+         case FtmClockSource_SystemClock         : return SystemBusClock;                           ///< System clock
+         case FtmClockSource_FixedFrequencyClock : return SystemMcgFFClock;                         ///< Fixed frequency clock
+         case FtmClockSource_ExternalClock       : return SimInfo::getFtm1ExternalClockFrequency(); ///< External clock
+
+      }
+   }
+
+   /**
+    * Configures all mapped Quadrature decoder pins associated with FTM1
+    *
+    * @note Locked pins will be unaffected
+    */
+   static void configureQuadPins() {
+   
+      // Configure pins if selected and not already locked
+      if constexpr (mapPinsOnEnable) {
+         InfoQUAD::initPCRs();
+      }
+   }
+   
+   /**
+    * Disabled all mapped Quadrature decoder pins associated with FTM1
+    *
+    * @note Only the lower 16-bits of the PCR registers are modified
+    *
+    * @note Locked pins will be unaffected
+    */
+   static void disableQuadPins() {
+   
+      // Disable pins if selected and not already locked
+      if constexpr (mapPinsOnEnable) {
+         InfoQUAD::clearPCRs();
+      }
+   }
+   
+}; // class Ftm1Info
+
+
 
 /**
  * Calculate a FTM channel number using an offset from an existing number
@@ -52,12 +1803,6 @@ constexpr FtmChannelNum inline operator+(FtmChannelNum pitChannelNum, unsigned o
 constexpr FtmChannelNum inline operator+(FtmChannelNum pitChannelNum, int offset) {
    return FtmChannelNum(unsigned(pitChannelNum) + unsigned(offset));
 }
-
-/**
- * @addtogroup FTM_Group FTM, PWM, Input capture and Output compare
- * @brief Pins used for PWM, Input capture and Output compare
- * @{
- */
 
 /**
  * Controls value forced to pin by forceChannelOutputs()
@@ -447,10 +2192,10 @@ public:
    Ticks convertSecondsToTicks(Seconds seconds) const {
    
       // Calculate period
-      float tickRate = getTickFrequencyAsFloat();
-      float rv       = rintf((float)seconds*tickRate);
-      usbdm_assert(rv <= float(0xFFFFUL), "Interval is too long");
-      if (rv > float(0xFFFFUL)) {
+      float    tickRate = getTickFrequencyAsFloat();
+      uint64_t rv       = rintf((float)seconds*tickRate);
+      usbdm_assert(rv <= 0xFFFFUL, "Interval is too long");
+      if (rv > 0xFFFFUL) {
          // Attempt to set too long a period
          setErrorCode(E_TOO_LARGE);
       }
@@ -537,38 +2282,17 @@ public:
    }
    
    /**
-    * Get timer event flags
+    * Get channel event flags
     *
     * @return Flags indicating if an event has occurred on a channel
     *         There is one bit for each channel
     */
-   unsigned getInterruptFlags() const {
+   unsigned getChannelEventFlags() const {
       return ftm->STATUS;
    }
    
    /**
-    * Clear selected timer event flags
-    *
-    * @param channelMask Mask indicating which channel flags to clear
-    *                    There is one bit for each channel
-    *
-    * @note Flags will not be cleared if the channel is configured for DMA
-    */
-   void clearSelectedInterruptFlags(uint32_t channelMask) const {
-      (void)ftm->STATUS;
-      ftm->STATUS = ~channelMask;
-   }
-   
-   /**
-    * Clear timer overflow event flag
-    */
-   void clearOverflowInterruptFlag() const {
-      // Clear TOI flag (read & w0c)
-      ftm->SC = ftm->SC & ~FTM_SC_TOF_MASK;
-   }
-   
-   /**
-    * Get and clear timer event flags
+    * Get and clear channel event flags
     *
     * @return Flags indicating if an event has occurred on a channel
     *         There is one bit for each channel
@@ -576,12 +2300,43 @@ public:
     * @note Only flags captured in the return value are cleared
     * @note Flags will not be cleared if the channel is configured for DMA
     */
-   unsigned getAndClearInterruptFlags() const {
+   unsigned getAndClearChannelEventFlags() const {
       // Note requires read and write zero to clear flags
       // so only flags captured in status are cleared
       unsigned status = ftm->STATUS;
       ftm->STATUS = ~status;
       return status;
+   }
+   
+   /**
+    * Clear selected channels event flags
+    *
+    * @param channelMask Mask indicating which channel flags to clear
+    *                    There is one bit for each channel
+    *
+    * @note Flags will not be cleared if the channel is configured for DMA
+    */
+   void clearSelectedChannelEventFlags(uint32_t channelMask) const {
+      (void)ftm->STATUS;
+      ftm->STATUS = ~channelMask;
+   }
+   
+   /**
+    * Get and clear timer overflow event flag
+    */
+   bool getAndClearOverflowFlag() const {
+      // Clear TOI flag (read & w0c)
+      unsigned status = ftm->SC;
+      ftm->SC = status & ~FTM_SC_TOF_MASK;
+      return bool(status & FTM_SC_TOF_MASK);
+   }
+   
+   /**
+    * Clear timer overflow event flag
+    */
+   void clearOverflowFlag() const {
+      // Clear TOI flag (read & w0c)
+      ftm->SC = ftm->SC & ~FTM_SC_TOF_MASK;
    }
    
    /**
@@ -1127,34 +2882,34 @@ public:
       }
    
       /**
-       * Get Timer interrupt/event flag.
+       * Get channel event flag.
        *
        * @return true  Indicates an event has occurred on a channel
        * @return false Indicates no event has occurred on a channel since last polled
        */
-       bool getInterruptFlag() const {
+       bool getEventFlag() const {
          return (ftm->CONTROLS[CHANNEL].CnSC&FTM_CnSC_CHF_MASK) != 0;
       }
    
       /**
-       * Get and Clear Timer channel interrupt flag.
+       * Get and Clear channel event flag.
        *
        * @return true  Indicates an event has occurred on a channel
        * @return false Indicates no event has occurred on a channel since last polled
        *
        * @note Only flags captured in the return value are cleared
        */
-       bool getAndClearInterruptFlag() const {
+       bool getAndClearEventFlag() const {
          // Note - requires read and write zero to clear flags
          uint8_t cnsc = ftm->CONTROLS[CHANNEL].CnSC;
-         ftm->CONTROLS[CHANNEL].CnSC = cnsc&~CHANNEL_MASK;
-         return (cnsc&CHANNEL_MASK) != 0;
+         ftm->CONTROLS[CHANNEL].CnSC = cnsc&~FTM_CnSC_CHF_MASK;
+         return (cnsc&FTM_CnSC_CHF_MASK) != 0;
       }
    
       /**
-       * Clear interrupt flag on channel.
+       * Clear channel event flag
        */
-      void clearInterruptFlag() const {
+      void clearEventFlag() const {
          // Note - requires read and write zero to clear flag
          ftm->CONTROLS[CHANNEL].CnSC = ftm->CONTROLS[CHANNEL].CnSC & ~FTM_CnSC_CHF_MASK;
       }
@@ -1269,6 +3024,18 @@ public:
    
       // Write new value
       ftm->SC = ftmCountMode|ftmClockSource|ftmPrescale;
+   }
+
+   /**
+    * Truncate Tick value to correct range for modulo calculations.
+    *
+    * @param ticks Value to truncate in Ticks
+    *
+    * @return Truncated value in Ticks
+    */
+   static Ticks modulo(const Ticks &ticks) {
+   
+      return Ticks(unsigned(ticks) & FTM_CNT_COUNT_MASK);
    }
 
    /**
@@ -1586,14 +3353,14 @@ public:
    static Ticks convertSecondsToTicks(Seconds seconds) {
    
       // Calculate period
-      float tickRate = getTickFrequencyAsFloat();
-      float rv       = rintf((float)seconds*tickRate);
-      usbdm_assert(rv <= float(0xFFFFUL), "Interval is too long");
-      if (rv > float(0xFFFFUL)) {
+      float    tickRate = getTickFrequencyAsFloat();
+      uint64_t rv       = rintf((float)seconds*tickRate);
+      usbdm_assert(rv <= 0xFFFFUL, "Interval is too long");
+      if (rv > 0xFFFFUL) {
          // Attempt to set too long a period
          setErrorCode(E_TOO_LARGE);
       }
-      if (rv < float(Info::minimumInterval)) {
+      if (rv < Info::minimumInterval) {
          // Attempt to set too short a period
          setErrorCode(E_TOO_SMALL);
       }
@@ -1680,38 +3447,17 @@ public:
    }
    
    /**
-    * Get timer event flags
+    * Get channel event flags
     *
     * @return Flags indicating if an event has occurred on a channel
     *         There is one bit for each channel
     */
-   static unsigned getInterruptFlags() {
+   static unsigned getChannelEventFlags() {
       return ftm->STATUS;
    }
    
    /**
-    * Clear selected timer event flags
-    *
-    * @param channelMask Mask indicating which channel flags to clear
-    *                    There is one bit for each channel
-    *
-    * @note Flags will not be cleared if the channel is configured for DMA
-    */
-   static void clearSelectedInterruptFlags(uint32_t channelMask) {
-      (void)ftm->STATUS;
-      ftm->STATUS = ~channelMask;
-   }
-   
-   /**
-    * Clear timer overflow event flag
-    */
-   static void clearOverflowInterruptFlag() {
-      // Clear TOI flag (read & w0c)
-      ftm->SC = ftm->SC & ~FTM_SC_TOF_MASK;
-   }
-   
-   /**
-    * Get and clear timer event flags
+    * Get and clear channel event flags
     *
     * @return Flags indicating if an event has occurred on a channel
     *         There is one bit for each channel
@@ -1719,12 +3465,43 @@ public:
     * @note Only flags captured in the return value are cleared
     * @note Flags will not be cleared if the channel is configured for DMA
     */
-   static unsigned getAndClearInterruptFlags() {
+   static unsigned getAndClearChannelEventFlags() {
       // Note requires read and write zero to clear flags
       // so only flags captured in status are cleared
       unsigned status = ftm->STATUS;
       ftm->STATUS = ~status;
       return status;
+   }
+   
+   /**
+    * Clear selected channels event flags
+    *
+    * @param channelMask Mask indicating which channel flags to clear
+    *                    There is one bit for each channel
+    *
+    * @note Flags will not be cleared if the channel is configured for DMA
+    */
+   static void clearSelectedChannelEventFlags(uint32_t channelMask) {
+      (void)ftm->STATUS;
+      ftm->STATUS = ~channelMask;
+   }
+   
+   /**
+    * Get and clear timer overflow event flag
+    */
+   static bool getAndClearOverflowFlag() {
+      // Clear TOI flag (read & w0c)
+      unsigned status = ftm->SC;
+      ftm->SC = status & ~FTM_SC_TOF_MASK;
+      return bool(status & FTM_SC_TOF_MASK);
+   }
+   
+   /**
+    * Clear timer overflow event flag
+    */
+   static void clearOverflowFlag() {
+      // Clear TOI flag (read & w0c)
+      ftm->SC = ftm->SC & ~FTM_SC_TOF_MASK;
    }
    
    /**
@@ -2286,36 +4063,36 @@ public:
       }
    
       /**
-       * Get Timer interrupt/event flag.
+       * Get channel event flag.
        *
        * @return true  Indicates an event has occurred on a channel
        * @return false Indicates no event has occurred on a channel since last polled
        */
-      static  bool getInterruptFlag() {
+      static  bool getEventFlag() {
          return (ftm->CONTROLS[channel].CnSC&FTM_CnSC_CHF_MASK) != 0;
       }
    
       /**
-       * Get and Clear Timer channel interrupt flag.
+       * Get and Clear channel event flag.
        *
        * @return true  Indicates an event has occurred on a channel
        * @return false Indicates no event has occurred on a channel since last polled
        *
        * @note Only flags captured in the return value are cleared
        */
-      static  bool getAndClearInterruptFlag() {
+      static  bool getAndClearEventFlag() {
          // Note - requires read and write zero to clear flags
          uint8_t cnsc = ftm->CONTROLS[channel].CnSC;
-         ftm->CONTROLS[channel].CnSC = cnsc&~CHANNEL_MASK;
-         return (cnsc&CHANNEL_MASK) != 0;
+         ftm->CONTROLS[channel].CnSC = cnsc&~FTM_CnSC_CHF_MASK;
+         return (cnsc&FTM_CnSC_CHF_MASK) != 0;
       }
    
       /**
-       * Clear interrupt flag on channel.
+       * Clear channel event flag
        */
-      static void clearInterruptFlag() {
+      static void clearEventFlag() {
          // Note - requires read and write zero to clear flag
-         ftm->CONTROLS[CHANNEL].CnSC = ftm->CONTROLS[CHANNEL].CnSC & ~FTM_CnSC_CHF_MASK;
+         ftm->CONTROLS[channel].CnSC = ftm->CONTROLS[channel].CnSC & ~FTM_CnSC_CHF_MASK;
       }
    
       /**
@@ -2333,7 +4110,7 @@ public:
       }
 
 
-#if false // /FTM/irqHandlingMethod
+#if false // /FTM/_CommonInfoIrqGuard - disabled
    /**
     * Set channel event callback function
     *
@@ -2346,7 +4123,7 @@ public:
     * @note Channel callbacks may be shared by multiple channels of the timer.\n
     *       It is necessary to identify the originating channel in the callback
     */
-   static ErrorCode setChannelCallback(ChannelCallbackFunction callback) {
+   static ErrorCode setChannelCallback(typename OwningFtm::CallbackFunction callback) {
       if constexpr (Info::individualChannelCallbacks) {
          return OwningFtm::setChannelCallback(channel, callback);
       }
@@ -2354,7 +4131,7 @@ public:
          return OwningFtm::setChannelCallback(callback);
       }
    }
-#endif // /FTM/irqHandlingMethod
+#endif // /FTM/_CommonInfoIrqGuard
 #if true // /PCR/_present
    /*******************************
     *  PIN Functions
@@ -2774,7 +4551,7 @@ public:
 
 } // End namespace USBDM
 
-#endif // /FTM/enablePeripheralSupport
+#endif // /FTM/_BasicInfoGuard
 
 #endif /* HEADER_FTM_H */
 

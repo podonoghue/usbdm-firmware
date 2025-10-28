@@ -49,9 +49,9 @@ Endpoint *UsbBase::fEndPoints[UsbImplementation::NUMBER_OF_ENDPOINTS];
 
 #ifdef MS_COMPATIBLE_ID_FEATURE
 
-const uint8_t UsbBase::fMsOsStringDescriptor[] = {
-      18, DT_STRING, 'M',0,'S',0,'F',0,'T',0,'1',0,'0',0,'0',0,GET_MS_FEATURE_DESCRIPTOR,0x00
-};
+//const uint8_t UsbBase::fMsOsStringDescriptor[] = {
+//      18, DT_STRING, 'M',0,'S',0,'F',0,'T',0,'1',0,'0',0,'0',0,GET_MS_FEATURE_DESCRIPTOR,0x00
+//};
 
 // See https://github.com/pbatard/libwdi/wiki/WCID-Devices
 //

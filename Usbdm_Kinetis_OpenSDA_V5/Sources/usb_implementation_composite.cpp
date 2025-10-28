@@ -504,9 +504,9 @@ void Usb0::initialise() {
    setUserCallback(userCallbackFunction);
 
    Uart::setInCallback(putCdcChar);
-   Uart::initialise();
 
    UsbBase_T::initialise();
+   Uart::initialise();
 }
 
 //_______ Bulk Transmission ________________________________________________________________

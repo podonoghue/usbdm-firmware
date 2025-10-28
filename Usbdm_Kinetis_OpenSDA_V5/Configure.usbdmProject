@@ -125,10 +125,29 @@
    <item key="$signal$VREF_OUT_descriptionSetting"         value="Vref output" />
    <item key="$signal$XTAL0_descriptionSetting"            value="SDA_XTAL" />
    <item key="$signal$XTAL32_descriptionSetting"           value="Reserved(XTAL32)" />
+   <item key="/ADC0/adc_cv1"                               value="0" />
+   <item key="/ADC0/adc_cv2"                               value="0" />
    <item key="/CMP0/cmp_fpr_filt_per"                      value="0" />
    <item key="/CMP1/cmp_fpr_filt_per"                      value="0" />
+   <item key="/CMT/cmt_cgh2_sh"                            value="0" />
+   <item key="/CMT/cmt_cgl1_pl"                            value="0" />
+   <item key="/CMT/cmt_cgl2_sl"                            value="0" />
+   <item key="/FTM0/Channels"                              value="" />
+   <item key="/FTM0/Miscellaneous"                         value="" />
+   <item key="/FTM0/deadTime"                              value="" />
+   <item key="/FTM0/faultControl"                          value="" />
    <item key="/FTM0/ftm_deadtime_dtval"                    value="0" />
+   <item key="/FTM0/runtimeChecks"                         value="" />
+   <item key="/FTM0/synchronisationConfiguration"          value="" />
+   <item key="/FTM0/triggerGeneration"                     value="" />
+   <item key="/FTM1/Channels"                              value="" />
+   <item key="/FTM1/Miscellaneous"                         value="" />
+   <item key="/FTM1/deadTime"                              value="" />
+   <item key="/FTM1/faultControl"                          value="" />
    <item key="/FTM1/ftm_deadtime_dtval"                    value="0" />
+   <item key="/FTM1/runtimeChecks"                         value="" />
+   <item key="/FTM1/synchronisationConfiguration"          value="" />
+   <item key="/FTM1/triggerGeneration"                     value="" />
    <item key="/GPIOB/irqHandlingMethod"                    value="$ClassMethod" />
    <item key="/GPIOD/irqHandlingMethod"                    value="$ClassMethod" />
    <item key="/GPIOE/enablePeripheralSupport"              value="false" />
@@ -146,6 +165,7 @@
    <item key="/MCG/mcgClockMode[0]"                        value="7" />
    <item key="/MCG/mcgClockMode[1]"                        value="3" />
    <item key="/MCG/mcgClockMode[2]"                        value="1" />
+   <item key="/MCG/mcg_c1_frdiv[0]"                        value="11" />
    <item key="/MCG/mcg_c2_range0[0]"                       value="1" />
    <item key="/MCG/mcg_c2_range0[1]"                       value="1" />
    <item key="/MCG/mcg_c2_range0[2]"                       value="1" />
@@ -156,9 +176,8 @@
    <item key="/MCG/system_mcgfllclk_clock[3]"              value="41943040" />
    <item key="/OSC0/configurePeripheralInStartUp"          value="true" />
    <item key="/OSC0/enablePeripheralSupport"               value="true" />
+   <item key="/OSC0/osc_cr_scp"                            value="13" />
    <item key="/PCR/nvic_irqLevel"                          value="(int8_t)255" />
-   <item key="/PDB0/pdb_ch0_dly0"                          value="0" />
-   <item key="/PDB0/pdb_ch0_dly1"                          value="0" />
    <item key="/PIT/enablePeripheralSupport"                value="true" />
    <item key="/SIM/configurePeripheralInStartUp"           value="true" />
    <item key="/SIM/enablePeripheralSupport"                value="true" />
@@ -181,8 +200,6 @@
    <item key="/SPI0/enablePeripheralSupport"               value="true" />
    <item key="/UART1/enablePeripheralSupport"              value="true" />
    <item key="/UART1/irqHandlingMethod"                    value="$ClassMethod" />
-   <item key="/UART1/uart_c5_rdmas"                        value="0,1" />
-   <item key="/UART1/uart_c5_tdmas"                        value="0,1" />
    <item key="/USB0/enablePeripheralSupport"               value="true" />
    <item key="/USBDCD0/usbdcd_timer0_tunitcon"             value="0" />
 </section>

@@ -3,9 +3,6 @@
  *
  * Main header file for USBDM library.
  * Generated code is included via this file.
- *
- * @version  V4.12.1.270
- * @date     1 December 2021
  */
 
 /*
@@ -29,7 +26,13 @@
 #include "spi.h"
 
 
+// User includes
+// None
+
 namespace USBDM {
+
+// User declarations
+// None
 
 /**
  * Map all configured pins to peripheral signals.
@@ -39,6 +42,8 @@ namespace USBDM {
  * @note Only the lower 16-bits of the PCR registers are initialised
  */
 extern void mapAllPins();
+
+// Hardware declarations
 
 /// SDA_SWD_EN_B
 typedef USBDM::GpioA<4,ActiveLow>                            SDA_SWD_EN_B;                                 // PTA4(p16)

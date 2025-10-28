@@ -49,6 +49,9 @@ SECTIONS
 {
    .interrupts :
    {
+      /* Fill unused area with 0xFF to allow for programmer adding trim etc */
+      FILL(0xFF) 
+      
       __flash_start = .;
 
       /* Vector table */
@@ -59,6 +62,15 @@ SECTIONS
       ASSERT (. != __flash_start, "No reset vector found");
       __VECTOR_TABLE_END = .;
       
+      /* Emit a Freescale Bootloader configuration @0x3C0 if present */
+      . = __flash_start + 0x3C0;
+      KEEP(*(.bootloader_configuration))
+      
+      /* Emit USBDM Bootloader information @0x3C0 if present */
+      __bootloaderInformation = .;
+      KEEP(*(.bootloaderInformation))
+      ASSERT ((BOOT_LOADER_SIZE == 0) || (. != __bootloaderInformation), "No bootloader information");
+
       /* Emit a Security field */
       . = __flash_start + 0x400;
       KEEP(*(.security_information))
@@ -177,7 +189,7 @@ M_VECTOR_RAM_SIZE = DEFINED(__ram_vector_table__) ? (__VECTOR_TABLE_END - __VECT
    } > bdts_ram
   
    /* Initialised data in RAM copied from flash */
-   .data : 
+   .data (READONLY) : 
    {
       __data_start__ = .;
       __DATA_RAM = .;
@@ -196,14 +208,14 @@ M_VECTOR_RAM_SIZE = DEFINED(__ram_vector_table__) ? (__VECTOR_TABLE_END - __VECT
   __data_image_start__ = LOADADDR(.data);
   
    /* Start of not initialised region */
-   .noinit :
+   .noinit (READONLY) :
    {
       . = ALIGN(4);
       *(.noinit)
    } > noinit_ram
    
-   /* Start of BSS */
-   .bss :
+   /* BSS */
+   .bss (READONLY) :
    {
       . = ALIGN(4);
       __START_BSS = .;
@@ -216,7 +228,7 @@ M_VECTOR_RAM_SIZE = DEFINED(__ram_vector_table__) ? (__VECTOR_TABLE_END - __VECT
       __END_BSS = .;
    } > bss_ram
     
-   /* Start of HEAP - usually from top of BSS */
+   /* HEAP */
    .heap :
    {
       . = ALIGN(4);
@@ -226,16 +238,16 @@ M_VECTOR_RAM_SIZE = DEFINED(__ram_vector_table__) ? (__VECTOR_TABLE_END - __VECT
       __HeapBase = .;
       __heap_addr = .;
       . = . + __heap_size__;
-      /* Heap limit is at Top of ram_low or bottom of stack */
-      __HeapLimit = MIN( ABSOLUTE(ORIGIN(heap_ram)+LENGTH(heap_ram)-1), __StackLimit);
+      __HeapLimit = .;
+    /*  __HeapLimit = MIN( ABSOLUTE(ORIGIN(heap_ram)+LENGTH(heap_ram)-1), __StackLimit); */
    } > heap_ram
 
-   /* STACK space - between HEAP and end of RAM (or bitband_bytes) */
+   /* STACK */
    PROVIDE ( __sram_u_size = 0 );
    .stack :
    {
       /* Make sure location doesn't move backwards as causes cryptic messages */
-      . = MAX( ., ABSOLUTE(ORIGIN(stack_ram) + LENGTH(stack_ram) - __stack_size__ - __sram_u_size - 3));
+/*      . = MAX( ., ABSOLUTE(ORIGIN(stack_ram) + LENGTH(stack_ram) - __stack_size__ - __sram_u_size - 3)); */
       . = ALIGN(4);
       __StackLimit = .;
       . = . + __stack_size__;
@@ -271,7 +283,25 @@ M_VECTOR_RAM_SIZE = DEFINED(__ram_vector_table__) ? (__VECTOR_TABLE_END - __VECT
   PROVIDE(__stack = __StackTop);
   PROVIDE(__cs3_stack = __StackTop);
   
-  
+     /* FlexRAM region for non-volatile variables */
+   .flexRAM (NOLOAD) :
+   {
+      . = ALIGN(4);
+      PROVIDE(__FlexRamStart = .);
+      KEEP(*(.flexRAM))
+      PROVIDE(__FlexRamEnd = .);
+   } > flexRAM
+
+   /* flexNVM flash region */
+   .flexNVM (NOLOAD) :
+   {
+      . = ALIGN(4);
+      PROVIDE(__FlexNvmStart = .);
+      KEEP(*(.flexNVM))
+      PROVIDE(__FlexNvmEnd = .);
+   } > flexNVM
+
+
   /*
    * These are very 'weak' to ensure semi-hosting version 
    * will be used for rdimon.specs option

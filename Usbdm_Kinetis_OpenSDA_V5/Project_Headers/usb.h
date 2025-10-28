@@ -120,6 +120,8 @@
 #include "usb_endpoint.h"
 #include "stringFormatter.h"
 
+// No handler defined for USB0 
+
 
 namespace USBDM {
 
@@ -128,6 +130,283 @@ namespace USBDM {
  * @brief Abstraction for USB OTG Controller
  * @{
  */
+/**
+ * Peripheral information for USB, USB OTG Controller.
+ * 
+ * This may include pin information, constants, register addresses, and default register values,
+ * along with simple accessor functions.
+ */
+class UsbBasicInfo {
+
+public:
+   //! Common class based callback code has been generated for this class of peripheral
+   // (_BasicInfoIrqGuard)
+   static constexpr bool irqHandlerInstalled = true;
+   
+   /**
+    * Type definition for Usb interrupt call back.
+    */
+   typedef void (*CallbackFunction)();
+   
+   /**
+    * Class used to do initialisation of the Usb Clock Recovery
+    *
+    * This class has a templated constructor that accepts various values.
+    * Parameters available may vary with device - see Usb0::DefaultClockRecovery for relevant example.
+    * Omitted parameters default to zero (disabled) or unchanged if initialiser is provided as last parameter.
+    *
+    * @note This constructor may be used to create a const instance in Flash
+    *
+    * Example:
+    * @code
+    * static const Usb0::ClockRecoveryInit usb0ClockRecoveryInit {
+    *
+    *   // Setup values
+    * UsbIrc48mClockTrackingMode_Disabled , // IRC48M mode for USB operation - Tracking disabled
+    * UsbIrc48mClockResetTrim_Keep , // Restart from IFR trim value - Start from last trim value
+    * UsbIrc48MHzEnable_Disabled,  // IRC48M enable - Disable the IRC48M module (default)
+    *
+    *   // Optional base value to start with (must be last parameter)
+    *   Usb0::DefaultClockRecovery   // Used as base value modified by above
+    * };
+    *
+    * // Initialise Usb0 from values specified above
+    * Usb0::configure(usb0ClockRecoveryInit)
+    * @endcode
+    */
+   class ClockRecoveryInit {
+   
+   public:
+      /**
+       * Copy Constructor
+       */
+      constexpr ClockRecoveryInit(const ClockRecoveryInit &other) = default;
+   
+      /**
+       * Default Constructor
+       */
+      constexpr ClockRecoveryInit() = default;
+   
+   }; // class UsbBasicInfo::ClockRecoveryInit
+   
+}; // class UsbBasicInfo 
+
+class Usb0Info : public UsbBasicInfo {
+
+public:
+   //! Number of signals available in info table
+   static constexpr int numSignals  = 4;
+
+   //! Information for each signal of peripheral
+   static constexpr PinInfo  info[] = {
+
+         //      Signal                 Pin                                  PinIndex                PCR value
+         /*   0: USB0_DM              = USB0_DM(p4)                    */  { PinIndex::FIXED_NO_PCR, PcrValue(0)         },
+         /*   1: USB0_DP              = USB0_DP(p3)                    */  { PinIndex::FIXED_NO_PCR, PcrValue(0)         },
+         /*   2: USB_CLKIN            = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
+         /*   3: USB_SOF_OUT          = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
+   };
+
+   /**
+    * Initialise pins used by peripheral
+    *
+    * @note Only the lower 16-bits of the PCR registers are affected
+    */
+   static void initPCRs() {
+   }
+
+   /**
+    * Release pins used by peripheral
+    *
+    * @note Only the lower 16-bits of the PCR registers are affected
+    */
+   static void clearPCRs() {
+   }
+
+   /*
+    * Template:usb0_otg_c
+    */
+   //! Map all allocated pins on a peripheral when enabled
+   static constexpr bool mapPinsOnEnable = true;
+
+
+   
+   /**
+    * Configures all mapped pins associated with USB0
+    *
+    * @note Locked pins will be unaffected
+    */
+   static void configureAllPins() {
+   
+      // Configure pins if selected and not already locked
+      if constexpr (mapPinsOnEnable) {
+         initPCRs();
+      }
+   }
+   
+   /**
+    * Disabled all mapped pins associated with USB0
+    *
+    * @note Only the lower 16-bits of the PCR registers are modified
+    *
+    * @note Locked pins will be unaffected
+    */
+   static void disableAllPins() {
+   
+      // Disable pins if selected and not already locked
+      if constexpr (mapPinsOnEnable) {
+         clearPCRs();
+      }
+   }
+   
+   //! Class based interrupt code has been generated for this class of peripheral
+   // (_BasicInfoIrqGuard)
+   static constexpr bool irqHandlerInstalled = true;
+   
+   //! IRQ numbers for hardware
+   static constexpr IRQn_Type irqNums[]  = USB0_IRQS;
+   
+   //! Number of IRQs for hardware
+   static constexpr uint32_t irqCount  = sizeofArray(irqNums);
+   
+   /**
+    * Enable interrupts in NVIC
+    */
+   static void enableNvicInterrupts() {
+      NVIC_EnableIRQ(irqNums[0]);
+   }
+   
+   /**
+    * Enable and set priority of interrupts in NVIC
+    * Any pending NVIC interrupts are first cleared.
+    *
+    * @param[in]  nvicPriority  Interrupt priority
+    */
+   static void enableNvicInterrupts(NvicPriority nvicPriority) {
+      enableNvicInterrupt(irqNums[0], nvicPriority);
+   }
+   
+   /**
+    * Disable interrupts in NVIC
+    */
+   static void disableNvicInterrupts() {
+      NVIC_DisableIRQ(irqNums[0]);
+   }
+   
+   template<typename T>
+   using CallbackWrapper = USBDM::CallbackWrapper<T, Usb0Info>;
+   
+   /**
+    * Function to wrap a member function as a static callback function
+    * Example:
+    * @code
+    * class AClass {
+    * public:
+    *    int y;
+    *
+    *    // Member function used as callback
+    *    // This function must match CallbackFunction
+    *    void callbackFuction() {
+    *       ...;
+    *    }
+    * };
+    * ...
+    *    AClass *tester = new AClass{};
+    *
+    *    auto cb = Usb0::wrapCallback(tester, &AClass::callbackFuction);
+    *    Usb0::setCallback(cb);
+    *   @endcode
+    *
+    * @tparam T               Type of class containing callback (inferred)
+    *
+    * @param classInstance    Pointer to instance of class
+    * @param memberFunction   Pointer to the member function
+    *
+    * @return  Wrapper
+    */
+   template<typename T>
+   static auto wrapCallback(T *classInstance, void (T::*memberFunction)()) {
+      static CallbackWrapper<T> sClass(classInstance, memberFunction);
+      return sClass.callback;
+   }
+   
+   /**
+    * USB interrupt handler -  Calls USB callback
+    */
+   static void irqHandler() {
+   
+      // Execute call-back
+      sCallback();
+   }
+   
+   /** Callback function for Usb0 */
+   static inline CallbackFunction sCallback = unhandledCallback; // USB0_IRQn;
+   
+   /**
+    * Set interrupt callback function.
+    *
+    * @param  usbCallback Callback function to execute on interrupt
+    *                             Use nullptr to remove callback.
+    */
+   static void setCallback(CallbackFunction usbCallback) {
+      if (usbCallback == nullptr) {
+         usbCallback = unhandledCallback;
+      }
+      // Allow either no handler set yet, setting same handler or removing handler
+      usbdm_assert(
+            (sCallback == unhandledCallback) ||
+            (sCallback == usbCallback) ||
+            (usbCallback == unhandledCallback),
+            "Handler already set");
+      sCallback = usbCallback;
+   }
+   
+   /**
+    *  Enable clock to Usb0
+    */
+   static void enableClock() {
+      SIM->SCGC4 = SIM->SCGC4 | SIM_SCGC4_USB0_MASK;
+   }
+   
+   /**
+    *  Disable clock to Usb0
+    */
+   static void disableClock() {
+      SIM->SCGC4 = SIM->SCGC4 & ~SIM_SCGC4_USB0_MASK;
+   }
+   
+   /**
+    * Basic enable of Usb0
+    * Includes enabling clock and configuring all mapped pins if mapPinsOnEnable is selected in configuration
+    */
+   static void enable() {
+      enableClock();
+      configureAllPins();
+   }
+   
+   /**
+    * Disables Usb0
+    */
+   static void disable() {
+   
+      
+      disableNvicInterrupts();
+      disableAllPins();
+      disableClock();
+   }
+   
+   //! Hardware base address as uint32_t
+   static constexpr uint32_t baseAddress = USB0_BasePtr;
+   
+   //! Hardware base pointer
+   static constexpr HardwarePtr<USB_Type> usb = baseAddress;
+   
+   //! Peripheral instance number
+   static constexpr unsigned instance = 0;
+   
+}; // class Usb0Info
+
+
 
 /**
  * Base class representing an USB Interface.\n
@@ -300,7 +579,9 @@ protected:
    static void utf8ToStringDescriptor(volatile uint8_t *to, volatile const uint8_t *from, unsigned maxSize);
 
    /** Magic string for MS driver feature */
-   static const uint8_t fMsOsStringDescriptor[];
+   static inline const uint8_t fMsOsStringDescriptor[] = {
+         18, DT_STRING, 'M',0,'S',0,'F',0,'T',0,'1',0,'0',0,'0',0,GET_MS_FEATURE_DESCRIPTOR,0x00
+   };
 
    /** End-points in use */
    static Endpoint *fEndPoints[];
@@ -329,28 +610,28 @@ private:
 
 protected:
    /** USB Control endpoint - always EP0 */
-   static ControlEndpoint<Info, EP0_SIZE>fControlEndpoint;
+   static inline ControlEndpoint<Info, EP0_SIZE>fControlEndpoint;
 
    /** USB connection state */
-   static volatile DeviceConnectionStates fConnectionState;
+   static inline volatile DeviceConnectionStates fConnectionState;
 
    /** Active USB configuration */
-   static uint8_t fDeviceConfiguration;
+   static inline uint8_t fDeviceConfiguration;
 
    /** USB Device status */
-   static DeviceStatus fDeviceStatus;
+   static inline DeviceStatus fDeviceStatus;
 
    /** Buffer for EP0 data from Setup transaction (copied from USB RAM) */
-   static SetupPacket fEp0SetupBuffer;
+   static inline SetupPacket fEp0SetupBuffer;
 
    /** USB activity indicator */
-   static bool fActivityFlag;
+   static inline bool fActivityFlag = false;
 
    /**
     * Unhandled SETUP callback \n
     * This function is called for unhandled SETUP transactions
     */
-   static SetupCallbackFunction fUnhandledSetupCallback;
+   static inline SetupCallbackFunction fUnhandledSetupCallback = (SetupCallbackFunction)unsetSetupPacketCallback;;
 
    /**
     * User event callback \n
@@ -360,7 +641,7 @@ protected:
     *  @return     E_NOERROR if handled
     *  @return     Else stalls endpoint
     */
-   static UserCallbackFunction fUserCallbackFunction;
+   static inline UserCallbackFunction fUserCallbackFunction = defaultUserCallback;
 
    /**
     * USB SOF call-back\n
@@ -370,7 +651,7 @@ protected:
     *
     * @return  Error code
     */
-   static SOFCallbackFunction fSofCallbackFunction;
+   static inline SOFCallbackFunction fSofCallbackFunction = unsetSOFHandlerCallback;;
 
 protected:
 
@@ -734,59 +1015,6 @@ public:
    static void irqHandler();
 
 };
-
-/**
- * USB SOF call-back\n
- * This function is call for SOF transactions
- *
- * @param frameNumber Frame number from SOF token
- *
- * @return  Error code
- */
-template<class Info, int EP0_SIZE>
-UsbBase::SOFCallbackFunction UsbBase_T<Info, EP0_SIZE>::fSofCallbackFunction = unsetSOFHandlerCallback;
-
-/**
- * User event callback \n
- * This function is called whenever the 'user' code needs to be notified of an event
- *
- *  @param[in]  event Reason for callback
- *  @return     E_NOERROR if handled
- *  @return     Else stalls endpoint
- */
-template<class Info, int EP0_SIZE>
-UsbBase::UserCallbackFunction UsbBase_T<Info, EP0_SIZE>::fUserCallbackFunction = defaultUserCallback;
-
-/**
- * Unhandled SETUP callback \n
- * This function is called for unhandled SETUP transactions
- */
-template<class Info, int EP0_SIZE>
-UsbBase::SetupCallbackFunction UsbBase_T<Info, EP0_SIZE>::fUnhandledSetupCallback = (SetupCallbackFunction)unsetSetupPacketCallback;
-
-/** USB connection state */
-template<class Info, int EP0_SIZE>
-volatile DeviceConnectionStates UsbBase_T<Info, EP0_SIZE>::fConnectionState;
-
-/** Active USB configuration */
-template<class Info, int EP0_SIZE>
-uint8_t UsbBase_T<Info, EP0_SIZE>::fDeviceConfiguration;
-
-/** USB Device status */
-template<class Info, int EP0_SIZE>
-UsbBase::DeviceStatus UsbBase_T<Info, EP0_SIZE>::fDeviceStatus;
-
-/** Buffer for EP0 Setup transaction (copied from USB RAM) */
-template<class Info, int EP0_SIZE>
-SetupPacket UsbBase_T<Info, EP0_SIZE>::fEp0SetupBuffer;
-
-/** USB activity indicator */
-template<class Info, int EP0_SIZE>
-bool UsbBase_T<Info, EP0_SIZE>::fActivityFlag = false;
-
-/** USB Control endpoint - always EP0 */
-template <class Info, int EP0_SIZE>
-ControlEndpoint<Info, EP0_SIZE> UsbBase_T<Info, EP0_SIZE>::fControlEndpoint;
 
 } // End namespace USBDM
 

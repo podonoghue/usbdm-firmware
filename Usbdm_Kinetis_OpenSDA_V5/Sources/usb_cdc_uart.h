@@ -305,10 +305,10 @@ public:
 
       Uart1Info::configure(uartInitValue);
 
-      UartInfo::setCallback(Uart1IrqNum_Error, uartCallback);
-      UartInfo::setCallback(Uart1IrqNum_RxTx,  uartCallback);
-      Uart1Info::enableNvicInterrupts(Uart1IrqNum_RxTx);
-      Uart1Info::enableNvicInterrupts(Uart1IrqNum_Error);
+      UartInfo::setCallback(Uart1::IrqNum_Error, uartCallback);
+      UartInfo::setCallback(Uart1::IrqNum_RxTx,  uartCallback);
+      Uart1Info::enableNvicInterrupts(Uart1::IrqNum_RxTx);
+      Uart1Info::enableNvicInterrupts(Uart1::IrqNum_Error);
     }
 };
 

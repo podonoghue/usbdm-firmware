@@ -744,7 +744,7 @@ public:
     * Constructor
     */
    Endpoint_T(EndPointType endPointType, uint8_t bdtValue) :
-      Endpoint(ENDPOINT_NUM, EP_MAXSIZE, endPointType, bdtValue, fAllocatedDataBuffer, fAllocatedDataBuffer, Usb0Info::baseAddress) {
+      Endpoint(ENDPOINT_NUM, EP_MAXSIZE, endPointType, bdtValue, fAllocatedDataBuffer, fAllocatedDataBuffer, USB0_BasePtr) {
    }
 };
 
@@ -764,10 +764,10 @@ class Endpoint2Buffer_T : public Endpoint {
 
 private:
    /** Buffer for Transmit & Receive data */
-   static uint8_t fAllocatedTxDataBuffer[EP_MAXSIZE] __attribute__ ((aligned (4)));
+   static inline uint8_t fAllocatedTxDataBuffer[EP_MAXSIZE] __attribute__ ((aligned (4)));
 
    /** Buffer for Transmit & Receive data */
-   static uint8_t fAllocatedRxDataBuffer[EP_MAXSIZE] __attribute__ ((aligned (4)));
+   static inline uint8_t fAllocatedRxDataBuffer[EP_MAXSIZE] __attribute__ ((aligned (4)));
 
 public:
    /** Size of endpoint (maximum transfer size) */
@@ -780,12 +780,6 @@ public:
       Endpoint(ENDPOINT_NUM, EP_MAXSIZE, endPointType, bdtValue, fAllocatedTxDataBuffer, fAllocatedRxDataBuffer, Info::usb()) {
    }
 };
-
-template<class Info, unsigned ENDPOINT_NUM, unsigned EP_MAXSIZE>
-uint8_t Endpoint2Buffer_T<Info, ENDPOINT_NUM, EP_MAXSIZE>::fAllocatedTxDataBuffer[EP_MAXSIZE];
-
-template<class Info, unsigned ENDPOINT_NUM, unsigned EP_MAXSIZE>
-uint8_t Endpoint2Buffer_T<Info, ENDPOINT_NUM, EP_MAXSIZE>::fAllocatedRxDataBuffer[EP_MAXSIZE];
 
 /**
  * Class for CONTROL endpoint

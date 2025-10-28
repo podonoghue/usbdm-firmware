@@ -1,10 +1,6 @@
 /**
  * @file     vref.h (180.ARM_Peripherals/Project_Headers/vref.h)
  * @brief    Voltage Reference
- *
- * @version  V4.12.1.210
- * @date     13 April 2016
- *      Author: podonoghue
  */
 
 #ifndef HEADER_VREF_H
@@ -20,6 +16,8 @@
 #include "derivative.h"
 #include "pin_mapping.h"
 
+// $/VREF/prototypes not found
+
 namespace USBDM {
 
 /**
@@ -27,6 +25,183 @@ namespace USBDM {
  * @brief C++ Class allowing access to Voltage Reference
  * @{
  */
+/**
+ * Peripheral information for VREF, Voltage Reference.
+ * 
+ * This may include pin information, constants, register addresses, and default register values,
+ * along with simple accessor functions.
+ */
+   /**
+    * Internal Voltage Reference enable
+    * (vref_sc_vrefen)
+    *
+    * Controls the bandgap reference within the Voltage Reference module
+    */
+   enum VrefEnable : uint8_t {
+      VrefEnable_Disabled   = VREF_SC_VREFEN(0),  ///< Disabled
+      VrefEnable_Enabled    = VREF_SC_VREFEN(1),  ///< Enabled
+   };
+
+   /**
+    * Regulator enable
+    * (vref_sc_regen)
+    *
+    * Controls the internal 1.75 V regulator which produce a constant
+    * internal voltage supply in order to reduce the sensitivity to external supply noise and variation
+    * If it is desired to keep the regulator enabled in very low power modes see PmcBandgapLowPowerEnable
+    */
+   enum VrefReg : uint8_t {
+      VrefReg_Disabled   = VREF_SC_REGEN(0),  ///< Disabled
+      VrefReg_Enabled    = VREF_SC_REGEN(1),  ///< Enabled
+   };
+
+   /**
+    * Chop oscillator enable
+    * (vref_trm_chopen)
+    *
+    * Controls the internal chopping operation to minimise the internal analogue offset
+    * This option is enabled during factory trimming of the VREF voltage.
+    * This should be enabled to achieve the performance stated in the data sheet.
+    * If the chop oscillator is to be used in very low power modes, the system (bandgap)
+    * voltage reference must also be enabled. See PmcBandgapLowPowerEnable
+    */
+   enum VrefChop : uint8_t {
+      VrefChop_Disabled   = VREF_TRM_CHOPEN(0),  ///< Disabled
+      VrefChop_Enabled    = VREF_TRM_CHOPEN(1),  ///< Enabled
+   };
+
+   /**
+    * Second order curvature compensation enable
+    * (vref_sc_icompen)
+    *
+    * Controls the second order curvature compensation.
+    * This should be enabled to achieve the performance stated in the data sheet
+    */
+   enum VrefIcomp : uint8_t {
+      VrefIcomp_Disabled   = VREF_SC_ICOMPEN(0),  ///< Disabled
+      VrefIcomp_Enabled    = VREF_SC_ICOMPEN(1),  ///< Enabled
+   };
+
+   /**
+    * Internal Voltage Reference stable
+    * (vref_sc_vrefst)
+    *
+    * 
+    */
+   enum VrefStable : uint8_t {
+      VrefStable_NotReady   = VREF_SC_VREFST(0),  ///< Not ready
+      VrefStable_Ready      = VREF_SC_VREFST(1),  ///< Ready
+   };
+
+   /**
+    * Buffer Mode selection
+    * (vref_sc_mode_lv)
+    *
+    * Selects the buffer mode for the Voltage Reference module
+    */
+   enum VrefBuffer : uint8_t {
+      VrefBuffer_Bandgap     = VREF_SC_MODE_LV(0),  ///< Bandgap on only, for stabilisation and startup
+      VrefBuffer_HighPower   = VREF_SC_MODE_LV(1),  ///< High power buffer mode enabled
+      VrefBuffer_LowPower    = VREF_SC_MODE_LV(2),  ///< Low-power buffer mode enabled
+   };
+
+    extern void waitUS(uint32_t usToWait);
+   
+class VrefBasicInfo {
+
+public:
+}; // class VrefBasicInfo 
+
+class VrefInfo : public VrefBasicInfo {
+
+public:
+   //! Number of signals available in info table
+   static constexpr int numSignals  = 1;
+
+   //! Information for each signal of peripheral
+   static constexpr PinInfo  info[] = {
+
+         //      Signal                 Pin                                  PinIndex                PCR value
+         /*   0: VREF_OUT             = --                             */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },
+   };
+
+   /**
+    * Initialise pins used by peripheral
+    *
+    * @note Only the lower 16-bits of the PCR registers are affected
+    */
+   static void initPCRs() {
+   }
+
+   /**
+    * Release pins used by peripheral
+    *
+    * @note Only the lower 16-bits of the PCR registers are affected
+    */
+   static void clearPCRs() {
+   }
+
+   /*
+    * Template:vref_c
+    */
+   //! Map all allocated pins on a peripheral when enabled
+   static constexpr bool mapPinsOnEnable = false;
+
+
+   
+   /**
+    * Configures all mapped pins associated with VREF
+    *
+    * @note Locked pins will be unaffected
+    */
+   static void configureAllPins() {
+   
+      // Configure pins if selected and not already locked
+      if constexpr (mapPinsOnEnable) {
+         initPCRs();
+      }
+   }
+   
+   /**
+    * Disabled all mapped pins associated with VREF
+    *
+    * @note Only the lower 16-bits of the PCR registers are modified
+    *
+    * @note Locked pins will be unaffected
+    */
+   static void disableAllPins() {
+   
+      // Disable pins if selected and not already locked
+      if constexpr (mapPinsOnEnable) {
+         clearPCRs();
+      }
+   }
+   
+   /**
+    *  Enable clock to Vref
+    */
+   static void enableClock() {
+      SIM->SCGC4 = SIM->SCGC4 | SIM_SCGC4_VREF_MASK;
+   }
+   
+   /**
+    *  Disable clock to Vref
+    */
+   static void disableClock() {
+      SIM->SCGC4 = SIM->SCGC4 & ~SIM_SCGC4_VREF_MASK;
+   }
+   
+   //! Hardware base address as uint32_t
+   static constexpr uint32_t baseAddress = VREF_BasePtr;
+   
+   //! Hardware base pointer
+   static constexpr HardwarePtr<VREF_Type> vref = baseAddress;
+   
+   //! Pin number in Info table for VREF output if mapped to a pin
+   static constexpr int outputPin  = 0;
+
+}; // class VrefInfo
+
 
 /**
  * Template class representing a Voltage Reference

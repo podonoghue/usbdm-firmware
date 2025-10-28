@@ -41,7 +41,7 @@ void check(USBDM_ErrorCode rc , const char *file = NULL, unsigned lineNum = 0 ) 
    (void)file;
    (void)lineNum;
    if (rc == BDM_RC_OK) {
-   //   console.writeln("OK, [", file, ":#", lineNum).write("]");
+      //   console.writeln("OK, [", file, ":#", lineNum).write("]");
       return;
    }
    console.writeln("Failed, [", file, ":#", lineNum, "], Reason= ", rc);
@@ -95,10 +95,10 @@ USBDM_ErrorCode memRead(uint32_t address, uint8_t opSize, uint8_t size, uint8_t 
  */
 USBDM_ErrorCode testmem(uint32_t addressStart, uint32_t addrRange) {
 
-//   console.writeln("Connection speed = %ld Hz\n", getSpeed());
+   //   console.writeln("Connection speed = %ld Hz\n", getSpeed());
 
    CHECK(f_CMD_CONNECT());
-//   CHECK(Swd::powerUp());
+   //   CHECK(Swd::powerUp());
    console.writeln("Connected\n");
 
    uint8_t randomData[sizeof(commandBuffer)];
@@ -322,7 +322,7 @@ void warmStart() {
    // The interface is initially on
    InterfaceEnable::on();
 
-//   console_initialise();
+   //   console_initialise();
 
    checkError();
 }
@@ -350,12 +350,16 @@ void coldStart() {
 
 char buff[100];
 
+void xx(UartBasicInfo &uart) {
+   uart.setBaudRate(UartBaudRate_115200);
+}
+
 int main() {
-//   UsbLed::initialise();
-//   for (int i=0; i<20; i++) {
-//      UsbLed::toggle();
-//      waitMS(100);
-//   }
+   //   UsbLed::initialise();
+   //   for (int i=0; i<20; i++) {
+   //      UsbLed::toggle();
+   //      waitMS(100);
+   //   }
    // Need to coldStart voltage monitoring etc
    ::coldStart();
 
@@ -363,6 +367,11 @@ int main() {
 
    UsbImplementation::initialise();
    checkError();
+
+   UsbLed::toggle();
+   waitMS(1000);
+   UsbLed::toggle();
+   waitMS(1000);
 
    for(;;) {
       // Wait for USB connection

@@ -18,15 +18,235 @@
  */
 #include "pin_mapping.h"
 
-namespace USBDM {
+// No handler defined for PMC
 
+
+namespace USBDM {
 /**
  * @addtogroup PMC_Group PMC, Power Management Controller
  * @brief Peripheral information for Power Management Controller
  * @{
  */
 
-#if false // /PMC/enablePeripheralSupport
+/**
+ * Peripheral information for PMC, Power Management Controller.
+ * 
+ * This may include pin information, constants, register addresses, and default register values,
+ * along with simple accessor functions.
+ */
+   /**
+    * Low-voltage detect action
+    * (pmc_lvdsc1_action)
+    *
+    * Selects interrupt or reset on low voltage detect
+    * Note that selecting reset is a write-once selection
+    */
+   enum PmcLowVoltageAction : uint8_t {
+      PmcLowVoltageAction_None        = PMC_LVDSC1_LVDRE(0)|PMC_LVDSC1_LVDIE(0),  ///< None
+      PmcLowVoltageAction_Interrupt   = PMC_LVDSC1_LVDRE(0)|PMC_LVDSC1_LVDIE(1),  ///< Interrupt
+      PmcLowVoltageAction_Reset       = PMC_LVDSC1_LVDRE(1)|PMC_LVDSC1_LVDIE(0),  ///< Reset (write-once)
+   };
+
+   /**
+    * Low-Voltage Detect level select
+    * (pmc_lvdsc1_lvdv)
+    *
+    * Selects the LVD trip point voltage (Vlvd)
+    */
+   enum PmcLowVoltageDetectLevel : uint8_t {
+      PmcLowVoltageDetectLevel_Low    = PMC_LVDSC1_LVDV(0),  ///< Low trip point selected
+      PmcLowVoltageDetectLevel_High   = PMC_LVDSC1_LVDV(1),  ///< High trip point selected
+   };
+
+   /**
+    * Low-Voltage Detect Flag
+    * (pmc_lvdsc1_lvdf)
+    *
+    * This read-only status bit indicates a low-voltage detect event
+    */
+   enum PmcLowVoltageEventFlag : uint8_t {
+      PmcLowVoltageEventFlag_NotDetected   = PMC_LVDSC1_LVDF(0),  ///< NotDetected
+      PmcLowVoltageEventFlag_Detected      = PMC_LVDSC1_LVDF(1),  ///< Detected
+   };
+
+   /**
+    * Acknowledge Low-Voltage Detect
+    * (pmc_lvdsc1_lvdack)
+    *
+    * Clears low voltage warning error detection flag
+    */
+   enum PmcLowVoltageEventClear : uint8_t {
+      PmcLowVoltageEventClear_NoAction     = PMC_LVDSC1_LVDACK(0),  ///< NoAction
+      PmcLowVoltageEventClear_EventClear   = PMC_LVDSC1_LVDACK(1),  ///< EventClear
+   };
+
+   /**
+    * Low-Voltage Warning Interrupt Enable
+    * (pmc_lvdsc2_lvwie)
+    *
+    * Action to take on Low Voltage Warning
+    */
+   enum PmcLowVoltageWarningAction : uint8_t {
+      PmcLowVoltageWarningAction_None        = PMC_LVDSC2_LVWIE(0),  ///< No action
+      PmcLowVoltageWarningAction_Interrupt   = PMC_LVDSC2_LVWIE(1),  ///< Interrupt
+   };
+
+   /**
+    * Low-Voltage Warning Voltage Select
+    * (pmc_lvdsc2_lvwv)
+    *
+    * Selects the LVW trip point voltage (Vlvw)
+    * The actual voltage for the warning depends on pmc_lvdsc1_lvdv
+    */
+   enum PmcLowVoltageWarningLevel : uint8_t {
+      PmcLowVoltageWarningLevel_Low       = PMC_LVDSC2_LVWV(0),  ///< Low trip point selected
+      PmcLowVoltageWarningLevel_MidLow    = PMC_LVDSC2_LVWV(1),  ///< Mid 1 trip point selected
+      PmcLowVoltageWarningLevel_MidHigh   = PMC_LVDSC2_LVWV(2),  ///< Mid 2 trip point selected
+      PmcLowVoltageWarningLevel_High      = PMC_LVDSC2_LVWV(3),  ///< High trip point selected
+   };
+
+   /**
+    * Acknowledge Low-Voltage Warning
+    * (pmc_lvdsc2_lvwack)
+    *
+    * Clears low voltage warning detection flag
+    */
+   enum PmcLowVoltageWarningEventClear : uint8_t {
+      PmcLowVoltageWarningEventClear_NoAction     = PMC_LVDSC2_LVWACK(0),  ///< NoAction
+      PmcLowVoltageWarningEventClear_EventClear   = PMC_LVDSC2_LVWACK(1),  ///< EventClear
+   };
+
+   /**
+    * Low-Voltage Warning Flag
+    * (pmc_lvdsc2_lvwf)
+    *
+    * This bit indicates a low-voltage warning event.
+    * LVWF is set when VSupply transitions below the trip point
+    */
+   enum PmcLowVoltageWarningEventFlag : uint8_t {
+      PmcLowVoltageWarningEventFlag_NoEvent              = PMC_LVDSC2_LVWF(0),  ///< No event
+      PmcLowVoltageWarningEventFlag_LowVoltageDetected   = PMC_LVDSC2_LVWF(1),  ///< Low-voltage detected
+   };
+
+   /**
+    * Bandgap Enable In VLPx Operation
+    * (pmc_regsc_bgen)
+    *
+    * BGEN controls whether the bandgap is enabled in 
+    * lower power modes of operation (VLPx, LLS, and VLLSx)
+    */
+   enum PmcBandgapOperationInLowPower : uint8_t {
+      PmcBandgapOperationInLowPower_Disabled   = PMC_REGSC_BGEN(0),  ///< Disabled
+      PmcBandgapOperationInLowPower_Enabled    = PMC_REGSC_BGEN(1),  ///< Enabled
+   };
+
+   /**
+    * Bandgap Buffer Enable
+    * (pmc_regsc_bgbe)
+    *
+    * Controls whether the band-gap reference is available to internal devices e.g. CMP etc
+    */
+   enum PmcBandgapBuffer : uint8_t {
+      PmcBandgapBuffer_Disabled   = PMC_REGSC_BGBE(0),  ///< Disabled
+      PmcBandgapBuffer_Enabled    = PMC_REGSC_BGBE(1),  ///< Enabled
+   };
+
+   /**
+    * Acknowledge Isolation
+    * (pmc_regsc_ackiso)
+    *
+    * Reading indicates whether certain peripherals and I/O pads are in a latched state
+    * as a result of having been in a VLLS mode. 
+    * Writing one to this bit releases the peripherals and I/O pads to their
+    * normal run mode state.
+    */
+   enum PmcPinStatus : uint8_t {
+      PmcPinStatus_NotIsolated   = PMC_REGSC_ACKISO(0),  ///< Not isolated
+      PmcPinStatus_Isolated      = PMC_REGSC_ACKISO(1),  ///< Isolated
+   };
+
+   /**
+    * Regulation Status
+    * (pmc_regsc_regons)
+    *
+    * Indicates the current status of the internal voltage regulator.
+    */
+   enum PmcRegulator : uint8_t {
+      PmcRegulator_InStopMode   = PMC_REGSC_REGONS(0),  ///< Stop mode
+      PmcRegulator_InRunMode    = PMC_REGSC_REGONS(1),  ///< Run mode
+   };
+
+class PmcBasicInfo {
+
+public:
+}; // class PmcBasicInfo 
+
+class PmcInfo : public PmcBasicInfo {
+
+public:
+   /*
+    * Template:pmc_mk
+    */
+   //! IRQ numbers for hardware
+   static constexpr IRQn_Type irqNums[]  = PMC_IRQS;
+   
+   //! Number of IRQs for hardware
+   static constexpr uint32_t irqCount  = sizeofArray(irqNums);
+   
+   /**
+    * Enable interrupts in NVIC
+    */
+   static void enableNvicInterrupts() {
+      NVIC_EnableIRQ(irqNums[0]);
+   }
+   
+   /**
+    * Enable and set priority of interrupts in NVIC
+    * Any pending NVIC interrupts are first cleared.
+    *
+    * @param[in]  nvicPriority  Interrupt priority
+    */
+   static void enableNvicInterrupts(NvicPriority nvicPriority) {
+      enableNvicInterrupt(irqNums[0], nvicPriority);
+   }
+   
+   /**
+    * Disable interrupts in NVIC
+    */
+   static void disableNvicInterrupts() {
+      NVIC_DisableIRQ(irqNums[0]);
+   }
+   
+   //! Hardware base address as uint32_t
+   static constexpr uint32_t baseAddress = PMC_BasePtr;
+   
+   //! Hardware base pointer
+   static constexpr HardwarePtr<PMC_Type> pmc = baseAddress;
+   
+   //! Frequency of Low Power Oscillator (LPO) Clock [~1kHz]
+   static constexpr uint32_t system_low_power_clock = 1000UL;
+
+   /**
+    * Get LPO clock
+    *
+    * @return frequency in Hz as uint32_t
+    */
+   static constexpr uint32_t getLpoClock() {
+      return system_low_power_clock;
+   }
+
+   /**
+    * Acknowledge Isolation
+    * Releases the peripherals and I/O pads to their normal run mode state.
+    */
+   static void releaseIsolation() {
+      pmc->REGSC = pmc->REGSC|PMC_REGSC_ACKISO_MASK;
+   }
+   
+}; // class PmcInfo
+
+
+
 /**
  * Template class providing interface to Power Management Controller
  *
@@ -42,96 +262,11 @@ class PmcBase : public PmcInfo {
 protected:
 // No protected methods found
 
-public:
-
-#if false // /PMC/irqHandlingMethod
-   /**
-    * Wrapper to allow the use of a class member as a callback function
-    * @note Only usable with static objects.
-    *
-    * @tparam T         Type of the object containing the callback member function
-    * @tparam callback  Member function pointer
-    * @tparam object    Object containing the member function
-    *
-    * @return  Pointer to a function suitable for the use as a callback
-    *
-    * @code
-    * class AClass {
-    * public:
-    *    int y;
-    *
-    *    // Member function used as callback
-    *    // This function must match PmcCallbackFunction
-    *    void callback() {
-    *       ...;
-    *    }
-    * };
-    * ...
-    * // Instance of class containing callback member function
-    * static AClass aClass;
-    * ...
-    * // Wrap member function
-    * auto fn = Cmp0::wrapCallback<AClass, &AClass::callback, aClass>();
-    * // Use as callback
-    * Cmp0::setCallback(fn);
-    * @endcode
-    */
-   template<class T, void(T::*callback)(PmcInterruptReason reason), T &object>
-   static CallbackFunction wrapCallback() {
-      static CallbackFunction fn = [](PmcInterruptReason reason) {
-         (object.*callback)(reason);
-      };
-      return fn;
-   }
-
-   /**
-    * Wrapper to allow the use of a class member as a callback function
-    * @note There is a considerable space and time overhead to using this method
-    *
-    * @tparam T         Type of the object containing the callback member function
-    * @tparam callback  Member function pointer
-    * @tparam object    Object containing the member function
-    *
-    * @return  Pointer to a function suitable for the use as a callback
-    *
-    * @code
-    * class AClass {
-    * public:
-    *    int y;
-    *
-    *    // Member function used as callback
-    *    // This function must match PmcCallbackFunction
-    *    void callback() {
-    *       ...;
-    *    }
-    * };
-    * ...
-    * // Instance of class containing callback member function
-    * AClass aClass;
-    * ...
-    * // Wrap member function
-    * auto fn = Cmp0::wrapCallback<AClass, &AClass::callback>(aClass);
-    * // Use as callback
-    * Cmp0::setCallback(fn);
-    * @endcode
-    */
-   template<class T, void(T::*callback)(PmcInterruptReason reason)>
-   static CallbackFunction wrapCallback(T &object) {
-      static T &obj = object;
-      static CallbackFunction fn = [](PmcInterruptReason reason) {
-         (obj.*callback)(reason);
-      };
-      return fn;
-   }
-#endif
-
 protected:
    /** Hardware instance */
    static constexpr HardwarePtr<PMC_Type> pmc = baseAddress;
 
 public:
-// /PMC/publicMethods not found
-
    /**
     * Enable clock to the PMC
     */
@@ -243,21 +378,9 @@ public:
    }
 #endif
 
-#ifdef PMC_SRAMCTL_VLLS2PD_MASK
-   /**
-    * Sets which SRAM blocks are powered during LLS2 mode and VLLS2 modes.
-    *
-    * @param blocks Bit mask for the 8 SRAM blocks, 1=> retain, 0=> not powered during LLS2 mode and VLLS2 modes.
-    */
-   static void setVlpRamRetention(uint8_t blocks) {
-      pmc->SRAMCTL = (uint8_t)~blocks;
-   }
-#endif
 };
 
-// No static declarations found
 
-#endif // /PMC/enablePeripheralSupport
 
 /**
  * End PMC_Group

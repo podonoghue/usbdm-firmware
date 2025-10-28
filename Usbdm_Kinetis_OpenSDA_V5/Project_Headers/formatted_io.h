@@ -1464,7 +1464,7 @@ protected:
 
    /**************************************************************************/
 
-#if (USE_DIMENSION_CHECK)
+#if (false) // /HARDWARE/useTypeSystemForTimers
    /**
     * Write a Seconds variable
     *
@@ -1492,10 +1492,10 @@ protected:
          exponent += 3;
          units =  " ms";
       }
-      private_write(mantissa/fFormat.fFloatPrecisionMultiplier);
+      private_write(mantissa/fFloatFormat.fFloatPrecisionMultiplier);
       private_write('.');
       char buff[10];
-      ultoa(buff, mantissa%fFormat.fFloatPrecisionMultiplier, Radix_10, Padding_LeadingZeroes, fFormat.fFloatPrecision);
+      ultoa(buff, mantissa%fFloatFormat.fFloatPrecisionMultiplier, Radix_10, Padding_LeadingZeroes, int(fFloatFormat.fFloatPrecision));
       private_write(buff);
 
       if (exponent != 0) {
@@ -1584,10 +1584,10 @@ protected:
          exponent -= 3;
          units =  " kHz";
       }
-      private_write(mantissa/fFormat.fFloatPrecisionMultiplier);
+      private_write(mantissa/fFloatFormat.fFloatPrecisionMultiplier);
       private_write('.');
       char buff[10];
-      ultoa(buff, mantissa%fFormat.fFloatPrecisionMultiplier, Radix_10, Padding_LeadingZeroes, fFormat.fFloatPrecision);
+      ultoa(buff, mantissa%fFloatFormat.fFloatPrecisionMultiplier, Radix_10, Padding_LeadingZeroes, int(fFloatFormat.fFloatPrecision));
       private_write(buff);
       if (exponent != 0) {
          private_write('E');
@@ -1818,7 +1818,7 @@ public:
    /**
     * Controls echoing of input characters
     *
-    * @param echoMode
+    * @param blockingMode Controls blocking behaviour
     *
     * @return Reference to self
     */
